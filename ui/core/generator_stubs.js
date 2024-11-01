@@ -6062,6 +6062,97 @@ Blockly.Python['snek_gpio_get'] = function(block) {
   return [code, Blockly.Python.ORDER_NONE];
 };
 
+//Novos blocos para usar com arduino
+//Sensor ultrassônico
+Blockly.Python['snek_hcsr_init'] = function(block) {
+  var echoPin = Blockly.Python.valueToCode(block, 'echo', Blockly.Python.ORDER_ATOMIC);
+  var triggerPin = Blockly.Python.valueToCode(block, 'trigger', Blockly.Python.ORDER_ATOMIC);
+
+  // Removendo parênteses dos valores dos pinos
+  var triggerPinCleaned = triggerPin.replace('(', '').replace(')', '');
+  var echoPinCleaned = echoPin.replace('(', '').replace(')', '');
+
+  // Definindo a função dentro do bloco init
+  var code = `
+# Configuração dos pinos para o sensor HCSR04
+trigger = ${triggerPinCleaned}
+echo = ${echoPinCleaned}
+
+talkto(trigger)
+off()  # Definindo o pino de trigger como LOW inicialmente
+
+def read_distance():
+    # Usar variáveis globais
+    global trigger, echo
+    # Enviar um pulso de trigger
+    talkto(trigger)
+    on()
+    time.sleep(0.00001)  # Pausar 10 microssegundos
+    off()
+
+    # Medir o tempo do sinal de echo
+    talkto(echo)
+    while not read(echo):
+        pass
+    pulse_start = time.monotonic()
+
+    while read(echo):
+        pass
+    pulse_end = time.monotonic()
+
+    # Calcular a distância em cm
+    echo_time = pulse_end - pulse_start
+    distance_cm = (echo_time * 34300) / 2  # Velocidade do som em cm/s
+    return distance_cm
+
+`;
+  return code;
+};
+
+
+Blockly.Python['snek_hcsr_read'] = function(block) {
+  // O bloco read retorna apenas a chamada da função
+  var code = 'read_distance()';
+  return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
+
+//servo motor snek
+Blockly.Python['snek_servo_init'] = function(block) {
+	var pin = Blockly.Python.valueToCode(block, 'pin', Blockly.Python.ORDER_ATOMIC);
+	var value_pin = pin.replace('(', '').replace(')', '').trim();
+	var initial_angle = Blockly.Python.valueToCode(block, 'angle', Blockly.Python.ORDER_ATOMIC);
+
+	// Calculo do tempo de espera baseado no ângulo inicial
+	var t_wait = "(" + initial_angle + " / 180) * 0.002 + 0.0005";
+
+	// Código para configuração do pino e posicionamento inicial
+	var code = 'talkto(' + value_pin + ')\n';
+	code += 'off()\n';
+	code += 'setpower(1)\n';
+	code += 'on()\n';
+	code += 'time.sleep(' + t_wait + ')\n';
+	code += 'off()\n';
+	return code;
+};
+
+
+Blockly.Python['snek_servo_move'] = function(block) {
+	var angle = Blockly.Python.valueToCode(block, 'angle', Blockly.Python.ORDER_ATOMIC);
+
+	// Calculo do tempo de espera baseado no ângulo desejado
+	var t_wait = "(" + angle + " / 180) * 0.002 + 0.0005";
+
+	// Código para mover o servo
+	var code = 'on()\n';
+	code += 'time.sleep(' + t_wait + ')\n';
+	code += 'off()\n';
+	return code;
+};
+
+
+
+
+
 
 Blockly.Python['google_spreadsheet'] = function(block) {
   Blockly.Python.definitions_['import_prequests'] = 'import prequests';

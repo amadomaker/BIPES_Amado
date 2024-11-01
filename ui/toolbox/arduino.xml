@@ -384,4 +384,64 @@
       </value>
     </block>
 </category>
+<!--
+<new blocks to programming arduino
+-->
+<category name="%{BKY_CAT_SENSORS}" colour="#29BEB8">
+  <category name="Ultrasound">
+    <label text="HCSR04 ultrasound distance sensor"></label>
+    <block type="snek_hcsr_init">
+      <field name="BLOCK_HCSR_INIT">Start HCSR04 Ultrasound sensor</field>
+      <value name="echo">
+        <shadow type="pinout">
+          <field name="PIN"></field>
+        </shadow>
+      </value>
+<value name="trigger">
+        <shadow type="pinout">
+          <field name="PIN"></field>
+        </shadow>
+      </value>
+<value name="timeout">
+        <shadow type="math_number">
+          <field name="NUM">10000</field>
+        </shadow>
+      </value>
+    </block>
+    <block type="snek_hcsr_read">
+    </block>
+
+</category>
+
+</category>
+<!-- categoria para o servo motor-->
+<category name="%{BKY_CAT_SERVO}">
+  <label text="Snek RC Servo Motor"></label>
+  
+  <!-- Bloco de Inicialização do Servo -->
+  <block type="snek_servo_init">
+    <value name="pin">
+      <shadow type="pinout">
+        <field name="PIN"></field>
+      </shadow>
+    </value>
+    <value name="angle">
+      <shadow type="math_number">
+        <field name="NUM">90</field>
+      </shadow>
+    </value>
+  </block>
+  
+  <!-- Bloco de Movimento do Servo -->
+  <block type="snek_servo_move">
+    <value name="angle">
+      <shadow type="math_number">
+        <field name="NUM">90</field>
+      </shadow>
+    </value>
+  </block>
+
+</category>
+
+
 </document>
