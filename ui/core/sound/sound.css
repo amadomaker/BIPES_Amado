@@ -1,3 +1,7 @@
+.container-sound{
+    margin-top: 30px;
+}
+
 .container-buttons {
     display: flex;
     align-items: center;
@@ -25,6 +29,8 @@
 	border: 2px solid white;
 	color: white;
 	cursor: pointer;
+
+    transition: .2s;
 }
 
 .btn-play {
@@ -110,11 +116,15 @@
     gap: 5px;
 }
 
-.input-save-sound{
+.input-sound{
     border-radius: 8px;
     border: 1px solid rgba(128, 128, 128, 0.392);
     padding: 10px;
     transition: .3s;
+}
+
+#fileSound{
+    margin-top: 15px;
 }
 
 .input-save-sound:focus{
@@ -186,6 +196,36 @@
     left: 0;
     right: 0;
     bottom: 0;
+}
+
+.container-import-export-buttons{
+    display: flex;
+    gap: 20px;
+    align-items: center;
+
+    margin-left: 30px;
+}
+
+.sound-import{
+    background-color:#6B90E0 ;
+    color: white;
+
+    padding: 10px;
+}
+
+.sound-import:hover {
+    background-color: #4e6eb3;
+}
+
+.sound-export{
+    background-color: #F0893E;
+    color: white;
+
+    padding: 10px;
+}
+
+.sound-export:hover {
+    background-color: #d47836;
 }
 
 .C4 { background: #cc6666; } 
