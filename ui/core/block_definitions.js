@@ -11845,7 +11845,6 @@ Blockly.Blocks['play_song'] = {
 
             if (savedMelodies) {
                 const melodies = JSON.parse(savedMelodies);
-
                 options = melodies.map(melody => [melody.name, melody.name]);
             }
 
@@ -11855,11 +11854,38 @@ Blockly.Blocks['play_song'] = {
             }
 
             return options;
-        }), "MELODY") 
+        }), "MELODY");
+    
     this.setOutput(true, null);
     this.setColour(165);
     this.setTooltip("Reproduz a melodia selecionada");
     this.setHelpUrl("");
+
+    //menu de contexto
+    this.customContextMenu = function(options) {
+      const melodyName = this.getFieldValue("MELODY");
+      if (melodyName && melodyName !== 'NONE') {
+        options.push({
+          text: `Excluir Melodia '${melodyName}'`,
+          enabled: true,
+          callback: () => deleteMelody(melodyName)
+        });
+      }
+    };
   }
 };
+
+function deleteMelody(melodyName){
+    const melodiesString = localStorage.getItem('bipes@melodies');
+    if(melodiesString){
+      const melodies = JSON.parse(melodiesString);
+
+      const updatedMelodies = melodies.filter(melody => melody.name !== melodyName)
+
+      localStorage.setItem('bipes@melodies', JSON.stringify(updatedMelodies));
+
+      alert(`Melodia '${melodyName}' excluída com sucesso!`);
+    }
+}
+
 
