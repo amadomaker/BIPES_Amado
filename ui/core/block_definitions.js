@@ -11818,7 +11818,6 @@ Blockly.Blocks['math_min'] = {
   }
 };
 
-
 Blockly.Blocks['math_max'] = {
   init: function() {
     this.appendValueInput("VALUE1")
@@ -11831,6 +11830,35 @@ Blockly.Blocks['math_max'] = {
     this.setOutput(true, "Number");
     this.setColour(230);
     this.setTooltip("Retorna o maior dos dois valores.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['play_song'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("Reproduzir")
+        .appendField(new Blockly.FieldDropdown(() => {
+            // Recupera as melodias salvas no localStorage
+            const savedMelodies = localStorage.getItem('bipes@melodies');
+            let options = [];
+
+            if (savedMelodies) {
+                const melodies = JSON.parse(savedMelodies);
+
+                options = melodies.map(melody => [melody.name, melody.name]);
+            }
+
+            // Se não houver melodias, adiciona uma opção padrão
+            if (options.length === 0) {
+                options = [['Nenhuma melodia disponível', 'NONE']];
+            }
+
+            return options;
+        }), "MELODY") 
+    this.setOutput(true, null);
+    this.setColour(165);
+    this.setTooltip("Reproduz a melodia selecionada");
     this.setHelpUrl("");
   }
 };

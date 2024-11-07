@@ -6361,6 +6361,44 @@ Blockly.Python['math_max'] = function(block) {
 };
   
   
+Blockly.Python['play_song'] = function(block) {
+	// Obtém o nome da melodia selecionada no dropdown
+	var melodyName = block.getFieldValue('MELODY');
+  
+	// Recupera as melodias do localStorage
+	const savedMelodies = localStorage.getItem('bipes@melodies');
+	let melodies = [];
+  
+	if (savedMelodies) {
+	  // Parseia as melodias salvas para um array de objetos
+	  melodies = JSON.parse(savedMelodies);
+	}
+  
+	// Encontra a melodia correspondente com base no nome
+	var melody = melodies.find(m => m.name === melodyName);
+	var code = '';
+  
+	if (melody) {
+	  // Definindo o BPM e calculando a duração da batida
+	  var bpm = 120; // Valor padrão se não houver BPM definido
+	  if (melody.melody_data && melody.melody_data.bpm) {
+		bpm = parseInt(melody.melody_data.bpm);
+	  }
+	  var beatDuration = 60000 / bpm; // Duração do tempo em ms
+  
+	  // Gera o código Python para tocar cada nota
+	  melody.notes.forEach(note => {
+		var duration = beatDuration * note.duration;
+		if (!note.note || !note.frequency) {
+		  code += `time.sleep_ms(${duration})\n`; // Pausa se a nota for nula
+		} else {
+		  code += `buzzer.play_tone(int(${note.frequency}), int(${duration}))\n`;
+		}
+	  });
+	}
+  
+	return code;
+  };
   
 
 

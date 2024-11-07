@@ -378,8 +378,8 @@ document.body.appendChild(el);
       <div class="modal-sound-body">
           <form id="soundForm">
               <div class="form-sound">
-                  <label for="savesoundDesc">Nome da melodia</label>
-                  <input type="text" id="savesoundDesc" class="input-save-sound" placeholder="Dê um nome a sua melodia" required>
+                  <label for="soundName">Nome da melodia</label>
+                  <input type="text" id="soundName" class="input-save-sound" placeholder="Dê um nome a sua melodia" required>
               </div>
           </form>
       </div>
@@ -387,7 +387,7 @@ document.body.appendChild(el);
       <div class="divider"></div>
 
       <div class="modal-sound-footer">
-          <button id="cancelBtn" class="btn btn-close-sound-modal" onclick="closeModal()">Cancelar</button>
+          <button id="cancelSoundModalBtn" class="btn btn-close-sound-modal" onclick="closeSoundModal()">Cancelar</button>
           <button id="savesoundBtn" class="btn btn-save-sound" onclick="saveMelody()">Salvar</button>
       </div>
   </div>
@@ -399,7 +399,7 @@ document.body.appendChild(el);
     <div> 
       <div class="container-buttons">
         <div id="controls">
-            <button class="sound-btn btn-save" id="openModalBtn" data-toggle="modal" onclick="openModal()">
+            <button class="sound-btn btn-save" id="openSoundModal" data-toggle="modal" onclick="openSoundModal()">
               <i class="material-icons">save</i>
             </button>
 

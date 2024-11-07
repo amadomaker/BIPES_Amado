@@ -1,177 +1,216 @@
 const verifyAmadoBoardIsSelected = () => {
   // verifica se a AmadoBoard está selecionada e exibe o conteúdo de Som
   const valueDeviceSelector = document.getElementById("device_selector").value;
-
   const tabSound = document.getElementById("tab_sound");
   const contentSound = document.getElementById("containerSound");
 
   if (valueDeviceSelector === "AmadoBoard") {
     tabSound.style.display = "block";
     contentSound.style.display = "block";
-  }else{
-      tabSound.style.display = "none";
-      contentSound.style.display = "none";
+  } else {
+    tabSound.style.display = "none";
+    contentSound.style.display = "none";
   }
 };
 
 verifyAmadoBoardIsSelected();
-
 document
   .getElementById("device_selector")
   .addEventListener("change", verifyAmadoBoardIsSelected);
 
-function openModal() {
+function openSoundModal() {
   document.getElementById("saveSoundModal").style.display = "block";
 }
 
-function closeModal() {
+function closeSoundModal() {
   document.getElementById("saveSoundModal").style.display = "none";
 }
 
-// // Eventos de clique para abrir e fechar o modal
-document.getElementById("openModalBtn").onclick = openModal;
-document.getElementById("cancelBtn").onclick = closeModal;
-
 // array de notas musicais com seus nomes e frequências
 const notes = [
-    { name: 'C4', frequency: 261.63 },
-    { name: 'D4', frequency: 293.66 },
-    { name: 'E4', frequency: 329.63 },
-    { name: 'F4', frequency: 349.23 },
-    { name: 'G4', frequency: 392.00 },
-    { name: 'A4', frequency: 440.00 },
-    { name: 'B4', frequency: 493.88 },
-    { name: 'C5', frequency: 523.25 }
-  ];
-  
-  // seleciona o contêiner onde as notas serão exibidas
-  const pianoContainer = document.getElementById('piano-container');
-  let audioContext = null; // variável para o contexto de áudio
-  let activeNotes = []; // array para armazenar notas ativas
-  let loopTimeout = null; // variável para gerenciar o loop
-  const pianoCols = 32;  // define o número de colunas como 32
-  
-  // cria a interface do piano
-  notes.forEach((note, rowIndex) => {
-    for (let colIndex = 0; colIndex < pianoCols; colIndex++) {
-        const noteDiv = document.createElement('div'); // cria um elemento div para cada nota
-        noteDiv.classList.add('note', note.name); // adiciona classes para estilo e identificação
-        noteDiv.dataset.note = note.name; // armazena o nome da nota em um atributo de dados
-        noteDiv.dataset.frequency = note.frequency; // armazena a frequência da nota em um atributo de dados
-        noteDiv.dataset.row = rowIndex; // armazena a linha da nota
-        noteDiv.dataset.col = colIndex; // armazena a coluna da nota
-        // adiciona um evento de clique para alternar a ativação da nota
-        noteDiv.addEventListener('click', () => {
-            noteDiv.classList.toggle('active');
-        });
-        pianoContainer.appendChild(noteDiv); // adiciona o elemento ao contêiner
-    }
-  });
-  
-  // função para tocar a melodia
-  function playMelody() {
-    if (audioContext) {
-        audioContext.close(); // fecha o contexto de áudio anterior, se existir
-    }
-    audioContext = new (window.AudioContext || window.webkitAudioContext)(); // cria um novo contexto de áudio
-  
-    const bpm = document.getElementById('bpm').value; // obtém o valor de BPM do elemento de entrada
-    const beatDuration = 60000 / bpm; // calcula a duração de cada batida em milissegundos
-  
-    activeNotes = []; // reinicializa as notas ativas
-    let currentNote = null; // variável para a nota atual
-    let duration = 0; // duração da nota atual
-  
-    // percorre as colunas do piano
-    for (let col = 0; col < pianoCols; col++) {
-        let hasActiveNote = false; // flag para verificar se há uma nota ativa
-  
-        // percorre as linhas das notas
-        for (let row = 0; row < notes.length; row++) {
-            const noteDiv = document.querySelector(`.note[data-row="${row}"][data-col="${col}"]`); // seleciona o elemento da nota
-  
-            // verifica se a nota está ativa
-            if (noteDiv.classList.contains('active')) {
-                // se a nota atual é a mesma que a nota clicada, incrementa a duração
-                if (currentNote && currentNote.note === noteDiv.dataset.note) {
-                    duration++;
-                } else {
-                    // se existe uma nota atual, adiciona ao array de notas ativas
-                    if (currentNote) {
-                        currentNote.duration = duration; // define a duração da nota atual
-                        activeNotes.push(currentNote);
-                    }
-                    // define a nova nota atual
-                    currentNote = {
-                        note: noteDiv.dataset.note,
-                        frequency: noteDiv.dataset.frequency,
-                        duration: 1 // inicializa a duração
-                    };
-                    duration = 1; // reinicia a duração para a nova nota
-                }
-                hasActiveNote = true; // marca que há uma nota ativa
-            }
-        }
-  
-        // adiciona a última nota ativa ao array
-        if (currentNote) {
-            currentNote.duration = duration; // define a duração
+  { name: "C4", frequency: 261.63 },
+  { name: "D4", frequency: 293.66 },
+  { name: "E4", frequency: 329.63 },
+  { name: "F4", frequency: 349.23 },
+  { name: "G4", frequency: 392.0 },
+  { name: "A4", frequency: 440.0 },
+  { name: "B4", frequency: 493.88 },
+  { name: "C5", frequency: 523.25 },
+];
+
+const pianoContainer = document.getElementById("piano-container");
+let audioContext = null; // contexto de áudio para reproduzir sons
+let activeNotes = []; // array para armazenar as notas ativas
+const pianoCols = 32; // número de colunas no grid do piano
+
+// cria a interface do piano com 32 colunas para cada nota
+notes.forEach((note, rowIndex) => {
+  for (let colIndex = 0; colIndex < pianoCols; colIndex++) {
+    const noteDiv = document.createElement("div");
+    noteDiv.classList.add("note", note.name);
+    noteDiv.dataset.note = note.name;
+    noteDiv.dataset.frequency = note.frequency;
+    noteDiv.dataset.row = rowIndex;
+    noteDiv.dataset.col = colIndex;
+
+    // alterna a ativação da nota ao clicar
+    noteDiv.addEventListener("click", () => {
+      noteDiv.classList.toggle("active");
+    });
+
+    pianoContainer.appendChild(noteDiv);
+  }
+});
+
+// função para construir o array de notas ativas
+function buildActiveNotes() {
+  activeNotes = [];
+  let currentNote = null;
+  let duration = 0;
+
+  // percorre cada coluna para verificar notas ativas
+  for (let col = 0; col < pianoCols; col++) {
+    let hasActiveNote = false;
+
+    // verifica cada linha para encontrar notas ativas
+    for (let row = 0; row < notes.length; row++) {
+      const noteDiv = document.querySelector(
+        `.note[data-row="${row}"][data-col="${col}"]`
+      );
+
+      if (noteDiv.classList.contains("active")) {
+        // se for a mesma nota que a anterior, incrementa a duração
+        if (currentNote && currentNote.note === noteDiv.dataset.note) {
+          duration++;
+        } else {
+          // adiciona a nota atual ao array e inicia uma nova
+          if (currentNote) {
+            currentNote.duration = duration;
             activeNotes.push(currentNote);
-            currentNote = null; // reseta a nota atual
-            duration = 0; // reinicia a duração
+          }
+          currentNote = {
+            note: noteDiv.dataset.note,
+            frequency: noteDiv.dataset.frequency,
+            duration: 1,
+          };
+          duration = 1;
         }
-  
-        // se não houver nota ativa na coluna, adiciona uma nota de silêncio
-        if (!hasActiveNote) {
-            activeNotes.push({
-                note: null,
-                frequency: null,
-                duration: 1 // define duração padrão para silêncio
-            });
-        }
+        hasActiveNote = true;
+      }
     }
-  
-    // função para executar o loop de reprodução
-    function playLoop() {
-        if (!audioContext) return; // verifica se o contexto de áudio existe
-  
-        let currentTime = 0; // tempo atual de reprodução
-  
-        // percorre as notas ativas e agenda sua reprodução
-        activeNotes.forEach(note => {
-            setTimeout(() => {
-                if (audioContext) {
-                    // se a nota não for nula, toca o tom
-                    if (note.note) {
-                        playTone(note.frequency, note.duration * beatDuration);
-                    } else {
-                        playSilence(note.duration * beatDuration); // toca silêncio
-                    }
-                }
-            }, currentTime);
-            currentTime += note.duration * beatDuration; // atualiza o tempo atual
-        });
-    }
-  
-    playLoop(); // inicia a reprodução do loop
-  }
-  
-  // função para pausar a melodia
-  function pauseMelody() {
-    if (audioContext) {
-        audioContext.close(); // fecha o contexto de áudio
-        audioContext = null; // reseta o contexto
+
+    // adiciona a última nota ao array
+    if (currentNote) {
+      currentNote.duration = duration;
+      activeNotes.push(currentNote);
+      currentNote = null;
+      duration = 0;
     }
   }
+}
+
+function verifyMelodyExists(name){
+    // verifica se uma melodia existe pelo nome
+    const melodies = retrieveMelodies();
+
+    const melodiesExists = melodies.filter(melody => melody.name === name)[0];
+
+    if(melodiesExists){
+      return true;
+    }
+
+    return false;
+}
+
+function retrieveMelodies(){
+  // retorna as melodias do localstorage
+  const melodiesString = localStorage.getItem('bipes@melodies');
   
-  // função para tocar uma nota com uma determinada frequência e duração
-  function playTone(frequency, duration) {
-    if (!audioContext) return; // verifica se o contexto de áudio existe
-  
-    const oscillator = audioContext.createOscillator(); // cria um oscilador
-    oscillator.type = 'sine'; // define o tipo de onda
-    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime); // define a frequência
-    oscillator.connect(audioContext.destination); // conecta o oscilador ao destino de áudio
-    oscillator.start(); // inicia o oscilador
-    oscillator.stop(audioContext.currentTime + duration / 1000); // para o oscilador após a duração
+  if(melodiesString){
+    return JSON.parse(melodiesString);
   }
+
+  return [];
+}
+
+function clearSoundInput(){
+  document.getElementById('soundName').value = ''
+}
+
+// salva a melodia no localStorage
+function saveMelody() {
+  const melodyName = document.getElementById("soundName").value;
+
+  if (!melodyName) {
+    alert("Dê um nome para a nova melodia");
+    return;
+  }
+
+  if(verifyMelodyExists(melodyName)){
+    alert(`Melodia com nome ${melodyName} já criada!`);
+    return;
+  }
+
+  buildActiveNotes();
+
+  if (activeNotes.length > 0) {
+    const prevMelodies = localStorage.getItem("bipes@melodies");
+    let updatedMelodies = prevMelodies ? JSON.parse(prevMelodies) : [];
+
+    // cria um novo objeto de melodia e adiciona ao array
+    const newMelody = { name: melodyName, notes: activeNotes };
+    updatedMelodies.push(newMelody);
+
+    localStorage.setItem("bipes@melodies", JSON.stringify(updatedMelodies));
+    closeSoundModal();
+    clearSoundInput();
+    alert("Melodia salva com sucesso!");
+  } else {
+    alert("Nenhuma melodia para salvar");
+  }
+}
+
+// toca a melodia ativa com base no BPM
+function playMelody() {
+  if (audioContext) {
+    audioContext.close();
+  }
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  const bpm = document.getElementById("bpm").value;
+  const beatDuration = 60000 / bpm;
+
+  buildActiveNotes();
+
+  let currentTime = 0;
+
+  // agenda cada nota para tocar no momento certo
+  activeNotes.forEach((note) => {
+    setTimeout(() => {
+      if (audioContext) {
+        playTone(note.frequency, note.duration * beatDuration);
+      }
+    }, currentTime);
+    currentTime += note.duration * beatDuration;
+  });
+}
+
+// pausa a melodia
+function pauseMelody() {
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+  }
+}
+
+// toca uma nota com uma frequência e duração específicas
+function playTone(frequency, duration) {
+  if (!audioContext) return;
+
+  const oscillator = audioContext.createOscillator();
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+  oscillator.connect(audioContext.destination);
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + duration / 1000);
+}

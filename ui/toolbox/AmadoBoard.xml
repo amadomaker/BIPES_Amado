@@ -1503,6 +1503,10 @@ _
       </value>
     </block>
 
+    <label text="User Created Songs:"></label>
+
+    <block type="play_song"></block>
+
     <label text="Songs:"></label>
     <button text="Install songs library" callbackKey="installPyLib"></button>
 
