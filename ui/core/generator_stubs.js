@@ -6063,6 +6063,12 @@ Blockly.Python['snek_gpio_get'] = function(block) {
   return [code, Blockly.Python.ORDER_NONE];
 };
 
+Blockly.Python['play_song'] = function(block) {
+  var code = ``
+
+  return code;
+};
+
 
 Blockly.Python['google_spreadsheet'] = function(block) {
   Blockly.Python.definitions_['import_prequests'] = 'import prequests';

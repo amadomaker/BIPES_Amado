@@ -121,6 +121,7 @@ function buildActiveNotes() {
             note: noteDiv.dataset.note,
             frequency: noteDiv.dataset.frequency,
             duration: 1,
+            startCol: col, //coluna inicial
           };
           duration = 1;
         }
@@ -129,7 +130,7 @@ function buildActiveNotes() {
     }
 
     // adiciona a última nota ao array
-    if (currentNote) {
+    if (currentNote && !hasActiveNote) {
       currentNote.duration = duration;
       activeNotes.push(currentNote);
       currentNote = null;
@@ -286,6 +287,33 @@ function exportMelody() {
   }
 }
 
+function clearPiano() {
+  // limpa as notas ativas
+  document.querySelectorAll(".note.active").forEach((noteDiv) => {
+    noteDiv.classList.remove("active");
+  });
+}
+
+// Função para exibir a melodia importada no piano
+function displayImportedMelody(notes) {
+  clearPiano();
+
+  // Percorre cada nota da melodia importada
+  notes.forEach((note) => {
+    // Para cada nota, ativa as colunas correspondentes à duração a partir da coluna correta
+    const startCol = parseInt(note.startCol, 10);
+
+    for (let colOffset = 0; colOffset < note.duration; colOffset++) {
+      const noteDiv = document.querySelector(
+        `.note[data-note="${note.note}"][data-col="${startCol + colOffset}"]`
+      );
+      if (noteDiv) {
+        noteDiv.classList.add("active");
+      }
+    }
+  });
+}
+
 async function importMelody() {
   const input = document.getElementById("soundNameImport");
 
@@ -305,7 +333,7 @@ async function importMelody() {
       (melody) => melody.name !== melodyName
     );
 
-    localStorage.setItem("bipes@melodies", filteredMelodies);
+    localStorage.setItem("bipes@melodies", JSON.stringify(filteredMelodies));
   }
 
   addMelodyToLocalStorage({
@@ -313,9 +341,13 @@ async function importMelody() {
     notes: newMelody.notes,
   });
 
+  // Exibe a melodia importada no piano
+  displayImportedMelody(newMelody.notes);
+
   closeImportSoundModal();
   input.value = "";
   alert("Melodia importada com sucesso!");
+  document.getElementById("fileSound").value = "";
 }
 
 function getParsedJsonFile() {
@@ -345,3 +377,13 @@ function getParsedJsonFile() {
     }
   });
 }
+
+document.getElementById("fileSound").addEventListener("change", async () => {
+  const newMelody = await getParsedJsonFile();
+
+  if (newMelody.name) {
+    const inputSoundName = document.getElementById("soundNameImport");
+
+    inputSoundName.value = newMelody.name;
+  }
+});

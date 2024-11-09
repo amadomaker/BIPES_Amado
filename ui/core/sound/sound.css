@@ -159,6 +159,19 @@
     background-color: #22754e;
 }
 
+.btn-clear{
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: black;
+
+    transition: .2s;
+}
+
+.btn-clear:hover{
+    color:#F03A3E ;
+}
+
 .divider{
     background-color: rgba(128, 128, 128, 0.392);
     width: 100%;

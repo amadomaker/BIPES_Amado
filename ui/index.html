@@ -426,9 +426,9 @@ document.body.appendChild(el);
       <div class="modal-sound-body">
           <form id="soundForm">
               <div class="form-sound">
-                  <label for="soundNameImport">Nome da melodia</label>
-                  <input type="text" id="soundNameImport" class="input-sound" placeholder="Dê um nome a sua melodia" required>
-                  <input type="file" id="fileSound" class="input-sound" accept=".json" placeholder="Dê um nome a sua melodia" required>
+                <input type="file" id="fileSound" class="input-sound" accept=".json" placeholder="Dê um nome a sua melodia" required>
+                <label for="soundNameImport">Nome da melodia</label>
+                <input type="text" id="soundNameImport" class="input-sound" placeholder="Dê um nome a sua melodia" required>
               </div>
           </form>
       </div>
@@ -448,6 +448,10 @@ document.body.appendChild(el);
     <div> 
       <div class="container-buttons">
         <div id="controls">
+            <button class="sound-btn btn-clear" id="clearPianoBtn" onclick="clearPiano()">
+              <i class="material-icons">delete</i>
+            </button>
+
             <button class="sound-btn btn-save" id="openSoundModal" data-toggle="modal" onclick="openSoundModal()">
               <i class="material-icons">save</i>
             </button>

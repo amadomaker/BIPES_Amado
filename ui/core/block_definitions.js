@@ -11849,16 +11849,23 @@ Blockly.Blocks['play_song'] = {
       const melodyName = this.getFieldValue("MELODY");
       if (melodyName && melodyName !== 'NONE') {
         options.push({
-          text: `Excluir Melodia '${melodyName}'`,
+          text: `Excluir '${melodyName}'`,
           enabled: true,
-          callback: () => deleteMelody(melodyName)
+          callback: () => deleteSavedMelody(melodyName)
+        });
+
+        options.push({
+          text: `Exportar '${melodyName}'`,
+          enabled: true,
+          callback: () => exportSavedMelody(melodyName)
         });
       }
     };
   }
 };
 
-function deleteMelody(melodyName){
+function deleteSavedMelody(melodyName){
+  // deleta uma melodia pelo nome
     const melodiesString = localStorage.getItem('bipes@melodies');
     if(melodiesString){
       const melodies = JSON.parse(melodiesString);
@@ -11869,6 +11876,46 @@ function deleteMelody(melodyName){
 
       alert(`Melodia '${melodyName}' excluída com sucesso!`);
     }
+}
+
+function getMelodyDataByName(melodyName){
+  // busca melodia pelo nome
+  const melodiesString = localStorage.getItem('bipes@melodies');
+
+  if(melodiesString){
+    const melodies = JSON.parse(melodiesString);
+
+    const melodyData = melodies.filter(melody => melody.name === melodyName)[0];
+
+    return melodyData || null
+  }
+   
+}
+
+function exportSavedMelody(melodyName) {
+  // exporta melodai pelo nome
+  
+  const melodyData = getMelodyDataByName(melodyName);
+
+  if(!melodyData){
+    alert('Algo deu errado ao exportar a melodia');
+    return;
+  }
+
+    const jsonStr = JSON.stringify(melodyData, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = melodyData.name;
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+    inputExport.value = "";
+    closeExportSoundModal();
+    alert("Melodia '" + melodyData.name + "' exportada como sucesso!");
 }
 
 
