@@ -93,51 +93,58 @@ notes.forEach((note, rowIndex) => {
 
 // função para construir o array de notas ativas
 function buildActiveNotes() {
-  activeNotes = [];
-  let currentNote = null;
-  let duration = 0;
-
-  // percorre cada coluna para verificar notas ativas
-  for (let col = 0; col < pianoCols; col++) {
-    let hasActiveNote = false;
-
-    // verifica cada linha para encontrar notas ativas
-    for (let row = 0; row < notes.length; row++) {
-      const noteDiv = document.querySelector(
-        `.note[data-row="${row}"][data-col="${col}"]`
-      );
-
-      if (noteDiv.classList.contains("active")) {
-        // se for a mesma nota que a anterior, incrementa a duração
-        if (currentNote && currentNote.note === noteDiv.dataset.note) {
-          duration++;
-        } else {
-          // adiciona a nota atual ao array e inicia uma nova
-          if (currentNote) {
-            currentNote.duration = duration;
-            activeNotes.push(currentNote);
+    activeNotes = [];
+    let currentNote = null;
+    let duration = 0;
+   
+    // percorre cada coluna para verificar notas ativas
+    for (let col = 0; col < pianoCols; col++) {
+      let hasActiveNote = false;
+    
+      // verifica cada linha para encontrar notas ativas
+      for (let row = 0; row < notes.length; row++) {
+        const noteDiv = document.querySelector(
+          `.note[data-row="${row}"][data-col="${col}"]`
+        );
+  
+        if (noteDiv.classList.contains("active")) {
+            // se for a mesma nota que a anterior, incrementa a duração
+          if (currentNote && currentNote.note === noteDiv.dataset.note) {
+            duration++;
+          } else {
+            // adiciona a nota atual ao array e inicia uma nova
+            if (currentNote) {
+              currentNote.duration = duration;
+              activeNotes.push(currentNote);
+            }
+            currentNote = {
+              note: noteDiv.dataset.note,
+              frequency: parseFloat(noteDiv.dataset.frequency),
+              duration: 1,
+              startCol: col,
+            };
+            duration = 1;
           }
-          currentNote = {
-            note: noteDiv.dataset.note,
-            frequency: noteDiv.dataset.frequency,
-            duration: 1,
-            startCol: col, //coluna inicial
-          };
-          duration = 1;
+          hasActiveNote = true;
         }
-        hasActiveNote = true;
+      }
+  
+      // adiciona a última nota ao array ou uma nota de silêncio se nenhuma estiver ativa na coluna
+      if (currentNote && hasActiveNote) {
+        currentNote.duration = duration;
+        activeNotes.push(currentNote);
+        currentNote = null;
+        duration = 0;
+      } else if (!hasActiveNote) {
+        activeNotes.push({
+          note: null,
+          frequency: null,
+          duration: 1,
+          startCol: col,
+        });
       }
     }
-
-    // adiciona a última nota ao array
-    if (currentNote && !hasActiveNote) {
-      currentNote.duration = duration;
-      activeNotes.push(currentNote);
-      currentNote = null;
-      duration = 0;
-    }
   }
-}
 
 function verifyMelodyExists(name) {
   // verifica se uma melodia existe pelo nome
@@ -207,28 +214,43 @@ function addMelodyToLocalStorage(newMelody) {
 
 // toca a melodia ativa com base no BPM
 function playMelody() {
-  if (audioContext) {
-    audioContext.close();
-  }
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-  const bpm = document.getElementById("bpm").value;
-  const beatDuration = 60000 / bpm;
-
-  buildActiveNotes();
-
-  let currentTime = 0;
-
-  // agenda cada nota para tocar no momento certo
-  activeNotes.forEach((note) => {
-    setTimeout(() => {
-      if (audioContext) {
-        playTone(note.frequency, note.duration * beatDuration);
-      }
-    }, currentTime);
-    currentTime += note.duration * beatDuration;
-  });
+    if (audioContext) {
+      audioContext.close();
+    }
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+    const bpm = document.getElementById("bpm").value;
+    const beatDuration = 60000 / bpm;
+  
+    buildActiveNotes();
+  
+    let currentTime = 0;
+    
+    // agenda cada nota para tocar no momento certo
+    activeNotes.forEach((note) => {
+      setTimeout(() => {
+        if (audioContext) {
+          if (note.note) {
+            playTone(note.frequency, note.duration * beatDuration);
+          }
+          // se note.note for null, nada é tocado
+        }
+      }, currentTime);
+      currentTime += note.duration * beatDuration;
+    });
 }
+  
+    // toca uma nota com uma frequência e duração específicas
+  function playTone(frequency, duration) {
+    if (!audioContext || !frequency) return;
+  
+    const oscillator = audioContext.createOscillator();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+    oscillator.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + duration / 1000);
+  }
 
 // pausa a melodia
 function pauseMelody() {
