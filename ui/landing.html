@@ -15,10 +15,13 @@
         "@context": "https://schema.org",
         "@type": "Educational Organization",
         "name": "Dblocks",
-        "sameAs": [
-          "https://amadomaker.com.br",
-          
-        ]
+        "sameAs": ["https://amadomaker.com.br"]
+      }
+    </script>
+
+    <script defer>
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
       }
     </script>
 
@@ -48,6 +51,14 @@
         class="logo-dblocks"
       />
 
+      <button
+        class="menu-toggle"
+        aria-label="Abrir Menu"
+        onclick="toggleSidebar()"
+      >
+        ☰
+      </button>
+
       <nav class="nav" aria-label="Main Navigation">
         <ul class="container-nav">
           <li>
@@ -72,6 +83,24 @@
 
       <button class="btn btn-primary">Comece a Programar!</button>
     </header>
+
+    <div class="sidebar" id="sidebar">
+      <button
+        class="close-btn"
+        aria-label="Fechar Menu"
+        onclick="toggleSidebar()"
+      >
+        ×
+      </button>
+      <ul class="sidebar-nav">
+        <li><a href="#">BIPES</a></li>
+        <li><a href="#">Comunidade</a></li>
+        <li><a href="#">Projetos</a></li>
+        <li>
+          <a href="https://amadomaker.com.br" target="_blank">Amado Maker</a>
+        </li>
+      </ul>
+    </div>
 
     <main class="main">
       <section class="section main-section">
@@ -176,17 +205,21 @@
         </nav>
 
         <div class="container-images-footer">
-        <a href="https://bipes.net.br/ide/" target="_blank">
-            <img src="media/logo-bipes.svg" alt="Logo BIPES" class="logo-bipes" />
-        </a>
+          <a href="https://bipes.net.br/ide/" target="_blank">
+            <img
+              src="media/logo-bipes.svg"
+              alt="Logo BIPES"
+              class="logo-bipes"
+            />
+          </a>
 
-        <a href="https://amadomaker.com.br" target="_blank">
+          <a href="https://amadomaker.com.br" target="_blank">
             <img
               src="media/logo-amado-maker.png"
               alt="Logo Amado Maker"
               class="logo-amado"
             />
-        </a>
+          </a>
         </div>
       </div>
       <span class="copy"> © 2024 Dblocks® - Todos os direitos reservados </span>

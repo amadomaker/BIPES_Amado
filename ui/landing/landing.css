@@ -56,7 +56,6 @@ button {
 .header {
   width: 100%;
   height: 100px;
-
   display: flex;
   padding: 0px 60px;
   justify-content: space-between;
@@ -91,7 +90,6 @@ button {
   transition: 0.2s background;
   color: white;
   font-family: var(--font-family), sans-serif;
-
   font-size: 16px;
   font-weight: 500;
 }
@@ -111,7 +109,7 @@ button {
 .btn-secondary {
   background: var(--secondary);
 }
-.btn-secondary :hover {
+.btn-secondary:hover {
   background: var(--secondary-hover);
 }
 
@@ -144,7 +142,6 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   padding: 0 60px;
   margin-top: 96px;
 }
@@ -195,6 +192,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 112px;
+  flex-wrap: wrap;
 }
 
 .card {
@@ -203,13 +201,10 @@ button {
   border-radius: 8px;
   border: 1px solid #e8e8e8;
   box-shadow: 0px 4px 10px 0px rgba(129, 129, 129, 0.25);
-
   padding: 27px 25px;
-
   display: flex;
   flex-direction: column;
   gap: 36px;
-
   transition: 0.2s;
 }
 
@@ -231,7 +226,6 @@ button {
 
 .card-title {
   font-size: 16px;
-
   font-weight: 400;
   line-height: normal;
 }
@@ -246,13 +240,12 @@ button {
 .last-section {
   width: 100%;
   padding: 0 144px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.container-last-section-text{
+.container-last-section-text {
   max-width: 461px;
 }
 
@@ -276,35 +269,221 @@ button {
   height: 319px;
   border: 1px solid #cacaca;
   border-radius: 8px;
-
 }
 
-.footer{
+.footer {
   width: 100%;
 }
 
-.container-footer{
+.container-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid #d2d1d1;
-
   padding: 35px 60px;
-
 }
 
-.container-nav-footer li a:hover{
+.container-nav-footer li a:hover {
   text-decoration: underline;
 }
 
-.container-images-footer{
+.container-images-footer {
   display: flex;
   align-items: center;
   gap: 35px;
 }
 
-.copy{
+.copy {
   display: block;
   padding: 10px 0px;
   text-align: center;
+}
+
+/* sidebar */
+.menu-toggle {
+  display: none;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.close-btn {
+  font-size: 24px;
+  background: none;
+  border: none;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  color: white;
+}
+
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px; 
+  width: 250px;
+  height: 100%;
+  background-color: #333;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  padding: 20px;
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar-nav {
+  list-style: none;
+  margin-top: 50px;
+}
+
+.sidebar-nav li {
+  margin: 15px 0;
+}
+
+.sidebar-nav a {
+  color: white;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.sidebar-nav a:hover {
+  text-decoration: underline;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+/* Tablet e mobile */
+@media (max-width: 1024px) {
+  .section{
+    margin-bottom: 30px;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+  .nav {
+    display: none;
+  }
+
+  .main-section {
+    flex-direction: column;
+    gap: 40px;
+    padding: 20px;
+    justify-content: center;
+  }
+
+  .main-section .btn-primary{
+    margin: auto;
+  }
+
+  .container-main-text {
+    max-width: 90%;
+  }
+
+  .header .btn-primary {
+    display: none;
+  }
+
+  .cards-section {
+    padding: 20px;
+  }
+
+  .container-cards {
+    width: 100%;
+    padding: 10px;
+    flex-direction: column;
+    gap: 30px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .card {
+    width: 70%;
+  }
+
+  .last-section {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .last-section{
+    gap: 20px;
+  }
+
+  .last-section .btn-secondary{
+    margin: auto;
+  }
+
+  .last-section-image {
+    width: 100%;
+    height: auto;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .container-footer {
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+  }
+}
+
+/* Mobile específico */
+@media (max-width: 768px) {
+  .container-nav {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .logo-dblocks {
+    width: 120px;
+    height: auto;
+  }
+
+  .section-main-title {
+    font-size: 36px;
+    text-align: center;
+  }
+
+  .section-main-text {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .cards-section {
+    padding: 10px;
+  }
+
+  .card {
+    width: 90%;
+    gap: 20px;
+  }
+
+  .container-last-section-text {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .last-section-title {
+    font-size: 28px;
+  }
+
+  .last-section-text {
+    font-size: 16px;
+  }
+
+  .footer .copy {
+    font-size: 14px;
+  }
 }
