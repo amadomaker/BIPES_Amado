@@ -329,6 +329,24 @@ Blockly.Python['var_to_float'] = function(block) {
 	return [code, Blockly.Python.ORDER_NONE];
 };
 
+//Bloco para a função map
+Blockly.Python['map_value'] = function(block) {
+  var value = Blockly.Python.valueToCode(block, 'VALUE', Blockly.Python.ORDER_ATOMIC) || '0';
+  var in_min = Blockly.Python.valueToCode(block, 'IN_MIN', Blockly.Python.ORDER_ATOMIC) || '0';
+  var in_max = Blockly.Python.valueToCode(block, 'IN_MAX', Blockly.Python.ORDER_ATOMIC) || '1023';
+  var out_min = Blockly.Python.valueToCode(block, 'OUT_MIN', Blockly.Python.ORDER_ATOMIC) || '0';
+  var out_max = Blockly.Python.valueToCode(block, 'OUT_MAX', Blockly.Python.ORDER_ATOMIC) || '255';
+  
+  // Definindo a função de mapeamento, caso ainda não esteja no código.
+  Blockly.Python.definitions_['map_value'] = `
+def map_value(x, in_min, in_max, out_min, out_max):
+    return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+`;
+
+  var code = `map_value(${value}, ${in_min}, ${in_max}, ${out_min}, ${out_max})`;
+  return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
+
 //OneWire
 
 Blockly.Python['onewire_ds18x20_init'] = function(block) {
