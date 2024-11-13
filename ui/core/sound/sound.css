@@ -191,16 +191,22 @@
     width: 100%;
     position: relative;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: .1s;
 }
+
+.note-name{
+    user-select: none;
+}
+.note:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
 
 .note.active {
     opacity: 0.3;
-}
-
-.note::before {
-    content: '';
-    display: block;
-    padding-top: 100%;
 }
 
 .note-content {
@@ -241,11 +247,16 @@
     background-color: #d47836;
 }
 
-.C4 { background: #cc6666; } 
-.D4 { background: #cc9966; } 
-.E4 { background: #cccc66; } 
-.F4 { background: #99cc66; }
-.G4 { background: #66cc66; } 
-.A4 { background: #66cc99; }
-.B4 { background: #6699cc; } 
-.C5 { background: #9966cc; } 
+.C4 { background: #96d8f2; } 
+.D4 { background: #ee8f42; } 
+.E4 { background: #976fb3; } 
+.F4 { background: #f5f242; }
+.G4 { background: #de6fbd; } 
+.A4 { background: #b4de66; }
+.B4 { background: #fa2121; } 
+.C5 { background: #7bb8e5; } 
+
+
+  
+
+

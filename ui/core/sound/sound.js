@@ -77,6 +77,7 @@ notes.forEach((note, rowIndex) => {
   for (let colIndex = 0; colIndex < pianoCols; colIndex++) {
     const noteDiv = document.createElement("div");
     noteDiv.classList.add("note", note.name);
+    noteDiv.innerHTML = note.name
     noteDiv.dataset.note = note.name;
     noteDiv.dataset.frequency = note.frequency;
     noteDiv.dataset.row = rowIndex;
@@ -84,6 +85,15 @@ notes.forEach((note, rowIndex) => {
 
     // alterna a ativação da nota ao clicar
     noteDiv.addEventListener("click", () => {
+      if (!noteDiv.classList.contains("active")) {
+        const bpm = document.getElementById("bpm").value;
+
+        const beatDuration = 60000 / bpm;
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        playTone(note.frequency, beatDuration);
+
+        audioContext = null;
+      }
       noteDiv.classList.toggle("active");
     });
 
@@ -216,6 +226,7 @@ function addMelodyToLocalStorage(newMelody) {
 function playMelody() {
     if (audioContext) {
       audioContext.close();
+      audioContext = null;
     }
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
   
@@ -409,3 +420,4 @@ document.getElementById("fileSound").addEventListener("change", async () => {
     inputSoundName.value = newMelody.name;
   }
 });
+
