@@ -399,6 +399,10 @@ document.body.appendChild(el);
     <div> 
       <div class="container-buttons">
         <div id="controls">
+          <button class="sound-btn btn-clear" id="clearPianoBtn" onclick="clearPiano()">
+            <i class="material-icons">delete</i>
+          </button>
+          
             <button class="sound-btn btn-save" id="openModalBtn" data-toggle="modal" onclick="openModal()">
               <i class="material-icons">save</i>
             </button>
@@ -417,7 +421,9 @@ document.body.appendChild(el);
     </div>
 
     <div class="container-main-grid" >
-      <div id="piano-container" style="width: 100vw;"></div>
+      <div id="piano-container" style="width: 100vw; position: relative;">
+        <div id="playback-bar"></div>
+      </div>
     </div>
   
 

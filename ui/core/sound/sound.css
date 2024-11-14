@@ -259,4 +259,15 @@
 
   
 
-
+#playback-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background-color: red;
+    transform: translateX(0);
+    transition: transform 0.1s linear;
+    display: none;
+    z-index: 100;
+  }
