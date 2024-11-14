@@ -2262,6 +2262,47 @@ Blockly.Blocks['var_to_float'] = {
   }
 };
 
+//Bloco para função Map
+Blockly.defineBlocksWithJsonArray([
+  {
+    "type": "map_value",
+    "message0": "mapear %1 in min %2 in max %3 out min %4 out max %5",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "IN_MIN",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "IN_MAX",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "OUT_MIN",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "OUT_MAX",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,  // Define que as entradas devem ser exibidas em linha
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Mapeia um valor de uma faixa para outra.",
+    "helpUrl": ""
+  }
+]);
+
+
 Blockly.Blocks['project_metadata'] = {
   init: function() {
     this.appendDummyInput()
