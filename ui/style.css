@@ -110,9 +110,16 @@ h1 {
   background-position: left calc(-2rem*8) top; /* heigth * index in icons.svg */
 }
 
+.logo-dblocks{
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}
+
 .top-menu > .tabs {
   margin: 0 0.5rem;
   display: flex;
+  align-items: center;
   width: 100%;
   overflow-x: auto;
   padding: .5rem 0;
