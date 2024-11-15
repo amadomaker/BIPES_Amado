@@ -21,7 +21,7 @@ document
 function openSoundModal() {
   buildActiveNotes();
 
-  if (activeNotes.length === 0) {
+  if (activeNotes.length === 0 || activeNotes.every(note => note.note === null)) {
     alert("Nenhuma melodia para salvar!");
     return;
   }
@@ -35,7 +35,9 @@ function closeSoundModal() {
 function openExportSoundModal() {
   buildActiveNotes();
 
-  if (activeNotes.length === 0) {
+  console.log(activeNotes)
+
+  if (activeNotes.length === 0 || activeNotes.every(note => note.note === null)) {
     alert("Nenhuma melodia para exportar!");
     return;
   }
@@ -321,39 +323,42 @@ function playTone(frequency, duration) {
 // import e export
 
 function exportMelody() {
-  const inputExport = document.getElementById("soundNameExport");
+  buildActiveNotes();
 
-  const melodyName = inputExport.value;
-
-  if (!melodyName) {
-    alert("Dê um nome para a nova melodia");
+  if (activeNotes.length === 0 || activeNotes.every(note => note.note === null)) {
+    alert("Nenhuma melodia para exportar!");
     return;
   }
 
-  buildActiveNotes();
+  const inputExport = document.getElementById("soundNameExport");
+  const melodyName = inputExport.value;
 
-  if (activeNotes.length > 0) {
-    const melodyData = {
-      name: melodyName,
-      notes: activeNotes,
-    };
-
-    const jsonStr = JSON.stringify(melodyData, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = melodyName;
-    a.click();
-
-    URL.revokeObjectURL(url);
-
-    inputExport.value = "";
-    closeExportSoundModal();
-    alert("Melodia '" + melodyName + "' exportada como sucesso!");
+  if (!melodyName) {
+    alert("Dê um nome para melodia");
+    return;
   }
+
+  const melodyData = {
+    name: melodyName,
+    notes: activeNotes,
+  };
+
+  const jsonStr = JSON.stringify(melodyData, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = melodyName;
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+  inputExport.value = "";
+  closeExportSoundModal();
+  alert("Melodia '" + melodyName + "' exportada com sucesso!");
 }
+
 
 function clearPiano() {
   // limpa as notas ativas
