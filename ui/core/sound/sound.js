@@ -21,7 +21,7 @@ document
 function openSoundModal() {
   buildActiveNotes();
 
-  if (activeNotes.length === 0) {
+  if (activeNotes.length === 0 || activeNotes.every(note => note.note === null)) {
     alert("Nenhuma melodia para salvar!");
     return;
   }
@@ -35,7 +35,9 @@ function closeSoundModal() {
 function openExportSoundModal() {
   buildActiveNotes();
 
-  if (activeNotes.length === 0) {
+  console.log(activeNotes)
+
+  if (activeNotes.length === 0 || activeNotes.every(note => note.note === null)) {
     alert("Nenhuma melodia para exportar!");
     return;
   }
@@ -77,6 +79,7 @@ notes.forEach((note, rowIndex) => {
   for (let colIndex = 0; colIndex < pianoCols; colIndex++) {
     const noteDiv = document.createElement("div");
     noteDiv.classList.add("note", note.name);
+    noteDiv.innerHTML = note.name;
     noteDiv.dataset.note = note.name;
     noteDiv.dataset.frequency = note.frequency;
     noteDiv.dataset.row = rowIndex;
@@ -84,6 +87,15 @@ notes.forEach((note, rowIndex) => {
 
     // alterna a ativação da nota ao clicar
     noteDiv.addEventListener("click", () => {
+      if (!noteDiv.classList.contains("active")) {
+        const bpm = document.getElementById("bpm").value;
+
+        const beatDuration = 60000 / bpm;
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        playTone(note.frequency, beatDuration);
+
+        audioContext = null;
+      }
       noteDiv.classList.toggle("active");
     });
 
@@ -93,58 +105,58 @@ notes.forEach((note, rowIndex) => {
 
 // função para construir o array de notas ativas
 function buildActiveNotes() {
-    activeNotes = [];
-    let currentNote = null;
-    let duration = 0;
-   
-    // percorre cada coluna para verificar notas ativas
-    for (let col = 0; col < pianoCols; col++) {
-      let hasActiveNote = false;
-    
-      // verifica cada linha para encontrar notas ativas
-      for (let row = 0; row < notes.length; row++) {
-        const noteDiv = document.querySelector(
-          `.note[data-row="${row}"][data-col="${col}"]`
-        );
-  
-        if (noteDiv.classList.contains("active")) {
-            // se for a mesma nota que a anterior, incrementa a duração
-          if (currentNote && currentNote.note === noteDiv.dataset.note) {
-            duration++;
-          } else {
-            // adiciona a nota atual ao array e inicia uma nova
-            if (currentNote) {
-              currentNote.duration = duration;
-              activeNotes.push(currentNote);
-            }
-            currentNote = {
-              note: noteDiv.dataset.note,
-              frequency: parseFloat(noteDiv.dataset.frequency),
-              duration: 1,
-              startCol: col,
-            };
-            duration = 1;
+  activeNotes = [];
+  let currentNote = null;
+  let duration = 0;
+
+  // percorre cada coluna para verificar notas ativas
+  for (let col = 0; col < pianoCols; col++) {
+    let hasActiveNote = false;
+
+    // verifica cada linha para encontrar notas ativas
+    for (let row = 0; row < notes.length; row++) {
+      const noteDiv = document.querySelector(
+        `.note[data-row="${row}"][data-col="${col}"]`
+      );
+
+      if (noteDiv.classList.contains("active")) {
+        // se for a mesma nota que a anterior, incrementa a duração
+        if (currentNote && currentNote.note === noteDiv.dataset.note) {
+          duration++;
+        } else {
+          // adiciona a nota atual ao array e inicia uma nova
+          if (currentNote) {
+            currentNote.duration = duration;
+            activeNotes.push(currentNote);
           }
-          hasActiveNote = true;
+          currentNote = {
+            note: noteDiv.dataset.note,
+            frequency: parseFloat(noteDiv.dataset.frequency),
+            duration: 1,
+            startCol: col,
+          };
+          duration = 1;
         }
-      }
-  
-      // adiciona a última nota ao array ou uma nota de silêncio se nenhuma estiver ativa na coluna
-      if (currentNote && hasActiveNote) {
-        currentNote.duration = duration;
-        activeNotes.push(currentNote);
-        currentNote = null;
-        duration = 0;
-      } else if (!hasActiveNote) {
-        activeNotes.push({
-          note: null,
-          frequency: null,
-          duration: 1,
-          startCol: col,
-        });
+        hasActiveNote = true;
       }
     }
+
+    // adiciona a última nota ao array ou uma nota de silêncio se nenhuma estiver ativa na coluna
+    if (currentNote && hasActiveNote) {
+      currentNote.duration = duration;
+      activeNotes.push(currentNote);
+      currentNote = null;
+      duration = 0;
+    } else if (!hasActiveNote) {
+      activeNotes.push({
+        note: null,
+        frequency: null,
+        duration: 1,
+        startCol: col,
+      });
+    }
   }
+}
 
 function verifyMelodyExists(name) {
   // verifica se uma melodia existe pelo nome
@@ -212,57 +224,93 @@ function addMelodyToLocalStorage(newMelody) {
   localStorage.setItem("bipes@melodies", JSON.stringify(updatedMelodies));
 }
 
-// toca a melodia ativa com base no BPM
+let timeoutHandles = []; // Armazena timeouts para poder limpá-los ao pausar ou reiniciar
+
 function playMelody() {
-    if (audioContext) {
-      audioContext.close();
+  // Limpa qualquer execução anterior
+  stopPlayback();
+
+  // Reinicia o contexto de áudio
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  const bpm = document.getElementById("bpm").value;
+  const beatDuration = 60000 / bpm;
+
+  buildActiveNotes();
+
+  // Identifica a última coluna com uma nota ativa
+  let lastActiveCol = -1;
+  activeNotes.forEach((note) => {
+    if (note.note && note.startCol + note.duration > lastActiveCol) {
+      lastActiveCol = note.startCol + note.duration - 1;
     }
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  
-    const bpm = document.getElementById("bpm").value;
-    const beatDuration = 60000 / bpm;
-  
-    buildActiveNotes();
-  
-    let currentTime = 0;
-    
-    // agenda cada nota para tocar no momento certo
-    activeNotes.forEach((note) => {
-      setTimeout(() => {
-        if (audioContext) {
-          if (note.note) {
-            playTone(note.frequency, note.duration * beatDuration);
-          }
-          // se note.note for null, nada é tocado
-        }
-      }, currentTime);
-      currentTime += note.duration * beatDuration;
-    });
-}
-  
-    // toca uma nota com uma frequência e duração específicas
-  function playTone(frequency, duration) {
-    if (!audioContext || !frequency) return;
-  
-    const oscillator = audioContext.createOscillator();
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-    oscillator.connect(audioContext.destination);
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + duration / 1000);
+  });
+
+  // Se não houver notas ativas, interrompe a execução
+  if (lastActiveCol < 0) {
+    alert("Nenhuma nota ativa para tocar!");
+    return;
   }
 
-// pausa a melodia
+  let currentTime = 0;
+  const playbackBar = document.getElementById("playback-bar");
+  playbackBar.style.display = "block";
+  playbackBar.style.transform = `translateX(0)`;
+
+  const columnWidth = pianoContainer.offsetWidth / pianoCols;
+
+  // Animação da barra e reprodução de notas
+  for (let col = 0; col <= lastActiveCol; col++) {
+    const barTimeout = setTimeout(() => {
+      playbackBar.style.transform = `translateX(${col * columnWidth}px)`;
+
+      // Reproduz as notas na coluna atual uma após a outra
+      const notesInColumn = activeNotes.filter(
+        (note) => note.startCol === col && note.note
+      );
+      notesInColumn.forEach((note, index) => {
+        const noteTimeout = setTimeout(() => {
+          playTone(note.frequency, note.duration * beatDuration);
+        }, index * beatDuration); // Toca cada nota em sequência, uma após a outra
+        timeoutHandles.push(noteTimeout);
+      });
+    }, currentTime);
+
+    timeoutHandles.push(barTimeout);
+    currentTime += beatDuration;
+  }
+
+  // Esconde a barra quando a melodia termina
+  const hideTimeout = setTimeout(() => {
+    playbackBar.style.display = "none";
+  }, currentTime);
+  timeoutHandles.push(hideTimeout);
+}
+
+// Pausar e reiniciar a reprodução
 function pauseMelody() {
+  stopPlayback();
+}
+
+// Limpa a reprodução em andamento
+function stopPlayback() {
+  timeoutHandles.forEach(clearTimeout);
+  timeoutHandles = [];
+
+  // Fecha o contexto de áudio e reseta a barra de reprodução
   if (audioContext) {
     audioContext.close();
     audioContext = null;
   }
+
+  const playbackBar = document.getElementById("playback-bar");
+  playbackBar.style.display = "none";
+  playbackBar.style.transform = `translateX(0)`;
 }
 
 // toca uma nota com uma frequência e duração específicas
 function playTone(frequency, duration) {
-  if (!audioContext) return;
+  if (!audioContext || !frequency) return;
 
   const oscillator = audioContext.createOscillator();
   oscillator.type = "sine";
@@ -275,39 +323,42 @@ function playTone(frequency, duration) {
 // import e export
 
 function exportMelody() {
-  const inputExport = document.getElementById("soundNameExport");
+  buildActiveNotes();
 
-  const melodyName = inputExport.value;
-
-  if (!melodyName) {
-    alert("Dê um nome para a nova melodia");
+  if (activeNotes.length === 0 || activeNotes.every(note => note.note === null)) {
+    alert("Nenhuma melodia para exportar!");
     return;
   }
 
-  buildActiveNotes();
+  const inputExport = document.getElementById("soundNameExport");
+  const melodyName = inputExport.value;
 
-  if (activeNotes.length > 0) {
-    const melodyData = {
-      name: melodyName,
-      notes: activeNotes,
-    };
-
-    const jsonStr = JSON.stringify(melodyData, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = melodyName;
-    a.click();
-
-    URL.revokeObjectURL(url);
-
-    inputExport.value = "";
-    closeExportSoundModal();
-    alert("Melodia '" + melodyName + "' exportada como sucesso!");
+  if (!melodyName) {
+    alert("Dê um nome para melodia");
+    return;
   }
+
+  const melodyData = {
+    name: melodyName,
+    notes: activeNotes,
+  };
+
+  const jsonStr = JSON.stringify(melodyData, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = melodyName;
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+  inputExport.value = "";
+  closeExportSoundModal();
+  alert("Melodia '" + melodyName + "' exportada com sucesso!");
 }
+
 
 function clearPiano() {
   // limpa as notas ativas
