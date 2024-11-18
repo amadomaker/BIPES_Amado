@@ -65,8 +65,8 @@ button {
 }
 
 .logo-dblocks {
-  width: 155px;
-  height: 93px;
+  width: 220px;
+  height: 160px;
   cursor: pointer;
 }
 
@@ -171,8 +171,7 @@ button {
 
 .section-main-image {
   border: 1px solid #cacaca;
-  width: 565px;
-  height: 319px;
+
   flex-shrink: 0;
   border-radius: 8px;
 }

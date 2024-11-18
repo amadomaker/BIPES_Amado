@@ -103,7 +103,7 @@ h1 {
   content:"";
   display:inline-block;
   width: 2rem;
-  height: 2rem;
+  height: 2rem; 
   background-size: cover;
   background-image: url(media/icons.svg);
   background-size: auto 4rem;
@@ -117,12 +117,12 @@ h1 {
 }
 
 .top-menu > .tabs {
-  margin: 0 0.5rem;
+  margin: 0 0.2rem;
   display: flex;
   align-items: center;
   width: 100%;
   overflow-x: auto;
-  padding: .5rem 0;
+  /* padding: .5rem 0; */
 }
 .top-menu #channel_connect {
   display: flex;
@@ -325,7 +325,7 @@ input.checkswitch[type="checkbox"] {
 /* Tabs */
 .tabs > div {
   min-width: auto !important;
-  padding: 0.75rem .75rem;
+  padding: 0.50rem .50rem;
   transition: box-shadow ease .125s, background-color linear .125s, border-color linear .125s, color linear .125s;
   margin: 0 0.125rem;
   border-radius: .25rem;
@@ -839,6 +839,7 @@ button.icon.medium:before  {
   color: #327ae7;
   font-size: 0.8rem;
   font-weight: bold;
+  max-width: 200px;
 }
 #device_selector:focus {
   color: #000;
