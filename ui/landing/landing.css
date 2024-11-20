@@ -138,6 +138,25 @@ button {
   width: 100%;
 }
 
+.container-button-lang{
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  gap: 10px;
+}
+
+.container-lang{
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.container-lang select{
+  border-radius: 8px;
+  padding: 5px;
+  border: 1px solid #d2d1d1;
+}
+
 .main-section {
   display: flex;
   align-items: center;
@@ -362,6 +381,10 @@ button {
 @media (max-width: 1024px) {
   .section{
     margin-bottom: 30px;
+  }
+
+  .header{
+    padding: 10px;
   }
 
   .menu-toggle {
