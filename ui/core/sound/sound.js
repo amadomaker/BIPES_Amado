@@ -21,7 +21,10 @@ document
 function openSoundModal() {
   buildActiveNotes();
 
-  if (activeNotes.length === 0 || activeNotes.every(note => note.note === null)) {
+  if (
+    activeNotes.length === 0 ||
+    activeNotes.every((note) => note.note === null)
+  ) {
     alert("Nenhuma melodia para salvar!");
     return;
   }
@@ -35,9 +38,10 @@ function closeSoundModal() {
 function openExportSoundModal() {
   buildActiveNotes();
 
-  console.log(activeNotes)
-
-  if (activeNotes.length === 0 || activeNotes.every(note => note.note === null)) {
+  if (
+    activeNotes.length === 0 ||
+    activeNotes.every((note) => note.note === null)
+  ) {
     alert("Nenhuma melodia para exportar!");
     return;
   }
@@ -325,7 +329,10 @@ function playTone(frequency, duration) {
 function exportMelody() {
   buildActiveNotes();
 
-  if (activeNotes.length === 0 || activeNotes.every(note => note.note === null)) {
+  if (
+    activeNotes.length === 0 ||
+    activeNotes.every((note) => note.note === null)
+  ) {
     alert("Nenhuma melodia para exportar!");
     return;
   }
@@ -359,7 +366,6 @@ function exportMelody() {
   alert("Melodia '" + melodyName + "' exportada com sucesso!");
 }
 
-
 function clearPiano() {
   // limpa as notas ativas
   document.querySelectorAll(".note.active").forEach((noteDiv) => {
@@ -388,16 +394,9 @@ function displayImportedMelody(notes) {
 }
 
 async function importMelody() {
-  const input = document.getElementById("soundNameImport");
-
-  const melodyName = input.value;
-
-  if (!melodyName) {
-    alert("Dê um nome para a nova melodia");
-    return;
-  }
-
   const newMelody = await getParsedJsonFile();
+
+  const melodyName = newMelody.name;
 
   if (verifyMelodyExists(melodyName)) {
     const melodies = retrieveMelodies();
@@ -418,7 +417,6 @@ async function importMelody() {
   displayImportedMelody(newMelody.notes);
 
   closeImportSoundModal();
-  input.value = "";
   alert("Melodia importada com sucesso!");
   document.getElementById("fileSound").value = "";
 }
@@ -435,7 +433,6 @@ function getParsedJsonFile() {
       reader.onload = function (e) {
         try {
           const jsonContent = JSON.parse(e.target.result);
-          console.log(jsonContent);
           resolve(jsonContent);
         } catch (error) {
           alert("Erro ao importar arquivo");
@@ -450,13 +447,3 @@ function getParsedJsonFile() {
     }
   });
 }
-
-document.getElementById("fileSound").addEventListener("change", async () => {
-  const newMelody = await getParsedJsonFile();
-
-  if (newMelody.name) {
-    const inputSoundName = document.getElementById("soundNameImport");
-
-    inputSoundName.value = newMelody.name;
-  }
-});
