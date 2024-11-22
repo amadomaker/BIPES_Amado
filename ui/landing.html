@@ -51,24 +51,16 @@
         class="logo-dblocks"
       />
 
-      <button
-        class="menu-toggle"
-        aria-label="Abrir Menu"
-        onclick="toggleSidebar()"
-      >
-        ☰
-      </button>
-
       <nav class="nav" aria-label="Main Navigation">
         <ul class="container-nav">
           <li>
             <a href="#" aria-label="Navegue para BIPES">BIPES</a>
           </li>
           <li>
-            <a href="#" aria-label="Navegue para Comunidade">Comunidade</a>
+            <a href="#" aria-label="Navegue para Comunidade" id="community">Comunidade</a>
           </li>
           <li>
-            <a href="#" aria-label="Navegue para Projetos">Projetos</a>
+            <a href="#" aria-label="Navegue para Projetos" id="projects">Projetos</a>
           </li>
           <li>
             <a
@@ -80,9 +72,28 @@
           </li>
         </ul>
       </nav>
-      <a href="./index.html">
-        <button class="btn btn-primary">Comece a Programar!</button>
-      </a>
+      <div class="container-button-lang">
+        <a href="./index.html">
+          <button class="btn btn-primary" id="startCode">Comece a Programar!</button>
+        </a>
+
+        <button
+          class="menu-toggle"
+          aria-label="Abrir Menu"
+          onclick="toggleSidebar()"
+        >
+          ☰
+        </button>
+
+        <div class="container-lang">
+          <select id="languageMenu"></select>
+          <img
+            id="languageFlag"
+            alt="Language Flag"
+            style="width: 32px; height: 20px"
+          />
+        </div>
+      </div>
     </header>
 
     <div class="sidebar" id="sidebar">
@@ -93,10 +104,11 @@
       >
         ×
       </button>
+
       <ul class="sidebar-nav">
         <li><a href="#">BIPES</a></li>
-        <li><a href="#">Comunidade</a></li>
-        <li><a href="#">Projetos</a></li>
+        <li><a href="#" id="communitySidebar">Comunidade</a></li>
+        <li><a href="#" id="projectsSidebar">Projetos</a></li>
         <li>
           <a href="https://amadomaker.com.br" target="_blank">Amado Maker</a>
         </li>
@@ -106,25 +118,25 @@
     <main class="main">
       <section class="section main-section">
         <div class="container-main-text">
-          <h3 class="section-main-title">
+          <h3 class="section-main-title" id="landingTitle">
             Busque o <span>Programador</span> dentro de você
           </h3>
 
-          <p class="section-main-text">
+          <p class="section-main-text" id="landingSubtitle">
             Aprenda a programar de forma divertida e intuitiva com nosso
             ambiente de desenvolvimento visual.
           </p>
 
           <a href="./index.html">
-            <button class="btn btn-primary">Comece Agora!</button>
+            <button class="btn btn-primary" id="startNow">Comece Agora!</button>
           </a>
         </div>
 
         <div>
           <img
-            src="media/blocks-landing.svg"
+            src="media/blocks-landing.png"
             alt="Imagem dos blocos do Dblocks"
-            class="last-section-image"
+            class="section-main-image"
           />
         </div>
       </section>
@@ -134,10 +146,10 @@
           <div class="card">
             <div class="card-header">
               <i class="material-icons card-icon">menu_book</i>
-              <h4 class="card-title">Aprenda e Ensine com Facilidade</h4>
+              <h4 class="card-title" id="cardTitle1">Aprenda e Ensine com Facilidade</h4>
             </div>
 
-            <p class="card-description">
+            <p class="card-description" id="cardDescription1">
               Com uma interface visual baseada em blocos, nossa aplicação torna
               o aprendizado acessível para todos. Professores, estudantes e
               iniciantes podem criar projetos com facilidade, sem precisar de
@@ -148,10 +160,10 @@
           <div class="card">
             <div class="card-header">
               <i class="material-icons card-icon"> computer </i>
-              <h4 class="card-title">Versátil para Diversos Projetos</h4>
+              <h4 class="card-title" id="cardTitle2">Versátil para Diversos Projetos</h4>
             </div>
 
-            <p class="card-description">
+            <p class="card-description" id="cardDescription2">
               Desenvolva soluções educacionais interativas que se adaptam a uma
               ampla variedade de projetos e objetivos de aprendizado.
             </p>
@@ -160,10 +172,10 @@
           <div class="card">
             <div class="card-header">
               <i class="material-icons card-icon">code</i>
-              <h4 class="card-title">Simplicidade no Desenvolvimento</h4>
+              <h4 class="card-title" id="cardTitle3">Simplicidade no Desenvolvimento</h4>
             </div>
 
-            <p class="card-description">
+            <p class="card-description" id="cardDescription3">
               Com nossa ferramenta você pode prototipar e implementar suas
               ideias em minutos, diretamente do navegador, sem necessidade de
               instalações complicadas ou configurações avançadas.
@@ -181,10 +193,10 @@
               <a href="#">BIPES</a>
             </li>
             <li>
-              <a href="#">Comunidade</a>
+              <a href="#" id="communityFooter">Comunidade</a>
             </li>
             <li>
-              <a href="#">Projetos</a>
+              <a href="#" id="projectsFooter">Projetos</a>
             </li>
             <li>
               <a href="https://amadomaker.com.br">Amado Maker</a>
@@ -193,7 +205,7 @@
         </nav>
 
         <div class="container-images-footer">
-          <a href="https://bipes.net.br/ide/" target="_blank">
+          <a href="https://bipes.net.br/wp/" target="_blank">
             <img
               src="media/logo-bipes.svg"
               alt="Logo BIPES"
@@ -210,7 +222,7 @@
           </a>
         </div>
       </div>
-      <span class="copy"> © 2024 Dblocks® - Todos os direitos reservados </span>
+      <span class="copy" id="footerMessage"> © 2024 Dblocks® - Todos os direitos reservados </span>
     </footer>
   </body>
 </html>
