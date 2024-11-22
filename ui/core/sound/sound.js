@@ -92,7 +92,7 @@ notes.forEach((note, rowIndex) => {
     // alterna a ativação da nota ao clicar
     noteDiv.addEventListener("click", () => {
       const column = colIndex;
-    
+
       // desmarcar as notas da mesma coluna
       document
         .querySelectorAll(`.note[data-col="${column}"].active`)
@@ -101,25 +101,23 @@ notes.forEach((note, rowIndex) => {
             activeNote.classList.remove("active");
           }
         });
-    
+
       noteDiv.classList.toggle("active");
-    
+
       if (noteDiv.classList.contains("active")) {
         const bpm = document.getElementById("bpm").value;
         const beatDuration = 60000 / bpm;
-    
+
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         playTone(note.frequency, beatDuration);
-    
+
         audioContext = null;
       }
     });
-    
 
     pianoContainer.appendChild(noteDiv);
   }
 });
-
 
 // função para construir o array de notas ativas
 function buildActiveNotes() {
@@ -191,7 +189,7 @@ function verifyMelodyExists(name) {
 
 function retrieveMelodies() {
   // retorna as melodias do localstorage
-  const melodiesString = localStorage.getItem("bipes@melodies");
+  const melodiesString = localStorage.getItem("dblocks@melodies");
 
   if (melodiesString) {
     return JSON.parse(melodiesString);
@@ -234,12 +232,12 @@ function saveMelody() {
 }
 
 function addMelodyToLocalStorage(newMelody) {
-  const prevMelodies = localStorage.getItem("bipes@melodies");
+  const prevMelodies = localStorage.getItem("dblocks@melodies");
   let updatedMelodies = prevMelodies ? JSON.parse(prevMelodies) : [];
 
   updatedMelodies.push(newMelody);
 
-  localStorage.setItem("bipes@melodies", JSON.stringify(updatedMelodies));
+  localStorage.setItem("dblocks@melodies", JSON.stringify(updatedMelodies));
 }
 
 let timeoutHandles = []; // Armazena timeouts para poder limpá-los ao pausar ou reiniciar
@@ -419,7 +417,7 @@ async function importMelody() {
       (melody) => melody.name !== melodyName
     );
 
-    localStorage.setItem("bipes@melodies", JSON.stringify(filteredMelodies));
+    localStorage.setItem("dblocks@melodies", JSON.stringify(filteredMelodies));
   }
 
   addMelodyToLocalStorage({

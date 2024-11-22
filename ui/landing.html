@@ -50,40 +50,7 @@
         alt="Logo Dblocks"
         class="logo-dblocks"
       />
-
-      <nav class="nav" aria-label="Main Navigation">
-        <ul class="container-nav">
-          <li>
-            <a href="#" aria-label="Navegue para BIPES">BIPES</a>
-          </li>
-          <li>
-            <a href="#" aria-label="Navegue para Comunidade" id="community">Comunidade</a>
-          </li>
-          <li>
-            <a href="#" aria-label="Navegue para Projetos" id="projects">Projetos</a>
-          </li>
-          <li>
-            <a
-              href="https://amadomaker.com.br"
-              aria-label="Navegue para Amado Maker"
-              target="_blank"
-              >Amado Maker</a
-            >
-          </li>
-        </ul>
-      </nav>
       <div class="container-button-lang">
-        <a href="./index.html">
-          <button class="btn btn-primary" id="startCode">Comece a Programar!</button>
-        </a>
-
-        <button
-          class="menu-toggle"
-          aria-label="Abrir Menu"
-          onclick="toggleSidebar()"
-        >
-          ☰
-        </button>
 
         <div class="container-lang">
           <select id="languageMenu"></select>
@@ -95,25 +62,6 @@
         </div>
       </div>
     </header>
-
-    <div class="sidebar" id="sidebar">
-      <button
-        class="close-btn"
-        aria-label="Fechar Menu"
-        onclick="toggleSidebar()"
-      >
-        ×
-      </button>
-
-      <ul class="sidebar-nav">
-        <li><a href="#">BIPES</a></li>
-        <li><a href="#" id="communitySidebar">Comunidade</a></li>
-        <li><a href="#" id="projectsSidebar">Projetos</a></li>
-        <li>
-          <a href="https://amadomaker.com.br" target="_blank">Amado Maker</a>
-        </li>
-      </ul>
-    </div>
 
     <main class="main">
       <section class="section main-section">
@@ -127,14 +75,12 @@
             ambiente de desenvolvimento visual.
           </p>
 
-          <a href="./index.html">
-            <button class="btn btn-primary" id="startNow">Comece Agora!</button>
-          </a>
+            <button onclick="navigateToIDE()" class="btn btn-primary" id="startCode">Comece a Programar!</button>
         </div>
 
         <div>
           <img
-            src="media/blocks-landing.png"
+            id="blocksImage"
             alt="Imagem dos blocos do Dblocks"
             class="section-main-image"
           />
@@ -187,40 +133,23 @@
 
     <footer class="footer">
       <div class="container-footer">
-        <nav class="nav-footer">
-          <ul class="container-nav-footer">
-            <li>
-              <a href="#">BIPES</a>
-            </li>
-            <li>
-              <a href="#" id="communityFooter">Comunidade</a>
-            </li>
-            <li>
-              <a href="#" id="projectsFooter">Projetos</a>
-            </li>
-            <li>
-              <a href="https://amadomaker.com.br">Amado Maker</a>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="container-images-footer">
-          <a href="https://bipes.net.br/wp/" target="_blank">
+        <a href="https://amadomaker.com.br" target="_blank">
+          <img
+            src="media/logo-amado-maker.png"
+            alt="Logo Amado Maker"
+            class="logo-amado"
+          />
+        </a>
+        <a href="https://bipes.net.br/wp/" target="_blank">
+          <div class="container-logo-bipes">
             <img
               src="media/logo-bipes.svg"
               alt="Logo BIPES"
-              class="logo-bipes"
+              class="logo-bipes-image"
             />
-          </a>
-
-          <a href="https://amadomaker.com.br" target="_blank">
-            <img
-              src="media/logo-amado-maker.png"
-              alt="Logo Amado Maker"
-              class="logo-amado"
-            />
-          </a>
-        </div>
+            <div class="logo-bipes-text">BIPES</div>
+          </div>
+        </a>
       </div>
       <span class="copy" id="footerMessage"> © 2024 Dblocks® - Todos os direitos reservados </span>
     </footer>

@@ -61,9 +61,15 @@ Code.getStringParamFromUrl = function(name, defaultValue) {
 Code.getLang = function() {
   var lang = Code.getStringParamFromUrl('lang', '');
   if (Code.LANGUAGE_NAME[lang] === undefined) {
-    // Default to pt-br.
+    const savedLang = localStorage.getItem('dblocks@lang')
+
+    if(savedLang){
+      return savedLang;
+    }
+
     lang = 'pt-br';
   }
+
   return lang;
 };
 
@@ -139,6 +145,8 @@ Code.changeLanguage = function() {
   } else {
     search = search.replace(/\?/, '?lang=' + newLang + '&');
   }
+
+  localStorage.setItem('dblocks@lang', newLang)
 
   window.location = window.location.protocol + '//' +
       window.location.host + window.location.pathname + search;
