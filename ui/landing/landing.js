@@ -10,15 +10,15 @@ Code.LANGUAGE_NAME = {
 };
 
 Code.FLAGS = {
-  en: "media/usa.svg",
-  "pt-br": "media/brazil.svg",
-  es: "media/spanish.svg",
+  en: "landing/media/usa.svg",
+  "pt-br": "landing/media/brazil.svg",
+  es: "landing/media/spanish.svg",
 };
 
 Code.BLOCK_IMAGES = {
-  en: 'media/blocks_en.png',
-  "pt-br": "media/blocks_pt-br.png",
-  es: "media/blocks_es.png",
+  en: 'landing/media/blocks_en.png',
+  "pt-br": "landing/media/blocks_pt-br.png",
+  es: "landing/media/blocks_es.png",
 }
 
 // Função para carregar um script dinamicamente
