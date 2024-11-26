@@ -61,10 +61,7 @@ Code.changeLanguage = function () {
 };
 
 Code.getLang = () => {
-  // Obtém o idioma da URL, ou localstorage ou usa o padrão
-  const savedLang = localStorage.getItem("bipes@lang");
-
-  if (Code.LANGUAGE_NAME[savedLang] !== undefined) return savedLang;
+  // Obtém o idioma da URL, ou usa o padrão
 
   var urlParams = new URLSearchParams(window.location.search);
   const paramLang = urlParams.get("lang");
