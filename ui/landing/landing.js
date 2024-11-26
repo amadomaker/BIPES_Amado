@@ -16,10 +16,10 @@ Code.FLAGS = {
 };
 
 Code.BLOCK_IMAGES = {
-  en: 'landing/media/blocks_en.png',
+  en: "landing/media/blocks_en.png",
   "pt-br": "landing/media/blocks_pt-br.png",
   es: "landing/media/blocks_es.png",
-}
+};
 
 // Função para carregar um script dinamicamente
 function loadScript(src, callback) {
@@ -37,7 +37,7 @@ Code.changeLanguage = function () {
   // Atualiza a bandeira
   var flagElement = document.getElementById("languageFlag");
   if (flagElement) {
-    flagElement.src = Code.FLAGS[newLang] || "media/brazil.svg";
+    flagElement.src = Code.FLAGS[newLang] || "landing/media/brazil.svg";
     flagElement.alt = Code.LANGUAGE_NAME[newLang] || "Language";
   }
 
@@ -51,8 +51,6 @@ Code.changeLanguage = function () {
     search = search.replace(/\?/, "?lang=" + newLang + "&");
   }
 
-  localStorage.setItem('dblocks@lang', newLang)
-
   // Recarrega a página com o novo idioma
   window.location =
     window.location.protocol +
@@ -64,21 +62,21 @@ Code.changeLanguage = function () {
 
 Code.getLang = () => {
   // Obtém o idioma da URL, ou localstorage ou usa o padrão
-  const savedLang = localStorage.getItem('dblocks@lang');
+  const savedLang = localStorage.getItem("bipes@lang");
 
-  if(Code.LANGUAGE_NAME[savedLang] !== undefined) return savedLang;
+  if (Code.LANGUAGE_NAME[savedLang] !== undefined) return savedLang;
 
   var urlParams = new URLSearchParams(window.location.search);
   const paramLang = urlParams.get("lang");
 
-  if(paramLang) return paramLang;
+  if (paramLang) return paramLang;
 
-  return Code.LANG
-}
+  return Code.LANG;
+};
 
 // Função para inicializar as traduções
 Code.initLanguage = function () {
-  Code.LANG = Code.getLang(); 
+  Code.LANG = Code.getLang();
 
   let flagElement = document.getElementById("languageFlag");
   if (flagElement) {
@@ -86,8 +84,8 @@ Code.initLanguage = function () {
     flagElement.alt = Code.LANGUAGE_NAME[Code.LANG] || "Language";
   }
 
-  var blocksImageElement = document.getElementById('blocksImage');
-  if(blocksImageElement){
+  var blocksImageElement = document.getElementById("blocksImage");
+  if (blocksImageElement) {
     blocksImage.src = Code.BLOCK_IMAGES[Code.LANG] || "media/blocks_pt-br.png";
     blocksImage.alt = Code.LANGUAGE_NAME[Code.LANG] || "Language";
   }
@@ -116,7 +114,6 @@ Code.initLanguage = function () {
       languageMenu.options.add(option);
     });
 
-
     languageMenu.addEventListener("change", Code.changeLanguage, true);
 
     document.getElementById("startCode").textContent = MSG["startCode"];
@@ -136,10 +133,10 @@ Code.initLanguage = function () {
   });
 };
 
-
 const navigateToIDE = () => {
-    window.location.href = `/ui?lang=${Code.LANG}`
-}
+  const params = new URLSearchParams({lang: Code.LANG});
+  window.location.href = `/ui/index.html?${params.toString()}`
+};
 
 // Inicializar as traduções ao carregar a página
 document.addEventListener("DOMContentLoaded", function () {

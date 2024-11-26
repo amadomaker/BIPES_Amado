@@ -11864,7 +11864,7 @@ Blockly.Blocks['play_song'] = {
         .appendField("Reproduzir")
         .appendField(new Blockly.FieldDropdown(() => {
             // Recupera as melodias salvas no localStorage
-            const savedMelodies = localStorage.getItem('dblocks@melodies');
+            const savedMelodies = localStorage.getItem('bipes@melodies');
             let options = [];
 
             if (savedMelodies) {
@@ -11907,13 +11907,13 @@ Blockly.Blocks['play_song'] = {
 
 function deleteSavedMelody(melodyName){
   // deleta uma melodia pelo nome
-    const melodiesString = localStorage.getItem('dblocks@melodies');
+    const melodiesString = localStorage.getItem('bipes@melodies');
     if(melodiesString){
       const melodies = JSON.parse(melodiesString);
 
       const updatedMelodies = melodies.filter(melody => melody.name !== melodyName)
 
-      localStorage.setItem('dblocks@melodies', JSON.stringify(updatedMelodies));
+      localStorage.setItem('bipes@melodies', JSON.stringify(updatedMelodies));
 
       alert(`Melodia '${melodyName}' excluída com sucesso!`);
     }
@@ -11921,7 +11921,7 @@ function deleteSavedMelody(melodyName){
 
 function getMelodyDataByName(melodyName){
   // busca melodia pelo nome
-  const melodiesString = localStorage.getItem('dblocks@melodies');
+  const melodiesString = localStorage.getItem('bipes@melodies');
 
   if(melodiesString){
     const melodies = JSON.parse(melodiesString);

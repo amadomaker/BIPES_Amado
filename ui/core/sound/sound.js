@@ -189,7 +189,7 @@ function verifyMelodyExists(name) {
 
 function retrieveMelodies() {
   // retorna as melodias do localstorage
-  const melodiesString = localStorage.getItem("dblocks@melodies");
+  const melodiesString = localStorage.getItem("bipes@melodies");
 
   if (melodiesString) {
     return JSON.parse(melodiesString);
@@ -232,12 +232,12 @@ function saveMelody() {
 }
 
 function addMelodyToLocalStorage(newMelody) {
-  const prevMelodies = localStorage.getItem("dblocks@melodies");
+  const prevMelodies = localStorage.getItem("bipes@melodies");
   let updatedMelodies = prevMelodies ? JSON.parse(prevMelodies) : [];
 
   updatedMelodies.push(newMelody);
 
-  localStorage.setItem("dblocks@melodies", JSON.stringify(updatedMelodies));
+  localStorage.setItem("bipes@melodies", JSON.stringify(updatedMelodies));
 }
 
 let timeoutHandles = []; // Armazena timeouts para poder limpá-los ao pausar ou reiniciar
@@ -417,7 +417,7 @@ async function importMelody() {
       (melody) => melody.name !== melodyName
     );
 
-    localStorage.setItem("dblocks@melodies", JSON.stringify(filteredMelodies));
+    localStorage.setItem("bipes@melodies", JSON.stringify(filteredMelodies));
   }
 
   addMelodyToLocalStorage({
