@@ -92,7 +92,7 @@ notes.forEach((note, rowIndex) => {
     // alterna a ativação da nota ao clicar
     noteDiv.addEventListener("click", () => {
       const column = colIndex;
-    
+
       // desmarcar as notas da mesma coluna
       document
         .querySelectorAll(`.note[data-col="${column}"].active`)
@@ -101,25 +101,23 @@ notes.forEach((note, rowIndex) => {
             activeNote.classList.remove("active");
           }
         });
-    
+
       noteDiv.classList.toggle("active");
-    
+
       if (noteDiv.classList.contains("active")) {
         const bpm = document.getElementById("bpm").value;
         const beatDuration = 60000 / bpm;
-    
+
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         playTone(note.frequency, beatDuration);
-    
+
         audioContext = null;
       }
     });
-    
 
     pianoContainer.appendChild(noteDiv);
   }
 });
-
 
 // função para construir o array de notas ativas
 function buildActiveNotes() {

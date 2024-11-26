@@ -10,9 +10,15 @@ Code.LANGUAGE_NAME = {
 };
 
 Code.FLAGS = {
-  en: "media/usa.svg",
-  "pt-br": "media/brazil.svg",
-  es: "media/spanish.svg",
+  en: "landing/media/usa.svg",
+  "pt-br": "landing/media/brazil.svg",
+  es: "landing/media/spanish.svg",
+};
+
+Code.BLOCK_IMAGES = {
+  en: "landing/media/blocks_en.png",
+  "pt-br": "landing/media/blocks_pt-br.png",
+  es: "landing/media/blocks_es.png",
 };
 
 // Função para carregar um script dinamicamente
@@ -31,7 +37,7 @@ Code.changeLanguage = function () {
   // Atualiza a bandeira
   var flagElement = document.getElementById("languageFlag");
   if (flagElement) {
-    flagElement.src = Code.FLAGS[newLang] || "media/brazil.svg";
+    flagElement.src = Code.FLAGS[newLang] || "landing/media/brazil.svg";
     flagElement.alt = Code.LANGUAGE_NAME[newLang] || "Language";
   }
 
@@ -54,22 +60,35 @@ Code.changeLanguage = function () {
     search;
 };
 
+Code.getLang = () => {
+  // Obtém o idioma da URL, ou usa o padrão
+
+  var urlParams = new URLSearchParams(window.location.search);
+  const paramLang = urlParams.get("lang");
+
+  if (paramLang) return paramLang;
+
+  return Code.LANG;
+};
+
 // Função para inicializar as traduções
 Code.initLanguage = function () {
-  // Obtém o idioma da URL ou usa o padrão
-  var urlParams = new URLSearchParams(window.location.search);
-  Code.LANG = urlParams.get("lang") || Code.LANG;
+  Code.LANG = Code.getLang();
 
-  // Atualiza a bandeira com base no idioma
-  var flagElement = document.getElementById("languageFlag");
+  let flagElement = document.getElementById("languageFlag");
   if (flagElement) {
-    flagElement.src = Code.FLAGS[Code.LANG] || "path/to/flags/default.png";
+    flagElement.src = Code.FLAGS[Code.LANG] || "media/brazil.svg";
     flagElement.alt = Code.LANGUAGE_NAME[Code.LANG] || "Language";
+  }
+
+  var blocksImageElement = document.getElementById("blocksImage");
+  if (blocksImageElement) {
+    blocksImage.src = Code.BLOCK_IMAGES[Code.LANG] || "media/blocks_pt-br.png";
+    blocksImage.alt = Code.LANGUAGE_NAME[Code.LANG] || "Language";
   }
 
   // Carrega dinamicamente o arquivo de tradução
   loadScript("landing/lang/msg/" + Code.LANG + ".js", function () {
-    // Define a direção do texto
     document.dir = "ltr";
     document.head.parentElement.setAttribute("lang", Code.LANG);
 
@@ -94,17 +113,10 @@ Code.initLanguage = function () {
 
     languageMenu.addEventListener("change", Code.changeLanguage, true);
 
-    document.getElementById("community").textContent = MSG["community"];
-    document.getElementById("projects").textContent = MSG["projects"];
-    document.getElementById("communityFooter").textContent = MSG["communityFooter"];
-    document.getElementById("projectsFooter").textContent = MSG["projectsFooter"];
-    document.getElementById("communitySidebar").textContent = MSG["communitySidebar"];
-    document.getElementById("projectsSidebar").textContent = MSG["projectsSidebar"];
     document.getElementById("startCode").textContent = MSG["startCode"];
     document.getElementById("landingTitle").innerHTML = MSG["landingTitle"];
     document.getElementById("landingSubtitle").textContent =
       MSG["landingSubtitle"];
-    document.getElementById("startNow").textContent = MSG["startNow"];
     document.getElementById("cardTitle1").textContent = MSG["cardTitle1"];
     document.getElementById("cardDescription1").textContent =
       MSG["cardDescription1"];
@@ -116,6 +128,11 @@ Code.initLanguage = function () {
       MSG["cardDescription3"];
     document.getElementById("footerMessage").textContent = MSG["footerMessage"];
   });
+};
+
+const navigateToIDE = () => {
+  const params = new URLSearchParams({lang: Code.LANG});
+  window.location.href = `/ui/index.html?${params.toString()}`
 };
 
 // Inicializar as traduções ao carregar a página

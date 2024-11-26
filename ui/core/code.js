@@ -64,6 +64,7 @@ Code.getLang = function() {
     // Default to pt-br.
     lang = 'pt-br';
   }
+
   return lang;
 };
 

@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dblocks - Comece a programar em Blocos!</title>
+    <title>Dblocks - Comece a programar em blocos!</title>
 
     <meta
       name="description"
-      content="Dblocks: Aprenda a programar com blocos em um ambiente visual interativo. Ideal para iniciantes, professores e estudantes. Desenvolva projetos com facilidade!"
+      content="Dblocks: aprenda a programar com blocos em um ambiente visual interativo. Ideal para iniciantes, professores e estudantes. Desenvolva projetos com facilidade!"
     />
 
     <script type="application/ld+json">
@@ -46,44 +46,11 @@
   <body>
     <header class="header">
       <img
-        src="media/logo-dblocks.svg"
+        src="landing/media/logo-dblocks.svg"
         alt="Logo Dblocks"
         class="logo-dblocks"
       />
-
-      <nav class="nav" aria-label="Main Navigation">
-        <ul class="container-nav">
-          <li>
-            <a href="#" aria-label="Navegue para BIPES">BIPES</a>
-          </li>
-          <li>
-            <a href="#" aria-label="Navegue para Comunidade" id="community">Comunidade</a>
-          </li>
-          <li>
-            <a href="#" aria-label="Navegue para Projetos" id="projects">Projetos</a>
-          </li>
-          <li>
-            <a
-              href="https://amadomaker.com.br"
-              aria-label="Navegue para Amado Maker"
-              target="_blank"
-              >Amado Maker</a
-            >
-          </li>
-        </ul>
-      </nav>
       <div class="container-button-lang">
-        <a href="./index.html">
-          <button class="btn btn-primary" id="startCode">Comece a Programar!</button>
-        </a>
-
-        <button
-          class="menu-toggle"
-          aria-label="Abrir Menu"
-          onclick="toggleSidebar()"
-        >
-          ☰
-        </button>
 
         <div class="container-lang">
           <select id="languageMenu"></select>
@@ -96,30 +63,11 @@
       </div>
     </header>
 
-    <div class="sidebar" id="sidebar">
-      <button
-        class="close-btn"
-        aria-label="Fechar Menu"
-        onclick="toggleSidebar()"
-      >
-        ×
-      </button>
-
-      <ul class="sidebar-nav">
-        <li><a href="#">BIPES</a></li>
-        <li><a href="#" id="communitySidebar">Comunidade</a></li>
-        <li><a href="#" id="projectsSidebar">Projetos</a></li>
-        <li>
-          <a href="https://amadomaker.com.br" target="_blank">Amado Maker</a>
-        </li>
-      </ul>
-    </div>
-
     <main class="main">
       <section class="section main-section">
         <div class="container-main-text">
           <h3 class="section-main-title" id="landingTitle">
-            Busque o <span>Programador</span> dentro de você
+            Busque o <span>programador</span> dentro de você!
           </h3>
 
           <p class="section-main-text" id="landingSubtitle">
@@ -127,14 +75,12 @@
             ambiente de desenvolvimento visual.
           </p>
 
-          <a href="./index.html">
-            <button class="btn btn-primary" id="startNow">Comece Agora!</button>
-          </a>
+            <button onclick="navigateToIDE()" class="btn btn-primary" id="startCode">Comece a programar!</button>
         </div>
 
         <div>
           <img
-            src="media/blocks-landing.png"
+            id="blocksImage"
             alt="Imagem dos blocos do Dblocks"
             class="section-main-image"
           />
@@ -146,7 +92,7 @@
           <div class="card">
             <div class="card-header">
               <i class="material-icons card-icon">menu_book</i>
-              <h4 class="card-title" id="cardTitle1">Aprenda e Ensine com Facilidade</h4>
+              <h4 class="card-title" id="cardTitle1">Aprenda e ensine com facilidade</h4>
             </div>
 
             <p class="card-description" id="cardDescription1">
@@ -160,7 +106,7 @@
           <div class="card">
             <div class="card-header">
               <i class="material-icons card-icon"> computer </i>
-              <h4 class="card-title" id="cardTitle2">Versátil para Diversos Projetos</h4>
+              <h4 class="card-title" id="cardTitle2">Versátil para diversos projetos</h4>
             </div>
 
             <p class="card-description" id="cardDescription2">
@@ -172,7 +118,7 @@
           <div class="card">
             <div class="card-header">
               <i class="material-icons card-icon">code</i>
-              <h4 class="card-title" id="cardTitle3">Simplicidade no Desenvolvimento</h4>
+              <h4 class="card-title" id="cardTitle3">Simplicidade no desenvolvimento</h4>
             </div>
 
             <p class="card-description" id="cardDescription3">
@@ -187,40 +133,23 @@
 
     <footer class="footer">
       <div class="container-footer">
-        <nav class="nav-footer">
-          <ul class="container-nav-footer">
-            <li>
-              <a href="#">BIPES</a>
-            </li>
-            <li>
-              <a href="#" id="communityFooter">Comunidade</a>
-            </li>
-            <li>
-              <a href="#" id="projectsFooter">Projetos</a>
-            </li>
-            <li>
-              <a href="https://amadomaker.com.br">Amado Maker</a>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="container-images-footer">
-          <a href="https://bipes.net.br/wp/" target="_blank">
+        <a href="https://amadomaker.com.br" target="_blank">
+          <img
+            src="landing/media/logo-amado-maker.png"
+            alt="Logo Amado Maker"
+            class="logo-amado"
+          />
+        </a>
+        <a href="https://bipes.net.br/wp/" target="_blank">
+          <div class="container-logo-bipes">
             <img
-              src="media/logo-bipes.svg"
+              src="landing/media/logo-bipes.svg"
               alt="Logo BIPES"
-              class="logo-bipes"
+              class="logo-bipes-image"
             />
-          </a>
-
-          <a href="https://amadomaker.com.br" target="_blank">
-            <img
-              src="media/logo-amado-maker.png"
-              alt="Logo Amado Maker"
-              class="logo-amado"
-            />
-          </a>
-        </div>
+            <div class="logo-bipes-text">BIPES</div>
+          </div>
+        </a>
       </div>
       <span class="copy" id="footerMessage"> © 2024 Dblocks® - Todos os direitos reservados </span>
     </footer>
