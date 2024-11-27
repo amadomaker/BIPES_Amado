@@ -467,6 +467,8 @@
   </category>
 
   <category name="%{BKY_CAT_MACHINE}">
+  <!--Comentando os blocos de CPU da categoria Machine-->
+  <!--
       <label text="%{BKY_CAT_MACHINE}"></label>
       <category name="CPU">
       <label text="ESP32 CPU"></label>
@@ -488,6 +490,7 @@
     <block type="reset_cause_wdt"></block>
     <block type="reset_cause_deep"></block>
       </category>
+  -->
     
       <category name="In/Out Pins">
       <label text="In/Out Pins"></label>
