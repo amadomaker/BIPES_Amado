@@ -2399,6 +2399,9 @@ _
   </category>
 </category>
 -->
+
+<!--Comentando categoria micropython-->
+<!--
 <category name="micropython">
 <category name="btree">
 <block type="btree_open">
@@ -3471,4 +3474,5 @@ _
 </block>
 </category>
 </category>
+-->
 </document>
