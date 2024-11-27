@@ -1101,9 +1101,9 @@
 
   </category>
   -->
-  
-
   </category>
+
+
 
   <category name="%{BKY_CAT_SENSORS}">
     <category name="DHT11/22 Sensor">
@@ -1120,10 +1120,13 @@
       <block type="dht_read_temp"></block>
       <block type="dht_read_humidity"></block>
     </category>
-<!--Adicionando os blocos do Anenmômetro-->
+<!--Comentando bloco do anenometro e pluviometro-->
+  <!--
     <category name="Anemômetro">
     <label text="Anenômetro"></label>
+  -->
 <!--Iniciar Anemômetro-->
+    <!--
     <block type="anemo_init">
         <value name="Função">
           <shadow type="text">
@@ -1136,7 +1139,9 @@
           </shadow>
         </value>
       </block>
+     --> 
 <!--Parar Anemômetro-->
+      <!--
       <block type="anemo_stop">
         <value name="Função">
           <shadow type="text">
@@ -1145,10 +1150,14 @@
         </value>
       </block>
   </category>
+      -->
 <!--Adicionando os blocos do Pluviômetro--> 
+  <!--
   <category name="Pluviômetro">
     <label text= "Pluviômetro"></label>
+  -->
 <!--Iniciar Pluviômetro-->
+    <!--
     <block type="pluvio_init">
         <value name="Função">
           <shadow type="text">
@@ -1161,7 +1170,9 @@
           </shadow>
         </value>
       </block>
+    -->
 <!--Parar Pluviômetro-->
+      <!--
       <block type="pluvio_stop">
         <value name="Função">
           <shadow type="text">
@@ -1170,6 +1181,7 @@
         </value>
       </block>
   </category>
+      -->
 
   <category name="Ultrasound">
       <label text="HCSR04 ultrasound distance sensor"></label>
@@ -1199,7 +1211,7 @@
       </block>
 
   </category>
-
+  <!--
   <category name="GPS">
       <label text="Global Positioning System sensor"></label>
    <label text="Library: https://github.com/"></label>
@@ -1237,10 +1249,8 @@
 	<block type="max30100_ir">
       </block>
 
-
-
-
   </category>
+  -->
 
   <category name="Inertial Measurement">
       <label text="MPU6050 IMU"></label>
@@ -1278,7 +1288,7 @@
 
 
   </category>
-
+      <!--
       <category name="OneWire">
       <label text="OneWire"></label>
 
@@ -1303,6 +1313,7 @@
  
       </block>
       </category>
+      -->
 
 
   <category name="RFID Reader">
@@ -1351,7 +1362,7 @@
 
   </category>
 
-
+  <!--
   <category name="Rotatory Encoder">
       <label text="Rotatory Incremental Encoder"></label>
         <button text="Load example: encoder" callbackKey="loadExample"></button>
@@ -1385,7 +1396,9 @@
       <block type="esp32_cam_red_led"> </block>
       <block type="esp32_cam_white_led"> </block>
   </category>
+  -->
   </category>
+  
 
   <category name="%{BKY_CAT_OUTPUTS}">
     <category name="Relay">
