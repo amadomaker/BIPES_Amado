@@ -1413,7 +1413,8 @@
     </block>
   </category>
 
-
+  <!--Comentando bloco do motor de passo "stepper motor" -->
+  <!--
   <category name="Stepper Motor">
       <label text="Stepper Motor"></label>
     <block type="stepper_init">
@@ -1447,6 +1448,7 @@
       </value>
     </block>
   </category>
+  -->
 
   <category name="DC Motor">
       <label text="DC Motor"></label>
@@ -1588,10 +1590,8 @@ _
 
   </category>
 
-
-
-
-
+<!--Comentando a categoria Comunicação-->
+<!--
   <category name="%{BKY_CAT_COMM}">
       <label text="%{BKY_CAT_COMM}"></label>
       <category name="UART">
@@ -1675,9 +1675,11 @@ _
 <block type="machine.I2C_I2C.writeto_mem">
 </block>
 
-      </category>
   </category>
- <!--Categoria Files-->
+</category>
+-->
+
+ <!--Comentando Categoria Files-->
  <!--
   <category name="%{BKY_CAT_FILES}">
   <label text="Read and write files"></label>
@@ -1836,11 +1838,7 @@ _
 </block>
 
   </category>
-                            -->
- 
-
- 
-
+-->
 
   <category name="%{BKY_CAT_NET}">
     <block type="wifi_client_connect">
