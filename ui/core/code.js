@@ -27,6 +27,7 @@ Code.LANGUAGE_NAME = {
   'it': 'Italiano',
   'fr': 'Français',
   'de': 'Deutsch',
+  'nb': 'Norwegian',
   'zh-hans': 'Chinese (simplified)',
   'zh-hant': 'Chinese (traditional)'
 };
