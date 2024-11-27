@@ -587,7 +587,8 @@
 
 
 <category name="%{BKY_CAT_DISPLAYS}">
-
+<!--Comentando blocos da categoria display-->
+<!--
 <category name="NeoPixel LED Strip">
       <label text="NeoPixel RGB LED Strip"></label>
 
@@ -878,6 +879,7 @@
       </value>
     </block>
     </category>
+    -->
 
     <category name="OLED Display">
       <label text="SSD1306 OLED I2C Display"></label>
@@ -977,7 +979,8 @@
 
 
     </category>
-
+  
+  <!--
   <category name="LED Matrix">
       <label text="TM1640 LED Matrix"></label>
       <label text="Library: https://github.com/mcauser/micropython-tm1640"></label>
@@ -1097,9 +1100,8 @@
 
 
   </category>
-
-
-
+  -->
+  
 
   </category>
 
