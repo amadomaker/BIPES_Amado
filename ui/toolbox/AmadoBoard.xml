@@ -343,6 +343,8 @@
 
     <block type="bipes_plot">
     </block>
+    <!--Comentando bloco LocalStorage topic-->
+    <!--
     <block type="localstorage_store">
       <value name="ADD0">
         <shadow type="utime.vars">
@@ -350,6 +352,7 @@
         </shadow>
       </value>
     </block>
+    -->
 
    </category>
     <sep></sep>
@@ -358,8 +361,8 @@
     <category name="Machine" colour="%{BKY_VARIABLES_HUE}">
     -->
 
+  <!--Comentando blocos da categoria python-->
   <category name="Python">
-
       <label text="Python"></label>
 <block type="try_catch"></block>
 <block type="try_except_oserror">
@@ -374,7 +377,7 @@
   <next>
   </next>
 </block>
-
+<!--
     <block type="exec_python">
   <value name="command">
         <shadow type="text">
@@ -411,7 +414,9 @@
         </shadow>
       </value>
     </block>
+    -->
   </category>
+
 
 
   <category name="%{BKY_CAT_TIMING}">
@@ -1672,8 +1677,8 @@ _
 
       </category>
   </category>
- 
- 
+ <!--Categoria Files-->
+ <!--
   <category name="%{BKY_CAT_FILES}">
   <label text="Read and write files"></label>
 
@@ -1831,6 +1836,7 @@ _
 </block>
 
   </category>
+                            -->
  
 
  
@@ -2329,7 +2335,8 @@ _
     </category>
 </category>
 
-
+<!--Comentando a categoria Control para PID-->
+<!--
 <category name="%{BKY_CAT_CONTROL}">
   <category name="PID">
     <button text="Install control library" callbackKey="installPyLib"></button>
@@ -2374,9 +2381,6 @@ _
     <block type="control_pid.auto_mode"></block>
     <block type="control_pid.output_limits"></block>
     <block type="control_pid.vars"></block>
-    <!--
-    <block type="control-pid-reset"></block>
-    -->
   </category>
 
   <category name="Simulate">
@@ -2394,7 +2398,7 @@ _
     </block>
   </category>
 </category>
-
+-->
 <category name="micropython">
 <category name="btree">
 <block type="btree_open">
