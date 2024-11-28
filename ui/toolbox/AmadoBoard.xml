@@ -343,6 +343,8 @@
 
     <block type="bipes_plot">
     </block>
+    <!--Comentando bloco LocalStorage topic-->
+    <!--
     <block type="localstorage_store">
       <value name="ADD0">
         <shadow type="utime.vars">
@@ -350,6 +352,7 @@
         </shadow>
       </value>
     </block>
+    -->
 
    </category>
     <sep></sep>
@@ -358,8 +361,8 @@
     <category name="Machine" colour="%{BKY_VARIABLES_HUE}">
     -->
 
+  <!--Comentando blocos da categoria python-->
   <category name="Python">
-
       <label text="Python"></label>
 <block type="try_catch"></block>
 <block type="try_except_oserror">
@@ -374,7 +377,7 @@
   <next>
   </next>
 </block>
-
+<!--
     <block type="exec_python">
   <value name="command">
         <shadow type="text">
@@ -411,7 +414,9 @@
         </shadow>
       </value>
     </block>
+    -->
   </category>
+
 
 
   <category name="%{BKY_CAT_TIMING}">
@@ -462,6 +467,8 @@
   </category>
 
   <category name="%{BKY_CAT_MACHINE}">
+  <!--Comentando os blocos de CPU da categoria Machine-->
+  <!--
       <label text="%{BKY_CAT_MACHINE}"></label>
       <category name="CPU">
       <label text="ESP32 CPU"></label>
@@ -483,6 +490,7 @@
     <block type="reset_cause_wdt"></block>
     <block type="reset_cause_deep"></block>
       </category>
+  -->
     
       <category name="In/Out Pins">
       <label text="In/Out Pins"></label>
@@ -579,7 +587,8 @@
 
 
 <category name="%{BKY_CAT_DISPLAYS}">
-
+<!--Comentando blocos da categoria display-->
+<!--
 <category name="NeoPixel LED Strip">
       <label text="NeoPixel RGB LED Strip"></label>
 
@@ -870,6 +879,7 @@
       </value>
     </block>
     </category>
+    -->
 
     <category name="OLED Display">
       <label text="SSD1306 OLED I2C Display"></label>
@@ -969,7 +979,8 @@
 
 
     </category>
-
+  
+  <!--
   <category name="LED Matrix">
       <label text="TM1640 LED Matrix"></label>
       <label text="Library: https://github.com/mcauser/micropython-tm1640"></label>
@@ -1089,11 +1100,10 @@
 
 
   </category>
-
-
-
-
+  -->
   </category>
+
+
 
   <category name="%{BKY_CAT_SENSORS}">
     <category name="DHT11/22 Sensor">
@@ -1110,10 +1120,13 @@
       <block type="dht_read_temp"></block>
       <block type="dht_read_humidity"></block>
     </category>
-<!--Adicionando os blocos do Anenmômetro-->
+<!--Comentando bloco do anenometro e pluviometro-->
+  <!--
     <category name="Anemômetro">
     <label text="Anenômetro"></label>
+  -->
 <!--Iniciar Anemômetro-->
+    <!--
     <block type="anemo_init">
         <value name="Função">
           <shadow type="text">
@@ -1126,7 +1139,9 @@
           </shadow>
         </value>
       </block>
+     --> 
 <!--Parar Anemômetro-->
+      <!--
       <block type="anemo_stop">
         <value name="Função">
           <shadow type="text">
@@ -1135,10 +1150,14 @@
         </value>
       </block>
   </category>
+      -->
 <!--Adicionando os blocos do Pluviômetro--> 
+  <!--
   <category name="Pluviômetro">
     <label text= "Pluviômetro"></label>
+  -->
 <!--Iniciar Pluviômetro-->
+    <!--
     <block type="pluvio_init">
         <value name="Função">
           <shadow type="text">
@@ -1151,7 +1170,9 @@
           </shadow>
         </value>
       </block>
+    -->
 <!--Parar Pluviômetro-->
+      <!--
       <block type="pluvio_stop">
         <value name="Função">
           <shadow type="text">
@@ -1160,6 +1181,7 @@
         </value>
       </block>
   </category>
+      -->
 
   <category name="Ultrasound">
       <label text="HCSR04 ultrasound distance sensor"></label>
@@ -1189,7 +1211,7 @@
       </block>
 
   </category>
-
+  <!--
   <category name="GPS">
       <label text="Global Positioning System sensor"></label>
    <label text="Library: https://github.com/"></label>
@@ -1227,10 +1249,8 @@
 	<block type="max30100_ir">
       </block>
 
-
-
-
   </category>
+  -->
 
   <category name="Inertial Measurement">
       <label text="MPU6050 IMU"></label>
@@ -1268,7 +1288,7 @@
 
 
   </category>
-
+      <!--
       <category name="OneWire">
       <label text="OneWire"></label>
 
@@ -1293,6 +1313,7 @@
  
       </block>
       </category>
+      -->
 
 
   <category name="RFID Reader">
@@ -1341,7 +1362,7 @@
 
   </category>
 
-
+  <!--
   <category name="Rotatory Encoder">
       <label text="Rotatory Incremental Encoder"></label>
         <button text="Load example: encoder" callbackKey="loadExample"></button>
@@ -1375,7 +1396,9 @@
       <block type="esp32_cam_red_led"> </block>
       <block type="esp32_cam_white_led"> </block>
   </category>
+  -->
   </category>
+  
 
   <category name="%{BKY_CAT_OUTPUTS}">
     <category name="Relay">
@@ -1408,7 +1431,8 @@
     </block>
   </category>
 
-
+  <!--Comentando bloco do motor de passo "stepper motor" -->
+  <!--
   <category name="Stepper Motor">
       <label text="Stepper Motor"></label>
     <block type="stepper_init">
@@ -1442,6 +1466,7 @@
       </value>
     </block>
   </category>
+  -->
 
   <category name="DC Motor">
       <label text="DC Motor"></label>
@@ -1583,10 +1608,8 @@ _
 
   </category>
 
-
-
-
-
+<!--Comentando a categoria Comunicação-->
+<!--
   <category name="%{BKY_CAT_COMM}">
       <label text="%{BKY_CAT_COMM}"></label>
       <category name="UART">
@@ -1670,10 +1693,12 @@ _
 <block type="machine.I2C_I2C.writeto_mem">
 </block>
 
-      </category>
   </category>
- 
- 
+</category>
+-->
+
+ <!--Comentando Categoria Files-->
+ <!--
   <category name="%{BKY_CAT_FILES}">
   <label text="Read and write files"></label>
 
@@ -1831,10 +1856,7 @@ _
 </block>
 
   </category>
- 
-
- 
-
+-->
 
   <category name="%{BKY_CAT_NET}">
     <block type="wifi_client_connect">
@@ -2025,7 +2047,8 @@ _
     </block>
 
     </category>
-
+    <!--Blocos de email comentado-->
+    <!--
     <category name="EMAIL">
       <label text="Email sender using uMail"></label>
       <label text="Library: https://github.com/shawwwn/uMail"></label>
@@ -2211,6 +2234,7 @@ _
         <field name="BLOCK_MQTT_DISCONNECT">Disconnect MQTT Client</field>
       </block>
     </category>
+    -->
     <category name="EasyMQTT">
       <label text="IoT: EasyMQTT"></label>
       <block type="easymqtt_init">
@@ -2239,7 +2263,7 @@ _
         <field name="BLOCK_EASYMQTT_DISCONNECT">EasyMQTT Stop</field>
       </block>
     </category>
-
+    
   <category name="Bluetooth REPL">
     <label text="Bluetooth REPL"></label>
     <label text="This block allows terminal/console access using bluetooth."></label>
@@ -2271,7 +2295,7 @@ _
     <label text="4. Go to https://bipes.net.br/beta2/ui/"></label>
     <label text="5. Select the bluetooth option and Connect (Web Bluetooth)"></label>
     </category>
-
+  <!--
   <category name="WebREPL">
       <label text="WebREPL"></label>
       <block type="webrepl_setup"></block>
@@ -2327,9 +2351,11 @@ _
         </value>
       </block>
     </category>
+    -->
 </category>
 
-
+<!--Comentando a categoria Control para PID-->
+<!--
 <category name="%{BKY_CAT_CONTROL}">
   <category name="PID">
     <button text="Install control library" callbackKey="installPyLib"></button>
@@ -2374,9 +2400,6 @@ _
     <block type="control_pid.auto_mode"></block>
     <block type="control_pid.output_limits"></block>
     <block type="control_pid.vars"></block>
-    <!--
-    <block type="control-pid-reset"></block>
-    -->
   </category>
 
   <category name="Simulate">
@@ -2394,8 +2417,12 @@ _
     </block>
   </category>
 </category>
+-->
+
+<!--Comentando categoria micropython-->
 
 <category name="micropython">
+<!--
 <category name="btree">
 <block type="btree_open">
 </block>
@@ -3096,12 +3123,13 @@ _
 <block type="sys_print_exception">
 </block>
 </category>
+-->
 
 <category name="_thread">
 <block type="iniciar_thread">
 </block>
 </category>
-
+<!--
 <category name="uarray">
 <block type="uarray_append">
 </block>
@@ -3466,5 +3494,7 @@ _
 <block type="wipy_heartbeat">
 </block>
 </category>
+-->
 </category>
+
 </document>
