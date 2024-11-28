@@ -1,14 +1,6 @@
 <document>
-  <category name="%{BKY_CATLOGIC}" colour="%{BKY_LOGIC_HUE}">
-      <block type="controls_if"></block>
-      <block type="logic_compare"></block>
-      <block type="logic_operation"></block>
-      <block type="logic_negate"></block>
-      <block type="logic_boolean"></block>
-      <block type="logic_null"></block>
-      <block type="logic_ternary"></block>
-    </category>
-    <category name="%{BKY_CATLOOPS}" colour="%{BKY_LOOPS_HUE}">
+  <category name="%{BKY_CAT_CONTROL}" colour="%{BKY_CONTROL_HUE}">
+      <label text="%{BKY_CAT_LOOPS}"></label>
       <block type="controls_repeat_ext">
         <value name="TIMES">
           <shadow type="math_number">
@@ -36,7 +28,67 @@
       </block>
       <block type="controls_forEach"></block>
       <block type="controls_flow_statements"></block>
+      <block type="iniciar_thread">
+      </block>
+    
+
+	  <label text="%{BKY_CAT_TIMING}"></label>
+    <block type="delay">
+      <value name="TIME">
+        <shadow type="math_number">
+          <field name="NUM">1</field>
+        </shadow>
+      </value>
+    </block>
+    <block type="utime.vars"></block>
+    <block type="utime.ticks_add">
+       <value name="TIME1">
+        <shadow type="utime.vars"></shadow>
+      </value>
+      <value name="TIME2">
+      <shadow type="math_number">
+        <field name="NUM">100</field>
+      </shadow>
+      </value>
+    </block>
+    <block type="utime.ticks_diff"></block>
+    <block type="esp32_set_rtc"></block>
+    <block type="esp32_get_rtc"></block>
+    <block type="timer"></block>
+    <block type="utime.deadline">
+      <value name="TIME">
+      <shadow type="math_number">
+        <field name="NUM">100</field>
+      </shadow>
+      </value>
+    </block>
+    <block type="stop_timer">
+       <value name="timerNumber">
+        <shadow type="math_number">
+          <field name="NUM">0</field>
+        </shadow>
+      </value>
+    </block>
+    <block type="deep_sleep8266">
+     <value name="interval">
+        <shadow type="math_number">
+          <field name="NUM">60</field>
+        </shadow>
+      </value>
+    </block>
+  </category>
+
+
+  <category name="%{BKY_CATLOGIC}" colour="%{BKY_LOGIC_HUE}">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+      <block type="logic_operation"></block>
+      <block type="logic_negate"></block>
+      <block type="logic_boolean"></block>
+      <block type="logic_null"></block>
+      <block type="logic_ternary"></block>
     </category>
+
     <category name="%{BKY_CATMATH}" colour="%{BKY_MATH_HUE}">
       <block type="math_number">
         <field name="NUM">123</field>
@@ -418,53 +470,6 @@
   </category>
 
 
-
-  <category name="%{BKY_CAT_TIMING}">
-	  <label text="%{BKY_CAT_TIMING}"></label>
-    <block type="delay">
-      <value name="TIME">
-        <shadow type="math_number">
-          <field name="NUM">1</field>
-        </shadow>
-      </value>
-    </block>
-    <block type="utime.vars"></block>
-    <block type="utime.ticks_add">
-       <value name="TIME1">
-        <shadow type="utime.vars"></shadow>
-      </value>
-      <value name="TIME2">
-      <shadow type="math_number">
-        <field name="NUM">100</field>
-      </shadow>
-      </value>
-    </block>
-    <block type="utime.ticks_diff"></block>
-    <block type="esp32_set_rtc"></block>
-    <block type="esp32_get_rtc"></block>
-    <block type="timer"></block>
-    <block type="utime.deadline">
-      <value name="TIME">
-      <shadow type="math_number">
-        <field name="NUM">100</field>
-      </shadow>
-      </value>
-    </block>
-    <block type="stop_timer">
-       <value name="timerNumber">
-        <shadow type="math_number">
-          <field name="NUM">0</field>
-        </shadow>
-      </value>
-    </block>
-    <block type="deep_sleep8266">
-     <value name="interval">
-        <shadow type="math_number">
-          <field name="NUM">60</field>
-        </shadow>
-      </value>
-    </block>
-  </category>
 
   <category name="%{BKY_CAT_MACHINE}">
   <!--Comentando os blocos de CPU da categoria Machine-->
@@ -2235,7 +2240,7 @@ _
       </block>
     </category>
     -->
-    <category name="EasyMQTT">
+    <category name="EasyMQTT" >
       <label text="IoT: EasyMQTT"></label>
       <block type="easymqtt_init">
       </block>
@@ -3125,10 +3130,6 @@ _
 </category>
 -->
 
-<category name="_thread">
-<block type="iniciar_thread">
-</block>
-</category>
 <!--
 <category name="uarray">
 <block type="uarray_append">

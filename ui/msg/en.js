@@ -127,6 +127,8 @@ var MSG = {
 };
 
 //Toolbox categories
+Blockly.Msg['CAT_CONTROL'] = "Control";
+Blockly.Msg['CAT_LOOPS'] = "Loops";
 Blockly.Msg['CAT_TIMING'] = "Timing";
 Blockly.Msg['CAT_MACHINE'] = "Machine";
 Blockly.Msg['CAT_DISPLAYS'] = "Displays";
@@ -135,5 +137,5 @@ Blockly.Msg['CAT_OUTPUTS'] = "Outputs / Actuators";
 Blockly.Msg['CAT_COMM'] = "Communication";
 Blockly.Msg['CAT_FILES'] = "Files";
 Blockly.Msg['CAT_NET'] = "Network and Internet";
-Blockly.Msg['CAT_CONTROL'] = "Control";
+
 
