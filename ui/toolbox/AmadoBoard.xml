@@ -87,8 +87,6 @@
         <block type="logic_compare"></block>
         <block type="logic_operation"></block>
         <block type="logic_negate"></block>
-        <block type="logic_boolean"></block>
-        <block type="logic_null"></block>
         <block type="logic_ternary"></block>
         <block type="map_value">
           <value name="VALUE">
@@ -376,8 +374,7 @@
 
     </category>
 
-    <sep></sep>
-   <category name="BIPES">
+   <category name="Dblocks" colour="#FF8C00">
     <block type="project_metadata">
       <value name="project_author">
         <shadow type="text">
@@ -410,14 +407,14 @@
     -->
 
    </category>
-    <sep></sep>
+  
     <!--
     <category name="Python" colour="%{BKY_LOGIC_HUE}">
     <category name="Machine" colour="%{BKY_VARIABLES_HUE}">
     -->
 
   <!--Comentando blocos da categoria python-->
-  <category name="Python">
+  <category name="Python" colour="#8B4513">
       <label text="Python"></label>
 <block type="try_catch"></block>
 <block type="try_except_oserror">
@@ -473,7 +470,7 @@
   </category>
 
 
-
+  <sep></sep>
   <category name="%{BKY_CAT_MACHINE}">
   <!--Comentando os blocos de CPU da categoria Machine-->
   <!--
