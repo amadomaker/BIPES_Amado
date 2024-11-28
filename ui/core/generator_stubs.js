@@ -5949,6 +5949,74 @@ Blockly.Python["rtttl_play"] = function(block) {
 	return code;
 };
 
+Blockly.Python["play_song"] = function(block) {
+  var melodyName = block.getFieldValue("MELODY"); // melodia selecionada
+
+  Blockly.Python.definitions_['import_pin'] = 'from machine import Pin';
+  Blockly.Python.definitions_['import_rtttl'] = 'import rtttl';
+
+  const savedMelodies = localStorage.getItem('bipes@melodies');
+  const melodies = savedMelodies ? JSON.parse(savedMelodies) : [];
+  const selectedMelody = melodies.find(melody => melody.name === melodyName);
+
+  if (!selectedMelody) {
+    throw new Error(`Melodia '${melodyName}' não encontrada no localStorage.`);
+  }
+
+  const melodyJSON = JSON.stringify(selectedMelody);
+
+  var code = `
+import json
+from machine import Pin
+import rtttl
+
+# dados da melodia
+melody_data = ${melodyJSON}
+
+# converter json pra rttl
+def json_to_rtttl(melody):
+    try:
+        rttl_notes = []
+        for note in melody['notes']:
+            if note['note']:  
+                duration = note.get('duration', 4)  
+                pitch = note['note'][:-1]  
+                octave = note['note'][-1]  
+                rttl_notes.append(f"{duration}{pitch}{octave}")
+        return f"{melody['name']}:d=4,o=4,b=120:{','.join(rttl_notes)}"
+    except Exception as e:
+        print(f"Erro ao converter para RTTTL: {e}")
+        return None
+
+# gravar melodia em my_songs.py
+def write_to_my_songs(rtttl_string, file_name='my_songs.py'):
+    try:
+        with open(file_name, 'a') as f: 
+            f.write(repr(rtttl_string) + ",\n")
+    except Exception as e:
+        print(f"Erro ao gravar a melodia no arquivo: {e}")
+
+# Converter a melodia para RTTTL
+rtttl_string = json_to_rtttl(melody_data)
+
+# Reproduzir e salvar a melodia
+try:
+    if rtttl_string:
+        # Tocar a melodia
+        rtttl.play(Pin(15, Pin.OUT), rtttl_string.split(':')[2])
+        # gravar no arquivo
+        write_to_my_songs(rtttl_string)
+    else:
+        print("Erro: Não foi possível converter a melodia para RTTTL.")
+except Exception as e:
+    print(f"Erro ao reproduzir ou salvar a melodia: {e}")
+\n`;
+
+  return code;
+};
+
+
+
 Blockly.Python['tone'] = function(block) {
 	var value_pin = Blockly.Python.valueToCode(block, 'pin', Blockly.Python.ORDER_ATOMIC);
 	var value_frequency = Blockly.Python.valueToCode(block, 'frequency', Blockly.Python.ORDER_ATOMIC);
