@@ -119,9 +119,6 @@
       <block type="math_max"></block>
 
       <label text="%{BKY_CAT_OPERATORS}" ></label>
-      <block type="math_number">
-        <field name="NUM">123</field>
-      </block>
       <block type="math_arithmetic">
         <value name="A">
           <shadow type="math_number">
@@ -148,7 +145,6 @@
           </shadow>
         </value>
       </block>
-      <block type="math_constant"></block>
       <block type="math_number_property">
         <value name="NUMBER_TO_CHECK">
           <shadow type="math_number">
@@ -193,19 +189,6 @@
           </shadow>
         </value>
       </block>
-      <block type="math_random_int">
-        <value name="FROM">
-          <shadow type="math_number">
-            <field name="NUM">1</field>
-          </shadow>
-        </value>
-        <value name="TO">
-          <shadow type="math_number">
-            <field name="NUM">100</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="math_random_float"></block>
       <block type="var_to_int">  
         <field name="VAR">to int</field>
       </block>
@@ -215,8 +198,6 @@
     
     </category>
     <category name="%{BKY_CATTEXT}" colour="%{BKY_TEXTS_HUE}">
-      <block type="text"></block>
-      <block type="text_join"></block>
       <block type="text_append">
         <value name="TEXT">
           <shadow type="text"></shadow>
@@ -346,8 +327,38 @@
       <block type="lists_sort"></block>
     </category>
 
-    <sep></sep>
-    <category name="%{BKY_CATVARIABLES}" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
+    <!--Categoria para variaveis-->
+    <category name="%{BKY_CAT_VARIABLES}" colour="%{BKY_VARIABLES_HUE}">
+      <category name="%{BKY_CATVARIABLES}" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
+      <category name="%{BKY_catbooleanVariable}" colour="%{BKY_VARIABLES_HUE}">
+        <block type="logic_boolean"></block>
+        <block type="logic_null"></block>
+      </category>
+      <category name="%{BKY_catnumericVariable}" colour="%{BKY_VARIABLES_HUE}">
+        <block type="math_number">
+          <field name="NUM">123</field>
+        </block>
+        <block type="math_constant"></block>
+        <block type="math_random_int">
+        <value name="FROM">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="TO">
+          <shadow type="math_number">
+            <field name="NUM">100</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_random_float"></block>
+      </category>
+      <category name="%{BKY_cattextVariable}" colour="%{BKY_VARIABLES_HUE}">
+      <block type="text"></block>
+      <block type="text_join"></block>
+      </category>
+    </category>
+    
     <category name="%{BKY_CATFUNCTIONS}" colour="%{BKY_PROCEDURES_HUE}" custom="PROCEDURE"></category>
 
     <category name="Bluetooth" colour="#1E90FF">
