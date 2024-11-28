@@ -2420,8 +2420,9 @@ _
 -->
 
 <!--Comentando categoria micropython-->
-<!--
+
 <category name="micropython">
+<!--
 <category name="btree">
 <block type="btree_open">
 </block>
@@ -3122,12 +3123,13 @@ _
 <block type="sys_print_exception">
 </block>
 </category>
+-->
 
 <category name="_thread">
 <block type="iniciar_thread">
 </block>
 </category>
-
+<!--
 <category name="uarray">
 <block type="uarray_append">
 </block>
@@ -3492,6 +3494,7 @@ _
 <block type="wipy_heartbeat">
 </block>
 </category>
-</category>
 -->
+</category>
+
 </document>
