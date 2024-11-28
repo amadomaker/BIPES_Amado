@@ -79,17 +79,48 @@
   </category>
 
 
-  <category name="%{BKY_CATLOGIC}" colour="%{BKY_LOGIC_HUE}">
-      <block type="controls_if"></block>
-      <block type="logic_compare"></block>
-      <block type="logic_operation"></block>
-      <block type="logic_negate"></block>
-      <block type="logic_boolean"></block>
-      <block type="logic_null"></block>
-      <block type="logic_ternary"></block>
-    </category>
 
     <category name="%{BKY_CATMATH}" colour="%{BKY_MATH_HUE}">
+    
+    <label text="%{BKY_CATLOGIC}" ></label>
+        <block type="controls_if"></block>
+        <block type="logic_compare"></block>
+        <block type="logic_operation"></block>
+        <block type="logic_negate"></block>
+        <block type="logic_boolean"></block>
+        <block type="logic_null"></block>
+        <block type="logic_ternary"></block>
+        <block type="map_value">
+          <value name="VALUE">
+            <shadow type="math_number">
+              <field name="NUM">0</field>
+            </shadow>
+          </value>
+          <value name="IN_MIN">
+            <shadow type="math_number">
+              <field name="NUM">0</field>
+            </shadow>
+          </value>
+          <value name="IN_MAX">
+            <shadow type="math_number">
+              <field name="NUM">1023</field>
+            </shadow>
+          </value>
+          <value name="OUT_MIN">
+            <shadow type="math_number">
+              <field name="NUM">0</field>
+            </shadow>
+          </value>
+          <value name="OUT_MAX">
+            <shadow type="math_number">
+              <field name="NUM">255</field>
+            </shadow>
+          </value>
+        </block>
+      <block type="math_min"></block>
+      <block type="math_max"></block>
+
+      <label text="%{BKY_CAT_OPERATORS}" ></label>
       <block type="math_number">
         <field name="NUM">123</field>
       </block>
@@ -183,35 +214,7 @@
       <block type="var_to_float">  
         <field name="VAR">to float</field> 
       </block>
-    <block type="map_value">
-      <value name="VALUE">
-        <shadow type="math_number">
-          <field name="NUM">0</field>
-        </shadow>
-      </value>
-      <value name="IN_MIN">
-        <shadow type="math_number">
-          <field name="NUM">0</field>
-        </shadow>
-      </value>
-      <value name="IN_MAX">
-        <shadow type="math_number">
-          <field name="NUM">1023</field>
-        </shadow>
-      </value>
-      <value name="OUT_MIN">
-        <shadow type="math_number">
-          <field name="NUM">0</field>
-        </shadow>
-      </value>
-      <value name="OUT_MAX">
-        <shadow type="math_number">
-          <field name="NUM">255</field>
-        </shadow>
-      </value>
-    </block>
-      <block type="math_min"></block>
-      <block type="math_max"></block>
+    
     </category>
     <category name="%{BKY_CATTEXT}" colour="%{BKY_TEXTS_HUE}">
       <block type="text"></block>

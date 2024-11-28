@@ -128,6 +128,7 @@ var MSG = {
 };
 
 //Categorias da caixa de ferramentas
+
 Blockly.Msg['CAT_CONTROL'] = "Controle";
 Blockly.Msg['CAT_LOOPS'] = "Laços";
 Blockly.Msg['CAT_TIMING'] = "Temporização";
@@ -138,4 +139,5 @@ Blockly.Msg['CAT_OUTPUTS'] = "Saidas e atuadores";
 Blockly.Msg['CAT_COMM'] = "Comunicação";
 Blockly.Msg['CAT_FILES'] = "Arquivos";
 Blockly.Msg['CAT_NET'] = "Rede e Internet";
+Blockly.Msg['CAT_OPERATORS'] = "Operadores";
 
