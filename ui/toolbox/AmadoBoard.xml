@@ -2047,7 +2047,8 @@ _
     </block>
 
     </category>
-
+    <!--Blocos de email comentado-->
+    <!--
     <category name="EMAIL">
       <label text="Email sender using uMail"></label>
       <label text="Library: https://github.com/shawwwn/uMail"></label>
@@ -2233,6 +2234,7 @@ _
         <field name="BLOCK_MQTT_DISCONNECT">Disconnect MQTT Client</field>
       </block>
     </category>
+    -->
     <category name="EasyMQTT">
       <label text="IoT: EasyMQTT"></label>
       <block type="easymqtt_init">
@@ -2261,7 +2263,7 @@ _
         <field name="BLOCK_EASYMQTT_DISCONNECT">EasyMQTT Stop</field>
       </block>
     </category>
-
+    
   <category name="Bluetooth REPL">
     <label text="Bluetooth REPL"></label>
     <label text="This block allows terminal/console access using bluetooth."></label>
@@ -2293,7 +2295,7 @@ _
     <label text="4. Go to https://bipes.net.br/beta2/ui/"></label>
     <label text="5. Select the bluetooth option and Connect (Web Bluetooth)"></label>
     </category>
-
+  <!--
   <category name="WebREPL">
       <label text="WebREPL"></label>
       <block type="webrepl_setup"></block>
@@ -2349,6 +2351,7 @@ _
         </value>
       </block>
     </category>
+    -->
 </category>
 
 <!--Comentando a categoria Control para PID-->
