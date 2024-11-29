@@ -16,12 +16,15 @@ var MSG = {
   catLists: "Lists",
   catColour: "Colour",
   catVariables: "Created variables",
-  catFunctions: "Functions",
+  catFunctions: "Created functions",
   listVariable: "list",
   textVariable: "text",
   cattextVariable: "Text",
   catbooleanVariable: "Bolean",
   catnumericVariable: "Numeric",
+  catlistVariable: "List",
+  cattextFuncions: "Text",
+  catlistFunctions: "Lists",
   httpRequestError: "There was a problem with the request.",
   linkAlert: "Share your blocks with this link:\n\n%1",
   hashError: "Sorry, '%1' doesn't correspond with any saved program.",
@@ -142,4 +145,4 @@ Blockly.Msg['CAT_FILES'] = "Files";
 Blockly.Msg['CAT_NET'] = "Network and Internet";
 Blockly.Msg['CAT_OPERATORS'] = "Operators";
 Blockly.Msg['CAT_VARIABLES'] = "Variables";
-
+Blockly.Msg['CAT_FUNCTIONS'] = "Functions";

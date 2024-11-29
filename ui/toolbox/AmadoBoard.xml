@@ -1,4 +1,5 @@
 <document>
+<!--CATEGORIA CONTROLE-->
   <category name="%{BKY_CAT_CONTROL}" colour="%{BKY_CONTROL_HUE}">
       <label text="%{BKY_CAT_LOOPS}"></label>
       <block type="controls_repeat_ext">
@@ -31,7 +32,7 @@
       <block type="iniciar_thread">
       </block>
     
-
+    <!--CATEGORIA TEMPORIZADOR-->
 	  <label text="%{BKY_CAT_TIMING}"></label>
     <block type="delay">
       <value name="TIME">
@@ -79,7 +80,7 @@
   </category>
 
 
-
+    <!--CATEGORIA MATEMATICA-->
     <category name="%{BKY_CATMATH}" colour="%{BKY_MATH_HUE}">
     
     <label text="%{BKY_CATLOGIC}" ></label>
@@ -194,146 +195,20 @@
       </block>
       <block type="var_to_float">  
         <field name="VAR">to float</field> 
-      </block>
-    
-    </category>
-    <category name="%{BKY_CATTEXT}" colour="%{BKY_TEXTS_HUE}">
-      <block type="text_append">
-        <value name="TEXT">
-          <shadow type="text"></shadow>
-        </value>
-      </block>
-      <block type="text_length">
-        <value name="VALUE">
-          <shadow type="text">
-            <field name="TEXT">abc</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="text_isEmpty">
-        <value name="VALUE">
-          <shadow type="text">
-            <field name="TEXT"></field>
-          </shadow>
-        </value>
-      </block>
-      <block type="text_indexOf">
-        <value name="VALUE">
-          <block type="variables_get">
-            <field name="VAR">{textVariable}</field>
-          </block>
-        </value>
-        <value name="FIND">
-          <shadow type="text">
-            <field name="TEXT">abc</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="text_charAt">
-        <value name="VALUE">
-          <block type="variables_get">
-            <field name="VAR">{textVariable}</field>
-          </block>
-        </value>
-      </block>
-      <block type="text_getSubstring">
-        <value name="STRING">
-          <block type="variables_get">
-            <field name="VAR">{textVariable}</field>
-          </block>
-        </value>
-      </block>
-      <block type="text_changeCase">
-        <value name="TEXT">
-          <shadow type="text">
-            <field name="TEXT">abc</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="text_trim">
-        <value name="TEXT">
-          <shadow type="text">
-            <field name="TEXT">abc</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="text_print">
-        <value name="TEXT">
-          <shadow type="text">
-            <field name="TEXT">abc</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="text_prompt_ext">
-        <value name="TEXT">
-          <shadow type="text">
-            <field name="TEXT">abc</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="text_to_str">  
-        <field name="VAR">to str</field>
-      </block>
-    </category>
-    <category name="%{BKY_CATLISTS}" colour="%{BKY_LISTS_HUE}">
-      <block type="lists_create_with">
-        <mutation items="0"></mutation>
-      </block>
-      <block type="lists_create_with"></block>
-      <block type="lists_repeat">
-        <value name="NUM">
-          <shadow type="math_number">
-            <field name="NUM">5</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="lists_length"></block>
-      <block type="lists_isEmpty"></block>
-      <block type="lists_indexOf">
-        <value name="VALUE">
-          <block type="variables_get">
-            <field name="VAR">{listVariable}</field>
-          </block>
-        </value>
-      </block>
-      <block type="lists_getIndex">
-        <value name="VALUE">
-          <block type="variables_get">
-            <field name="VAR">{listVariable}</field>
-          </block>
-        </value>
-      </block>
-      <block type="lists_setIndex">
-        <value name="LIST">
-          <block type="variables_get">
-            <field name="VAR">{listVariable}</field>
-          </block>
-        </value>
-      </block>
-      <block type="lists_getSublist">
-        <value name="LIST">
-          <block type="variables_get">
-            <field name="VAR">{listVariable}</field>
-          </block>
-        </value>
-      </block>
-      <block type="lists_split">
-        <value name="DELIM">
-          <shadow type="text">
-            <field name="TEXT">,</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="lists_sort"></block>
+      </block> 
     </category>
 
-    <!--Categoria para variaveis-->
+
+    <!--CATEGORIA VARIAVEIS-->
     <category name="%{BKY_CAT_VARIABLES}" colour="%{BKY_VARIABLES_HUE}">
-      <category name="%{BKY_CATVARIABLES}" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
+      <!--VARIAVEIS CRIADAS-->
+      <category name="%{BKY_catVariables}" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
+      <!--VARIAVEIS BOOLEANAS-->
       <category name="%{BKY_catbooleanVariable}" colour="%{BKY_VARIABLES_HUE}">
         <block type="logic_boolean"></block>
         <block type="logic_null"></block>
       </category>
+      <!--VARIAVEIS NUMERICAS-->
       <category name="%{BKY_catnumericVariable}" colour="%{BKY_VARIABLES_HUE}">
         <block type="math_number">
           <field name="NUM">123</field>
@@ -353,13 +228,151 @@
       </block>
       <block type="math_random_float"></block>
       </category>
+      <!--VARIAVEIS DE TEXTO-->
       <category name="%{BKY_cattextVariable}" colour="%{BKY_VARIABLES_HUE}">
       <block type="text"></block>
       <block type="text_join"></block>
       </category>
+      <category name="%{BKY_catlistVariable}" colour = "%{BKY_VARIABLES_HUE}">
+      <block type="lists_create_with">
+        <mutation items="0"></mutation>
+      </block>
+      <block type="lists_create_with"></block>
+      <block type="lists_repeat">
+        <value name="NUM">
+          <shadow type="math_number">
+            <field name="NUM">5</field>
+          </shadow>
+        </value>
+      </block>
+      </category>
     </category>
-    
-    <category name="%{BKY_CATFUNCTIONS}" colour="%{BKY_PROCEDURES_HUE}" custom="PROCEDURE"></category>
+    <!--CATEGORIA FUNÇÕES-->
+    <category name="%{BKY_CAT_FUNCTIONS}" colour="%{BKY_PROCEDURES_HUE}" >
+    <!--FUNÇÕES CRIADAS-->
+      <category name="%{BKY_catFunctions}" colour="%{BKY_PROCEDURES_HUE}" custom="PROCEDURE">
+      </category>
+      <!--FUNÇOES DE TEXTO-->
+      <category name="%{BKY_cattextFuncions}" colour="%{BKY_PROCEDURES_HUE}">
+        <block type="text_append">
+          <value name="TEXT">
+            <shadow type="text"></shadow>
+          </value>
+        </block>
+        <block type="text_length">
+          <value name="VALUE">
+            <shadow type="text">
+              <field name="TEXT">abc</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="text_isEmpty">
+          <value name="VALUE">
+            <shadow type="text">
+              <field name="TEXT"></field>
+            </shadow>
+          </value>
+        </block>
+        <block type="text_indexOf">
+          <value name="VALUE">
+            <block type="variables_get">
+              <field name="VAR">{textVariable}</field>
+            </block>
+          </value>
+          <value name="FIND">
+            <shadow type="text">
+              <field name="TEXT">abc</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="text_charAt">
+          <value name="VALUE">
+            <block type="variables_get">
+              <field name="VAR">{textVariable}</field>
+            </block>
+          </value>
+        </block>
+        <block type="text_getSubstring">
+          <value name="STRING">
+            <block type="variables_get">
+              <field name="VAR">{textVariable}</field>
+            </block>
+          </value>
+        </block>
+        <block type="text_changeCase">
+          <value name="TEXT">
+            <shadow type="text">
+              <field name="TEXT">abc</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="text_trim">
+          <value name="TEXT">
+            <shadow type="text">
+              <field name="TEXT">abc</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="text_print">
+          <value name="TEXT">
+            <shadow type="text">
+              <field name="TEXT">abc</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="text_prompt_ext">
+          <value name="TEXT">
+            <shadow type="text">
+              <field name="TEXT">abc</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="text_to_str">  
+          <field name="VAR">to str</field>
+        </block>
+      </category>
+      <!--FUNÇÕES DE LISTAS-->
+      <category name= "%{BKY_catlistFunctions}" colour="%{BKY_PROCEDURES_HUE}">
+        <block type="lists_length"></block>
+        <block type="lists_isEmpty"></block>
+        <block type="lists_indexOf">
+          <value name="VALUE">
+            <block type="variables_get">
+              <field name="VAR">{listVariable}</field>
+            </block>
+          </value>
+        </block>
+        <block type="lists_getIndex">
+          <value name="VALUE">
+            <block type="variables_get">
+              <field name="VAR">{listVariable}</field>
+            </block>
+          </value>
+        </block>
+        <block type="lists_setIndex">
+          <value name="LIST">
+            <block type="variables_get">
+              <field name="VAR">{listVariable}</field>
+            </block>
+          </value>
+        </block>
+        <block type="lists_getSublist">
+          <value name="LIST">
+            <block type="variables_get">
+              <field name="VAR">{listVariable}</field>
+            </block>
+          </value>
+        </block>
+        <block type="lists_split">
+          <value name="DELIM">
+            <shadow type="text">
+              <field name="TEXT">,</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="lists_sort"></block>  
+      </category>
+    </category>
 
     <category name="Bluetooth" colour="#1E90FF">
       <block type="configure_and_start_bluetooth"></block>
