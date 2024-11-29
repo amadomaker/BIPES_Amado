@@ -398,7 +398,7 @@
 
     </category>
 
-   <category name="Dblocks" colour="#FF8C00">
+   <category name="Bipes" colour="#FF8C00">
     <block type="project_metadata">
       <value name="project_author">
         <shadow type="text">
@@ -495,7 +495,8 @@
 
 
   <sep></sep>
-  <category name="%{BKY_CAT_MACHINE}">
+  <!--CATEGORIA PARA PINOS DE ENTRADA E SAIDA-->
+  <category name="%{BKY_CAT_INOUT}" colour="%{BKY_INOUT_HUE}">
   <!--Comentando os blocos de CPU da categoria Machine-->
   <!--
       <label text="%{BKY_CAT_MACHINE}"></label>
@@ -521,7 +522,6 @@
       </category>
   -->
     
-      <category name="In/Out Pins">
       <label text="In/Out Pins"></label>
     <block type="pinout"></block>
     <block type="gpio_set">
@@ -611,8 +611,303 @@
       </value>
     </block>
 
-  </category>
+
 </category>
+<!--CATEGORIA PARA SENSORES-->
+<category name="%{BKY_CAT_SENSORS}" colour="%{BKY_SENSORS_HUE}">
+    <!--Categoria para o sensor de temperatura dht11-->
+    <category name="%{BKY_CAT_DHT11/22}" colour="%{BKY_SENSORS_HUE}">
+      <label text="DHT11/22 Temperature and Humidity Sensor"></label>
+      <block type="dht_init">
+        <field name="BLOCK_DHT_INIT">Start DHT11/22 sensor</field>
+        <value name="pin">
+          <shadow type="pinout">
+            <field name="PIN"></field>
+          </shadow>
+        </value>
+      </block>
+      <block type="dht_measure"></block>
+      <block type="dht_read_temp"></block>
+      <block type="dht_read_humidity"></block>
+    </category>
+<!--Comentando bloco do anenometro e pluviometro-->
+  <!--
+    <category name="Anemômetro">
+    <label text="Anenômetro"></label>
+  -->
+<!--Iniciar Anemômetro-->
+    <!--
+    <block type="anemo_init">
+        <value name="Função">
+          <shadow type="text">
+            <field name="TEXT"></field>
+          </shadow>
+        </value>
+        <value name="pin">
+          <shadow type="pinout">
+            <field name="PIN"></field>
+          </shadow>
+        </value>
+      </block>
+     --> 
+<!--Parar Anemômetro-->
+      <!--
+      <block type="anemo_stop">
+        <value name="Função">
+          <shadow type="text">
+            <field name="TEXT"></field>
+          </shadow>
+        </value>
+      </block>
+  </category>
+      -->
+<!--Adicionando os blocos do Pluviômetro--> 
+  <!--
+  <category name="Pluviômetro">
+    <label text= "Pluviômetro"></label>
+  -->
+<!--Iniciar Pluviômetro-->
+    <!--
+    <block type="pluvio_init">
+        <value name="Função">
+          <shadow type="text">
+            <field name="TEXT"></field>
+          </shadow>
+        </value>
+        <value name="pin">
+          <shadow type="pinout">
+            <field name="PIN"></field>
+          </shadow>
+        </value>
+      </block>
+    -->
+<!--Parar Pluviômetro-->
+      <!--
+      <block type="pluvio_stop">
+        <value name="Função">
+          <shadow type="text">
+            <field name="TEXT"></field>
+          </shadow>
+        </value>
+      </block>
+  </category>
+      -->
+  <!--Categoria para o sensor ultrassônico-->
+  <category name="%{BKY_CAT_ULTRASONIC}" colour="%{BKY_SENSORS_HUE}">
+      <label text="HCSR04 ultrasound distance sensor"></label>
+      <label text="Library: https://github.com/rsc1975/micropython-hcsr04"></label>
+        <button text="Install HCSR04 library" callbackKey="installPyLib"></button>
+
+
+      <block type="hcsr_init">
+        <field name="BLOCK_HCSR_INIT">Start HCSR04 Ultrasound sensor</field>
+        <value name="echo">
+          <shadow type="pinout">
+            <field name="PIN"></field>
+          </shadow>
+        </value>
+ <value name="trigger">
+          <shadow type="pinout">
+            <field name="PIN"></field>
+          </shadow>
+        </value>
+  <value name="timeout">
+          <shadow type="math_number">
+            <field name="NUM">10000</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="hcsr_read">
+      </block>
+
+  </category>
+  <!--
+  <category name="GPS">
+      <label text="Global Positioning System sensor"></label>
+   <label text="Library: https://github.com/"></label>
+        <button text="Install GPS library" callbackKey="installPyLib"></button>
+
+	<block type="gps_init">
+      </block>
+	<block type="gps_update">
+      </block>
+	<block type="gps_get_lat">
+      </block>
+	<block type="gps_get_long">
+      </block>
+	<block type="gps_get_height">
+      </block>
+	<block type="gps_get_speed">
+      </block>
+	<block type="gps_get_datetime">
+      </block>
+
+
+  </category>
+
+  <category name="Oximeter">
+      <label text="MAX30100 pulse oximeter sensor"></label>
+   <label text="Library: https://github.com/"></label>
+        <button text="Install MAX30100 library" callbackKey="installPyLib"></button>
+
+	<block type="max30100_init">
+      </block>
+	<block type="max30100_read">
+      </block>
+	<block type="max30100_red">
+      </block>
+	<block type="max30100_ir">
+      </block>
+
+  </category>
+  -->
+  <!--Categoria para o módulo de acelerômetro e giroscopio-->
+  <category name="%{BKY_CAT_ACCELEROMETER}" colour="%{BKY_SENSORS_HUE}">
+      <label text="MPU6050 IMU"></label>
+   <label text="Library: https://github.com/"></label>
+        <button text="Install imu library (MPU6050)" callbackKey="installPyLib"></button>
+
+        <button text="Load example: mpu6050" callbackKey="loadExample"></button>
+        <button text="Documentation and how to connect: mpu6050" callbackKey="loadDoc"></button>
+
+
+
+    <block type="init_mpu6050">
+
+ <value name="scl">
+        <shadow type="math_number">
+          <field name="NUM">5</field>
+        </shadow>
+      </value>
+
+ <value name="sda">
+        <shadow type="math_number">
+          <field name="NUM">4</field>
+        </shadow>
+      </value>
+
+    </block>
+
+    <block type="mpu6050_read_acc_x"> </block>
+    <block type="mpu6050_read_acc_y"> </block>
+    <block type="mpu6050_read_acc_z"> </block>
+
+    <block type="mpu6050_read_gyro_x"> </block>
+    <block type="mpu6050_read_gyro_y"> </block>
+    <block type="mpu6050_read_gyro_z"> </block>
+
+
+  </category>
+      <!--
+      <category name="OneWire">
+      <label text="OneWire"></label>
+
+        <button text="Load example: ds1820" callbackKey="loadExample"></button>
+        <button text="Documentation and how to connect: ds1820" callbackKey="loadDoc"></button>
+
+      <block type="onewire_ds18x20_init">
+        <value name="pin">
+          <shadow type="pinout">
+            <field name="PIN"></field>
+          </shadow>
+        </value>
+      </block>
+      <block type="onewire_ds18x20_scan"></block>
+      <block type="onewire_ds18x20_convert"></block>
+      <block type="onewire_ds18x20_read_temp">
+	  <value name="rom">
+          <shadow type="math_number">
+            <field name="NUM">10000</field>
+          </shadow>
+        </value>
+ 
+      </block>
+      </category>
+      -->
+
+  <!--Categoria para o módulo RFID-->
+  <category name="%{BKY_CAT_RFID}" colour="%{BKY_SENSORS_HUE}">
+      <label text="RC522 13.56MHz RFID Reader"></label>
+      <label text="Library: https://github.com/wendlers/micropython-mfrc522"></label>
+        <button text="Install mfrc522 library" callbackKey="installPyLib"></button>
+        <button text="Load example: mfrc522" callbackKey="loadExample"></button>
+        <button text="Documentation and how to connect: mfrc522" callbackKey="loadDoc"></button>
+
+      <block type="rfid_rc522_init">
+        <value name="sck">
+          <shadow type="pinout">
+            <field name="SCK"></field>
+          </shadow>
+        </value>
+ 
+        <value name="mosi">
+          <shadow type="pinout">
+            <field name="MOSI"></field>
+          </shadow>
+        </value>
+
+         <value name="miso">
+          <shadow type="pinout">
+            <field name="MISO"></field>
+          </shadow>
+        </value>
+ 
+        <value name="rst">
+          <shadow type="pinout">
+            <field name="RST"></field>
+          </shadow>
+        </value>
+ 
+        <value name="cs">
+          <shadow type="pinout">
+            <field name="RST"></field>
+          </shadow>
+        </value>
+
+      </block>
+      <block type="rfid_rc522_detect_card"></block>
+      <block type="rfid_rc522_anticoll"></block>
+      <block type="rfid_rc522_read_card"></block>
+      <block type="rfid_rc522_write_card"></block>
+
+  </category>
+
+  <!--
+  <category name="Rotatory Encoder">
+      <label text="Rotatory Incremental Encoder"></label>
+        <button text="Load example: encoder" callbackKey="loadExample"></button>
+        <button text="Documentation and how to connect: encoder" callbackKey="loadDoc"></button>
+
+      <block type="encoder_init">
+        <value name="p0">
+          <shadow type="pinout">
+            <field name="ch0"></field>
+          </shadow>
+        </value>
+ 
+        <value name="p1">
+          <shadow type="pinout">
+            <field name="ch1"></field>
+          </shadow>
+        </value>
+
+      </block>
+      <block type="encoder_reset"></block>
+      <block type="encoder_read"></block>
+  </category>
+
+  <category name="Camera (ESP32CAM)">
+      <label text="OV2640 Camera on ESP32-CAM Board"></label>
+        <button text="Load example: esp32cam" callbackKey="loadExample"></button>
+      <label text="More info: https://rafaelaroca.wordpress.com/2021/07/15/esp32-camera-micropython-and-no-esptool/"></label>
+
+      <block type="esp32_cam_init"> </block>
+      <block type="esp32_cam_capture"> </block>
+      <block type="esp32_cam_red_led"> </block>
+      <block type="esp32_cam_white_led"> </block>
+  </category>
+  -->
+  </category>
 
 
 <category name="%{BKY_CAT_DISPLAYS}">
@@ -1132,301 +1427,6 @@
   -->
   </category>
 
-
-
-  <category name="%{BKY_CAT_SENSORS}">
-    <category name="DHT11/22 Sensor">
-      <label text="DHT11/22 Temperature and Humidity Sensor"></label>
-      <block type="dht_init">
-        <field name="BLOCK_DHT_INIT">Start DHT11/22 sensor</field>
-        <value name="pin">
-          <shadow type="pinout">
-            <field name="PIN"></field>
-          </shadow>
-        </value>
-      </block>
-      <block type="dht_measure"></block>
-      <block type="dht_read_temp"></block>
-      <block type="dht_read_humidity"></block>
-    </category>
-<!--Comentando bloco do anenometro e pluviometro-->
-  <!--
-    <category name="Anemômetro">
-    <label text="Anenômetro"></label>
-  -->
-<!--Iniciar Anemômetro-->
-    <!--
-    <block type="anemo_init">
-        <value name="Função">
-          <shadow type="text">
-            <field name="TEXT"></field>
-          </shadow>
-        </value>
-        <value name="pin">
-          <shadow type="pinout">
-            <field name="PIN"></field>
-          </shadow>
-        </value>
-      </block>
-     --> 
-<!--Parar Anemômetro-->
-      <!--
-      <block type="anemo_stop">
-        <value name="Função">
-          <shadow type="text">
-            <field name="TEXT"></field>
-          </shadow>
-        </value>
-      </block>
-  </category>
-      -->
-<!--Adicionando os blocos do Pluviômetro--> 
-  <!--
-  <category name="Pluviômetro">
-    <label text= "Pluviômetro"></label>
-  -->
-<!--Iniciar Pluviômetro-->
-    <!--
-    <block type="pluvio_init">
-        <value name="Função">
-          <shadow type="text">
-            <field name="TEXT"></field>
-          </shadow>
-        </value>
-        <value name="pin">
-          <shadow type="pinout">
-            <field name="PIN"></field>
-          </shadow>
-        </value>
-      </block>
-    -->
-<!--Parar Pluviômetro-->
-      <!--
-      <block type="pluvio_stop">
-        <value name="Função">
-          <shadow type="text">
-            <field name="TEXT"></field>
-          </shadow>
-        </value>
-      </block>
-  </category>
-      -->
-
-  <category name="Ultrasound">
-      <label text="HCSR04 ultrasound distance sensor"></label>
-      <label text="Library: https://github.com/rsc1975/micropython-hcsr04"></label>
-        <button text="Install HCSR04 library" callbackKey="installPyLib"></button>
-
-
-      <block type="hcsr_init">
-        <field name="BLOCK_HCSR_INIT">Start HCSR04 Ultrasound sensor</field>
-        <value name="echo">
-          <shadow type="pinout">
-            <field name="PIN"></field>
-          </shadow>
-        </value>
- <value name="trigger">
-          <shadow type="pinout">
-            <field name="PIN"></field>
-          </shadow>
-        </value>
-  <value name="timeout">
-          <shadow type="math_number">
-            <field name="NUM">10000</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="hcsr_read">
-      </block>
-
-  </category>
-  <!--
-  <category name="GPS">
-      <label text="Global Positioning System sensor"></label>
-   <label text="Library: https://github.com/"></label>
-        <button text="Install GPS library" callbackKey="installPyLib"></button>
-
-	<block type="gps_init">
-      </block>
-	<block type="gps_update">
-      </block>
-	<block type="gps_get_lat">
-      </block>
-	<block type="gps_get_long">
-      </block>
-	<block type="gps_get_height">
-      </block>
-	<block type="gps_get_speed">
-      </block>
-	<block type="gps_get_datetime">
-      </block>
-
-
-  </category>
-
-  <category name="Oximeter">
-      <label text="MAX30100 pulse oximeter sensor"></label>
-   <label text="Library: https://github.com/"></label>
-        <button text="Install MAX30100 library" callbackKey="installPyLib"></button>
-
-	<block type="max30100_init">
-      </block>
-	<block type="max30100_read">
-      </block>
-	<block type="max30100_red">
-      </block>
-	<block type="max30100_ir">
-      </block>
-
-  </category>
-  -->
-
-  <category name="Inertial Measurement">
-      <label text="MPU6050 IMU"></label>
-   <label text="Library: https://github.com/"></label>
-        <button text="Install imu library (MPU6050)" callbackKey="installPyLib"></button>
-
-        <button text="Load example: mpu6050" callbackKey="loadExample"></button>
-        <button text="Documentation and how to connect: mpu6050" callbackKey="loadDoc"></button>
-
-
-
-    <block type="init_mpu6050">
-
- <value name="scl">
-        <shadow type="math_number">
-          <field name="NUM">5</field>
-        </shadow>
-      </value>
-
- <value name="sda">
-        <shadow type="math_number">
-          <field name="NUM">4</field>
-        </shadow>
-      </value>
-
-    </block>
-
-    <block type="mpu6050_read_acc_x"> </block>
-    <block type="mpu6050_read_acc_y"> </block>
-    <block type="mpu6050_read_acc_z"> </block>
-
-    <block type="mpu6050_read_gyro_x"> </block>
-    <block type="mpu6050_read_gyro_y"> </block>
-    <block type="mpu6050_read_gyro_z"> </block>
-
-
-  </category>
-      <!--
-      <category name="OneWire">
-      <label text="OneWire"></label>
-
-        <button text="Load example: ds1820" callbackKey="loadExample"></button>
-        <button text="Documentation and how to connect: ds1820" callbackKey="loadDoc"></button>
-
-      <block type="onewire_ds18x20_init">
-        <value name="pin">
-          <shadow type="pinout">
-            <field name="PIN"></field>
-          </shadow>
-        </value>
-      </block>
-      <block type="onewire_ds18x20_scan"></block>
-      <block type="onewire_ds18x20_convert"></block>
-      <block type="onewire_ds18x20_read_temp">
-	  <value name="rom">
-          <shadow type="math_number">
-            <field name="NUM">10000</field>
-          </shadow>
-        </value>
- 
-      </block>
-      </category>
-      -->
-
-
-  <category name="RFID Reader">
-      <label text="RC522 13.56MHz RFID Reader"></label>
-      <label text="Library: https://github.com/wendlers/micropython-mfrc522"></label>
-        <button text="Install mfrc522 library" callbackKey="installPyLib"></button>
-        <button text="Load example: mfrc522" callbackKey="loadExample"></button>
-        <button text="Documentation and how to connect: mfrc522" callbackKey="loadDoc"></button>
-
-      <block type="rfid_rc522_init">
-        <value name="sck">
-          <shadow type="pinout">
-            <field name="SCK"></field>
-          </shadow>
-        </value>
- 
-        <value name="mosi">
-          <shadow type="pinout">
-            <field name="MOSI"></field>
-          </shadow>
-        </value>
-
-         <value name="miso">
-          <shadow type="pinout">
-            <field name="MISO"></field>
-          </shadow>
-        </value>
- 
-        <value name="rst">
-          <shadow type="pinout">
-            <field name="RST"></field>
-          </shadow>
-        </value>
- 
-        <value name="cs">
-          <shadow type="pinout">
-            <field name="RST"></field>
-          </shadow>
-        </value>
-
-      </block>
-      <block type="rfid_rc522_detect_card"></block>
-      <block type="rfid_rc522_anticoll"></block>
-      <block type="rfid_rc522_read_card"></block>
-      <block type="rfid_rc522_write_card"></block>
-
-  </category>
-
-  <!--
-  <category name="Rotatory Encoder">
-      <label text="Rotatory Incremental Encoder"></label>
-        <button text="Load example: encoder" callbackKey="loadExample"></button>
-        <button text="Documentation and how to connect: encoder" callbackKey="loadDoc"></button>
-
-      <block type="encoder_init">
-        <value name="p0">
-          <shadow type="pinout">
-            <field name="ch0"></field>
-          </shadow>
-        </value>
- 
-        <value name="p1">
-          <shadow type="pinout">
-            <field name="ch1"></field>
-          </shadow>
-        </value>
-
-      </block>
-      <block type="encoder_reset"></block>
-      <block type="encoder_read"></block>
-  </category>
-
-  <category name="Camera (ESP32CAM)">
-      <label text="OV2640 Camera on ESP32-CAM Board"></label>
-        <button text="Load example: esp32cam" callbackKey="loadExample"></button>
-      <label text="More info: https://rafaelaroca.wordpress.com/2021/07/15/esp32-camera-micropython-and-no-esptool/"></label>
-
-      <block type="esp32_cam_init"> </block>
-      <block type="esp32_cam_capture"> </block>
-      <block type="esp32_cam_red_led"> </block>
-      <block type="esp32_cam_white_led"> </block>
-  </category>
-  -->
-  </category>
   
 
   <category name="%{BKY_CAT_OUTPUTS}">

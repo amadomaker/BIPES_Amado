@@ -109,6 +109,7 @@ var MSG = {
   dht_temp: "temperatura do DHT11/22",
   dht_humi: "umidade do DHT11/22",
   type: "modelo",
+  
 
 //Network
   net_http_get: "Requisição HTTP GET",
@@ -137,7 +138,7 @@ var MSG = {
 Blockly.Msg['CAT_CONTROL'] = "Controle";
 Blockly.Msg['CAT_LOOPS'] = "Laços";
 Blockly.Msg['CAT_TIMING'] = "Temporização";
-Blockly.Msg['CAT_MACHINE'] = "Máquina";
+Blockly.Msg['CAT_INOUT'] = "Pinos entrada/saida";
 Blockly.Msg['CAT_DISPLAYS'] = "Displays";
 Blockly.Msg['CAT_SENSORS'] = "Sensores";
 Blockly.Msg['CAT_OUTPUTS'] = "Saidas e atuadores";
@@ -147,5 +148,8 @@ Blockly.Msg['CAT_NET'] = "Rede e Internet";
 Blockly.Msg['CAT_OPERATORS'] = "Operadores";
 Blockly.Msg['CAT_VARIABLES'] = "Variáveis";
 Blockly.Msg['CAT_FUNCTIONS'] = "Funcões";
-
+Blockly.Msg['CAT_DHT11/22'] = "Temperatura e umidade";
+Blockly.Msg['CAT_ULTRASONIC'] = "Ultrassônico";
+Blockly.Msg['CAT_ACCELEROMETER'] = "Acelerômetro e giroscópio";
+Blockly.Msg['CAT_RFID'] = "Leitor RFID";
 
