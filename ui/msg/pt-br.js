@@ -152,4 +152,10 @@ Blockly.Msg['CAT_DHT11/22'] = "Temperatura e umidade";
 Blockly.Msg['CAT_ULTRASONIC'] = "Ultrassônico";
 Blockly.Msg['CAT_ACCELEROMETER'] = "Acelerômetro e giroscópio";
 Blockly.Msg['CAT_RFID'] = "Leitor RFID";
+Blockly.Msg['CAT_OLEDDISPLAY'] = "Display OLED";
+Blockly.Msg['CAT_RELAY'] = "Módulo relé";
+Blockly.Msg['CAT_SERVO'] = "Servo motor";
+Blockly.Msg['CAT_DCMOTOR'] = "Motor DC";
+Blockly.Msg['CAT_BUZZER'] = "Buzzer";
+
 

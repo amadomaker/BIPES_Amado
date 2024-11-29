@@ -910,7 +910,7 @@
   </category>
 
 
-<category name="%{BKY_CAT_DISPLAYS}">
+<category name="%{BKY_CAT_DISPLAYS}" colour="%{BKY_DISPLAY_HUE}">
 <!--Comentando blocos da categoria display-->
 <!--
 <category name="NeoPixel LED Strip">
@@ -1204,8 +1204,8 @@
     </block>
     </category>
     -->
-
-    <category name="OLED Display">
+    <!--Categoria para o display oled-->
+    <category name = "%{BKY_CAT_OLEDDISPLAY}" colour="%{BKY_DISPLAY_HUE}">
       <label text="SSD1306 OLED I2C Display"></label>
       <button text="Install ssd1306 library" callbackKey="installPyLib"></button>
 
@@ -1428,9 +1428,9 @@
   </category>
 
   
-
-  <category name="%{BKY_CAT_OUTPUTS}">
-    <category name="Relay">
+  <!--Categoria para saida e atuadores-->
+  <category name="%{BKY_CAT_OUTPUTS}" colour = "%{BKY_ACTUATORS_HUE}">
+    <category name="%{BKY_CAT_RELAY}" colour = "%{BKY_ACTUATORS_HUE}">
       <label text="Relay"></label>
       <block type="relay_switch">
         <value name="pin">
@@ -1441,7 +1441,7 @@
       </block>
     </category>
 
-  <category name="RC Servo Motor">
+  <category name="%{BKY_CAT_SERVO}" colour = "%{BKY_ACTUATORS_HUE}">
       <label text="Hobby RC Servo Motor"></label>
     <block type="init_servo">
         <value name="pin">
@@ -1497,7 +1497,7 @@
   </category>
   -->
 
-  <category name="DC Motor">
+  <category name="%{BKY_CAT_DCMOTOR}" colour = "%{BKY_ACTUATORS_HUE}">
       <label text="DC Motor"></label>
     <block type="dc_motor_init">
       <value name="pwm">
@@ -1538,7 +1538,7 @@ _
     </block>
   </category>
 
-  <category name="Sounds">
+  <category name="%{BKY_CAT_BUZZER}" colour = "%{BKY_ACTUATORS_HUE}">
         <label text="Sounds and RTTTL:"></label>
         <label text="Ring Tone Text Transfer Language (RTTTL) "></label>
         <label text="Library: "></label>
