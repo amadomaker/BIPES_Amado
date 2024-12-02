@@ -169,7 +169,7 @@ Blockly.Blocks['deep_sleep8266'] = {
 	.appendField("deep sleep");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Deep sleep process in milliseconds");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -183,7 +183,7 @@ Blockly.Blocks['deep_sleep'] = {
 	.appendField("deep sleep");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Deep sleep process in milliseconds");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -196,7 +196,7 @@ Blockly.Blocks['delay_old'] = {
         .appendField("delay seconds");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Delay processing in seconds");
  this.setHelpUrl("http://www.bipes.net.br/");
   }
@@ -209,7 +209,7 @@ Blockly.Blocks['delay_ms'] = {
         .appendField("delay milliseconds");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Delay processing in milliseconds");
  this.setHelpUrl("http://www.bipes.net.br/");
   }
@@ -222,7 +222,7 @@ Blockly.Blocks['delay_us'] = {
         .appendField("delay microseconds");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Delay processing in microseconds");
  this.setHelpUrl("http://www.bipes.net.br/");
   }
@@ -273,7 +273,7 @@ Blockly.Blocks['delay'] = {
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
     this.setTooltip("Delay for given number, should be positive or 0.");
     this.setHelpUrl("https://docs.micropython.org/en/latest/library/utime.html#utime.sleep");
 
@@ -287,7 +287,7 @@ Blockly.Blocks['utime.vars'] = {
         .appendField(new Blockly.FieldDropdown([["seconds","time"], ["milliseconds","ticks_ms"], ["microseconds","ticks_us"], ["nanoseconds","time_ns"], ["cpu ticks","ticks_cpu"]]), "VARS")
         .appendField("counter");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
     this.setTooltip("Returns a counter in the defined scale, only integer values.");
    this.setHelpUrl("https://docs.micropython.org/en/latest/library/utime.html#utime.ticks_ms");
   }
@@ -303,7 +303,7 @@ Blockly.Blocks['utime.ticks_add'] = {
         .appendField("by");
     this.setInputsInline(true);
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
     this.setTooltip("Offset ticks value by a given number, which can be either positive or negative. Must be same scale in milliseconds, microseconds or cpu ticks.");
     this.setHelpUrl("https://docs.micropython.org/en/latest/library/utime.html#utime.ticks_add");
   }
@@ -319,7 +319,7 @@ Blockly.Blocks['utime.ticks_diff'] = {
         .appendField("by");
     this.setInputsInline(false);
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
     this.setTooltip("Measure ticks difference between values Must be same scale in milliseconds, microseconds or cpu ticks.");
     this.setHelpUrl("https://docs.micropython.org/en/latest/library/utime.html#utime.ticks_diff");
   }
@@ -339,7 +339,7 @@ Blockly.Blocks['utime.deadline'] = {
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(135);
+    this.setColour("%{BKY_CONTROL_HUE}");
     this.setTooltip("Creates a loop with deadline.");
     this.setHelpUrl("https://docs.micropython.org/en/latest/library/utime.html#utime.ticks_add");
   }
@@ -381,7 +381,7 @@ Blockly.Blocks['esp32_set_rtc'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Set RTC value");
  this.setHelpUrl("bipes.net.br");
   }
@@ -434,7 +434,7 @@ Blockly.Blocks['esp32_get_rtc'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["get_rtc"]), "MSG_GET_RTC");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Get RTC value");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -478,7 +478,7 @@ Blockly.Blocks['iniciar_thread'] = {
           .appendField("Iniciar tarefa paralela com a função");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(230);
+      this.setColour("#d9a600");
       this.setTooltip("Inicia uma nova thread para executar a função especificada.");
       this.setHelpUrl("");
   }
@@ -490,7 +490,7 @@ Blockly.Blocks['iniciar_thread'] = {
 
 Blockly.Blocks['timer'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour("#d9a600");
     this.appendDummyInput()
         .appendField("Timer #")
         .appendField(new Blockly.FieldNumber(2, 0, 9, 1), "timerNumber")
@@ -517,7 +517,7 @@ Blockly.Blocks['stop_timer'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(0);
+    this.setColour("#d9a600");
  this.setTooltip("Stop Timer");
  this.setHelpUrl("www.bipes.net.br");
   }
