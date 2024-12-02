@@ -376,29 +376,7 @@
       </category>
     </category>
 
-    <category name="Bluetooth" colour="#1E90FF">
-      <block type="configure_and_start_bluetooth"></block>
-      <block type="handle_ble_data"></block>
-      <block type="check_ble_data"></block>
-      <block type="configure_data_plotter"></block>
-      <block type="call_format_plotter_data"></block>
-    </category>
 
-    <category name="Espnow" colour="#7b49ad">
-    <block type="init_wlan"></block>
-      <block type="get_mac_address"></block>
-      <block type="set_master"></block>
-      <block type="add_peer"></block>
-      <block type="set_peer"></block>
-      <block type="receive_message"></block>
-      <block type="receive_message_master"></block>
-      <block type="send_message"></block>
-      <block type="send_message_to_peer"></block>
-      <block type="get_variable_value"></block>
-      <block type="check_and_assign_value"></block>
-      
-
-    </category>
 
    <category name="Bipes" colour="#FF8C00">
     <block type="project_metadata">
@@ -1639,11 +1617,66 @@ _
 
   </category>
 
-<!--Comentando a categoria Comunicação-->
-<!--
-  <category name="%{BKY_CAT_COMM}">
-      <label text="%{BKY_CAT_COMM}"></label>
-      <category name="UART">
+<!--Categoria comunicação-->
+<category name="%{BKY_CAT_COMM}" colour="%{BKY_COMM_HUE}">
+<!--categoria bluetooth-->
+  <category name="Bluetooth" colour="%{BKY_COMM_HUE}">
+    <label text="Bluetooth low energy"></label>
+    <block type="configure_and_start_bluetooth"></block>
+    <block type="handle_ble_data"></block>
+    <block type="check_ble_data"></block>
+    <block type="configure_data_plotter"></block>
+    <block type="call_format_plotter_data"></block>
+</category>
+<!--Categoria bluetooth REPL-->
+<category name="Bluetooth REPL" colour="%{BKY_COMM_HUE}">
+  <label text="Bluetooth REPL"></label>
+  <label text="This block allows terminal/console access using bluetooth."></label>
+  <label text="Library: https://github.com/micropython/micropython/tree/master/examples/bluetooth"></label>
+  <label text="You need to install 3 files to use:"></label>
+  <button text="Install ble_advertising library" callbackKey="installPyLib"></button>
+  <button text="Install ble_uart_peripheral library" callbackKey="installPyLib"></button>
+  <button text="Install ble_uart_repl library" callbackKey="installPyLib"></button>
+
+  <label text="Web Bluetooth REPL"></label>
+  <block type="bluetooth_repl_setup">
+  <value name="name">
+      <shadow type="text">
+        <field name="TEXT">BIPES-BLE</field>
+      </shadow>
+    </value>
+  </block>
+  <block type="bluetooth_repl_start">
+  <value name="name">
+      <shadow type="text">
+        <field name="TEXT">BIPES-BLE</field>
+      </shadow>
+    </value>
+  </block>
+  <label text="Usage:"></label>
+  <label text="1. Install the 3 files above"></label>
+  <label text="2. Start Web Bluetooth REPL"></label>
+  <label text="3. Pair the ESP32 with your device /"></label>
+  <label text="4. Go to https://bipes.net.br/beta2/ui/"></label>
+  <label text="5. Select the bluetooth option and Connect (Web Bluetooth)"></label>
+</category>
+<!--Categoria espnow-->
+<category name="Espnow" colour="%{BKY_COMM_HUE}">
+  <block type="init_wlan"></block>
+  <block type="get_mac_address"></block>
+  <block type="set_master"></block>
+  <block type="add_peer"></block>
+  <block type="set_peer"></block>
+  <block type="receive_message"></block>
+  <block type="receive_message_master"></block>
+  <block type="send_message"></block>
+  <block type="send_message_to_peer"></block>
+  <block type="get_variable_value"></block>
+  <block type="check_and_assign_value"></block>
+</category>
+
+  <!--
+  <category name="UART">
       <label text="UART Serial Port"></label>
 <block type="uart_init">
 </block>
@@ -1888,6 +1921,7 @@ _
 
   </category>
 -->
+</category>
 
   <category name="%{BKY_CAT_NET}">
     <block type="wifi_client_connect">
@@ -2295,37 +2329,7 @@ _
       </block>
     </category>
     
-  <category name="Bluetooth REPL">
-    <label text="Bluetooth REPL"></label>
-    <label text="This block allows terminal/console access using bluetooth."></label>
-    <label text="Library: https://github.com/micropython/micropython/tree/master/examples/bluetooth"></label>
-    <label text="You need to install 3 files to use:"></label>
-    <button text="Install ble_advertising library" callbackKey="installPyLib"></button>
-    <button text="Install ble_uart_peripheral library" callbackKey="installPyLib"></button>
-    <button text="Install ble_uart_repl library" callbackKey="installPyLib"></button>
 
-      <label text="Web Bluetooth REPL"></label>
-      <block type="bluetooth_repl_setup">
-      <value name="name">
-          <shadow type="text">
-            <field name="TEXT">BIPES-BLE</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="bluetooth_repl_start">
-      <value name="name">
-          <shadow type="text">
-            <field name="TEXT">BIPES-BLE</field>
-          </shadow>
-        </value>
-      </block>
-    <label text="Usage:"></label>
-    <label text="1. Install the 3 files above"></label>
-    <label text="2. Start Web Bluetooth REPL"></label>
-    <label text="3. Pair the ESP32 with your device /"></label>
-    <label text="4. Go to https://bipes.net.br/beta2/ui/"></label>
-    <label text="5. Select the bluetooth option and Connect (Web Bluetooth)"></label>
-    </category>
   <!--
   <category name="WebREPL">
       <label text="WebREPL"></label>

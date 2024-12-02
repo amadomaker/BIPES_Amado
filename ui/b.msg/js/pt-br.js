@@ -437,3 +437,4 @@ Blockly.Msg["INOUT_HUE"] = "#000080";
 Blockly.Msg["SENSORS_HUE"] = "#008B8B";
 Blockly.Msg["DISPLAY_HUE"] = "#1E90FF";
 Blockly.Msg["ACTUATORS_HUE"] = "#191970";
+Blockly.Msg["COMM_HUE"] = "#4B0082";
