@@ -1,7 +1,7 @@
 <document>
 <!--CATEGORIA CONTROLE-->
   <category name="%{BKY_CAT_CONTROL}" colour="%{BKY_CONTROL_HUE}">
-      <label text="%{BKY_CAT_LOOPS}"></label>
+      <category name="%{BKY_CAT_LOOPS}" colour="%{BKY_CONTROL_HUE}">
       <block type="controls_repeat_ext">
         <value name="TIMES">
           <shadow type="math_number">
@@ -31,9 +31,10 @@
       <block type="controls_flow_statements"></block>
       <block type="iniciar_thread">
       </block>
+    </category>
     
     <!--CATEGORIA TEMPORIZADOR-->
-	  <label text="%{BKY_CAT_TIMING}"></label>
+	  <category name="%{BKY_CAT_TIMING}" colour="%{BKY_CONTROL_HUE}">
     <block type="delay">
       <value name="TIME">
         <shadow type="math_number">
@@ -77,6 +78,7 @@
         </shadow>
       </value>
     </block>
+    </category>
   </category>
 
 
