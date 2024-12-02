@@ -376,104 +376,108 @@
         </block>
         <block type="lists_sort"></block>  
       </category>
-    </category>
+      
+      <category name="BIPES" colour="%{BKY_PROCEDURES_HUE}">
+        <block type="project_metadata">
+          <value name="project_author">
+            <shadow type="text">
+              <field name="TEXT"></field>
+            </shadow>
+          </value>
+          <value name="project_iot_id">
+            <shadow type="math_number">
+              <field name="NUM"></field>
+            </shadow>
+          </value>
+          <value name="project_description">
+            <shadow type="text">
+              <field name="TEXT"></field>
+            </shadow>
+          </value>
+        </block>
 
+        <block type="bipes_plot">
+        </block>
+        <!--Comentando bloco LocalStorage topic-->
+        <!--
+        <block type="localstorage_store">
+          <value name="ADD0">
+            <shadow type="utime.vars">
+              <field name="VARS">ticks_ms</field>
+            </shadow>
+          </value>
+        </block>
+        -->
+      </category>
 
+        <!--
+        <category name="Python" colour="%{BKY_LOGIC_HUE}">
+        <category name="Machine" colour="%{BKY_VARIABLES_HUE}">
+        -->
 
-   <category name="Bipes" colour="#FF8C00">
-    <block type="project_metadata">
-      <value name="project_author">
-        <shadow type="text">
-          <field name="TEXT"></field>
-        </shadow>
-      </value>
-      <value name="project_iot_id">
-        <shadow type="math_number">
-          <field name="NUM"></field>
-        </shadow>
-      </value>
-      <value name="project_description">
-        <shadow type="text">
-          <field name="TEXT"></field>
-        </shadow>
-      </value>
-    </block>
+        <!--Comentando blocos da categoria python-->
+      <category name="Python" colour="%{BKY_PROCEDURES_HUE}">
+        <label text="Python"></label>
+        <block type="try_catch"></block>
+        <block type="try_except_oserror">
+          <value name="TRY">
+            <statement name="TRY">
+            </statement>
+          </value>
+          <value name="EXCEPT">
+            <statement name="EXCEPT">
+            </statement>
+          </value>
+          <next>
+          </next>
+        </block>
+        <!--
+            <block type="exec_python">
+          <value name="command">
+                <shadow type="text">
+                  <field name="TEXT"></field>
+                </shadow>
+              </value>
 
-    <block type="bipes_plot">
-    </block>
-    <!--Comentando bloco LocalStorage topic-->
-    <!--
-    <block type="localstorage_store">
-      <value name="ADD0">
-        <shadow type="utime.vars">
-          <field name="VARS">ticks_ms</field>
-        </shadow>
-      </value>
-    </block>
-    -->
+            
+            </block>
 
-   </category>
-  
-    <!--
-    <category name="Python" colour="%{BKY_LOGIC_HUE}">
-    <category name="Machine" colour="%{BKY_VARIABLES_HUE}">
-    -->
+            <block type="exec_python_output">
+              <field name="EXEC_PYTHON_OUTPUT">Execute Python custom with output</field>
+          <value name="commnad">
+                <shadow type="text">
+                  <field name="TEXT"></field>
+                </shadow>
+              </value>
+            </block>
 
-  <!--Comentando blocos da categoria python-->
-  <category name="Python" colour="#8B4513">
-      <label text="Python"></label>
-<block type="try_catch"></block>
-<block type="try_except_oserror">
-  <value name="TRY">
-    <statement name="TRY">
-    </statement>
-  </value>
-  <value name="EXCEPT">
-    <statement name="EXCEPT">
-    </statement>
-  </value>
-  <next>
-  </next>
-</block>
-<!--
-    <block type="exec_python">
-  <value name="command">
-        <shadow type="text">
-          <field name="TEXT"></field>
-        </shadow>
-      </value>
+          <block type="inter_init">
+              <value name="Nome">
+                <shadow type="text">
+                  <field name="TEXT"></field>
+                </shadow>
+              </value>
+              <value name="Função">
+                <shadow type="text">
+                  <field name="TEXT"></field>
+                </shadow>
+              </value>
+              <value name="pin">
+                <shadow type="pinout">
+                  <field name="PIN"></field>
+                </shadow>
+              </value>
+            </block>
+            -->
+        </category>
 
-    
-    </block>
-
-    <block type="exec_python_output">
-      <field name="EXEC_PYTHON_OUTPUT">Execute Python custom with output</field>
-  <value name="commnad">
-        <shadow type="text">
-          <field name="TEXT"></field>
-        </shadow>
-      </value>
-    </block>
-
-  <block type="inter_init">
-      <value name="Nome">
-        <shadow type="text">
-          <field name="TEXT"></field>
-        </shadow>
-      </value>
-      <value name="Função">
-        <shadow type="text">
-          <field name="TEXT"></field>
-        </shadow>
-      </value>
-      <value name="pin">
-        <shadow type="pinout">
-          <field name="PIN"></field>
-        </shadow>
-      </value>
-    </block>
-    -->
   </category>
+
+
+
+   
+  
+
 
 
   <sep></sep>
