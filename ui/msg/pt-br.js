@@ -158,6 +158,7 @@ Blockly.Msg['CAT_SERVO'] = "Servo motor";
 Blockly.Msg['CAT_DCMOTOR'] = "Motor DC";
 Blockly.Msg['CAT_BUZZER'] = "Buzzer";
 Blockly.Msg['CAT_WIFI'] = "Wifi";
-
+Blockly.Msg['CAT_HTTPCLIENT'] = "Cliente HTTP";
+Blockly.Msg['CAT_HTTPSERVER'] = "Servidor HTTP"
 
 

@@ -1964,9 +1964,9 @@ _
 -->
 </category>
 
-  <category name="%{BKY_CAT_NET}">
+  <category name="%{BKY_CAT_NET}" colour="%{BKY_NET_HUE}">
 
-    <category name="HTTP Client">
+    <category name="%{BKY_CAT_HTTPCLIENT}" colour="%{BKY_NET_HUE}">
       <label text="HTTP (web) Client"></label>
       <label text="GET Method"></label>
 
@@ -2085,7 +2085,7 @@ _
 
     </category>
 
-    <category name="HTTP Server">
+    <category name="%{BKY_CAT_HTTPSERVER}" colour="%{BKY_NET_HUE}">
       <label text="HTTP Web Server"></label>
       <button text="Load example: webserver" callbackKey="loadExample"></button>
       <button text="Documentation: webserver" callbackKey="loadDoc"></button>
@@ -2302,7 +2302,7 @@ _
       </block>
     </category>
     -->
-    <category name="EasyMQTT" >
+    <category name="EasyMQTT" colour="%{BKY_NET_HUE}">
       <label text="IoT: EasyMQTT"></label>
       <block type="easymqtt_init">
       </block>
@@ -2457,9 +2457,9 @@ _
 -->
 
 <!--Comentando categoria micropython-->
-
-<category name="micropython">
 <!--
+<category name="micropython">
+
 <category name="btree">
 <block type="btree_open">
 </block>
@@ -3527,7 +3527,6 @@ _
 <block type="wipy_heartbeat">
 </block>
 </category>
--->
 </category>
-
+-->
 </document>
