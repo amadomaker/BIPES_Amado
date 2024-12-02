@@ -14,11 +14,16 @@ var MSG = {
   catMath: "Matemática",
   catText: "Texto",
   catLists: "Listas",
-  catColour: "Cor",
-  catVariables: "Variáveis",
-  catFunctions: "Funções",
-  listVariable: "lista",
+  catColour: "Cor",  listVariable: "lista",
   textVariable: "texto",
+  catVariables: "Variáveis criadas",
+  catFunctions: "Funções criadas",
+  cattextVariable: "Texto",
+  catbooleanVariable: "Boleanas",
+  catnumericVariable: "Numéricas",
+  catlistVariable: "Listas",
+  cattextFuncions: "Texto",
+  catlistFunctions: "Listas",
   httpRequestError: "Houve um problema com a requisição.",
   linkAlert: "Compartilhe seus blocos com este link:\n\n%1",
   hashError: "Desculpe, '%1' não corresponde a um programa salvo.",
@@ -104,6 +109,7 @@ var MSG = {
   dht_temp: "temperatura do DHT11/22",
   dht_humi: "umidade do DHT11/22",
   type: "modelo",
+  
 
 //Network
   net_http_get: "Requisição HTTP GET",
@@ -128,13 +134,31 @@ var MSG = {
 };
 
 //Categorias da caixa de ferramentas
+
+Blockly.Msg['CAT_CONTROL'] = "Controle";
+Blockly.Msg['CAT_LOOPS'] = "Laços";
 Blockly.Msg['CAT_TIMING'] = "Temporização";
-Blockly.Msg['CAT_MACHINE'] = "Máquina";
-Blockly.Msg['CAT_DISPLAYS'] = "Displays";
+Blockly.Msg['CAT_INOUT'] = "Pinos entrada/saída";
+Blockly.Msg['CAT_DISPLAYS'] = "Telas";
 Blockly.Msg['CAT_SENSORS'] = "Sensores";
-Blockly.Msg['CAT_OUTPUTS'] = "Saidas e atuadores";
+Blockly.Msg['CAT_OUTPUTS'] = "Saídas e atuadores";
 Blockly.Msg['CAT_COMM'] = "Comunicação";
 Blockly.Msg['CAT_FILES'] = "Arquivos";
 Blockly.Msg['CAT_NET'] = "Rede e Internet";
-Blockly.Msg['CAT_CONTROL'] = "Controle";
+Blockly.Msg['CAT_OPERATORS'] = "Operadores";
+Blockly.Msg['CAT_VARIABLES'] = "Variáveis";
+Blockly.Msg['CAT_FUNCTIONS'] = "Funções";
+Blockly.Msg['CAT_DHT11/22'] = "Temperatura e umidade";
+Blockly.Msg['CAT_ULTRASONIC'] = "Ultrassônico";
+Blockly.Msg['CAT_ACCELEROMETER'] = "Acelerômetro e giroscópio";
+Blockly.Msg['CAT_RFID'] = "Leitor RFID";
+Blockly.Msg['CAT_OLEDDISPLAY'] = "Display OLED";
+Blockly.Msg['CAT_RELAY'] = "Módulo relé";
+Blockly.Msg['CAT_SERVO'] = "Servo motor";
+Blockly.Msg['CAT_DCMOTOR'] = "Motor DC";
+Blockly.Msg['CAT_BUZZER'] = "Campainha";
+Blockly.Msg['CAT_WIFI'] = "WiFi";
+Blockly.Msg['CAT_HTTPCLIENT'] = "Cliente HTTP";
+Blockly.Msg['CAT_HTTPSERVER'] = "Servidor HTTP"
+
 

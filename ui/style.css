@@ -1017,3 +1017,6 @@ button.icon.medium:before  {
     font-weight: bold;
     padding-bottom: .125rem;
 }
+.blocklyTreeIconClosed, .blocklyTreeIconOpen {
+  display: none;
+}

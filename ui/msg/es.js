@@ -15,10 +15,16 @@ var MSG = {
   catText: "Texto",
   catLists: "Listas",
   catColour: "Color",
-  catVariables: "Variables",
-  catFunctions: "Funciones",
+  catVariables: "Variables creadas",
+  catFunctions: "Funciones creadas",
   listVariable: "lista",
   textVariable: "texto",
+  cattextVariable: "Texto",
+  catbooleanVariable: "Booleano",
+  catnumericVariable: "Numerico",
+  catlistVariable: "Lista",
+  cattextFuncions: "Texto",
+  catlistFunctions: "Listas",
   httpRequestError: "Hubo un problema con la petición.",
   linkAlert: "Comparte tus bloques con este enlace:\n\n%1",
   hashError: "«%1» no corresponde con ningún programa guardado.",
@@ -121,13 +127,28 @@ var MSG = {
 };
 
 //Toolbox categories
-Blockly.Msg['CAT_TIMING'] = "Timing";
-Blockly.Msg['CAT_MACHINE'] = "Machine";
+Blockly.Msg['CAT_CONTROL'] = "Control";
+Blockly.Msg['CAT_LOOPS'] = "Secuencias";
+Blockly.Msg['CAT_TIMING'] = "Temporización";
+Blockly.Msg['CAT_INOUT'] = "Pines de entrada/salida";
 Blockly.Msg['CAT_DISPLAYS'] = "Displays";
 Blockly.Msg['CAT_SENSORS'] = "Sensors";
-Blockly.Msg['CAT_OUTPUTS'] = "Outputs / Actuators";
-Blockly.Msg['CAT_COMM'] = "Communication";
+Blockly.Msg['CAT_OUTPUTS'] = "Salidas / Actuadores";
+Blockly.Msg['CAT_COMM'] = "Comunicación";
 Blockly.Msg['CAT_FILES'] = "Files";
-Blockly.Msg['CAT_NET'] = "Network and Internet";
-Blockly.Msg['CAT_CONTROL'] = "Control";
-
+Blockly.Msg['CAT_NET'] = "Red y Internet";
+Blockly.Msg['CAT_OPERATORS'] = "Operadores";
+Blockly.Msg['CAT_VARIABLES'] = "Variables";
+Blockly.Msg['CAT_FUNCTIONS'] = "Funciones";
+Blockly.Msg['CAT_DHT11/22'] = "Temperatura y humedad";
+Blockly.Msg['CAT_ULTRASONIC'] = "Ultrasónico";
+Blockly.Msg['CAT_ACCELEROMETER'] = "Acelerómetro y giroscopio";
+Blockly.Msg['CAT_RFID'] = "Lector RFID";
+Blockly.Msg['CAT_OLEDDISPLAY'] = "Display OLED";
+Blockly.Msg['CAT_RELAY'] = "Módulo relé";
+Blockly.Msg['CAT_SERVO'] = "Servo motor";
+Blockly.Msg['CAT_DCMOTOR'] = "Motor DC";
+Blockly.Msg['CAT_BUZZER'] = "Buzzer";
+Blockly.Msg['CAT_WIFI'] = "Wifi";
+Blockly.Msg['CAT_HTTPCLIENT'] = "cliente HTTP";
+Blockly.Msg['CAT_HTTPSERVER'] = "Servidor HTTP";
