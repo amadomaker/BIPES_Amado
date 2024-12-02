@@ -1674,6 +1674,47 @@ _
   <block type="get_variable_value"></block>
   <block type="check_and_assign_value"></block>
 </category>
+<category name="%{BKY_CAT_WIFI}" colour="%{BKY_COMM_HUE}">
+  <block type="wifi_client_connect">
+    <value name="wifi_client_essid">
+      <shadow type="text">
+        <field name="TEXT"></field>
+      </shadow>
+    </value>
+    <value name="wifi_client_key">
+      <shadow type="text">
+        <field name="TEXT"></field>
+      </shadow>
+    </value>
+  </block>
+  <block type="net_ap_mode">
+    <field name="NAME">Configure Access Point Mode</field>
+    <value name="wifi_essid">
+      <shadow type="text">
+        <field name="TEXT"></field>
+      </shadow>
+    </value>
+    <value name="wifi_key">
+      <shadow type="text">
+        <field name="TEXT"></field>
+      </shadow>
+    </value>
+  </block>
+  <block type="wifi_client_scan_networks">
+  </block>
+  <block type="net_ifconfig">
+    <field name="NET_IFCONFIG">Wifi current IP</field>
+  </block>
+
+  <block type="net_wiznet5k_init">
+  </block>
+  <block type="net_wiznet5k_isconnected">
+  </block>
+  <block type="net_wiznet5k_regs">
+  </block>
+  <block type="net_wiznet5k_ifconfig">
+  </block>
+</category>
 
   <!--
   <category name="UART">
@@ -1924,45 +1965,6 @@ _
 </category>
 
   <category name="%{BKY_CAT_NET}">
-    <block type="wifi_client_connect">
-      <value name="wifi_client_essid">
-        <shadow type="text">
-          <field name="TEXT"></field>
-        </shadow>
-      </value>
-      <value name="wifi_client_key">
-        <shadow type="text">
-          <field name="TEXT"></field>
-        </shadow>
-      </value>
-    </block>
-    <block type="net_ap_mode">
-      <field name="NAME">Configure Access Point Mode</field>
-      <value name="wifi_essid">
-        <shadow type="text">
-          <field name="TEXT"></field>
-        </shadow>
-      </value>
-      <value name="wifi_key">
-        <shadow type="text">
-          <field name="TEXT"></field>
-        </shadow>
-      </value>
-    </block>
-    <block type="wifi_client_scan_networks">
-    </block>
-    <block type="net_ifconfig">
-      <field name="NET_IFCONFIG">Wifi current IP</field>
-    </block>
-
-    <block type="net_wiznet5k_init">
-    </block>
-    <block type="net_wiznet5k_isconnected">
-    </block>
-    <block type="net_wiznet5k_regs">
-    </block>
-    <block type="net_wiznet5k_ifconfig">
-    </block>
 
     <category name="HTTP Client">
       <label text="HTTP (web) Client"></label>

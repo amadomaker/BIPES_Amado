@@ -149,3 +149,4 @@ Blockly.Msg['CAT_RELAY'] = "Módulo relé";
 Blockly.Msg['CAT_SERVO'] = "Servo motor";
 Blockly.Msg['CAT_DCMOTOR'] = "Motor DC";
 Blockly.Msg['CAT_BUZZER'] = "Buzzer";
+Blockly.Msg['CAT_WIFI'] = "Wifi";
