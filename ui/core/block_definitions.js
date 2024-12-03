@@ -2219,7 +2219,7 @@ Blockly.Blocks['text_to_str'] = {
   init: function() {
     this.appendValueInput("var")
         .appendField(new Blockly.FieldLabelSerializable("to str"), "VAR");
-    this.setColour(160);
+    this.setColour(290);
     this.setOutput(true, null);
     this.setTooltip("Convert anything to String.");
     this.setHelpUrl("http://www.bipes.net.br");
@@ -2319,7 +2319,7 @@ Blockly.Blocks['project_metadata'] = {
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField(new Blockly.FieldLabel(MSG["project_info_desc"]), "project_description");
-    this.setColour(230);
+    this.setColour(290);
     this.setTooltip("Information about the project");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -10872,7 +10872,7 @@ Blockly.Blocks['bipes_plot'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(290);
 
  this.setTooltip("BIPES Plot");
  this.setHelpUrl("http://www.bipes.net.br");
@@ -11617,7 +11617,7 @@ Blockly.Blocks['try_catch'] = {
         .appendField(MSG["exp1"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(290);
  this.setTooltip("");
  this.setHelpUrl("");
   }
@@ -11631,7 +11631,7 @@ Blockly.Blocks['try_except_oserror'] = {
     this.appendStatementInput("EXCEPT").setCheck(null);  // Blocos encaixados no 'except'
     this.setPreviousStatement(true, null);  // Adiciona a curvinha superior (permite encaixar)
     this.setNextStatement(true, null);  // Adiciona a curvinha inferior (permite sequência)
-    this.setColour(230);  // Cor do bloco
+    this.setColour(290);  
     this.setTooltip("Bloco try-except para capturar OSError.");
     this.setHelpUrl("");
   }
