@@ -11381,6 +11381,24 @@ Blockly.Blocks['play_save_melody'] = {
     this.setNextStatement(true, null);
     this.setColour(230);
     this.setTooltip("Reproduz uma melodia previamente salva");
+
+    //menu de contexto
+    this.customContextMenu = function(options) {
+      const melodyName = this.getFieldValue("MELODY");
+      if (melodyName && melodyName !== 'NONE') {
+        options.push({
+          text: `Excluir '${melodyName}'`,
+          enabled: true,
+          callback: () => deleteSavedMelody(melodyName)
+        });
+
+        options.push({
+          text: `Exportar '${melodyName}'`,
+          enabled: true,
+          callback: () => exportSavedMelody(melodyName)
+        });
+      }
+    };
   }
 };
 
