@@ -2243,7 +2243,7 @@ Blockly.Blocks['var_to_int'] = {
   init: function() {
     this.appendValueInput("var")
         .appendField(new Blockly.FieldLabelSerializable("to int"), "VAR");
-    this.setColour(230);
+    this.setColour(colour="%{BKY_MATH_HUE}");
     this.setOutput(true, null);
     this.setTooltip("Convert anything to Int.");
     this.setHelpUrl("http://www.bipes.net.br");
@@ -2255,7 +2255,7 @@ Blockly.Blocks['var_to_float'] = {
   init: function() {
     this.appendValueInput("var")
         .appendField(new Blockly.FieldLabelSerializable("to float"), "VAR");
-    this.setColour(230);
+    this.setColour(colour="%{BKY_MATH_HUE}");
     this.setOutput(true, null);
     this.setTooltip("Convert anything to float.");
     this.setHelpUrl("http://www.bipes.net.br");
@@ -2296,7 +2296,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "inputsInline": true,  // Define que as entradas devem ser exibidas em linha
     "output": "Number",
-    "colour": 230,
+    "colour": colour="%{BKY_MATH_HUE}",
     "tooltip": "Mapeia um valor de uma faixa para outra.",
     "helpUrl": ""
   }
@@ -11836,7 +11836,7 @@ Blockly.Blocks['math_min'] = {
         .appendField("e");
     this.setInputsInline(true);
     this.setOutput(true, "Number");
-    this.setColour(230);
+    this.setColour(colour="%{BKY_MATH_HUE}");
     this.setTooltip("Returns the lesser of the two values.");
     this.setHelpUrl("");
   }
@@ -11852,7 +11852,7 @@ Blockly.Blocks['math_max'] = {
         .appendField("e");
     this.setInputsInline(true);
     this.setOutput(true, "Number");
-    this.setColour(230);
+    this.setColour(colour="%{BKY_MATH_HUE}");
     this.setTooltip("Returns the greater of the two values.");
     this.setHelpUrl("");
   }
@@ -12532,5 +12532,7 @@ Blockly.Blocks['check_and_assign_value'] = {
     this.setHelpUrl("");
   }
 };
+
+
 
 
