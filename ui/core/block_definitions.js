@@ -938,7 +938,7 @@ Blockly.Blocks['onewire_ds18x20_read_temp'] = {
 //MPU6050
 Blockly.Blocks['init_mpu6050'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Init MPU6050 IMU");
 
@@ -973,7 +973,7 @@ Blockly.Blocks['mpu6050_read_acc_x'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Acceleration - X axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Acceleration on X axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -986,7 +986,7 @@ Blockly.Blocks['mpu6050_read_acc_y'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Acceleration - Y axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Acceleration on Y axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -998,7 +998,7 @@ Blockly.Blocks['mpu6050_read_acc_z'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Acceleration - Z axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Acceleration on Z axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1010,7 +1010,7 @@ Blockly.Blocks['mpu6050_read_gyro_x'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Gyro - X axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Gyro on X axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1023,7 +1023,7 @@ Blockly.Blocks['mpu6050_read_gyro_y'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Gyro - Y axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Gyro on Y axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1035,7 +1035,7 @@ Blockly.Blocks['mpu6050_read_gyro_z'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Gyro - Z axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Gyro on Z axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1045,7 +1045,7 @@ Blockly.Blocks['mpu6050_read_gyro_z'] = {
 
 Blockly.Blocks['init_oled'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
     this.appendDummyInput()
         .appendField("Init I2C SSD1306 OLED Display");
 
@@ -1085,7 +1085,7 @@ Blockly.Blocks['fill_oled'] = {
         .appendField("Fill OLED Display with ");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
  this.setTooltip("Fill OLED Disiplay");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1097,7 +1097,7 @@ Blockly.Blocks['clear_oled'] = {
         .appendField("Clear OLED Display");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
  this.setTooltip("Clear OLED Disiplay");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1109,7 +1109,7 @@ Blockly.Blocks['show_oled'] = {
         .appendField("Update OLED Display ");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
  this.setTooltip("Update OLED Disiplay");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1135,7 +1135,7 @@ Blockly.Blocks['write_oled'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
 
  this.setTooltip("Write text to OLED Display");
  this.setHelpUrl("http://www.bipes.net.br");
@@ -1169,7 +1169,7 @@ Blockly.Blocks['write_oled_int'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
 
     this.setTooltip("Mostre um valor inteiro em uma posição especifica no display oled");
     this.setHelpUrl("http://www.bipes.net.br");
@@ -1816,7 +1816,7 @@ Blockly.Blocks['hcsr_init'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
  this.setTooltip("Start HCSR04 ultrasound distance sensor");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1828,7 +1828,7 @@ Blockly.Blocks['hcsr_read'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Get distance (ultrasound sensor)"), "MSG_READ_DHT_TEMP");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Measure distance with ultrasound sensor");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1857,7 +1857,7 @@ Blockly.Blocks['dht_init'] = {
         .appendField(new Blockly.FieldLabelSerializable(MSG["pin"]), "DHT_PIN_MSG");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.setTooltip("Start DHT11 ou DHT22 sensor");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1871,7 +1871,7 @@ Blockly.Blocks['dht_measure'] = {
         .appendField(new Blockly.FieldLabelSerializable(MSG["dht_measure"]), "MSG_MEASURE_DHT");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.setTooltip("Measure DHT11/22 Sensor");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1883,7 +1883,8 @@ Blockly.Blocks['dht_read_temp'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["dht_temp"]), "MSG_READ_DHT_TEMP");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}"
+    );
     this.setTooltip("Read DHT11/22 Temperature");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1895,7 +1896,8 @@ Blockly.Blocks['dht_read_humidity'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["dht_humi"]), "MSG_READ_DHT_HUMI");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}"
+    );
     this.setTooltip("Read DHT11/22 Humidity");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -9492,7 +9494,7 @@ Blockly.Blocks['char_lcd_display'] = {
 
 Blockly.Blocks['rfid_rc522_init'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Init RC522 RFID Module");
 
@@ -9537,7 +9539,7 @@ Blockly.Blocks['rfid_rc522_init'] = {
 
 Blockly.Blocks['rfid_rc522_detect_card'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Check if RFID Card is present");
 
@@ -9564,7 +9566,7 @@ Blockly.Blocks['rfid_rc522_detect_card'] = {
 
 Blockly.Blocks['rfid_rc522_anticoll'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Get card identification (UID)");
 
@@ -9593,7 +9595,7 @@ Blockly.Blocks['rfid_rc522_anticoll'] = {
 //rfid_rc522_read_card
 Blockly.Blocks['rfid_rc522_read_card'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Read RFID Card Memory");
 
@@ -9607,7 +9609,7 @@ Blockly.Blocks['rfid_rc522_read_card'] = {
 //rfid_rc522_write_card
 Blockly.Blocks['rfid_rc522_write_card'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Write RFID Card Memory");
 
