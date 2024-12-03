@@ -1711,15 +1711,6 @@ _
   <block type="net_ifconfig">
     <field name="NET_IFCONFIG">Wifi current IP</field>
   </block>
-
-  <block type="net_wiznet5k_init">
-  </block>
-  <block type="net_wiznet5k_isconnected">
-  </block>
-  <block type="net_wiznet5k_regs">
-  </block>
-  <block type="net_wiznet5k_ifconfig">
-  </block>
 </category>
 
   <!--

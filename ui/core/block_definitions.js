@@ -1289,7 +1289,7 @@ Blockly.Blocks['net_get_request'] = {
         .setCheck("String")
         .appendField(new Blockly.FieldLabelSerializable("URL"), "BLOCK_NET_GET");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
  this.setTooltip("Make HTTP GET Request");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1305,7 +1305,7 @@ Blockly.Blocks['net_post_request'] = {
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField(new Blockly.FieldLabelSerializable("Data"), "NET_POST_REQUEST_DATA");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
  this.setTooltip("Make HTTP POST Request");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1316,7 +1316,7 @@ Blockly.Blocks['net_ifconfig'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Wifi current IP"), "NET_IFCONFIG");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("#7b49ad");
  this.setTooltip("Wifi current IP");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1348,7 +1348,7 @@ Blockly.Blocks['net_ap_mode'] = {
         .appendField(new Blockly.FieldLabelSerializable("Network password"), "NET_NETWORK_KEY");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("#7b49ad");
  this.setTooltip("Configure Access Point Mode");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1368,7 +1368,7 @@ Blockly.Blocks['wifi_client_connect'] = {
         .appendField(new Blockly.FieldLabelSerializable(MSG["wifi_key"]), "WIFI_CLIENT_NET_KEY");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("#7b49ad");
  this.setTooltip("Connect to a Wifi network");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1379,7 +1379,7 @@ Blockly.Blocks['wifi_client_scan_networks'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["wifi_scan"]), "NET_SCAN_WIFI");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("#7b49ad");
  this.setTooltip("Scan wifi networks");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -2103,7 +2103,7 @@ Blockly.Blocks['easymqtt_init'] = {
             'EASYMQTT_SESSION_ID');
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setTooltip("Start EasyMQTT Client");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -2124,7 +2124,7 @@ Blockly.Blocks['easymqtt_publish_data'] = {
         .appendField(new Blockly.FieldLabelSerializable(MSG["data"]), "EASYMQTT_PAYLOAD");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setTooltip("Publish Data to EasyMQTT Server");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -2150,7 +2150,7 @@ Blockly.Blocks['easymqtt_subscribe'] = {
         .appendField('do');
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setInputsInline(false);
     this.setTooltip("Subscribe to a topic and define what to do when data is received from EasyMQTT Server");
     this.setHelpUrl("http://www.bipes.net.br");
@@ -2170,7 +2170,7 @@ Blockly.Blocks['easymqtt_receive_data'] = {
         ]), 'EASYMQTT_WAIT');
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setTooltip("Receive Data from EasyMQTT Server");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -2183,7 +2183,7 @@ Blockly.Blocks['easymqtt_disconnect'] = {
         .appendField(new Blockly.FieldLabelSerializable("EasyMQTT Stop"), "BLOCK_EASYMQTT_DISCONNECT");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setTooltip("Disconnect the EasyMQTT Client from Server.");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -9867,7 +9867,7 @@ Blockly.Blocks['net_socket_close'] = {
 
 Blockly.Blocks['net_http_server_start'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField(MSG["net_http_server_start"]);
 
@@ -9885,7 +9885,7 @@ Blockly.Blocks['net_http_server_start'] = {
 
 Blockly.Blocks['net_http_server_accept'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField(MSG["net_http_server_wait"]);
 
@@ -9898,7 +9898,7 @@ Blockly.Blocks['net_http_server_accept'] = {
 
 Blockly.Blocks['net_http_server_requested_page'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField(MSG["net_http_server_requested_page"]);
 
@@ -9910,7 +9910,7 @@ Blockly.Blocks['net_http_server_requested_page'] = {
 
 Blockly.Blocks['net_http_server_send_response'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField(MSG["net_http_server_send_response"]);
 
@@ -9927,7 +9927,7 @@ Blockly.Blocks['net_http_server_send_response'] = {
 
 Blockly.Blocks['net_http_server_send_response_jpg'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField(MSG["net_http_server_send_response"]);
 
@@ -9946,7 +9946,7 @@ Blockly.Blocks['net_http_server_send_response_jpg'] = {
 
 Blockly.Blocks['net_http_server_close'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField("Close HTTP Web Server");
 
@@ -10976,7 +10976,7 @@ Blockly.Blocks['bluetooth_repl_start'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(0);
+    this.setColour("#7b49ad");
  this.setTooltip("Start REPL over Web Bluetooth");
  this.setHelpUrl("www.bipes.net.br");
   }
@@ -10995,7 +10995,7 @@ Blockly.Blocks['bluetooth_repl_setup'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(0);
+    this.setColour("#7b49ad");
  this.setTooltip("Setup Web Bluetooth REPL");
  this.setHelpUrl("www.bipes.net.br");
   }
@@ -11645,7 +11645,7 @@ Blockly.Blocks['http_get_status'] = {
         .appendField(MSG["net_http_get_status"])
         .appendField(new Blockly.FieldVariable("request"), "request");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
  this.setTooltip("Status code of the HTTP GET request");
  this.setHelpUrl("bipes.net.br");
   }
@@ -11657,7 +11657,7 @@ Blockly.Blocks['http_get_content'] = {
         .appendField(MSG["net_http_get_content"])
         .appendField(new Blockly.FieldVariable("request"), "request");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
  this.setTooltip("Content of HTTP GET request");
  this.setHelpUrl("bipes.net.br");
   }
@@ -11674,7 +11674,7 @@ Blockly.Blocks['configure_and_start_bluetooth'] = {
         .appendField(new Blockly.FieldTextInput("MyBluetooth"), "BLUETOOTH_NAME");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.setTooltip("Configures and starts the BLE Bluetooth with the specified name..");
     this.setHelpUrl("");
   }
@@ -11688,7 +11688,7 @@ Blockly.Blocks['handle_ble_data'] = {
         .appendField("Set received BLE data to");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.setTooltip("Receives BLE data and stores it in the chosen variable");
     this.setHelpUrl("");
   }
@@ -11703,7 +11703,7 @@ Blockly.Blocks['check_ble_data'] = {
         .appendField("Check received data");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.setTooltip("Checks if there are received data via BLE and calls the handle_ble_data function.");
     this.setHelpUrl("");
   }
@@ -11714,7 +11714,7 @@ Blockly.Blocks['show_received_data'] = {
     this.appendDummyInput()
         .appendField("received BLE data (received_data).");
     this.setOutput(true, "String");
-    this.setColour(230);
+    this.setColour("#7b49ad");
     this.setTooltip("Returns the data received via BLE.");
     this.setHelpUrl("");
   }
@@ -11733,7 +11733,7 @@ Blockly.Blocks['configure_data_plotter'] = {
     this.sensorCount_ = 1;
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.setTooltip("Configures the plotter to send data from multiple sensors.");
     this.setHelpUrl("");
   },
@@ -11797,7 +11797,7 @@ Blockly.Blocks['call_format_plotter_data'] = {
         .appendField("Send data to the plotter");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.setTooltip("Call the function that formats and sends data to the plotter");
     this.setHelpUrl("");
   }
@@ -11809,7 +11809,7 @@ Blockly.Blocks['sensor_container'] = {
     this.appendDummyInput()
         .appendField('sensors');
     this.appendStatementInput('STACK');
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.contextMenu = false;
   }
 };
@@ -11821,7 +11821,7 @@ Blockly.Blocks['sensor_create'] = {
         .appendField('add sensor');
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setColour("1E90FF");
+    this.setColour("#7b49ad");
     this.contextMenu = false;
   }
 };
