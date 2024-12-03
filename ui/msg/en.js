@@ -15,10 +15,16 @@ var MSG = {
   catText: "Text",
   catLists: "Lists",
   catColour: "Colour",
-  catVariables: "Variables",
-  catFunctions: "Functions",
+  catVariables: "Created variables",
+  catFunctions: "Created functions",
   listVariable: "list",
   textVariable: "text",
+  cattextVariable: "Text",
+  catbooleanVariable: "Bolean",
+  catnumericVariable: "Numeric",
+  catlistVariable: "List",
+  cattextFuncions: "Text",
+  catlistFunctions: "Lists",
   httpRequestError: "There was a problem with the request.",
   linkAlert: "Share your blocks with this link:\n\n%1",
   hashError: "Sorry, '%1' doesn't correspond with any saved program.",
@@ -127,13 +133,28 @@ var MSG = {
 };
 
 //Toolbox categories
+Blockly.Msg['CAT_CONTROL'] = "Control";
+Blockly.Msg['CAT_LOOPS'] = "Loops";
 Blockly.Msg['CAT_TIMING'] = "Timing";
-Blockly.Msg['CAT_MACHINE'] = "Machine";
+Blockly.Msg['CAT_INOUT'] = "Input/output pins";
 Blockly.Msg['CAT_DISPLAYS'] = "Displays";
 Blockly.Msg['CAT_SENSORS'] = "Sensors";
 Blockly.Msg['CAT_OUTPUTS'] = "Outputs / Actuators";
 Blockly.Msg['CAT_COMM'] = "Communication";
 Blockly.Msg['CAT_FILES'] = "Files";
 Blockly.Msg['CAT_NET'] = "Network and Internet";
-Blockly.Msg['CAT_CONTROL'] = "Control";
-
+Blockly.Msg['CAT_OPERATORS'] = "Operators";
+Blockly.Msg['CAT_VARIABLES'] = "Variables";
+Blockly.Msg['CAT_FUNCTIONS'] = "Functions";
+Blockly.Msg['CAT_DHT11/22'] = "Temperature and humidity";
+Blockly.Msg['CAT_ULTRASONIC'] = "Ultrasonic";
+Blockly.Msg['CAT_ACCELEROMETER'] = "Accelerometer and Gyroscope";
+Blockly.Msg['CAT_RFID'] = "RFID reader";
+Blockly.Msg['CAT_OLEDDISPLAY'] = "OLED display";
+Blockly.Msg['CAT_RELAY'] = "Relay module";
+Blockly.Msg['CAT_SERVO'] = "Servo motor";
+Blockly.Msg['CAT_DCMOTOR'] = "DC motor";
+Blockly.Msg['CAT_BUZZER'] = "Buzzer";
+Blockly.Msg['CAT_WIFI'] = "Wifi";
+Blockly.Msg['CAT_HTTPCLIENT'] = "HTTP client";
+Blockly.Msg['CAT_HTTPSERVER'] = "HTTP server";

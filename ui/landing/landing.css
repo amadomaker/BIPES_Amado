@@ -65,8 +65,8 @@ button {
 }
 
 .logo-dblocks {
-  width: 155px;
-  height: 93px;
+  width: 220px;
+  height: 160px;
   cursor: pointer;
 }
 
@@ -138,6 +138,25 @@ button {
   width: 100%;
 }
 
+.container-button-lang{
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  gap: 10px;
+}
+
+.container-lang{
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.container-lang select{
+  border-radius: 8px;
+  padding: 5px;
+  border: 1px solid #d2d1d1;
+}
+
 .main-section {
   display: flex;
   align-items: center;
@@ -171,10 +190,13 @@ button {
 
 .section-main-image {
   border: 1px solid #cacaca;
-  width: 565px;
-  height: 319px;
+
   flex-shrink: 0;
   border-radius: 8px;
+
+  width: 550px;
+  height: 319px;
+  object-fit: contain;
 }
 
 .section {
@@ -190,14 +212,14 @@ button {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 112px;
   flex-wrap: wrap;
 }
 
 .card {
   width: 309px;
-  height: 387px;
+  height: 337px;
   border-radius: 8px;
   border: 1px solid #e8e8e8;
   box-shadow: 0px 4px 10px 0px rgba(129, 129, 129, 0.25);
@@ -359,10 +381,33 @@ button {
   left: 0;
 }
 
+.container-logo-bipes{
+  display: flex;
+  gap: 1px;
+  align-items: center;
+}
+
+.logo-bipes-text {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.125;
+  color: #3298dc;
+}
+
+.logo-bipes-image {
+  width: 3;
+  height: 3rem; 
+}
+
+
 /* Tablet e mobile */
 @media (max-width: 1024px) {
   .section{
     margin-bottom: 30px;
+  }
+
+  .header{
+    padding: 10px;
   }
 
   .menu-toggle {
