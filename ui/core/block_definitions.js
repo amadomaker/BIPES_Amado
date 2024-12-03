@@ -11348,6 +11348,42 @@ Blockly.Blocks['rtttl_play'] = {
   }
 };
 
+Blockly.Blocks['play_save_melody'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("Reproduzir");
+
+    this.appendValueInput("pin")
+        .setCheck(null)
+	.appendField("Pino");
+
+  this.appendDummyInput()
+  .appendField("Melodia")
+  .appendField(new Blockly.FieldDropdown(() => {
+      // Recupera as melodias salvas no localStorage
+      const savedMelodies = localStorage.getItem('bipes@melodies');
+      let options = [];
+
+      if (savedMelodies) {
+          const melodies = JSON.parse(savedMelodies);
+          options = melodies.map(melody => [melody.name, melody.name]);
+      }
+
+      // Se não houver melodias, adiciona uma opção padrão
+      if (options.length === 0) {
+          options = [['Nenhuma melodia disponível', 'NONE']];
+      }
+
+      return options;
+  }), "MELODY");
+
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(230);
+    this.setTooltip("Reproduz uma melodia previamente salva");
+  }
+};
+
 Blockly.Blocks['tone_type'] = {
   init: function() {
     this.appendDummyInput()

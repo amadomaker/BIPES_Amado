@@ -5949,8 +5949,69 @@ Blockly.Python["rtttl_play"] = function(block) {
 	return code;
 };
 
+Blockly.Python["play_save_melody"] = function(block) {
+  var melodyName = block.getFieldValue('MELODY');
+  var pin = Blockly.Python.valueToCode(block, 'pin', Blockly.Python.ORDER_ATOMIC);
+  Blockly.Python.definitions_['import_pin'] = `
+from machine import Pin, PWM
+import time
+`;
+
+  var melodies = localStorage.getItem('bipes@melodies');
+  if (melodies) {
+    melodies = JSON.parse(melodies);
+  } else {
+    throw new Error('Nenhuma melodia encontrada em localStorage.');
+  }
+
+  var melody = melodies.find(m => m.name === melodyName);
+  if (!melody) {
+    throw new Error(`Melodia "${melodyName}" não encontrada.`);
+  }
+
+  var code = `
+class Buzzer:
+    def __init__(self, pin_number, freq=440, duty=512):
+        self.pin = Pin(pin_number, Pin.OUT)
+        self.pwm = PWM(self.pin, freq=freq, duty=duty)
+
+    def play_tone(self, frequency, duration):
+        if isinstance(frequency, float):
+            frequency = int(frequency)
+        if isinstance(duration, float):
+            duration = int(duration)
+        self.pwm.freq(frequency)
+        self.pwm.duty(512)
+        time.sleep_ms(duration)
+        self.pwm.duty(0)
+
+try:
+    buzzer
+except NameError:
+    buzzer = Buzzer(${pin})
+
+`;
+
+  if (melody) {
+    var beatDuration = 60000 / 120;
+
+    melody.notes.forEach(note => {
+      var duration = beatDuration * note.duration;
+      if (note.note === null || note.frequency === null) {
+        code += `time.sleep_ms(${duration})\n`;
+      } else {
+        if (note.frequency) {
+          code += `buzzer.play_tone(${note.frequency}, ${duration})\n`;
+        }
+      }
+    });
+  }
+
+  return code;
+};
+
 Blockly.Python["play_song"] = function(block) {
-  var melodyName = block.getFieldValue("MELODY"); // melodia selecionada
+  
 
   Blockly.Python.definitions_['import_pin'] = 'from machine import Pin';
   Blockly.Python.definitions_['import_rtttl'] = 'import rtttl';
