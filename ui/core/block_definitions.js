@@ -1246,7 +1246,7 @@ Blockly.Blocks['init_servo'] = {
       .setAlign(Blockly.ALIGN_RIGHT)
       .appendField("Pin");
 
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
 
@@ -1269,7 +1269,7 @@ Blockly.Blocks['move_servo'] = {
       .setAlign(Blockly.ALIGN_RIGHT)
       .appendField("Angle");
 
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
 
@@ -2210,7 +2210,7 @@ Blockly.Blocks['relay_switch'] = {
         .appendField(MSG["relay_on"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setTooltip("Turn On Relay on GPIO digital pin");
     this.setHelpUrl("bipes.net.br");
   }
@@ -10474,7 +10474,7 @@ Blockly.Blocks['stepper_step'] = {
 //DC Motor with H-Bridge
 Blockly.Blocks['dc_motor_init'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
         .appendField("Init DC Motor");
 
@@ -10512,7 +10512,7 @@ Blockly.Blocks['dc_motor_init'] = {
 
 Blockly.Blocks['dc_motor_power'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
         .appendField("Set DC Motor Power");
 
@@ -10534,7 +10534,7 @@ Blockly.Blocks['dc_motor_power'] = {
 
 Blockly.Blocks['dc_motor_direction'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
         .appendField("Set DC Motor Direction");
 
@@ -10556,7 +10556,7 @@ Blockly.Blocks['dc_motor_direction'] = {
 
 Blockly.Blocks['dc_motor_stop'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
         .appendField("Stop DC Motor");
 
@@ -11294,7 +11294,7 @@ Blockly.Blocks['tone'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
  this.setTooltip("Sound - tone generator");
  this.setHelpUrl("http://www.bipes.net.br");
  }
@@ -11321,7 +11321,7 @@ Blockly.Blocks['note'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
  this.setTooltip("Sound - tone generator (music note)");
  this.setHelpUrl("http://www.bipes.net.br");
  }
@@ -11344,7 +11344,7 @@ Blockly.Blocks['rtttl_play'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
  this.setTooltip("Control ESP32-CAM White LED (flashlight)");
  this.setHelpUrl("bipes.net.br");
   }
@@ -11358,7 +11358,7 @@ Blockly.Blocks['tone_type'] = {
         .appendField(new Blockly.FieldDropdown([["B1","31"],["C2","33"],["CS2","35"],["D2","37"],["DS2","39"],["E2","41"],["F2","44"],["FS2","46"],["G2","49"],["GS2","52"],["A2","55"],["AS2","58"],["B2","62"],["C3","65"],["CS3","69"],["D3","73"],["DS3","78"],["E3","82"],["F3","87"],["FS3","93"],["G3","98"],["GS3","104"],["A3","110"],["AS3","117"],["B3","123"],["C4","131"],["CS4","139"],["D4","147"],["DS4","156"],["E4","165"],["F4","175"],["FS4","185"],["G4","196"],["GS4","208"],["A4","220"],["AS4","233"],["B4","247"],["C5","262"],["CS5","277"],["D5","294"],["DS5","311"],["E5","330"],["F5","349"],["FS5","370"],["G5","392"],["GS5","415"],["A5","440"],["AS5","466"],["B5","494"],["C6","523"],["CS6","554"],["D6","587"],["DS6","622"],["E6","659"],["F6","698"],["FS6","740"],["G6","784"],["GS6","831"],["A6","880"],["AS6","932"],["B6","988"],["C7","1047"],["CS7","1109"],["D7","1175"],["DS7","1245"],["E7","1319"],["F7","1397"],["FS7","1480"],["G7","1568"],["GS7","1661"],["A7","1760"],["AS7","1865"],["B7","1976"],["C8","2093"],["CS8","2217"],["D8","2349"],["DS8","2489"],["E8","2637"],["F8","2794"],["FS8","2960"],["G8","3136"],["GS8","3322"],["A8","3520"],["AS8","3729"],["B8","3951"],["C9","4186"],["CS9","4435"],["D9","4699"],["DS9","4978"],["P","0"]]), "tone");
 
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
  this.setTooltip("");
  this.setHelpUrl("");
   }
@@ -11883,7 +11883,7 @@ Blockly.Blocks['play_song'] = {
         }), "MELODY");
     
     this.setOutput(true, null);
-    this.setColour(165);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setTooltip("Reproduz a melodia selecionada");
     this.setHelpUrl("");
 
