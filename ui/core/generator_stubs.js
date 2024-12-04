@@ -6009,7 +6009,7 @@ melodies = ${JSON.stringify(melodies)}
 save_melodies_to_file("my_songs.json", melodies)
 `;
 
-  var beatDuration = 60000 / 120;
+  var beatDuration = 60000 / melody.bpm || 120;
 
   if (melody) {
     melody.notes.forEach((note) => {
