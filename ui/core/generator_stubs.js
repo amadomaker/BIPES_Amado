@@ -5949,24 +5949,31 @@ Blockly.Python["rtttl_play"] = function(block) {
 	return code;
 };
 
-Blockly.Python["play_save_melody"] = function(block) {
+Blockly.Python["play_save_melody"] = function (block) {
   var melodyName = block.getFieldValue('MELODY');
   var pin = Blockly.Python.valueToCode(block, 'pin', Blockly.Python.ORDER_ATOMIC);
+
   Blockly.Python.definitions_['import_pin'] = `
 from machine import Pin, PWM
 import time
+import json
 `;
 
-  var melodies = localStorage.getItem('bipes@melodies');
-  if (melodies) {
-    melodies = JSON.parse(melodies);
-  } else {
-    throw new Error('Nenhuma melodia encontrada em localStorage.');
+  let melodies;
+  try {
+    melodies = localStorage.getItem('bipes@melodies');
+    if (melodies) {
+      melodies = JSON.parse(melodies);
+    } else {
+      melodies = [];
+    }
+  } catch (error) {
+    throw new Error('Erro ao acessar as melodias no localStorage: ' + error.message);
   }
 
-  var melody = melodies.find(m => m.name === melodyName);
+  const melody = melodies.find((m) => m.name === melodyName);
   if (!melody) {
-    throw new Error(`Melodia "${melodyName}" não encontrada.`);
+    throw new Error(`Melodia "${melodyName}" não encontrada em localStorage.`);
   }
 
   var code = `
@@ -5990,12 +5997,22 @@ try:
 except NameError:
     buzzer = Buzzer(${pin})
 
+def save_melodies_to_file(filename, melodies):
+    try:
+        with open(filename, 'w') as f:
+            json.dump(melodies, f)
+        print(f'Melodias salvas com sucesso em {filename}')
+    except Exception as e:
+        print(f"Erro ao salvar melodias: {e}")
+
+melodies = ${JSON.stringify(melodies)}
+save_melodies_to_file("my_songs.json", melodies)
 `;
 
-  if (melody) {
-    var beatDuration = 60000 / 120;
+  var beatDuration = 60000 / 120;
 
-    melody.notes.forEach(note => {
+  if (melody) {
+    melody.notes.forEach((note) => {
       var duration = beatDuration * note.duration;
       if (note.note === null || note.frequency === null) {
         code += `time.sleep_ms(${duration})\n`;
@@ -6007,71 +6024,8 @@ except NameError:
     });
   }
 
-  return code;
-};
-
-Blockly.Python["play_song"] = function(block) {
-  
-
-  Blockly.Python.definitions_['import_pin'] = 'from machine import Pin';
-  Blockly.Python.definitions_['import_rtttl'] = 'import rtttl';
-
-  const savedMelodies = localStorage.getItem('bipes@melodies');
-  const melodies = savedMelodies ? JSON.parse(savedMelodies) : [];
-  const selectedMelody = melodies.find(melody => melody.name === melodyName);
-
-  if (!selectedMelody) {
-    throw new Error(`Melodia '${melodyName}' não encontrada no localStorage.`);
-  }
-
-  const melodyJSON = JSON.stringify(selectedMelody);
-
-  var code = `
-import json
-from machine import Pin
-import rtttl
-
-# dados da melodia
-melody_data = ${melodyJSON}
-
-# converter json pra rttl
-def json_to_rtttl(melody):
-    try:
-        rttl_notes = []
-        for note in melody['notes']:
-            if note['note']:  
-                duration = note.get('duration', 4)  
-                pitch = note['note'][:-1]  
-                octave = note['note'][-1]  
-                rttl_notes.append(f"{duration}{pitch}{octave}")
-        return f"{melody['name']}:d=4,o=4,b=120:{','.join(rttl_notes)}"
-    except Exception as e:
-        print(f"Erro ao converter para RTTTL: {e}")
-        return None
-
-# gravar melodia em my_songs.py
-def write_to_my_songs(rtttl_string, file_name='my_songs.py'):
-    try:
-        with open(file_name, 'a') as f: 
-            f.write(repr(rtttl_string) + ",\n")
-    except Exception as e:
-        print(f"Erro ao gravar a melodia no arquivo: {e}")
-
-# Converter a melodia para RTTTL
-rtttl_string = json_to_rtttl(melody_data)
-
-# Reproduzir e salvar a melodia
-try:
-    if rtttl_string:
-        # Tocar a melodia
-        rtttl.play(Pin(15, Pin.OUT), rtttl_string.split(':')[2])
-        # gravar no arquivo
-        write_to_my_songs(rtttl_string)
-    else:
-        print("Erro: Não foi possível converter a melodia para RTTTL.")
-except Exception as e:
-    print(f"Erro ao reproduzir ou salvar a melodia: {e}")
-\n`;
+  // Corrigir referências ao 'null' para 'None' no código Python
+  code = code.replace(/null/g, 'None');
 
   return code;
 };
