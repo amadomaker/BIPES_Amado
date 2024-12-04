@@ -209,28 +209,34 @@
       <category name="%{BKY_catVariables}" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
       <!--VARIAVEIS BOOLEANAS-->
       <category name="%{BKY_catbooleanVariable}" colour="%{BKY_VARIABLES_HUE}">
-        <block type="logic_boolean"></block>
-        <block type="logic_null"></block>
+        <block type="new_logic_boolean"></block>
+        <block type="new_logic_null"></block>
       </category>
       <!--VARIAVEIS NUMERICAS-->
       <category name="%{BKY_catnumericVariable}" colour="%{BKY_VARIABLES_HUE}">
-        <block type="math_number">
-          <field name="NUM">123</field>
-        </block>
-        <block type="math_constant"></block>
-        <block type="math_random_int">
-        <value name="FROM">
-          <shadow type="math_number">
-            <field name="NUM">1</field>
-          </shadow>
-        </value>
-        <value name="TO">
-          <shadow type="math_number">
-            <field name="NUM">100</field>
-          </shadow>
-        </value>
+      <block type="new_math_number">
+        <field name="NUM">123</field>
       </block>
-      <block type="math_random_float"></block>
+        <block type="new_math_constant">
+          <field name="CONSTANT">PI</field>
+        </block>
+
+        <!-- Bloco para número inteiro aleatório -->
+        <block type="new_math_random_int">
+          <value name="FROM">
+            <shadow type="math_number">
+              <field name="NUM">1</field>
+            </shadow>
+          </value>
+          <value name="TO">
+            <shadow type="math_number">
+              <field name="NUM">100</field>
+            </shadow>
+          </value>
+        </block>
+
+        <!-- Bloco para fração aleatória -->
+        <block type="new_math_random_float"></block>
       </category>
       <!--VARIAVEIS DE TEXTO-->
       <category name="%{BKY_cattextVariable}" colour="%{BKY_VARIABLES_HUE}">

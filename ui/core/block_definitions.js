@@ -12249,292 +12249,90 @@ Blockly.Blocks['check_and_assign_value'] = {
 };
 
 
-//Blocos para a comunicação ESPNOW
-// Bloco de inicialização do WLAN
-Blockly.Blocks['init_wlan'] = {
+
+//Novos blocos para a categoria variaveis boleanas
+Blockly.Blocks['new_logic_boolean'] = {
+  init: function() {
+      this.appendDummyInput()
+          .appendField(new Blockly.FieldDropdown([["True", "True"], ["False", "False"]]), "BOOLEAN");
+      this.setOutput(true, "Boolean");
+      this.setColour(colour="%{BKY_VARIABLES_HUE}");
+      this.setTooltip("Return True or False");
+      this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['new_logic_null'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Initialize WLAN");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour('#4a2667');
-    this.setTooltip("Initializes the WLAN interface and configures the MAC address.");
+        .appendField("null");
+    this.setOutput(true, null);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setTooltip("Represents the value null.");
     this.setHelpUrl("");
   }
 };
 
-// Bloco para obter o endereço MAC (só retorna a variável)
-Blockly.Blocks['get_mac_address'] = {
+//Novos blocos para a categoria variaveis númericas
+Blockly.Blocks['new_math_number'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Get Amado Board MAC address");
-    this.setOutput(true, 'String');
-    this.setColour('#4a2667');
-    this.setTooltip("Returns the ESP32 MAC address as a formatted string.");
-    this.setHelpUrl("");
+        .appendField(new Blockly.FieldNumber(123), 'NUM');
+    this.setOutput(true, 'Number');
+    this.setStyle('variable_blocks');
+    this.setTooltip('A number value (integer or decimal).');
+    this.setHelpUrl('');
   }
 };
 
-Blockly.Blocks['set_master'] = {
+// Bloco para constantes (π, e, φ, sqrt(2), sqrt(½), ∞)
+Blockly.Blocks['new_math_constant'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Set Amado Board as master");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour('#5a3783');
-    this.setTooltip("Configures the board as a master for ESPNOW");
-    this.setHelpUrl("");
+        .appendField(new Blockly.FieldDropdown([
+          ['π', 'PI'],
+          ['e', 'E'],
+          ['φ', 'PHI'],
+          ['sqrt(2)', 'SQRT2'],
+          ['sqrt(½)', 'SQRT1_2'],
+          ['∞', 'INFINITY']
+        ]), 'CONSTANT');
+    this.setOutput(true, 'Number');
+    this.setStyle('variable_blocks');
+    this.setTooltip('Mathematical constants like π, e, φ, sqrt(2), sqrt(½), or ∞.');
+    this.setHelpUrl('');
   }
 };
 
-
-Blockly.Blocks['add_peer'] = {
-  init: function() {
-    this.appendValueInput("MAC")
-        .setCheck("String")
-        .appendField("Add board with MAC");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour('#5a3783');
-    this.setTooltip("Adds a peer (MAC) to the ESPNOW communication list");
-    this.setHelpUrl("");
-  }
-};
-
-Blockly.Blocks['receive_message'] = {
+// Bloco para número inteiro aleatório
+Blockly.Blocks['new_math_random_int'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Receive messages from boards");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#7b49ad");
-    this.setTooltip("Receives messages from peers.");
-    this.setHelpUrl("");
+        .appendField('random integer from');
+    this.appendValueInput('FROM')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendDummyInput()
+        .appendField('to');
+    this.appendValueInput('TO')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setOutput(true, 'Number');
+    this.setStyle('variable_blocks');
+    this.setTooltip('Generate a random integer between two numbers.');
+    this.setHelpUrl('');
   }
 };
 
-Blockly.Blocks['set_peer'] = {
+// Bloco para fração aleatória
+Blockly.Blocks['new_math_random_float'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Set ESP32 as secondary board");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour('#5a3783');
-    this.setTooltip("Configures the board as a peer for ESPNOW.");
-    this.setHelpUrl("");
+        .appendField('random fraction');
+    this.setOutput(true, 'Number');
+    this.setStyle('variable_blocks');
+    this.setTooltip('Generate a random fraction between 0 and 1.');
+    this.setHelpUrl('');
   }
 };
-
-
-Blockly.Blocks['send_message_to_peer'] = {
-  init: function() {
-    this.appendValueInput("MAC")
-        .setCheck("String")
-        .appendField("Send message to board with MAC");
-    this.appendValueInput("VAR_NAME")
-        .setCheck("String")
-        .appendField("Variable name");
-    this.appendValueInput("VAR_VALUE")
-        .setCheck(null)
-        .appendField("Variable value");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#7b49ad");
-    this.setTooltip("Sends a variable and its value to a specific peer.");
-    this.setHelpUrl("");
-  }
-};
-
-
-Blockly.Blocks['send_message'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Send message to Master");
-    this.appendValueInput("VAR1")
-        .setCheck("String")
-        .appendField("VAR 1");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#7b49ad");
-    this.setMutator(new Blockly.Mutator(['send_message_add_var']));
-    this.varCount_ = 1;  // Inicializamos com 1 variável
-  },
-
-  // Salva o estado do bloco (mutação)
-  mutationToDom: function() {
-    var container = document.createElement('mutation');
-    container.setAttribute('varCount', this.varCount_);  // Salva o número de variáveis
-    return container;
-  },
-
-  // Restaura o estado do bloco (mutação) ao carregar o XML
-  domToMutation: function(xmlElement) {
-    var count = parseInt(xmlElement.getAttribute('varCount'), 10);  // Restaura o número de variáveis
-    if (!isNaN(count)) {
-      this.varCount_ = count;
-    } else {
-      this.varCount_ = 1;  // Fallback para 1 variável
-    }
-    this.updateShape_();  // Reconstrói a forma com base no estado restaurado
-  },
-
-  // Abre o mutator para permitir adicionar variáveis
-  decompose: function(workspace) {
-    var containerBlock = workspace.newBlock('send_message_mutator');
-    containerBlock.initSvg();
-    var connection = containerBlock.getInput('STACK').connection;
-    for (var i = 1; i < this.varCount_; i++) {
-      var varBlock = workspace.newBlock('send_message_add_var');
-      varBlock.initSvg();
-      connection.connect(varBlock.previousConnection);
-      connection = varBlock.nextConnection;
-    }
-    return containerBlock;
-  },
-
-  // Atualiza o bloco quando o mutator é fechado
-  compose: function(containerBlock) {
-    var itemBlock = containerBlock.getInputTargetBlock('STACK');
-    var connections = [];
-    while (itemBlock) {
-      connections.push(itemBlock.valueConnection_);
-      itemBlock = itemBlock.nextConnection &&
-          itemBlock.nextConnection.targetBlock();
-    }
-
-    // Remove os inputs antigos
-    for (var i = 1; i <= this.varCount_; i++) {
-      var input = this.getInput('VAR' + i);
-      if (input) {
-        this.removeInput('VAR' + i);
-      }
-    }
-
-    // Atualiza o número de variáveis com base no mutator
-    this.varCount_ = connections.length + 1;
-    this.updateShape_();
-
-    // Reconecta os blocos às novas variáveis
-    for (var i = 1; i <= connections.length; i++) {
-      Blockly.Mutator.reconnect(connections[i - 1], this, 'VAR' + i);
-    }
-  },
-
-  // Reconstrói a forma do bloco com base no número de variáveis
-  updateShape_: function() {
-    // Remove inputs antigos, se existirem
-    for (var i = 1; i <= this.varCount_; i++) {
-      if (this.getInput('VAR' + i)) {
-        this.removeInput('VAR' + i);
-      }
-    }
-
-    // Adiciona novos inputs de acordo com o estado salvo
-    for (var i = 1; i <= this.varCount_; i++) {
-      if (!this.getInput('VAR' + i)) {
-        this.appendValueInput('VAR' + i)
-            .setCheck('String')
-            .appendField('Variável ' + i);
-      }
-    }
-  },
-
-  // Salva as conexões para garantir que blocos conectados não se percam
-  saveConnections: function(containerBlock) {
-    var itemBlock = containerBlock.getInputTargetBlock('STACK');
-    var i = 1;
-    while (itemBlock) {
-      var input = this.getInput('VAR' + i);
-      itemBlock.valueConnection_ = input && input.connection.targetConnection;
-      i++;
-      itemBlock = itemBlock.nextConnection &&
-          itemBlock.nextConnection.targetBlock();
-    }
-  }
-};
-
-// Bloco para o mutator (interface de adição de variáveis)
-Blockly.Blocks['send_message_mutator'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Add variable");
-    this.appendStatementInput('STACK');
-    this.setColour(230);
-    this.setTooltip('');
-    this.contextMenu = false;
-  }
-};
-
-// Bloco que permite adicionar variáveis no mutator
-Blockly.Blocks['send_message_add_var'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Add variable");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setColour(230);
-    this.setTooltip('');
-    this.contextMenu = false;
-  }
-};
-
-// Registro do mutator
-Blockly.Extensions.registerMutator('send_message_mutator', Blockly.Blocks['send_message']);
-
-Blockly.Blocks['receive_message_master'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Receive message from Master");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#7b49ad");
-    this.setTooltip("Recebe mensagens enviadas pela master e processa.");
-    this.setHelpUrl("");
-  }
-};
-
-
-Blockly.defineBlocksWithJsonArray([{
-  "type": "get_variable_value",
-  "message0": "Get value of %1 for MAC %2",
-  "args0": [
-    {
-      "type": "field_input",
-      "name": "VAR_NAME",
-      "text": "VAR_1"  // Nome da variável padrão
-    },
-    {
-      "type": "field_input",
-      "name": "MAC_ADDR",
-      "text": "00:00:00:00:00:00"  // MAC address padrão
-    }
-  ],
-  "output": null,  // Esse bloco vai retornar um valor
-  "colour": "#a278d1",
-  "tooltip": "Get the value of a variable for a MAC address.",
-  "helpUrl": ""
-}]);
-
-
-Blockly.Blocks['check_and_assign_value'] = {
-  init: function() {
-    this.appendValueInput("VAR")
-        .setCheck(null)
-        .appendField("If")
-        .appendField(new Blockly.FieldVariable("item"), "VAR")
-        .appendField("is None, set to");
-    this.appendValueInput("DEFAULT")
-        .setCheck(null)
-        .appendField("default value");
-    this.setInputsInline(true);
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#a278d1");
-    this.setTooltip("Check if the variable is None, and if it is, set a default value.");
-    this.setHelpUrl("");
-  }
-};
-
-
-
 

@@ -6658,10 +6658,52 @@ if ${variable_to_check} is None:
   return code;
 };
 
+//Novos blocos para a categoria variaveis booleanas
+Blockly.Python['new_logic_boolean'] = function(block) {
+  var dropdown_boolean = block.getFieldValue('BOOLEAN');
+  return [dropdown_boolean, Blockly.Python.ORDER_ATOMIC];
+};
 
+Blockly.Python['new_logic_null'] = function(block) {
+  const code = 'None';
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
 
+//Novos blocos para a categoria variaveis númericas
+Blockly.Python['new_math_number'] = function(block) {
+  const number = block.getFieldValue('NUM');
+  return [number, Blockly.Python.ORDER_ATOMIC];
+};
 
+// Gerador para constantes matemáticas
+Blockly.Python['new_math_constant'] = function(block) {
+  Blockly.Python.definitions_['import_math'] = 'import math';
+  const constant = block.getFieldValue('CONSTANT');
+  let code;
+  switch (constant) {
+    case 'PI': code = 'math.pi'; break;
+    case 'E': code = 'math.e'; break;
+    case 'PHI': code = '(1 + math.sqrt(5)) / 2'; break;
+    case 'SQRT2': code = 'math.sqrt(2)'; break;
+    case 'SQRT1_2': code = 'math.sqrt(0.5)'; break;
+    case 'INFINITY': code = 'float("inf")'; break;
+    default: code = '0';
+  }
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
 
+// Gerador para número inteiro aleatório
+Blockly.Python['new_math_random_int'] = function(block) {
+  Blockly.Python.definitions_['import_random'] = 'import random';
+  const fromValue = Blockly.Python.valueToCode(block, 'FROM', Blockly.Python.ORDER_ATOMIC) || '1';
+  const toValue = Blockly.Python.valueToCode(block, 'TO', Blockly.Python.ORDER_ATOMIC) || '100';
+  const code = `random.randint(${fromValue}, ${toValue})`;
+  return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
 
-
-  
+// Gerador para fração aleatória
+Blockly.Python['new_math_random_float'] = function(block) {
+  Blockly.Python.definitions_['import_random'] = 'import random';
+  const code = 'random.random()';
+  return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
