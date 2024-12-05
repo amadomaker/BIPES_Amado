@@ -6753,3 +6753,31 @@ Blockly.Python['new_text_create'] = function(block) {
 
   return [code, Blockly.Python.ORDER_FUNCTION_CALL];
 };
+
+
+//Novos blocos para as variaveis de lista
+Blockly.Python['create_empty_list'] = function(block) {
+  const code = '[]';
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Python['create_list_with'] = function(block) {
+  const elements = [];
+  for (let i = 0; i < block.itemCount_; i++) {
+    const value = Blockly.Python.valueToCode(block, 'ADD' + i, Blockly.Python.ORDER_NONE) || 'None';
+    elements.push(value);
+  }
+  const code = '[' + elements.join(', ') + ']';
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
+ 
+
+
+Blockly.Python['create_list_with_repeated'] = function(block) {
+  const item = Blockly.Python.valueToCode(block, 'ITEM', Blockly.Python.ORDER_NONE) || 'None';
+  const num = Blockly.Python.valueToCode(block, 'NUM', Blockly.Python.ORDER_NONE) || '0';
+  const code = `[${item}] * ${num}`;
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
+
+

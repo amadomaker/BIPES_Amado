@@ -12463,4 +12463,149 @@ Blockly.Blocks['text_create_item'] = {
 };
 
 
+//Novos blocos para variaveis de lista
+Blockly.Blocks['create_empty_list'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("create empty list");
+    this.setOutput(true, 'Array');
+    this.setStyle('variable_blocks');
+    this.setTooltip('create empty list');
+    this.setHelpUrl('');
+  }
+};
+
+
+Blockly.Blocks['create_list_with'] = {
+  init: function() {
+    this.setStyle('variable_blocks');
+    this.appendValueInput('ADD0')
+        .setCheck(null)
+        .appendField('create list with');
+    this.appendValueInput('ADD1')
+        .setCheck(null);
+    this.setOutput(true, 'Array');
+    this.setMutator(new Blockly.Mutator(['list_create_item']));
+    this.setTooltip('Create a list by combining multiple entries.');
+    this.setHelpUrl('');
+    this.itemCount_ = 2;
+  },
+  mutationToDom: function() {
+    const container = Blockly.utils.xml.createElement('mutation');
+    container.setAttribute('items', this.itemCount_);
+    return container;
+  },
+  domToMutation: function(xmlElement) {
+    this.itemCount_ = parseInt(xmlElement.getAttribute('items'), 10);
+    this.updateShape_();
+  },
+  decompose: function(workspace) {
+    const containerBlock = workspace.newBlock('list_create_container');
+    containerBlock.initSvg();
+    let connection = containerBlock.getInput('STACK').connection;
+    for (let i = 0; i < this.itemCount_; i++) {
+      const itemBlock = workspace.newBlock('list_create_item');
+      itemBlock.initSvg();
+      connection.connect(itemBlock.previousConnection);
+      connection = itemBlock.nextConnection;
+    }
+    return containerBlock;
+  },
+  compose: function(containerBlock) {
+    let itemBlock = containerBlock.getInputTargetBlock('STACK');
+    const connections = [];
+    while (itemBlock) {
+      connections.push(itemBlock.valueConnection_);
+      itemBlock = itemBlock.nextConnection &&
+                  itemBlock.nextConnection.targetBlock();
+    }
+    for (let i = 0; i < this.itemCount_; i++) {
+      const connection = this.getInput('ADD' + i).connection.targetConnection;
+      if (connection && connections.indexOf(connection) === -1) {
+        connection.disconnect();
+      }
+    }
+    this.itemCount_ = connections.length;
+    this.updateShape_();
+    for (let i = 0; i < this.itemCount_; i++) {
+      Blockly.Mutator.reconnect(connections[i], this, 'ADD' + i);
+    }
+  },
+  saveConnections: function(containerBlock) {
+    let itemBlock = containerBlock.getInputTargetBlock('STACK');
+    let i = 0;
+    while (itemBlock) {
+      const input = this.getInput('ADD' + i);
+      itemBlock.valueConnection_ = input && input.connection.targetConnection;
+      i++;
+      itemBlock = itemBlock.nextConnection &&
+                  itemBlock.nextConnection.targetBlock();
+    }
+  },
+  updateShape_: function() {
+    if (this.itemCount_ && this.getInput('EMPTY')) {
+      this.removeInput('EMPTY');
+    } else if (!this.itemCount_ && !this.getInput('EMPTY')) {
+      this.appendDummyInput('EMPTY')
+          .appendField('create list with');
+    }
+    for (let i = 0; i < this.itemCount_; i++) {
+      if (!this.getInput('ADD' + i)) {
+        const input = this.appendValueInput('ADD' + i).setCheck(null);
+        if (i === 0) {
+          input.appendField('create list with');
+        }
+      }
+    }
+    while (this.getInput('ADD' + this.itemCount_)) {
+      this.removeInput('ADD' + this.itemCount_);
+    }
+  },
+};
+
+// Mutator container
+Blockly.Blocks['list_create_container'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('list items');
+    this.appendStatementInput('STACK');
+    this.setStyle('variable_blocks');
+    this.contextMenu = false;
+  },
+};
+
+// Mutator item
+Blockly.Blocks['list_create_item'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('item');
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setStyle('variable_blocks');
+    this.contextMenu = false;
+  },
+};
+
+Blockly.Blocks['create_list_with_repeated'] = {
+  init: function() {
+    this.appendValueInput('ITEM')
+        .setCheck(null)
+        .appendField("create list with item");
+    this.appendValueInput('NUM')
+        .setCheck('Number')
+        .appendField("repeated");
+    this.appendDummyInput()
+        .appendField("times");
+    this.setOutput(true, 'Array');
+    this.setStyle('variable_blocks');
+    this.setTooltip('creates a list with an item repeated several times.');
+    this.setHelpUrl('');
+  }
+};
+
+
+
+
+
+
 
