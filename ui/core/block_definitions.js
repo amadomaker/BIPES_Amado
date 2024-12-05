@@ -12253,19 +12253,24 @@ Blockly.Blocks['check_and_assign_value'] = {
 //Novos blocos para a categoria variaveis boleanas
 Blockly.Blocks['new_logic_boolean'] = {
   init: function() {
-      this.appendDummyInput()
-          .appendField(new Blockly.FieldDropdown([["True", "True"], ["False", "False"]]), "BOOLEAN");
-      this.setOutput(true, "Boolean");
-      this.setColour(colour="%{BKY_VARIABLES_HUE}");
-      this.setTooltip("Return True or False");
-      this.setHelpUrl("");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldDropdown([
+            [Blockly.Msg["LOGIC_BOOLEAN_TRUE"], "True"], 
+            [Blockly.Msg["LOGIC_BOOLEAN_FALSE"], "False"]
+        ]), "BOOLEAN");
+        
+    this.setOutput(true, "Boolean");
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setTooltip(Blockly.Msg["LOGIC_BOOLEAN_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["LOGIC_BOOLEAN_HELPURL"]);
   }
 };
+
 
 Blockly.Blocks['new_logic_null'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("null");
+        .appendField(Blockly.Msg["LOGIC_NULL"]);
     this.setOutput(true, null);
     this.setColour(colour="%{BKY_VARIABLES_HUE}");
     this.setTooltip("Represents the value null.");
@@ -12281,8 +12286,8 @@ Blockly.Blocks['new_math_number'] = {
         .appendField(new Blockly.FieldNumber(123), 'NUM');
     this.setOutput(true, 'Number');
     this.setStyle('variable_blocks');
-    this.setTooltip('A number value (integer or decimal).');
-    this.setHelpUrl('');
+    this.setTooltip(Blockly.Msg["MATH_NUMBER_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["MATH_NUMBER_HELPURL"]);
   }
 };
 
@@ -12300,8 +12305,8 @@ Blockly.Blocks['new_math_constant'] = {
         ]), 'CONSTANT');
     this.setOutput(true, 'Number');
     this.setStyle('variable_blocks');
-    this.setTooltip('Mathematical constants like π, e, φ, sqrt(2), sqrt(½), or ∞.');
-    this.setHelpUrl('');
+    this.setTooltip(Blockly.Msg["MATH_CONSTANT_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["MATH_CONSTANT_HELPURL"]);
   }
 };
 
@@ -12309,31 +12314,33 @@ Blockly.Blocks['new_math_constant'] = {
 Blockly.Blocks['new_math_random_int'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField('random integer from');
+        .appendField(Blockly.Msg["MATH_RANDOM_INT_TITLE"].split('%1')[0])
     this.appendValueInput('FROM')
         .setCheck('Number')
         .setAlign(Blockly.ALIGN_RIGHT);
     this.appendDummyInput()
-        .appendField('to');
+        .appendField(Blockly.Msg["MATH_RANDOM_INT_TITLE"].split('%1')[1].split('%2')[0].trim());
     this.appendValueInput('TO')
         .setCheck('Number')
         .setAlign(Blockly.ALIGN_RIGHT);
     this.setOutput(true, 'Number');
     this.setStyle('variable_blocks');
-    this.setTooltip('Generate a random integer between two numbers.');
-    this.setHelpUrl('');
+    this.setTooltip(Blockly.Msg["MATH_RANDOM_INT_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["MATH_RANDOM_INT_HELPURL"]);
   }
 };
+
+
 
 // Bloco para fração aleatória
 Blockly.Blocks['new_math_random_float'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField('random fraction');
+        .appendField(Blockly.Msg["MATH_RANDOM_FLOAT_TITLE_RANDOM"]);
     this.setOutput(true, 'Number');
     this.setStyle('variable_blocks');
-    this.setTooltip('Generate a random fraction between 0 and 1.');
-    this.setHelpUrl('');
+    this.setTooltip(Blockly.Msg["MATH_RANDOM_FLOAT_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["MATH_RANDOM_FLOAT_HELPURL"]);
   }
 };
 
