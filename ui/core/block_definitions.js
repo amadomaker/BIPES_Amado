@@ -11994,7 +11994,7 @@ Blockly.Blocks['set_master'] = {
         .appendField("Set Amado Board as master");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour('#5a3783');
+    this.setColour("#7b49ad");
     this.setTooltip("Configures the board as a master for ESPNOW");
     this.setHelpUrl("");
   }
@@ -12008,7 +12008,7 @@ Blockly.Blocks['add_peer'] = {
         .appendField("Add board with MAC");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour('#5a3783');
+    this.setColour("#7b49ad");
     this.setTooltip("Adds a peer (MAC) to the ESPNOW communication list");
     this.setHelpUrl("");
   }
@@ -12032,7 +12032,7 @@ Blockly.Blocks['set_peer'] = {
         .appendField("Set ESP32 as secondary board");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour('#5a3783');
+    this.setColour("#7b49ad");
     this.setTooltip("Configures the board as a peer for ESPNOW.");
     this.setHelpUrl("");
   }
@@ -12172,7 +12172,7 @@ Blockly.Blocks['send_message_mutator'] = {
     this.appendDummyInput()
         .appendField("Add variable");
     this.appendStatementInput('STACK');
-    this.setColour(230);
+    this.setColour("#7b49ad");
     this.setTooltip('');
     this.contextMenu = false;
   }
@@ -12185,7 +12185,7 @@ Blockly.Blocks['send_message_add_var'] = {
         .appendField("Add variable");
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setColour(230);
+    this.setColour("#7b49ad");
     this.setTooltip('');
     this.contextMenu = false;
   }
@@ -12223,7 +12223,7 @@ Blockly.defineBlocksWithJsonArray([{
     }
   ],
   "output": null,  // Esse bloco vai retornar um valor
-  "colour": "#a278d1",
+  "colour": "#7b49ad",
   "tooltip": "Get the value of a variable for a MAC address.",
   "helpUrl": ""
 }]);
@@ -12242,7 +12242,7 @@ Blockly.Blocks['check_and_assign_value'] = {
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#a278d1");
+    this.setColour("#7b49ad");
     this.setTooltip("Check if the variable is None, and if it is, set a default value.");
     this.setHelpUrl("");
   }
