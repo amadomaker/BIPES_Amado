@@ -12353,8 +12353,8 @@ Blockly.Blocks['new_text'] = {
         .appendField('”');
     this.setOutput(true, 'String');
     this.setStyle('variable_blocks');
-    this.setTooltip('Text value.');
-    this.setHelpUrl('');
+    this.setTooltip(Blockly.Msg["TEXT_TEXT_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["TEXT_TEXT_HELPURL"]);
   }
 };
 
@@ -12364,13 +12364,13 @@ Blockly.Blocks['new_text_create'] = {
     this.setStyle('variable_blocks');
     this.appendValueInput('ADD0')
         .setCheck(null) // Permite qualquer tipo de entrada (números, textos, etc.)
-        .appendField('create text with');
+        .appendField(Blockly.Msg["TEXT_JOIN_TITLE_CREATEWITH"]);
     this.appendValueInput('ADD1')
         .setCheck(null);
     this.setOutput(true, 'String');
     this.setMutator(new Blockly.Mutator(['text_create_item']));
-    this.setTooltip('Create a string by joining multiple inputs.');
-    this.setHelpUrl('');
+    this.setTooltip(Blockly.Msg["TEXT_JOIN_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["TEXT_JOIN_HELPURL"]);
     this.itemCount_ = 2; // Começa com duas entradas por padrão
   },
   mutationToDom: function() {
@@ -12450,7 +12450,7 @@ Blockly.Blocks['new_text_create'] = {
 Blockly.Blocks['text_create_container'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField('text items');
+        .appendField(Blockly.Msg["TEXT_CREATE_JOIN_TITLE_JOIN"]);
     this.appendStatementInput('STACK');
     this.setStyle('variable_blocks');
     this.contextMenu = false;
@@ -12461,7 +12461,7 @@ Blockly.Blocks['text_create_container'] = {
 Blockly.Blocks['text_create_item'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField('item');
+        .appendField(Blockly.Msg["VARIABLES_DEFAULT_NAME"]);
     this.setPreviousStatement(true);
     this.setNextStatement(true);
     this.setStyle('variable_blocks');
@@ -12469,16 +12469,15 @@ Blockly.Blocks['text_create_item'] = {
   },
 };
 
-
 //Novos blocos para variaveis de lista
 Blockly.Blocks['create_empty_list'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("create empty list");
+        .appendField(Blockly.Msg["LISTS_CREATE_EMPTY_TITLE"]);
     this.setOutput(true, 'Array');
     this.setStyle('variable_blocks');
-    this.setTooltip('create empty list');
-    this.setHelpUrl('');
+    this.setTooltip(Blockly.Msg["LISTS_CREATE_EMPTY_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["LISTS_CREATE_EMPTY_HELPURL"]);
   }
 };
 
@@ -12488,13 +12487,13 @@ Blockly.Blocks['create_list_with'] = {
     this.setStyle('variable_blocks');
     this.appendValueInput('ADD0')
         .setCheck(null)
-        .appendField('create list with');
+        .appendField(Blockly.Msg["LISTS_CREATE_WITH_INPUT_WITH"]);
     this.appendValueInput('ADD1')
         .setCheck(null);
     this.setOutput(true, 'Array');
     this.setMutator(new Blockly.Mutator(['list_create_item']));
-    this.setTooltip('Create a list by combining multiple entries.');
-    this.setHelpUrl('');
+    this.setTooltip(Blockly.Msg["LISTS_CREATE_WITH_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["LISTS_CREATE_WITH_HELPURL"]);
     this.itemCount_ = 2;
   },
   mutationToDom: function() {
@@ -12574,7 +12573,7 @@ Blockly.Blocks['create_list_with'] = {
 Blockly.Blocks['list_create_container'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField('list items');
+        .appendField(Blockly.Msg["LISTS_CREATE_WITH_CONTAINER_TITLE_ADD"]);
     this.appendStatementInput('STACK');
     this.setStyle('variable_blocks');
     this.contextMenu = false;
@@ -12585,7 +12584,7 @@ Blockly.Blocks['list_create_container'] = {
 Blockly.Blocks['list_create_item'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField('item');
+        .appendField(Blockly.Msg["VARIABLES_DEFAULT_NAME"]);
     this.setPreviousStatement(true);
     this.setNextStatement(true);
     this.setStyle('variable_blocks');
@@ -12597,18 +12596,20 @@ Blockly.Blocks['create_list_with_repeated'] = {
   init: function() {
     this.appendValueInput('ITEM')
         .setCheck(null)
-        .appendField("create list with item");
+        .appendField(Blockly.Msg["LISTS_REPEAT_TITLE"].split('%1')[0]);
     this.appendValueInput('NUM')
         .setCheck('Number')
-        .appendField("repeated");
+        .appendField(Blockly.Msg["LISTS_REPEAT_TITLE"].split('%1')[1].split('%2')[0]);
     this.appendDummyInput()
-        .appendField("times");
+        .appendField(Blockly.Msg["LISTS_REPEAT_TITLE"].split('%2')[1]);
     this.setOutput(true, 'Array');
     this.setStyle('variable_blocks');
-    this.setTooltip('creates a list with an item repeated several times.');
-    this.setHelpUrl('');
+    this.setTooltip(Blockly.Msg["LISTS_REPEAT_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["LISTS_REPEAT_HELPURL"]);
   }
 };
+
+
 
 
 

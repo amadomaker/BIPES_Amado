@@ -244,6 +244,13 @@
       <!--VARIAVEIS DE LISTA-->
       <category name="%{BKY_catlistVariable}" colour = "%{BKY_VARIABLES_HUE}">
         <block type="create_empty_list"></block>
+        <block type="create_list_with">
+          <mutation items="2"></mutation>
+          <value name="ITEM0">
+          </value>
+          <value name="ITEM1">
+          </value>
+        </block>
         <block type="create_list_with_repeated">
           <value name="ITEM">
           </value>
@@ -251,13 +258,6 @@
             <shadow type="math_number">
               <field name="NUM">5</field>
             </shadow>
-          </value>
-        </block>
-        <block type="create_list_with">
-          <mutation items="2"></mutation>
-          <value name="ITEM0">
-          </value>
-          <value name="ITEM1">
           </value>
         </block>
       </category>
