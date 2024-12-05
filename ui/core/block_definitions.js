@@ -14,7 +14,7 @@ Blockly.Blocks['pwm'] = {
 	      .appendField("Duty");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
     this.setTooltip("Init and set PWM with frequency (1Hz to 40MHz) and duty (0-1023)");
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
  },
@@ -45,7 +45,7 @@ Blockly.Blocks['pwm_pico'] = {
 	      .appendField("Duty");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
     this.setTooltip("Init and set PWM with frequency (1Hz to 40MHz) and duty (0-1023)");
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
  },
@@ -72,7 +72,7 @@ Blockly.Blocks['pwm.freq'] = {
         .appendField("frequency");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
     this.setTooltip("Set PWM frequency from 1Hz to 40MHz");
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
   },
@@ -95,7 +95,7 @@ Blockly.Blocks['pwm.duty'] = {
         .appendField("duty");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
     this.setTooltip("Set PWM duty range of 0-1023");
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
   },
@@ -116,7 +116,7 @@ Blockly.Blocks['pwm.duty_pico'] = {
         .appendField("duty");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
     this.setTooltip("Set PWM duty range of 0-1023");
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
   },
@@ -138,7 +138,7 @@ Blockly.Blocks['pwm.init'] = {
         .appendField("init");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
     this.setTooltip("Init PWM");
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
   },
@@ -154,7 +154,7 @@ Blockly.Blocks['pwm.deinit'] = {
         .appendField(new Blockly.FieldNumber(0, 0, 50, 1), "ID");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
     this.setTooltip("Deinit PWM");
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
   }
@@ -169,7 +169,7 @@ Blockly.Blocks['deep_sleep8266'] = {
 	.appendField("deep sleep");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Deep sleep process in milliseconds");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -183,7 +183,7 @@ Blockly.Blocks['deep_sleep'] = {
 	.appendField("deep sleep");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Deep sleep process in milliseconds");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -196,7 +196,7 @@ Blockly.Blocks['delay_old'] = {
         .appendField("delay seconds");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Delay processing in seconds");
  this.setHelpUrl("http://www.bipes.net.br/");
   }
@@ -209,7 +209,7 @@ Blockly.Blocks['delay_ms'] = {
         .appendField("delay milliseconds");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Delay processing in milliseconds");
  this.setHelpUrl("http://www.bipes.net.br/");
   }
@@ -222,7 +222,7 @@ Blockly.Blocks['delay_us'] = {
         .appendField("delay microseconds");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Delay processing in microseconds");
  this.setHelpUrl("http://www.bipes.net.br/");
   }
@@ -273,7 +273,7 @@ Blockly.Blocks['delay'] = {
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
     this.setTooltip("Delay for given number, should be positive or 0.");
     this.setHelpUrl("https://docs.micropython.org/en/latest/library/utime.html#utime.sleep");
 
@@ -287,7 +287,7 @@ Blockly.Blocks['utime.vars'] = {
         .appendField(new Blockly.FieldDropdown([["seconds","time"], ["milliseconds","ticks_ms"], ["microseconds","ticks_us"], ["nanoseconds","time_ns"], ["cpu ticks","ticks_cpu"]]), "VARS")
         .appendField("counter");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
     this.setTooltip("Returns a counter in the defined scale, only integer values.");
    this.setHelpUrl("https://docs.micropython.org/en/latest/library/utime.html#utime.ticks_ms");
   }
@@ -303,7 +303,7 @@ Blockly.Blocks['utime.ticks_add'] = {
         .appendField("by");
     this.setInputsInline(true);
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
     this.setTooltip("Offset ticks value by a given number, which can be either positive or negative. Must be same scale in milliseconds, microseconds or cpu ticks.");
     this.setHelpUrl("https://docs.micropython.org/en/latest/library/utime.html#utime.ticks_add");
   }
@@ -319,7 +319,7 @@ Blockly.Blocks['utime.ticks_diff'] = {
         .appendField("by");
     this.setInputsInline(false);
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
     this.setTooltip("Measure ticks difference between values Must be same scale in milliseconds, microseconds or cpu ticks.");
     this.setHelpUrl("https://docs.micropython.org/en/latest/library/utime.html#utime.ticks_diff");
   }
@@ -339,7 +339,7 @@ Blockly.Blocks['utime.deadline'] = {
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(135);
+    this.setColour("%{BKY_CONTROL_HUE}");
     this.setTooltip("Creates a loop with deadline.");
     this.setHelpUrl("https://docs.micropython.org/en/latest/library/utime.html#utime.ticks_add");
   }
@@ -381,7 +381,7 @@ Blockly.Blocks['esp32_set_rtc'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Set RTC value");
  this.setHelpUrl("bipes.net.br");
   }
@@ -434,7 +434,7 @@ Blockly.Blocks['esp32_get_rtc'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["get_rtc"]), "MSG_GET_RTC");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("%{BKY_CONTROL_HUE}");
  this.setTooltip("Get RTC value");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -478,7 +478,7 @@ Blockly.Blocks['iniciar_thread'] = {
           .appendField("Iniciar tarefa paralela com a função");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
-      this.setColour(230);
+      this.setColour("#d9a600");
       this.setTooltip("Inicia uma nova thread para executar a função especificada.");
       this.setHelpUrl("");
   }
@@ -490,7 +490,7 @@ Blockly.Blocks['iniciar_thread'] = {
 
 Blockly.Blocks['timer'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour("#d9a600");
     this.appendDummyInput()
         .appendField("Timer #")
         .appendField(new Blockly.FieldNumber(2, 0, 9, 1), "timerNumber")
@@ -517,7 +517,7 @@ Blockly.Blocks['stop_timer'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(0);
+    this.setColour("#d9a600");
  this.setTooltip("Stop Timer");
  this.setHelpUrl("www.bipes.net.br");
   }
@@ -622,7 +622,7 @@ Blockly.Blocks['gpio_set'] = {
         .appendField(MSG["to"]); //i18n
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
  this.setTooltip("Write to GPIO digital pin");
  this.setHelpUrl("bipes.net.br");
   }
@@ -707,11 +707,11 @@ Blockly.Blocks['esp32_adc'] = {
 		.setAlign(Blockly.ALIGN_RIGHT)
 		.appendField("pin");
 		this.setOutput(true, null);
-		this.setColour(230);
+		this.setColour(colour="%{BKY_INOUT_HUE}");
 		this.setTooltip("Read ESP32 Analog Input");
 	}
 
-	this.setColour(230);
+	this.setColour(colour="%{BKY_INOUT_HUE}");
   }
 };
 
@@ -778,7 +778,7 @@ Blockly.Blocks['gpio_get'] = {
         .appendField("Pull-up");
 
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
  this.setTooltip("Read digital pin");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -798,7 +798,7 @@ Blockly.Blocks['gpio_interrupt'] = {
     this.appendStatementInput("code")
         .setCheck(null)
         .appendField("do");
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
  this.setTooltip("Trigger interrupt when pin state changes");
@@ -816,7 +816,7 @@ Blockly.Blocks['gpio_interrupt_off'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
  this.setTooltip("Disable interrupt on a given pin");
  this.setHelpUrl("bipes.net.br");
   }
@@ -833,10 +833,10 @@ Blockly.Blocks['pinout'] = {
     if (device_ !== device_init_)
       this.setColour(1);
     else if (device_ === device_init_)
-      this.setColour(230);  // this.setDisabled causes all modifiers to stop working at the workspace, using visual colour feedback instead.
+      this.setColour(colour="%{BKY_INOUT_HUE}");  // this.setDisabled causes all modifiers to stop working at the workspace, using visual colour feedback instead.
     if (this.first_load < 1 && load_) {
       device_ = device_init_;
-      this.setColour(230);
+      this.setColour(colour="%{BKY_INOUT_HUE}");
       this.getField('DEVICE').doValueUpdate_(device_);
     } else {
       this.first_load = this.first_load - 1; // function is triggered twice on load due to setting values
@@ -870,7 +870,7 @@ Blockly.Blocks['pinout'] = {
         .appendField(new Blockly.FieldDropdown(() => { return this.update_list(true);}), 'PIN');
     this.getField('DEVICE').setVisible(false);
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_INOUT_HUE}");
     this.setHelpUrl("http://www.bipes.net.br");
   },
 };
@@ -938,7 +938,7 @@ Blockly.Blocks['onewire_ds18x20_read_temp'] = {
 //MPU6050
 Blockly.Blocks['init_mpu6050'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Init MPU6050 IMU");
 
@@ -973,7 +973,7 @@ Blockly.Blocks['mpu6050_read_acc_x'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Acceleration - X axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Acceleration on X axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -986,7 +986,7 @@ Blockly.Blocks['mpu6050_read_acc_y'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Acceleration - Y axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Acceleration on Y axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -998,7 +998,7 @@ Blockly.Blocks['mpu6050_read_acc_z'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Acceleration - Z axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Acceleration on Z axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1010,7 +1010,7 @@ Blockly.Blocks['mpu6050_read_gyro_x'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Gyro - X axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Gyro on X axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1023,7 +1023,7 @@ Blockly.Blocks['mpu6050_read_gyro_y'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Gyro - Y axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Gyro on Y axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1035,7 +1035,7 @@ Blockly.Blocks['mpu6050_read_gyro_z'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Gyro - Z axis"), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Gyro on Z axis");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1045,7 +1045,7 @@ Blockly.Blocks['mpu6050_read_gyro_z'] = {
 
 Blockly.Blocks['init_oled'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
     this.appendDummyInput()
         .appendField("Init I2C SSD1306 OLED Display");
 
@@ -1085,7 +1085,7 @@ Blockly.Blocks['fill_oled'] = {
         .appendField("Fill OLED Display with ");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
  this.setTooltip("Fill OLED Disiplay");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1097,7 +1097,7 @@ Blockly.Blocks['clear_oled'] = {
         .appendField("Clear OLED Display");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
  this.setTooltip("Clear OLED Disiplay");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1109,7 +1109,7 @@ Blockly.Blocks['show_oled'] = {
         .appendField("Update OLED Display ");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
  this.setTooltip("Update OLED Disiplay");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1135,7 +1135,7 @@ Blockly.Blocks['write_oled'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
 
  this.setTooltip("Write text to OLED Display");
  this.setHelpUrl("http://www.bipes.net.br");
@@ -1169,7 +1169,7 @@ Blockly.Blocks['write_oled_int'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_DISPLAY_HUE}");
 
     this.setTooltip("Mostre um valor inteiro em uma posição especifica no display oled");
     this.setHelpUrl("http://www.bipes.net.br");
@@ -1246,7 +1246,7 @@ Blockly.Blocks['init_servo'] = {
       .setAlign(Blockly.ALIGN_RIGHT)
       .appendField("Pin");
 
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
 
@@ -1269,7 +1269,7 @@ Blockly.Blocks['move_servo'] = {
       .setAlign(Blockly.ALIGN_RIGHT)
       .appendField("Angle");
 
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
 
@@ -1289,7 +1289,7 @@ Blockly.Blocks['net_get_request'] = {
         .setCheck("String")
         .appendField(new Blockly.FieldLabelSerializable("URL"), "BLOCK_NET_GET");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
  this.setTooltip("Make HTTP GET Request");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1305,7 +1305,7 @@ Blockly.Blocks['net_post_request'] = {
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField(new Blockly.FieldLabelSerializable("Data"), "NET_POST_REQUEST_DATA");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
  this.setTooltip("Make HTTP POST Request");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1316,7 +1316,7 @@ Blockly.Blocks['net_ifconfig'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Wifi current IP"), "NET_IFCONFIG");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("#7b49ad");
  this.setTooltip("Wifi current IP");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1348,7 +1348,7 @@ Blockly.Blocks['net_ap_mode'] = {
         .appendField(new Blockly.FieldLabelSerializable("Network password"), "NET_NETWORK_KEY");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("#7b49ad");
  this.setTooltip("Configure Access Point Mode");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1368,7 +1368,7 @@ Blockly.Blocks['wifi_client_connect'] = {
         .appendField(new Blockly.FieldLabelSerializable(MSG["wifi_key"]), "WIFI_CLIENT_NET_KEY");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour("#7b49ad");
  this.setTooltip("Connect to a Wifi network");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1379,7 +1379,7 @@ Blockly.Blocks['wifi_client_scan_networks'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["wifi_scan"]), "NET_SCAN_WIFI");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour("#7b49ad");
  this.setTooltip("Scan wifi networks");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1816,7 +1816,7 @@ Blockly.Blocks['hcsr_init'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
  this.setTooltip("Start HCSR04 ultrasound distance sensor");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1828,7 +1828,7 @@ Blockly.Blocks['hcsr_read'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable("Get distance (ultrasound sensor)"), "MSG_READ_DHT_TEMP");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
  this.setTooltip("Measure distance with ultrasound sensor");
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1857,7 +1857,7 @@ Blockly.Blocks['dht_init'] = {
         .appendField(new Blockly.FieldLabelSerializable(MSG["pin"]), "DHT_PIN_MSG");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.setTooltip("Start DHT11 ou DHT22 sensor");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1871,7 +1871,7 @@ Blockly.Blocks['dht_measure'] = {
         .appendField(new Blockly.FieldLabelSerializable(MSG["dht_measure"]), "MSG_MEASURE_DHT");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.setTooltip("Measure DHT11/22 Sensor");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1883,7 +1883,8 @@ Blockly.Blocks['dht_read_temp'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["dht_temp"]), "MSG_READ_DHT_TEMP");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}"
+    );
     this.setTooltip("Read DHT11/22 Temperature");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1895,7 +1896,8 @@ Blockly.Blocks['dht_read_humidity'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["dht_humi"]), "MSG_READ_DHT_HUMI");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}"
+    );
     this.setTooltip("Read DHT11/22 Humidity");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -2101,7 +2103,7 @@ Blockly.Blocks['easymqtt_init'] = {
             'EASYMQTT_SESSION_ID');
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setTooltip("Start EasyMQTT Client");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -2122,7 +2124,7 @@ Blockly.Blocks['easymqtt_publish_data'] = {
         .appendField(new Blockly.FieldLabelSerializable(MSG["data"]), "EASYMQTT_PAYLOAD");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setTooltip("Publish Data to EasyMQTT Server");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -2148,7 +2150,7 @@ Blockly.Blocks['easymqtt_subscribe'] = {
         .appendField('do');
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setInputsInline(false);
     this.setTooltip("Subscribe to a topic and define what to do when data is received from EasyMQTT Server");
     this.setHelpUrl("http://www.bipes.net.br");
@@ -2168,7 +2170,7 @@ Blockly.Blocks['easymqtt_receive_data'] = {
         ]), 'EASYMQTT_WAIT');
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setTooltip("Receive Data from EasyMQTT Server");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -2181,7 +2183,7 @@ Blockly.Blocks['easymqtt_disconnect'] = {
         .appendField(new Blockly.FieldLabelSerializable("EasyMQTT Stop"), "BLOCK_EASYMQTT_DISCONNECT");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setTooltip("Disconnect the EasyMQTT Client from Server.");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -2208,7 +2210,7 @@ Blockly.Blocks['relay_switch'] = {
         .appendField(MSG["relay_on"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setTooltip("Turn On Relay on GPIO digital pin");
     this.setHelpUrl("bipes.net.br");
   }
@@ -2219,7 +2221,7 @@ Blockly.Blocks['text_to_str'] = {
   init: function() {
     this.appendValueInput("var")
         .appendField(new Blockly.FieldLabelSerializable("to str"), "VAR");
-    this.setColour(160);
+    this.setColour(290);
     this.setOutput(true, null);
     this.setTooltip("Convert anything to String.");
     this.setHelpUrl("http://www.bipes.net.br");
@@ -2243,7 +2245,7 @@ Blockly.Blocks['var_to_int'] = {
   init: function() {
     this.appendValueInput("var")
         .appendField(new Blockly.FieldLabelSerializable("to int"), "VAR");
-    this.setColour(230);
+    this.setColour(colour="%{BKY_MATH_HUE}");
     this.setOutput(true, null);
     this.setTooltip("Convert anything to Int.");
     this.setHelpUrl("http://www.bipes.net.br");
@@ -2255,7 +2257,7 @@ Blockly.Blocks['var_to_float'] = {
   init: function() {
     this.appendValueInput("var")
         .appendField(new Blockly.FieldLabelSerializable("to float"), "VAR");
-    this.setColour(230);
+    this.setColour(colour="%{BKY_MATH_HUE}");
     this.setOutput(true, null);
     this.setTooltip("Convert anything to float.");
     this.setHelpUrl("http://www.bipes.net.br");
@@ -2296,7 +2298,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "inputsInline": true,  // Define que as entradas devem ser exibidas em linha
     "output": "Number",
-    "colour": 230,
+    "colour": colour="%{BKY_MATH_HUE}",
     "tooltip": "Mapeia um valor de uma faixa para outra.",
     "helpUrl": ""
   }
@@ -2319,7 +2321,7 @@ Blockly.Blocks['project_metadata'] = {
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField(new Blockly.FieldLabel(MSG["project_info_desc"]), "project_description");
-    this.setColour(230);
+    this.setColour(290);
     this.setTooltip("Information about the project");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -9492,7 +9494,7 @@ Blockly.Blocks['char_lcd_display'] = {
 
 Blockly.Blocks['rfid_rc522_init'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Init RC522 RFID Module");
 
@@ -9537,7 +9539,7 @@ Blockly.Blocks['rfid_rc522_init'] = {
 
 Blockly.Blocks['rfid_rc522_detect_card'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Check if RFID Card is present");
 
@@ -9564,7 +9566,7 @@ Blockly.Blocks['rfid_rc522_detect_card'] = {
 
 Blockly.Blocks['rfid_rc522_anticoll'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Get card identification (UID)");
 
@@ -9593,7 +9595,7 @@ Blockly.Blocks['rfid_rc522_anticoll'] = {
 //rfid_rc522_read_card
 Blockly.Blocks['rfid_rc522_read_card'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Read RFID Card Memory");
 
@@ -9607,7 +9609,7 @@ Blockly.Blocks['rfid_rc522_read_card'] = {
 //rfid_rc522_write_card
 Blockly.Blocks['rfid_rc522_write_card'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
         .appendField("Write RFID Card Memory");
 
@@ -9865,7 +9867,7 @@ Blockly.Blocks['net_socket_close'] = {
 
 Blockly.Blocks['net_http_server_start'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField(MSG["net_http_server_start"]);
 
@@ -9883,7 +9885,7 @@ Blockly.Blocks['net_http_server_start'] = {
 
 Blockly.Blocks['net_http_server_accept'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField(MSG["net_http_server_wait"]);
 
@@ -9896,7 +9898,7 @@ Blockly.Blocks['net_http_server_accept'] = {
 
 Blockly.Blocks['net_http_server_requested_page'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField(MSG["net_http_server_requested_page"]);
 
@@ -9908,7 +9910,7 @@ Blockly.Blocks['net_http_server_requested_page'] = {
 
 Blockly.Blocks['net_http_server_send_response'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField(MSG["net_http_server_send_response"]);
 
@@ -9925,7 +9927,7 @@ Blockly.Blocks['net_http_server_send_response'] = {
 
 Blockly.Blocks['net_http_server_send_response_jpg'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField(MSG["net_http_server_send_response"]);
 
@@ -9944,7 +9946,7 @@ Blockly.Blocks['net_http_server_send_response_jpg'] = {
 
 Blockly.Blocks['net_http_server_close'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
         .appendField("Close HTTP Web Server");
 
@@ -10472,7 +10474,7 @@ Blockly.Blocks['stepper_step'] = {
 //DC Motor with H-Bridge
 Blockly.Blocks['dc_motor_init'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
         .appendField("Init DC Motor");
 
@@ -10510,7 +10512,7 @@ Blockly.Blocks['dc_motor_init'] = {
 
 Blockly.Blocks['dc_motor_power'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
         .appendField("Set DC Motor Power");
 
@@ -10532,7 +10534,7 @@ Blockly.Blocks['dc_motor_power'] = {
 
 Blockly.Blocks['dc_motor_direction'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
         .appendField("Set DC Motor Direction");
 
@@ -10554,7 +10556,7 @@ Blockly.Blocks['dc_motor_direction'] = {
 
 Blockly.Blocks['dc_motor_stop'] = {
   init: function() {
-    this.setColour(135);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
         .appendField("Stop DC Motor");
 
@@ -10872,7 +10874,7 @@ Blockly.Blocks['bipes_plot'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(290);
 
  this.setTooltip("BIPES Plot");
  this.setHelpUrl("http://www.bipes.net.br");
@@ -10974,7 +10976,7 @@ Blockly.Blocks['bluetooth_repl_start'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(0);
+    this.setColour("#7b49ad");
  this.setTooltip("Start REPL over Web Bluetooth");
  this.setHelpUrl("www.bipes.net.br");
   }
@@ -10993,7 +10995,7 @@ Blockly.Blocks['bluetooth_repl_setup'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(0);
+    this.setColour("#7b49ad");
  this.setTooltip("Setup Web Bluetooth REPL");
  this.setHelpUrl("www.bipes.net.br");
   }
@@ -11292,7 +11294,7 @@ Blockly.Blocks['tone'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
  this.setTooltip("Sound - tone generator");
  this.setHelpUrl("http://www.bipes.net.br");
  }
@@ -11319,7 +11321,7 @@ Blockly.Blocks['note'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
  this.setTooltip("Sound - tone generator (music note)");
  this.setHelpUrl("http://www.bipes.net.br");
  }
@@ -11342,7 +11344,7 @@ Blockly.Blocks['rtttl_play'] = {
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
  this.setTooltip("Control ESP32-CAM White LED (flashlight)");
  this.setHelpUrl("bipes.net.br");
   }
@@ -11356,7 +11358,7 @@ Blockly.Blocks['tone_type'] = {
         .appendField(new Blockly.FieldDropdown([["B1","31"],["C2","33"],["CS2","35"],["D2","37"],["DS2","39"],["E2","41"],["F2","44"],["FS2","46"],["G2","49"],["GS2","52"],["A2","55"],["AS2","58"],["B2","62"],["C3","65"],["CS3","69"],["D3","73"],["DS3","78"],["E3","82"],["F3","87"],["FS3","93"],["G3","98"],["GS3","104"],["A3","110"],["AS3","117"],["B3","123"],["C4","131"],["CS4","139"],["D4","147"],["DS4","156"],["E4","165"],["F4","175"],["FS4","185"],["G4","196"],["GS4","208"],["A4","220"],["AS4","233"],["B4","247"],["C5","262"],["CS5","277"],["D5","294"],["DS5","311"],["E5","330"],["F5","349"],["FS5","370"],["G5","392"],["GS5","415"],["A5","440"],["AS5","466"],["B5","494"],["C6","523"],["CS6","554"],["D6","587"],["DS6","622"],["E6","659"],["F6","698"],["FS6","740"],["G6","784"],["GS6","831"],["A6","880"],["AS6","932"],["B6","988"],["C7","1047"],["CS7","1109"],["D7","1175"],["DS7","1245"],["E7","1319"],["F7","1397"],["FS7","1480"],["G7","1568"],["GS7","1661"],["A7","1760"],["AS7","1865"],["B7","1976"],["C8","2093"],["CS8","2217"],["D8","2349"],["DS8","2489"],["E8","2637"],["F8","2794"],["FS8","2960"],["G8","3136"],["GS8","3322"],["A8","3520"],["AS8","3729"],["B8","3951"],["C9","4186"],["CS9","4435"],["D9","4699"],["DS9","4978"],["P","0"]]), "tone");
 
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
  this.setTooltip("");
  this.setHelpUrl("");
   }
@@ -11617,7 +11619,7 @@ Blockly.Blocks['try_catch'] = {
         .appendField(MSG["exp1"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(290);
  this.setTooltip("");
  this.setHelpUrl("");
   }
@@ -11631,7 +11633,7 @@ Blockly.Blocks['try_except_oserror'] = {
     this.appendStatementInput("EXCEPT").setCheck(null);  // Blocos encaixados no 'except'
     this.setPreviousStatement(true, null);  // Adiciona a curvinha superior (permite encaixar)
     this.setNextStatement(true, null);  // Adiciona a curvinha inferior (permite sequência)
-    this.setColour(230);  // Cor do bloco
+    this.setColour(290);  
     this.setTooltip("Bloco try-except para capturar OSError.");
     this.setHelpUrl("");
   }
@@ -11643,7 +11645,7 @@ Blockly.Blocks['http_get_status'] = {
         .appendField(MSG["net_http_get_status"])
         .appendField(new Blockly.FieldVariable("request"), "request");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
  this.setTooltip("Status code of the HTTP GET request");
  this.setHelpUrl("bipes.net.br");
   }
@@ -11655,7 +11657,7 @@ Blockly.Blocks['http_get_content'] = {
         .appendField(MSG["net_http_get_content"])
         .appendField(new Blockly.FieldVariable("request"), "request");
     this.setOutput(true, null);
-    this.setColour(230);
+    this.setColour(colour="%{BKY_SUB_NET_HUE}");
  this.setTooltip("Content of HTTP GET request");
  this.setHelpUrl("bipes.net.br");
   }
@@ -11672,7 +11674,7 @@ Blockly.Blocks['configure_and_start_bluetooth'] = {
         .appendField(new Blockly.FieldTextInput("MyBluetooth"), "BLUETOOTH_NAME");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.setTooltip("Configures and starts the BLE Bluetooth with the specified name..");
     this.setHelpUrl("");
   }
@@ -11686,7 +11688,7 @@ Blockly.Blocks['handle_ble_data'] = {
         .appendField("Set received BLE data to");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.setTooltip("Receives BLE data and stores it in the chosen variable");
     this.setHelpUrl("");
   }
@@ -11701,7 +11703,7 @@ Blockly.Blocks['check_ble_data'] = {
         .appendField("Check received data");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.setTooltip("Checks if there are received data via BLE and calls the handle_ble_data function.");
     this.setHelpUrl("");
   }
@@ -11712,7 +11714,7 @@ Blockly.Blocks['show_received_data'] = {
     this.appendDummyInput()
         .appendField("received BLE data (received_data).");
     this.setOutput(true, "String");
-    this.setColour(230);
+    this.setColour("#7b49ad");
     this.setTooltip("Returns the data received via BLE.");
     this.setHelpUrl("");
   }
@@ -11731,7 +11733,7 @@ Blockly.Blocks['configure_data_plotter'] = {
     this.sensorCount_ = 1;
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.setTooltip("Configures the plotter to send data from multiple sensors.");
     this.setHelpUrl("");
   },
@@ -11795,7 +11797,7 @@ Blockly.Blocks['call_format_plotter_data'] = {
         .appendField("Send data to the plotter");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.setTooltip("Call the function that formats and sends data to the plotter");
     this.setHelpUrl("");
   }
@@ -11807,7 +11809,7 @@ Blockly.Blocks['sensor_container'] = {
     this.appendDummyInput()
         .appendField('sensors');
     this.appendStatementInput('STACK');
-    this.setColour("#1E90FF");
+    this.setColour("#7b49ad");
     this.contextMenu = false;
   }
 };
@@ -11819,7 +11821,7 @@ Blockly.Blocks['sensor_create'] = {
         .appendField('add sensor');
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setColour("1E90FF");
+    this.setColour("#7b49ad");
     this.contextMenu = false;
   }
 };
@@ -11836,7 +11838,7 @@ Blockly.Blocks['math_min'] = {
         .appendField("e");
     this.setInputsInline(true);
     this.setOutput(true, "Number");
-    this.setColour(230);
+    this.setColour(colour="%{BKY_MATH_HUE}");
     this.setTooltip("Returns the lesser of the two values.");
     this.setHelpUrl("");
   }
@@ -11852,7 +11854,7 @@ Blockly.Blocks['math_max'] = {
         .appendField("e");
     this.setInputsInline(true);
     this.setOutput(true, "Number");
-    this.setColour(230);
+    this.setColour(colour="%{BKY_MATH_HUE}");
     this.setTooltip("Returns the greater of the two values.");
     this.setHelpUrl("");
   }
@@ -11881,7 +11883,7 @@ Blockly.Blocks['play_song'] = {
         }), "MELODY");
     
     this.setOutput(true, null);
-    this.setColour(165);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setTooltip("Reproduz a melodia selecionada");
     this.setHelpUrl("");
 
@@ -11992,7 +11994,7 @@ Blockly.Blocks['set_master'] = {
         .appendField("Set Amado Board as master");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour('#5a3783');
+    this.setColour("#7b49ad");
     this.setTooltip("Configures the board as a master for ESPNOW");
     this.setHelpUrl("");
   }
@@ -12006,7 +12008,7 @@ Blockly.Blocks['add_peer'] = {
         .appendField("Add board with MAC");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour('#5a3783');
+    this.setColour("#7b49ad");
     this.setTooltip("Adds a peer (MAC) to the ESPNOW communication list");
     this.setHelpUrl("");
   }
@@ -12030,7 +12032,7 @@ Blockly.Blocks['set_peer'] = {
         .appendField("Set ESP32 as secondary board");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour('#5a3783');
+    this.setColour("#7b49ad");
     this.setTooltip("Configures the board as a peer for ESPNOW.");
     this.setHelpUrl("");
   }
@@ -12170,7 +12172,7 @@ Blockly.Blocks['send_message_mutator'] = {
     this.appendDummyInput()
         .appendField("Add variable");
     this.appendStatementInput('STACK');
-    this.setColour(230);
+    this.setColour("#7b49ad");
     this.setTooltip('');
     this.contextMenu = false;
   }
@@ -12183,7 +12185,7 @@ Blockly.Blocks['send_message_add_var'] = {
         .appendField("Add variable");
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setColour(230);
+    this.setColour("#7b49ad");
     this.setTooltip('');
     this.contextMenu = false;
   }
@@ -12221,7 +12223,7 @@ Blockly.defineBlocksWithJsonArray([{
     }
   ],
   "output": null,  // Esse bloco vai retornar um valor
-  "colour": "#a278d1",
+  "colour": "#7b49ad",
   "tooltip": "Get the value of a variable for a MAC address.",
   "helpUrl": ""
 }]);
@@ -12240,297 +12242,378 @@ Blockly.Blocks['check_and_assign_value'] = {
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour("#a278d1");
+    this.setColour("#7b49ad");
     this.setTooltip("Check if the variable is None, and if it is, set a default value.");
     this.setHelpUrl("");
   }
 };
 
 
-//Blocos para a comunicação ESPNOW
-// Bloco de inicialização do WLAN
-Blockly.Blocks['init_wlan'] = {
+
+//Novos blocos para a categoria variaveis boleanas
+Blockly.Blocks['new_logic_boolean'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Initialize WLAN");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour('#4a2667');
-    this.setTooltip("Initializes the WLAN interface and configures the MAC address.");
+        .appendField(new Blockly.FieldDropdown([
+            [Blockly.Msg["LOGIC_BOOLEAN_TRUE"], "True"], 
+            [Blockly.Msg["LOGIC_BOOLEAN_FALSE"], "False"]
+        ]), "BOOLEAN");
+        
+    this.setOutput(true, "Boolean");
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setTooltip(Blockly.Msg["LOGIC_BOOLEAN_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["LOGIC_BOOLEAN_HELPURL"]);
+  }
+};
+
+
+Blockly.Blocks['new_logic_null'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(Blockly.Msg["LOGIC_NULL"]);
+    this.setOutput(true, null);
+    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setTooltip("Represents the value null.");
     this.setHelpUrl("");
   }
 };
 
-// Bloco para obter o endereço MAC (só retorna a variável)
-Blockly.Blocks['get_mac_address'] = {
+
+//Novos blocos para a categoria variaveis númericas
+Blockly.Blocks['new_math_number'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Get Amado Board MAC address");
+        .appendField(new Blockly.FieldNumber(123), 'NUM');
+    this.setOutput(true, 'Number');
+    this.setStyle('variable_blocks');
+    this.setTooltip(Blockly.Msg["MATH_NUMBER_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["MATH_NUMBER_HELPURL"]);
+  }
+};
+
+// Bloco para constantes (π, e, φ, sqrt(2), sqrt(½), ∞)
+Blockly.Blocks['new_math_constant'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldDropdown([
+          ['π', 'PI'],
+          ['e', 'E'],
+          ['φ', 'PHI'],
+          ['sqrt(2)', 'SQRT2'],
+          ['sqrt(½)', 'SQRT1_2'],
+          ['∞', 'INFINITY']
+        ]), 'CONSTANT');
+    this.setOutput(true, 'Number');
+    this.setStyle('variable_blocks');
+    this.setTooltip(Blockly.Msg["MATH_CONSTANT_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["MATH_CONSTANT_HELPURL"]);
+  }
+};
+
+// Bloco para número inteiro aleatório
+Blockly.Blocks['new_math_random_int'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(Blockly.Msg["MATH_RANDOM_INT_TITLE"].split('%1')[0])
+    this.appendValueInput('FROM')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendDummyInput()
+        .appendField(Blockly.Msg["MATH_RANDOM_INT_TITLE"].split('%1')[1].split('%2')[0].trim());
+    this.appendValueInput('TO')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setOutput(true, 'Number');
+    this.setStyle('variable_blocks');
+    this.setTooltip(Blockly.Msg["MATH_RANDOM_INT_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["MATH_RANDOM_INT_HELPURL"]);
+  }
+};
+
+
+
+// Bloco para fração aleatória
+Blockly.Blocks['new_math_random_float'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(Blockly.Msg["MATH_RANDOM_FLOAT_TITLE_RANDOM"]);
+    this.setOutput(true, 'Number');
+    this.setStyle('variable_blocks');
+    this.setTooltip(Blockly.Msg["MATH_RANDOM_FLOAT_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["MATH_RANDOM_FLOAT_HELPURL"]);
+  }
+};
+
+//Novos blocos para a categoria de variaveis de texto
+Blockly.Blocks['new_text'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('“')
+        .appendField(new Blockly.FieldTextInput(''), 'TEXT')
+        .appendField('”');
     this.setOutput(true, 'String');
-    this.setColour('#4a2667');
-    this.setTooltip("Returns the ESP32 MAC address as a formatted string.");
-    this.setHelpUrl("");
-  }
-};
-
-Blockly.Blocks['set_master'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Set Amado Board as master");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour('#5a3783');
-    this.setTooltip("Configures the board as a master for ESPNOW");
-    this.setHelpUrl("");
+    this.setStyle('variable_blocks');
+    this.setTooltip(Blockly.Msg["TEXT_TEXT_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["TEXT_TEXT_HELPURL"]);
   }
 };
 
 
-Blockly.Blocks['add_peer'] = {
+Blockly.Blocks['new_text_create'] = {
   init: function() {
-    this.appendValueInput("MAC")
-        .setCheck("String")
-        .appendField("Add board with MAC");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour('#5a3783');
-    this.setTooltip("Adds a peer (MAC) to the ESPNOW communication list");
-    this.setHelpUrl("");
-  }
-};
-
-Blockly.Blocks['receive_message'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Receive messages from boards");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#7b49ad");
-    this.setTooltip("Receives messages from peers.");
-    this.setHelpUrl("");
-  }
-};
-
-Blockly.Blocks['set_peer'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Set ESP32 as secondary board");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour('#5a3783');
-    this.setTooltip("Configures the board as a peer for ESPNOW.");
-    this.setHelpUrl("");
-  }
-};
-
-
-Blockly.Blocks['send_message_to_peer'] = {
-  init: function() {
-    this.appendValueInput("MAC")
-        .setCheck("String")
-        .appendField("Send message to board with MAC");
-    this.appendValueInput("VAR_NAME")
-        .setCheck("String")
-        .appendField("Variable name");
-    this.appendValueInput("VAR_VALUE")
-        .setCheck(null)
-        .appendField("Variable value");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#7b49ad");
-    this.setTooltip("Sends a variable and its value to a specific peer.");
-    this.setHelpUrl("");
-  }
-};
-
-
-Blockly.Blocks['send_message'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Send message to Master");
-    this.appendValueInput("VAR1")
-        .setCheck("String")
-        .appendField("VAR 1");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#7b49ad");
-    this.setMutator(new Blockly.Mutator(['send_message_add_var']));
-    this.varCount_ = 1;  // Inicializamos com 1 variável
+    this.setStyle('variable_blocks');
+    this.appendValueInput('ADD0')
+        .setCheck(null) // Permite qualquer tipo de entrada (números, textos, etc.)
+        .appendField(Blockly.Msg["TEXT_JOIN_TITLE_CREATEWITH"]);
+    this.appendValueInput('ADD1')
+        .setCheck(null);
+    this.setOutput(true, 'String');
+    this.setMutator(new Blockly.Mutator(['text_create_item']));
+    this.setTooltip(Blockly.Msg["TEXT_JOIN_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["TEXT_JOIN_HELPURL"]);
+    this.itemCount_ = 2; // Começa com duas entradas por padrão
   },
-
-  // Salva o estado do bloco (mutação)
   mutationToDom: function() {
-    var container = document.createElement('mutation');
-    container.setAttribute('varCount', this.varCount_);  // Salva o número de variáveis
+    const container = Blockly.utils.xml.createElement('mutation');
+    container.setAttribute('items', this.itemCount_);
     return container;
   },
-
-  // Restaura o estado do bloco (mutação) ao carregar o XML
   domToMutation: function(xmlElement) {
-    var count = parseInt(xmlElement.getAttribute('varCount'), 10);  // Restaura o número de variáveis
-    if (!isNaN(count)) {
-      this.varCount_ = count;
-    } else {
-      this.varCount_ = 1;  // Fallback para 1 variável
-    }
-    this.updateShape_();  // Reconstrói a forma com base no estado restaurado
+    this.itemCount_ = parseInt(xmlElement.getAttribute('items'), 10);
+    this.updateShape_();
   },
-
-  // Abre o mutator para permitir adicionar variáveis
   decompose: function(workspace) {
-    var containerBlock = workspace.newBlock('send_message_mutator');
+    const containerBlock = workspace.newBlock('text_create_container');
     containerBlock.initSvg();
-    var connection = containerBlock.getInput('STACK').connection;
-    for (var i = 1; i < this.varCount_; i++) {
-      var varBlock = workspace.newBlock('send_message_add_var');
-      varBlock.initSvg();
-      connection.connect(varBlock.previousConnection);
-      connection = varBlock.nextConnection;
+    let connection = containerBlock.getInput('STACK').connection;
+    for (let i = 0; i < this.itemCount_; i++) {
+      const itemBlock = workspace.newBlock('text_create_item');
+      itemBlock.initSvg();
+      connection.connect(itemBlock.previousConnection);
+      connection = itemBlock.nextConnection;
     }
     return containerBlock;
   },
-
-  // Atualiza o bloco quando o mutator é fechado
   compose: function(containerBlock) {
-    var itemBlock = containerBlock.getInputTargetBlock('STACK');
-    var connections = [];
+    let itemBlock = containerBlock.getInputTargetBlock('STACK');
+    const connections = [];
     while (itemBlock) {
       connections.push(itemBlock.valueConnection_);
       itemBlock = itemBlock.nextConnection &&
-          itemBlock.nextConnection.targetBlock();
+                  itemBlock.nextConnection.targetBlock();
     }
-
-    // Remove os inputs antigos
-    for (var i = 1; i <= this.varCount_; i++) {
-      var input = this.getInput('VAR' + i);
-      if (input) {
-        this.removeInput('VAR' + i);
+    for (let i = 0; i < this.itemCount_; i++) {
+      const connection = this.getInput('ADD' + i).connection.targetConnection;
+      if (connection && connections.indexOf(connection) === -1) {
+        connection.disconnect();
       }
     }
-
-    // Atualiza o número de variáveis com base no mutator
-    this.varCount_ = connections.length + 1;
+    this.itemCount_ = connections.length;
     this.updateShape_();
-
-    // Reconecta os blocos às novas variáveis
-    for (var i = 1; i <= connections.length; i++) {
-      Blockly.Mutator.reconnect(connections[i - 1], this, 'VAR' + i);
+    for (let i = 0; i < this.itemCount_; i++) {
+      Blockly.Mutator.reconnect(connections[i], this, 'ADD' + i);
     }
   },
-
-  // Reconstrói a forma do bloco com base no número de variáveis
-  updateShape_: function() {
-    // Remove inputs antigos, se existirem
-    for (var i = 1; i <= this.varCount_; i++) {
-      if (this.getInput('VAR' + i)) {
-        this.removeInput('VAR' + i);
-      }
-    }
-
-    // Adiciona novos inputs de acordo com o estado salvo
-    for (var i = 1; i <= this.varCount_; i++) {
-      if (!this.getInput('VAR' + i)) {
-        this.appendValueInput('VAR' + i)
-            .setCheck('String')
-            .appendField('Variável ' + i);
-      }
-    }
-  },
-
-  // Salva as conexões para garantir que blocos conectados não se percam
   saveConnections: function(containerBlock) {
-    var itemBlock = containerBlock.getInputTargetBlock('STACK');
-    var i = 1;
+    let itemBlock = containerBlock.getInputTargetBlock('STACK');
+    let i = 0;
     while (itemBlock) {
-      var input = this.getInput('VAR' + i);
+      const input = this.getInput('ADD' + i);
       itemBlock.valueConnection_ = input && input.connection.targetConnection;
       i++;
       itemBlock = itemBlock.nextConnection &&
-          itemBlock.nextConnection.targetBlock();
+                  itemBlock.nextConnection.targetBlock();
     }
-  }
+  },
+  updateShape_: function() {
+    if (this.itemCount_ && this.getInput('EMPTY')) {
+      this.removeInput('EMPTY');
+    } else if (!this.itemCount_ && !this.getInput('EMPTY')) {
+      this.appendDummyInput('EMPTY')
+          .appendField('create text with');
+    }
+    for (let i = 0; i < this.itemCount_; i++) {
+      if (!this.getInput('ADD' + i)) {
+        const input = this.appendValueInput('ADD' + i).setCheck(null);
+        if (i === 0) {
+          input.appendField('create text with');
+        }
+      }
+    }
+    while (this.getInput('ADD' + this.itemCount_)) {
+      this.removeInput('ADD' + this.itemCount_);
+    }
+  },
 };
 
-// Bloco para o mutator (interface de adição de variáveis)
-Blockly.Blocks['send_message_mutator'] = {
+// Mutator container
+Blockly.Blocks['text_create_container'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Add variable");
+        .appendField(Blockly.Msg["TEXT_CREATE_JOIN_TITLE_JOIN"]);
     this.appendStatementInput('STACK');
-    this.setColour(230);
-    this.setTooltip('');
+    this.setStyle('variable_blocks');
     this.contextMenu = false;
-  }
+  },
 };
 
-// Bloco que permite adicionar variáveis no mutator
-Blockly.Blocks['send_message_add_var'] = {
+// Mutator item
+Blockly.Blocks['text_create_item'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Add variable");
+        .appendField(Blockly.Msg["VARIABLES_DEFAULT_NAME"]);
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setColour(230);
-    this.setTooltip('');
+    this.setStyle('variable_blocks');
     this.contextMenu = false;
-  }
+  },
 };
 
-// Registro do mutator
-Blockly.Extensions.registerMutator('send_message_mutator', Blockly.Blocks['send_message']);
-
-Blockly.Blocks['receive_message_master'] = {
+//Novos blocos para variaveis de lista
+Blockly.Blocks['create_empty_list'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Receive message from Master");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#7b49ad");
-    this.setTooltip("Recebe mensagens enviadas pela master e processa.");
-    this.setHelpUrl("");
+        .appendField(Blockly.Msg["LISTS_CREATE_EMPTY_TITLE"]);
+    this.setOutput(true, 'Array');
+    this.setStyle('variable_blocks');
+    this.setTooltip(Blockly.Msg["LISTS_CREATE_EMPTY_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["LISTS_CREATE_EMPTY_HELPURL"]);
   }
 };
 
 
-Blockly.defineBlocksWithJsonArray([{
-  "type": "get_variable_value",
-  "message0": "Get value of %1 for MAC %2",
-  "args0": [
-    {
-      "type": "field_input",
-      "name": "VAR_NAME",
-      "text": "VAR_1"  // Nome da variável padrão
-    },
-    {
-      "type": "field_input",
-      "name": "MAC_ADDR",
-      "text": "00:00:00:00:00:00"  // MAC address padrão
-    }
-  ],
-  "output": null,  // Esse bloco vai retornar um valor
-  "colour": "#a278d1",
-  "tooltip": "Get the value of a variable for a MAC address.",
-  "helpUrl": ""
-}]);
-
-
-Blockly.Blocks['check_and_assign_value'] = {
+Blockly.Blocks['create_list_with'] = {
   init: function() {
-    this.appendValueInput("VAR")
+    this.setStyle('variable_blocks');
+    this.appendValueInput('ADD0')
         .setCheck(null)
-        .appendField("If")
-        .appendField(new Blockly.FieldVariable("item"), "VAR")
-        .appendField("is None, set to");
-    this.appendValueInput("DEFAULT")
+        .appendField(Blockly.Msg["LISTS_CREATE_WITH_INPUT_WITH"]);
+    this.appendValueInput('ADD1')
+        .setCheck(null);
+    this.setOutput(true, 'Array');
+    this.setMutator(new Blockly.Mutator(['list_create_item']));
+    this.setTooltip(Blockly.Msg["LISTS_CREATE_WITH_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["LISTS_CREATE_WITH_HELPURL"]);
+    this.itemCount_ = 2;
+  },
+  mutationToDom: function() {
+    const container = Blockly.utils.xml.createElement('mutation');
+    container.setAttribute('items', this.itemCount_);
+    return container;
+  },
+  domToMutation: function(xmlElement) {
+    this.itemCount_ = parseInt(xmlElement.getAttribute('items'), 10);
+    this.updateShape_();
+  },
+  decompose: function(workspace) {
+    const containerBlock = workspace.newBlock('list_create_container');
+    containerBlock.initSvg();
+    let connection = containerBlock.getInput('STACK').connection;
+    for (let i = 0; i < this.itemCount_; i++) {
+      const itemBlock = workspace.newBlock('list_create_item');
+      itemBlock.initSvg();
+      connection.connect(itemBlock.previousConnection);
+      connection = itemBlock.nextConnection;
+    }
+    return containerBlock;
+  },
+  compose: function(containerBlock) {
+    let itemBlock = containerBlock.getInputTargetBlock('STACK');
+    const connections = [];
+    while (itemBlock) {
+      connections.push(itemBlock.valueConnection_);
+      itemBlock = itemBlock.nextConnection &&
+                  itemBlock.nextConnection.targetBlock();
+    }
+    for (let i = 0; i < this.itemCount_; i++) {
+      const connection = this.getInput('ADD' + i).connection.targetConnection;
+      if (connection && connections.indexOf(connection) === -1) {
+        connection.disconnect();
+      }
+    }
+    this.itemCount_ = connections.length;
+    this.updateShape_();
+    for (let i = 0; i < this.itemCount_; i++) {
+      Blockly.Mutator.reconnect(connections[i], this, 'ADD' + i);
+    }
+  },
+  saveConnections: function(containerBlock) {
+    let itemBlock = containerBlock.getInputTargetBlock('STACK');
+    let i = 0;
+    while (itemBlock) {
+      const input = this.getInput('ADD' + i);
+      itemBlock.valueConnection_ = input && input.connection.targetConnection;
+      i++;
+      itemBlock = itemBlock.nextConnection &&
+                  itemBlock.nextConnection.targetBlock();
+    }
+  },
+  updateShape_: function() {
+    if (this.itemCount_ && this.getInput('EMPTY')) {
+      this.removeInput('EMPTY');
+    } else if (!this.itemCount_ && !this.getInput('EMPTY')) {
+      this.appendDummyInput('EMPTY')
+          .appendField('create list with');
+    }
+    for (let i = 0; i < this.itemCount_; i++) {
+      if (!this.getInput('ADD' + i)) {
+        const input = this.appendValueInput('ADD' + i).setCheck(null);
+        if (i === 0) {
+          input.appendField('create list with');
+        }
+      }
+    }
+    while (this.getInput('ADD' + this.itemCount_)) {
+      this.removeInput('ADD' + this.itemCount_);
+    }
+  },
+};
+
+// Mutator container
+Blockly.Blocks['list_create_container'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(Blockly.Msg["LISTS_CREATE_WITH_CONTAINER_TITLE_ADD"]);
+    this.appendStatementInput('STACK');
+    this.setStyle('variable_blocks');
+    this.contextMenu = false;
+  },
+};
+
+// Mutator item
+Blockly.Blocks['list_create_item'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(Blockly.Msg["VARIABLES_DEFAULT_NAME"]);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setStyle('variable_blocks');
+    this.contextMenu = false;
+  },
+};
+
+Blockly.Blocks['create_list_with_repeated'] = {
+  init: function() {
+    this.appendValueInput('ITEM')
         .setCheck(null)
-        .appendField("default value");
-    this.setInputsInline(true);
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#a278d1");
-    this.setTooltip("Check if the variable is None, and if it is, set a default value.");
-    this.setHelpUrl("");
+        .appendField(Blockly.Msg["LISTS_REPEAT_TITLE"].split('%1')[0]);
+    this.appendValueInput('NUM')
+        .setCheck('Number')
+        .appendField(Blockly.Msg["LISTS_REPEAT_TITLE"].split('%1')[1].split('%2')[0]);
+    this.appendDummyInput()
+        .appendField(Blockly.Msg["LISTS_REPEAT_TITLE"].split('%2')[1]);
+    this.setOutput(true, 'Array');
+    this.setStyle('variable_blocks');
+    this.setTooltip(Blockly.Msg["LISTS_REPEAT_TOOLTIP"]);
+    this.setHelpUrl(Blockly.Msg["LISTS_REPEAT_HELPURL"]);
   }
 };
+
+
+
+
+
+
+
 
 

@@ -6658,10 +6658,126 @@ if ${variable_to_check} is None:
   return code;
 };
 
+//Novos blocos para a categoria variaveis booleanas
+Blockly.Python['new_logic_boolean'] = function(block) {
+  var dropdown_boolean = block.getFieldValue('BOOLEAN');
+  return [dropdown_boolean, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Python['new_logic_null'] = function(block) {
+  const code = 'None';
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
+
+//Novos blocos para a categoria variaveis númericas
+Blockly.Python['new_math_number'] = function(block) {
+  const number = block.getFieldValue('NUM');
+  return [number, Blockly.Python.ORDER_ATOMIC];
+};
+
+// Gerador para constantes matemáticas
+Blockly.Python['new_math_constant'] = function(block) {
+  Blockly.Python.definitions_['import_math'] = 'import math';
+  const constant = block.getFieldValue('CONSTANT');
+  let code;
+  switch (constant) {
+    case 'PI': code = 'math.pi'; break;
+    case 'E': code = 'math.e'; break;
+    case 'PHI': code = '(1 + math.sqrt(5)) / 2'; break;
+    case 'SQRT2': code = 'math.sqrt(2)'; break;
+    case 'SQRT1_2': code = 'math.sqrt(0.5)'; break;
+    case 'INFINITY': code = 'float("inf")'; break;
+    default: code = '0';
+  }
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
+
+// Gerador para número inteiro aleatório
+Blockly.Python['new_math_random_int'] = function(block) {
+  Blockly.Python.definitions_['import_random'] = 'import random';
+  const fromValue = Blockly.Python.valueToCode(block, 'FROM', Blockly.Python.ORDER_ATOMIC) || '1';
+  const toValue = Blockly.Python.valueToCode(block, 'TO', Blockly.Python.ORDER_ATOMIC) || '100';
+  const code = `random.randint(${fromValue}, ${toValue})`;
+  return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
+
+// Gerador para fração aleatória
+Blockly.Python['new_math_random_float'] = function(block) {
+  Blockly.Python.definitions_['import_random'] = 'import random';
+  const code = 'random.random()';
+  return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
+
+//Novos blocos para a categoria de variaveis de texto
+Blockly.Python['new_text'] = function(block) {
+  const text = block.getFieldValue('TEXT');
+  const code = `'${text}'`;
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
 
 
+Blockly.Python['new_text_join'] = function(block) {
+  const itemCount = block.itemCount_;
+  if (itemCount === 0) {
+    return ['""', Blockly.Python.ORDER_ATOMIC];
+  } else if (itemCount === 1) {
+    const element = Blockly.Python.valueToCode(block, 'ADD0', Blockly.Python.ORDER_NONE) || '""';
+    return [element, Blockly.Python.ORDER_ATOMIC];
+  } else {
+    const elements = [];
+    for (let i = 0; i < itemCount; i++) {
+      elements.push(Blockly.Python.valueToCode(block, 'ADD' + i, Blockly.Python.ORDER_NONE) || '""');
+    }
+    const code = '[' + elements.join(', ') + '].join("")';
+    return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+  }
+};
+
+Blockly.Python['new_text_create'] = function(block) {
+  const itemCount = block.itemCount_;
+  const elements = [];
+  for (let i = 0; i < itemCount; i++) {
+    const value = Blockly.Python.valueToCode(block, 'ADD' + i, Blockly.Python.ORDER_NONE) || '\'\'';
+    // Apenas adiciona valores na lista
+    elements.push(value);
+  }
+
+  let code;
+  if (itemCount === 2) {
+    const first = elements[0];
+    const second = `str(${elements[1]})`;
+    code = `${first} + ${second}`;
+  } else {
+    code = `''.join([str(x) for x in [${elements.join(', ')}]])`;
+  }
+
+  return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
 
 
+//Novos blocos para as variaveis de lista
+Blockly.Python['create_empty_list'] = function(block) {
+  const code = '[]';
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Python['create_list_with'] = function(block) {
+  const elements = [];
+  for (let i = 0; i < block.itemCount_; i++) {
+    const value = Blockly.Python.valueToCode(block, 'ADD' + i, Blockly.Python.ORDER_NONE) || 'None';
+    elements.push(value);
+  }
+  const code = '[' + elements.join(', ') + ']';
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
+ 
 
 
-  
+Blockly.Python['create_list_with_repeated'] = function(block) {
+  const item = Blockly.Python.valueToCode(block, 'ITEM', Blockly.Python.ORDER_NONE) || 'None';
+  const num = Blockly.Python.valueToCode(block, 'NUM', Blockly.Python.ORDER_NONE) || '0';
+  const code = `[${item}] * ${num}`;
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
+
+
