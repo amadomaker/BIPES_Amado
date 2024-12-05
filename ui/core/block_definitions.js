@@ -12273,6 +12273,7 @@ Blockly.Blocks['new_logic_null'] = {
   }
 };
 
+
 //Novos blocos para a categoria variaveis númericas
 Blockly.Blocks['new_math_number'] = {
   init: function() {
@@ -12335,4 +12336,131 @@ Blockly.Blocks['new_math_random_float'] = {
     this.setHelpUrl('');
   }
 };
+
+//Novos blocos para a categoria de variaveis de texto
+Blockly.Blocks['new_text'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('“')
+        .appendField(new Blockly.FieldTextInput(''), 'TEXT')
+        .appendField('”');
+    this.setOutput(true, 'String');
+    this.setStyle('variable_blocks');
+    this.setTooltip('Text value.');
+    this.setHelpUrl('');
+  }
+};
+
+
+Blockly.Blocks['new_text_create'] = {
+  init: function() {
+    this.setStyle('variable_blocks');
+    this.appendValueInput('ADD0')
+        .setCheck(null) // Permite qualquer tipo de entrada (números, textos, etc.)
+        .appendField('create text with');
+    this.appendValueInput('ADD1')
+        .setCheck(null);
+    this.setOutput(true, 'String');
+    this.setMutator(new Blockly.Mutator(['text_create_item']));
+    this.setTooltip('Create a string by joining multiple inputs.');
+    this.setHelpUrl('');
+    this.itemCount_ = 2; // Começa com duas entradas por padrão
+  },
+  mutationToDom: function() {
+    const container = Blockly.utils.xml.createElement('mutation');
+    container.setAttribute('items', this.itemCount_);
+    return container;
+  },
+  domToMutation: function(xmlElement) {
+    this.itemCount_ = parseInt(xmlElement.getAttribute('items'), 10);
+    this.updateShape_();
+  },
+  decompose: function(workspace) {
+    const containerBlock = workspace.newBlock('text_create_container');
+    containerBlock.initSvg();
+    let connection = containerBlock.getInput('STACK').connection;
+    for (let i = 0; i < this.itemCount_; i++) {
+      const itemBlock = workspace.newBlock('text_create_item');
+      itemBlock.initSvg();
+      connection.connect(itemBlock.previousConnection);
+      connection = itemBlock.nextConnection;
+    }
+    return containerBlock;
+  },
+  compose: function(containerBlock) {
+    let itemBlock = containerBlock.getInputTargetBlock('STACK');
+    const connections = [];
+    while (itemBlock) {
+      connections.push(itemBlock.valueConnection_);
+      itemBlock = itemBlock.nextConnection &&
+                  itemBlock.nextConnection.targetBlock();
+    }
+    for (let i = 0; i < this.itemCount_; i++) {
+      const connection = this.getInput('ADD' + i).connection.targetConnection;
+      if (connection && connections.indexOf(connection) === -1) {
+        connection.disconnect();
+      }
+    }
+    this.itemCount_ = connections.length;
+    this.updateShape_();
+    for (let i = 0; i < this.itemCount_; i++) {
+      Blockly.Mutator.reconnect(connections[i], this, 'ADD' + i);
+    }
+  },
+  saveConnections: function(containerBlock) {
+    let itemBlock = containerBlock.getInputTargetBlock('STACK');
+    let i = 0;
+    while (itemBlock) {
+      const input = this.getInput('ADD' + i);
+      itemBlock.valueConnection_ = input && input.connection.targetConnection;
+      i++;
+      itemBlock = itemBlock.nextConnection &&
+                  itemBlock.nextConnection.targetBlock();
+    }
+  },
+  updateShape_: function() {
+    if (this.itemCount_ && this.getInput('EMPTY')) {
+      this.removeInput('EMPTY');
+    } else if (!this.itemCount_ && !this.getInput('EMPTY')) {
+      this.appendDummyInput('EMPTY')
+          .appendField('create text with');
+    }
+    for (let i = 0; i < this.itemCount_; i++) {
+      if (!this.getInput('ADD' + i)) {
+        const input = this.appendValueInput('ADD' + i).setCheck(null);
+        if (i === 0) {
+          input.appendField('create text with');
+        }
+      }
+    }
+    while (this.getInput('ADD' + this.itemCount_)) {
+      this.removeInput('ADD' + this.itemCount_);
+    }
+  },
+};
+
+// Mutator container
+Blockly.Blocks['text_create_container'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('text items');
+    this.appendStatementInput('STACK');
+    this.setStyle('variable_blocks');
+    this.contextMenu = false;
+  },
+};
+
+// Mutator item
+Blockly.Blocks['text_create_item'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('item');
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setStyle('variable_blocks');
+    this.contextMenu = false;
+  },
+};
+
+
 

@@ -6707,3 +6707,49 @@ Blockly.Python['new_math_random_float'] = function(block) {
   const code = 'random.random()';
   return [code, Blockly.Python.ORDER_FUNCTION_CALL];
 };
+
+//Novos blocos para a categoria de variaveis de texto
+Blockly.Python['new_text'] = function(block) {
+  const text = block.getFieldValue('TEXT');
+  const code = `'${text}'`;
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
+
+
+Blockly.Python['new_text_join'] = function(block) {
+  const itemCount = block.itemCount_;
+  if (itemCount === 0) {
+    return ['""', Blockly.Python.ORDER_ATOMIC];
+  } else if (itemCount === 1) {
+    const element = Blockly.Python.valueToCode(block, 'ADD0', Blockly.Python.ORDER_NONE) || '""';
+    return [element, Blockly.Python.ORDER_ATOMIC];
+  } else {
+    const elements = [];
+    for (let i = 0; i < itemCount; i++) {
+      elements.push(Blockly.Python.valueToCode(block, 'ADD' + i, Blockly.Python.ORDER_NONE) || '""');
+    }
+    const code = '[' + elements.join(', ') + '].join("")';
+    return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+  }
+};
+
+Blockly.Python['new_text_create'] = function(block) {
+  const itemCount = block.itemCount_;
+  const elements = [];
+  for (let i = 0; i < itemCount; i++) {
+    const value = Blockly.Python.valueToCode(block, 'ADD' + i, Blockly.Python.ORDER_NONE) || '\'\'';
+    // Apenas adiciona valores na lista
+    elements.push(value);
+  }
+
+  let code;
+  if (itemCount === 2) {
+    const first = elements[0];
+    const second = `str(${elements[1]})`;
+    code = `${first} + ${second}`;
+  } else {
+    code = `''.join([str(x) for x in [${elements.join(', ')}]])`;
+  }
+
+  return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
