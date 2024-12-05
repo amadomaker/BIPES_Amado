@@ -4,7 +4,7 @@
 			"title":"<b>AmadoBoard</b><br>",
 			"speed":"115200",
 			"boardID":"AmadoBoard", 
-			"img":"devinfo/media/ESP32-Pinout.jpg",
+			"img":"devinfo/media/AmadoBoard3.1.svg",
 			"description":"",
 			"toolbox":"AmadoBoard.xml",
 			"pinout": [
