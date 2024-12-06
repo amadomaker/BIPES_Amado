@@ -1595,6 +1595,14 @@ _
       </value>
     </block>
 
+    <block type="play_save_melody"> 
+      <value name="pin">
+        <shadow type="pinout">
+          <field name="pin"></field>
+        </shadow>
+      </value>
+    </block>
+
     <label text="User Created Songs:"></label>
 
     <block type="play_song"></block>
