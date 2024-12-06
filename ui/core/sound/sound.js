@@ -199,7 +199,8 @@ function saveMelody() {
   buildActiveNotes();
 
   if (activeNotes.length > 0) {
-    const newMelody = { name: melodyName, notes: activeNotes };
+    const bpm = document.getElementById("bpm").value;
+    const newMelody = { name: melodyName, notes: activeNotes, bpm };
 
     addMelodyToLocalStorage(newMelody);
 
