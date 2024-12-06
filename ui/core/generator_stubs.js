@@ -5956,22 +5956,20 @@ Blockly.Python["play_save_melody"] = function (block) {
   Blockly.Python.definitions_['import_pin'] = 'from machine import Pin';
   Blockly.Python.definitions_['import_pwm'] = 'from machine import PWM';
   Blockly.Python.definitions_['import_time'] = 'import time';
+  Blockly.Python.definitions_['import_json'] = 'import json';
 
   let melodies = localStorage.getItem('bipes@melodies');
   if (melodies) {
     melodies = JSON.stringify(JSON.parse(melodies)); 
-  } else {
+  } else {  
     melodies = "[]"; 
   }
 
   var code = '';
 
   code += `
-import json
-
 melodies = json.loads('${melodies}')
 
-# Procurar a melodia selecionada pelo nome
 selected_melody = None
 for melody in melodies:
     if melody["name"] == "${selectedMelody}":
@@ -5981,22 +5979,33 @@ for melody in melodies:
 if selected_melody is None:
     raise Exception(f"Melodia '{selectedMelody}' não encontrada.")
 
-bpm = int(selected_melody["bpm"])  
-beat_duration = 60000 / bpm / 1000  
+bpm = int(selected_melody.get("bpm", 120))  
+beat_duration = 60000 / bpm / 1000
 
-for note in selected_melody["notes"]:
-    duration = beat_duration * float(note["duration"])  
-    frequency = note["frequency"]
-    if frequency is None:
+for index, note in enumerate(selected_melody["notes"]):
+    start_note_time = time.time()
+    duration = beat_duration * float(note["duration"])
+
+    if note.get("isSilence", False):
         time.sleep(duration)
+    elif note["frequency"] is None:
+        continue
     else:
-        pwm = PWM(Pin(${pin}), freq=int(frequency), duty=512)  
+        pwm = PWM(Pin(${pin}), freq=int(note["frequency"]), duty=512)
+        
         time.sleep(duration)
+        
+        pwm.duty(0)
+        time.sleep(0.01)
+        
         pwm.deinit()
+        
 print("Melodia finalizada") \n`;
 
   return code;
 };
+
+
 
 Blockly.Python['tone'] = function(block) {
 	var value_pin = Blockly.Python.valueToCode(block, 'pin', Blockly.Python.ORDER_ATOMIC);
