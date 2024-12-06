@@ -422,6 +422,17 @@ Blockly.Msg["PROCEDURES_DEFRETURN_PROCEDURE"] = Blockly.Msg["PROCEDURES_DEFNORET
 Blockly.Msg["PROCEDURES_DEFRETURN_TITLE"] = Blockly.Msg["PROCEDURES_DEFNORETURN_TITLE"];
 Blockly.Msg["TEXT_APPEND_VARIABLE"] = Blockly.Msg["VARIABLES_DEFAULT_NAME"];
 Blockly.Msg["TEXT_CREATE_JOIN_ITEM_TITLE_ITEM"] = Blockly.Msg["VARIABLES_DEFAULT_NAME"];
+Blockly.Msg["UTIME_VARS_TOOLTIP"] = "Returns a counter in the defined scale, only integer values.";
+Blockly.Msg["UTIME.TICKS_ADD_TOOLTIP"] = "Offset ticks value by a given number, which can be either positive or negative. Must be same scale in milliseconds, microseconds or cpu ticks."
+Blockly.Msg["UTIME.TICKS_DIFF_TOOLTIP"] = "Measure ticks difference between values Must be same scale in milliseconds, microseconds or cpu ticks."
+Blockly.Msg["SET_RTC_TOOLTIP"] = "Sets the current date and time in the RTC (Real-Time Clock). Ensure the values are provided in the correct format.";
+Blockly.Msg["TIMER_TOOLTIP"] = "Configures a timer to execute periodically or just once after the specified interval in milliseconds.";
+Blockly.Msg["UTIME.DEADLINE_TOOLTIP"] = "Creates a loop with deadline.",
+Blockly.Msg["STOP_TIMER_TOOLTIP"] = "Stops the selected timer from executing further actions.";
+Blockly.Msg["DEEP_SLEEP_TOOLTIP"] = "Sets the microcontroller to deep sleep mode for the specified duration in milliseconds.";
+Blockly.Msg["START_THREAD_TOOLTIP"] = "Starts a new thread to execute the specified function in parallel.";
+
+
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";
 Blockly.Msg["MATH_HUE"] = "#008000";

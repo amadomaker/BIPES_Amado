@@ -56,6 +56,8 @@ var MSG = {
   seconds: "segundos",
   milliseconds: "milisegundos",
   microseconds: "microsegundos",
+  nanoseconds: "nanosegundos",
+  cpu_ticks: "ciclos de CPU",
   to: "para",
   setpin: "ajustar pino de saida",
   pin: "pino",
@@ -109,7 +111,24 @@ var MSG = {
   dht_temp: "temperatura do DHT11/22",
   dht_humi: "umidade do DHT11/22",
   type: "modelo",
+  start_thread: "iniciar tarefa paralela com a função",
   
+  //categoria temporizador
+  get: "obter contador em",
+  counter: "contador",
+  by: "com",
+  by2: "para",
+  sum_time: "somar tempo",
+  diff_time: "diferença de tempo de",
+  timer: "temporizador n°",
+  do_timer: "executar",
+  every_timer: "a cada",
+  once_in: "uma vez em",
+  until_deadline: "até o tempo limite nº",
+  of: "de",
+  do: "executar",
+  stop_timer: "parar temporizador",
+  deep_sleep: "sono profundo",
 
 //Network
   net_http_get: "Requisição HTTP GET",

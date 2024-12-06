@@ -422,6 +422,18 @@ Blockly.Msg["PROCEDURES_DEFRETURN_PROCEDURE"] = Blockly.Msg["PROCEDURES_DEFNORET
 Blockly.Msg["PROCEDURES_DEFRETURN_TITLE"] = Blockly.Msg["PROCEDURES_DEFNORETURN_TITLE"];
 Blockly.Msg["TEXT_APPEND_VARIABLE"] = Blockly.Msg["VARIABLES_DEFAULT_NAME"];
 Blockly.Msg["TEXT_CREATE_JOIN_ITEM_TITLE_ITEM"] = Blockly.Msg["VARIABLES_DEFAULT_NAME"];
+Blockly.Msg["UTIME_VARS_TOOLTIP"] = "Devuelve un contador en la escala definida, solo valores enteros.";
+Blockly.Msg["UTIME.TICKS_ADD_TOOLTIP"] = "Desplaza el valor de los ciclos por un número dado, que puede ser positivo o negativo. Debe estar en la misma escala: milisegundos, microsegundos o ciclos de CPU.";
+Blockly.Msg["UTIME.TICKS_DIFF_TOOLTIP"] = "Mide la diferencia de ciclos entre valores. Debe estar en la misma escala: milisegundos, microsegundos o ciclos de CPU.";
+Blockly.Msg["SET_RTC_TOOLTIP"] = "Establece la fecha y hora actual en el RTC (Reloj de Tiempo Real). Asegúrate de que los valores se proporcionen en el formato correcto.";
+Blockly.Msg["TIMER_TOOLTIP"] = "Configura un temporizador para ejecutar periódicamente o solo una vez después del intervalo especificado en milisegundos.";
+Blockly.Msg["UTIME.DEADLINE_TOOLTIP"] = "Crea un bucle con fecha límite.";
+Blockly.Msg["STOP_TIMER_TOOLTIP"] = "Detiene el temporizador seleccionado de ejecutar acciones futuras.";
+Blockly.Msg["DEEP_SLEEP_TOOLTIP"] = "Pone el microcontrolador en modo de sueño profundo durante el tiempo especificado en milisegundos.";
+Blockly.Msg["START_THREAD_TOOLTIP"] = "Inicia un nuevo hilo para ejecutar la función especificada en paralelo.";
+
+
+
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";
 Blockly.Msg["MATH_HUE"] = "#008000";
