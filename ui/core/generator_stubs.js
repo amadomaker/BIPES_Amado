@@ -5993,8 +5993,7 @@ for note in selected_melody["notes"]:
         pwm = PWM(Pin(${pin}), freq=int(frequency), duty=512)  
         time.sleep(duration)
         pwm.deinit()
-print("Melodia finalizada") 
-  `;
+print("Melodia finalizada") \n`;
 
   return code;
 };
