@@ -11350,6 +11350,60 @@ Blockly.Blocks['rtttl_play'] = {
   }
 };
 
+Blockly.Blocks['play_save_melody'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("Reproduzir");
+
+    this.appendValueInput("pin")
+        .setCheck(null)
+	.appendField("Pino");
+
+  this.appendDummyInput()
+  .appendField("Melodia")
+  .appendField(new Blockly.FieldDropdown(() => {
+      // Recupera as melodias salvas no localStorage
+      const savedMelodies = localStorage.getItem('bipes@melodies');
+      let options = [];
+
+      if (savedMelodies) {
+          const melodies = JSON.parse(savedMelodies);
+          options = melodies.map(melody => [melody.name, melody.name]);
+      }
+
+      // Se não houver melodias, adiciona uma opção padrão
+      if (options.length === 0) {
+          options = [['Nenhuma melodia disponível', 'NONE']];
+      }
+
+      return options;
+  }), "MELODY");
+
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
+    this.setTooltip("Reproduz uma melodia previamente salva");
+
+    //menu de contexto
+    this.customContextMenu = function(options) {
+      const melodyName = this.getFieldValue("MELODY");
+      if (melodyName && melodyName !== 'NONE') {
+        options.push({
+          text: `Excluir '${melodyName}'`,
+          enabled: true,
+          callback: () => deleteSavedMelody(melodyName)
+        });
+
+        options.push({
+          text: `Exportar '${melodyName}'`,
+          enabled: true,
+          callback: () => exportSavedMelody(melodyName)
+        });
+      }
+    };
+  }
+};
+
 Blockly.Blocks['tone_type'] = {
   init: function() {
     this.appendDummyInput()

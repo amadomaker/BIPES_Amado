@@ -5949,6 +5949,56 @@ Blockly.Python["rtttl_play"] = function(block) {
 	return code;
 };
 
+Blockly.Python["play_save_melody"] = function (block) {
+  var pin = Blockly.Python.valueToCode(block, 'pin', Blockly.Python.ORDER_ATOMIC);
+  var selectedMelody = block.getFieldValue('MELODY'); 
+
+  Blockly.Python.definitions_['import_pin'] = 'from machine import Pin';
+  Blockly.Python.definitions_['import_pwm'] = 'from machine import PWM';
+  Blockly.Python.definitions_['import_time'] = 'import time';
+
+  let melodies = localStorage.getItem('bipes@melodies');
+  if (melodies) {
+    melodies = JSON.stringify(JSON.parse(melodies)); 
+  } else {
+    melodies = "[]"; 
+  }
+
+  var code = '';
+
+  code += `
+import json
+
+melodies = json.loads('${melodies}')
+
+# Procurar a melodia selecionada pelo nome
+selected_melody = None
+for melody in melodies:
+    if melody["name"] == "${selectedMelody}":
+        selected_melody = melody
+        break
+
+if selected_melody is None:
+    raise Exception(f"Melodia '{selectedMelody}' não encontrada.")
+
+bpm = int(selected_melody["bpm"])  
+beat_duration = 60000 / bpm / 1000  
+
+for note in selected_melody["notes"]:
+    duration = beat_duration * float(note["duration"])  
+    frequency = note["frequency"]
+    if frequency is None:
+        time.sleep(duration)
+    else:
+        pwm = PWM(Pin(${pin}), freq=int(frequency), duty=512)  
+        time.sleep(duration)
+        pwm.deinit()
+print("Melodia finalizada") 
+  `;
+
+  return code;
+};
+
 Blockly.Python['tone'] = function(block) {
 	var value_pin = Blockly.Python.valueToCode(block, 'pin', Blockly.Python.ORDER_ATOMIC);
 	var value_frequency = Blockly.Python.valueToCode(block, 'frequency', Blockly.Python.ORDER_ATOMIC);
