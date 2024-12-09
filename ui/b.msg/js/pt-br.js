@@ -431,6 +431,12 @@ Blockly.Msg["UTIME.DEADLINE_TOOLTIP"] = "Cria um loop com prazo limite.";
 Blockly.Msg["STOP_TIMER_TOOLTIP"] = "Para o temporizador selecionado de executar ações futuras.";
 Blockly.Msg["DEEP_SLEEP_TOOLTIP"] = "Coloca o microcontrolador em modo de sono profundo pelo tempo especificado em milissegundos.";
 Blockly.Msg["START_THREAD_TOOLTIP"] = "Inicia uma nova thread para executar a função especificada em paralelo.";
+Blockly.Msg["CONFIGURE_AND_START_BLUETOOTH_TOOLTIP"] = "Configura e inicia o Bluetooth BLE com o nome especificado.";
+Blockly.Msg["HANDLE_BLE_DATA_TOOLTIP"] = "Recebe dados via BLE e os armazena na variável escolhida.";
+Blockly.Msg["CHECK_BLE_DATA_TOOLTIP"] = "Verifica se há dados recebidos via BLE e chama a função handle_ble_data.";
+Blockly.Msg["CONFIGURE_DATA_PLOTER_TOOLTIP"] = "Configura o plotador para enviar dados de múltiplos sensores.";
+Blockly.Msg["CALL_FORMAT_PLOTTER_DATA_TOOLTIP"] = "Chama a função que formata e envia dados para o plotador.";
+
 
 
 

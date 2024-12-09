@@ -11668,12 +11668,12 @@ Blockly.Blocks['http_get_content'] = {
 Blockly.Blocks['configure_and_start_bluetooth'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Configure and start Bluetooth with name")
-        .appendField(new Blockly.FieldTextInput("MyBluetooth"), "BLUETOOTH_NAME");
+        .appendField(MSG["configure_bluetooth"])
+        .appendField(new Blockly.FieldTextInput(MSG["bluetooth_name"]), "BLUETOOTH_NAME");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
-    this.setTooltip("Configures and starts the BLE Bluetooth with the specified name..");
+    this.setTooltip(Blockly.Msg["CONFIGURE_AND_START_BLUETOOTH_TOOLTIP"]);
     this.setHelpUrl("");
   }
 };
@@ -11683,11 +11683,11 @@ Blockly.Blocks['handle_ble_data'] = {
   init: function() {
     this.appendValueInput("VAR")  // Entrada para o nome da variável
         .setCheck("Variable")
-        .appendField("Set received BLE data to");
+        .appendField(MSG["handle_ble"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
-    this.setTooltip("Receives BLE data and stores it in the chosen variable");
+    this.setTooltip(Blockly.Msg["HANDLE_BLE_DATA_TOOLTIP"]);
     this.setHelpUrl("");
   }
 };
@@ -11698,22 +11698,11 @@ Blockly.Blocks['handle_ble_data'] = {
 Blockly.Blocks['check_ble_data'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Check received data");
+        .appendField(MSG["check_ble"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
-    this.setTooltip("Checks if there are received data via BLE and calls the handle_ble_data function.");
-    this.setHelpUrl("");
-  }
-};
-
-Blockly.Blocks['show_received_data'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("received BLE data (received_data).");
-    this.setOutput(true, "String");
-    this.setColour("#7b49ad");
-    this.setTooltip("Returns the data received via BLE.");
+    this.setTooltip(Blockly.Msg["CHECK_BLE_DATA_TOOLTIP"]);
     this.setHelpUrl("");
   }
 };
@@ -11723,7 +11712,7 @@ Blockly.Blocks['show_received_data'] = {
 Blockly.Blocks['configure_data_plotter'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Configure plotter for sensors");
+        .appendField(MSG["configure_data_plotter"]);
     this.appendValueInput('SENSOR_0')
         .setCheck('Number')
         .appendField('Sensor 1');
@@ -11732,7 +11721,7 @@ Blockly.Blocks['configure_data_plotter'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
-    this.setTooltip("Configures the plotter to send data from multiple sensors.");
+    this.setTooltip(Blockly.Msg["CONFIGURE_DATA_PLOTER_TOOLTIP"]);
     this.setHelpUrl("");
   },
   mutationToDom: function() {
@@ -11792,11 +11781,11 @@ Blockly.Blocks['configure_data_plotter'] = {
 Blockly.Blocks['call_format_plotter_data'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Send data to the plotter");
+        .appendField(MSG["call_format_plotter"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
-    this.setTooltip("Call the function that formats and sends data to the plotter");
+    this.setTooltip(Blockly.Msg["CALL_FORMAT_PLOTTER_DATA_TOOLTIP"]);
     this.setHelpUrl("");
   }
 };

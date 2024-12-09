@@ -132,6 +132,17 @@ var MSG = {
   stop_timer: "detener temporizador",
   deep_sleep: "sueño profundo",
 
+
+  //Categoria Comunicação
+  //Bluetooth
+  configure_bluetooth: "Configurar e iniciar el Bluetooth con el nombre",
+  handle_ble: "Establecer los datos recibidos a través de bluetooth en",
+  check_ble: "Verificar los datos recibidos",
+  configure_data_plotter: "Configurar el trazador para sensores",
+  call_format_plotter: "Enviar datos al trazador",
+  bluetooth_name: "miBluetooth",
+
+
 //Network
   net_http_get: "HTTP GET Request",
   net_http_get_status: "HTTP Status code",

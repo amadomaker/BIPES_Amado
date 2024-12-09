@@ -131,6 +131,16 @@ var MSG = {
   do: "execute",
   stop_timer: "stop timer",
   deep_sleep: "deep sleep",
+
+  //Categoria Comunicação
+  //Bluetooth
+  configure_bluetooth: "Configure and start Bluetooth with name",
+  handle_ble: "Set received bluetooth data to",
+  check_ble: "Check received data",
+  configure_data_plotter: "Configure plotter for sensors",
+  call_format_plotter: "Send data to the plotter",
+  bluetooth_name: "myBluetooth",
+
     
 //Network
   net_http_get: "HTTP GET Request",
