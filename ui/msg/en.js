@@ -167,6 +167,11 @@ var MSG = {
   var_to_int_title: "To int",
   var_to_float_title: "To float",
 
+  //Blocos para funções de texto
+  to_string_title: "To text",
+
+  //Blocos para as funções da categoria Python
+  os_error: "Except OSError",
 
     
 //Network

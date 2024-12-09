@@ -89,7 +89,7 @@ var MSG = {
   file_write_line: "escrever linha no arquivo",
   file_line: "linha",
   try1: "tente",
-  exp1: "no erro",
+  exp1: "exceto",
   ntp_sync: "sincronizar data e hora com NTP",
   timezone: "fuso horário",
   project_info: "Dados do projeto",
@@ -165,6 +165,12 @@ var MSG = {
   //Blocos Operadores
   var_to_int_title: "Para inteiro",
   var_to_float_title: "Para decimal",
+
+  //Blocos funções de texto
+  to_string_title: "Para texto",
+
+  //Blocos para as funções da categoria Python
+  os_error: "Exceto OSError",
 
 
 //Network

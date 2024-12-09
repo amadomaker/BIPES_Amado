@@ -460,6 +460,10 @@ Blockly.Msg["MATH_MAX_TOOLTIP"] = "Devuelve el mayor de los dos valores.";
 Blockly.Msg["VAR_TO_INT_TOOLTIP"] = "Convierte cualquier cosa a Entero.";
 Blockly.Msg["VAR_TO_FLOAT_TOOLTIP"] = "Convierte cualquier cosa a Flotante.";
 
+//blocos python da categoria funções
+Blockly.Msg["TRY_CATCH_TOOLTIP"] = "Bloque try-except para ejecutar código principal y manejar errores en caso de excepciones.";
+Blockly.Msg["OS_ERROR_TOOLTIP"] = "Bloque try-except para capturar OSError.";
+
 
 
 

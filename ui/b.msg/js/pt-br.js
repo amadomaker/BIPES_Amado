@@ -459,6 +459,10 @@ Blockly.Msg["MATH_MAX_TOOLTIP"] = "Retorna o maior dos dois valores.";
 Blockly.Msg["VAR_TO_INT_TOOLTIP"] = "Converte qualquer coisa para Inteiro.";
 Blockly.Msg["VAR_TO_FLOAT_TOOLTIP"] = "Converte qualquer coisa para Float.";
 
+//blocos python da categoria funções
+Blockly.Msg["TRY_CATCH_TOOLTIP"] = "Bloco try-catch para executar um código principal e capturar erros em caso de exceções.";
+Blockly.Msg["OS_ERROR_TOOLTIP"] = "Bloco try-except para capturar OSError.";
+
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";
 Blockly.Msg["MATH_HUE"] = "#008000";

@@ -2218,7 +2218,7 @@ Blockly.Blocks['relay_switch'] = {
 Blockly.Blocks['text_to_str'] = {
   init: function() {
     this.appendValueInput("var")
-        .appendField(new Blockly.FieldLabelSerializable("to str"), "VAR");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["to_string_title"]), "VAR");
     this.setColour(290);
     this.setOutput(true, null);
     this.setTooltip("Convert anything to String.");
@@ -11618,21 +11618,21 @@ Blockly.Blocks['try_catch'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(290);
- this.setTooltip("");
+ this.setTooltip(Blockly.Msg["TRY_CATCH_TOOLTIP"]);
  this.setHelpUrl("");
   }
 };
 
 Blockly.Blocks['try_except_oserror'] = {
   init: function() {
-    this.appendDummyInput().appendField("try");  // Título do bloco 'try'
-    this.appendStatementInput("TRY").setCheck(null);  // Blocos encaixados no 'try'
-    this.appendDummyInput().appendField("except OSError");
-    this.appendStatementInput("EXCEPT").setCheck(null);  // Blocos encaixados no 'except'
-    this.setPreviousStatement(true, null);  // Adiciona a curvinha superior (permite encaixar)
-    this.setNextStatement(true, null);  // Adiciona a curvinha inferior (permite sequência)
+    this.appendDummyInput().appendField(MSG["try1"]);
+    this.appendStatementInput("TRY").setCheck(null);  
+    this.appendDummyInput().appendField(MSG["os_error"]);
+    this.appendStatementInput("EXCEPT").setCheck(null);
+    this.setPreviousStatement(true, null);  
+    this.setNextStatement(true, null);  
     this.setColour(290);  
-    this.setTooltip("Bloco try-except para capturar OSError.");
+    this.setTooltip(Blockly.Msg["OS_ERROR_TOOLTIP"]);
     this.setHelpUrl("");
   }
 };

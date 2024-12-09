@@ -341,7 +341,6 @@
           </value>
         </block>
         <block type="text_to_str">  
-          <field name="VAR">to str</field>
         </block>
       </category>
       <!--FUNÇÕES DE LISTAS-->
