@@ -1595,6 +1595,8 @@ _
       </value>
     </block>
 
+    <label text="User Created Songs:"></label>
+
     <block type="play_save_melody"> 
       <value name="pin">
         <shadow type="pinout">
@@ -1602,10 +1604,6 @@ _
         </shadow>
       </value>
     </block>
-
-    <label text="User Created Songs:"></label>
-
-    <block type="play_song"></block>
 
     <label text="Songs:"></label>
     <button text="Install songs library" callbackKey="installPyLib"></button>

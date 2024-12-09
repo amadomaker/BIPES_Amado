@@ -11914,53 +11914,6 @@ Blockly.Blocks['math_max'] = {
   }
 };
 
-Blockly.Blocks['play_song'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Reproduzir")
-        .appendField(new Blockly.FieldDropdown(() => {
-            // Recupera as melodias salvas no localStorage
-            const savedMelodies = localStorage.getItem('bipes@melodies');
-            let options = [];
-
-            if (savedMelodies) {
-                const melodies = JSON.parse(savedMelodies);
-                options = melodies.map(melody => [melody.name, melody.name]);
-            }
-
-            // Se não houver melodias, adiciona uma opção padrão
-            if (options.length === 0) {
-                options = [['Nenhuma melodia disponível', 'NONE']];
-            }
-
-            return options;
-        }), "MELODY");
-    
-    this.setOutput(true, null);
-    this.setColour(colour="%{BKY_ACTUATORS_HUE}");
-    this.setTooltip("Reproduz a melodia selecionada");
-    this.setHelpUrl("");
-
-    //menu de contexto
-    this.customContextMenu = function(options) {
-      const melodyName = this.getFieldValue("MELODY");
-      if (melodyName && melodyName !== 'NONE') {
-        options.push({
-          text: `Excluir '${melodyName}'`,
-          enabled: true,
-          callback: () => deleteSavedMelody(melodyName)
-        });
-
-        options.push({
-          text: `Exportar '${melodyName}'`,
-          enabled: true,
-          callback: () => exportSavedMelody(melodyName)
-        });
-      }
-    };
-  }
-};
-
 function deleteSavedMelody(melodyName){
   // deleta uma melodia pelo nome
     const melodiesString = localStorage.getItem('bipes@melodies');
