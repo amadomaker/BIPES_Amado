@@ -5,17 +5,17 @@ Blockly.Blocks['pwm'] = {
         .appendField(new Blockly.FieldNumber(0, 0, 50, 1), "ID");
     this.appendValueInput("pin")
         .setCheck(null)
-	      .appendField("Pin");
+	      .appendField(MSG["pin"]);
     this.appendValueInput("frequency")
         .setCheck("Number")
-	      .appendField("Frequency");
+	      .appendField(MSG["frequency"]);
     this.appendValueInput("duty")
         .setCheck("Number")
-	      .appendField("Duty");
+	      .appendField(MSG["duty"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_INOUT_HUE}");
-    this.setTooltip("Init and set PWM with frequency (1Hz to 40MHz) and duty (0-1023)");
+    this.setTooltip(Blockly.Msg["PWM_TOOLTIP"]);
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
  },
   setID: function(id_) {
@@ -69,11 +69,11 @@ Blockly.Blocks['pwm.freq'] = {
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField("PWM #")
         .appendField(new Blockly.FieldNumber(0, 0, 50, 1), "ID")
-        .appendField("frequency");
+        .appendField(MSG["frequency"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_INOUT_HUE}");
-    this.setTooltip("Set PWM frequency from 1Hz to 40MHz");
+    this.setTooltip(Blockly.Msg["PWM_FREQUENCY_TOOLTIP"]);
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
   },
   check (value, id) {
@@ -92,11 +92,11 @@ Blockly.Blocks['pwm.duty'] = {
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField("PWM #")
         .appendField(new Blockly.FieldNumber(0, 0, 50, 1), "ID")
-        .appendField("duty");
+        .appendField(MSG["duty"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_INOUT_HUE}");
-    this.setTooltip("Set PWM duty range of 0-1023");
+    this.setTooltip(Blockly.Msg["PWM_DUTY_TOOLTIP"]);
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
   },
   check (value, id) {
@@ -135,11 +135,11 @@ Blockly.Blocks['pwm.init'] = {
         .setCheck(null)
         .appendField("PWM #")
         .appendField(new Blockly.FieldNumber(0, 0, 50, 1), "ID")
-        .appendField("init");
+        .appendField(MSG["init_pwm"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_INOUT_HUE}");
-    this.setTooltip("Init PWM");
+    this.setTooltip(Blockly.Msg["PWM_INIT"]);
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
   },
    setID: function(id_) {
@@ -150,12 +150,12 @@ Blockly.Blocks['pwm.init'] = {
 Blockly.Blocks['pwm.deinit'] = {
   init: function() {
     this.appendDummyInput('')
-        .appendField("deinit PWM #")
+        .appendField(MSG["deinit_pwm"])
         .appendField(new Blockly.FieldNumber(0, 0, 50, 1), "ID");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_INOUT_HUE}");
-    this.setTooltip("Deinit PWM");
+    this.setTooltip(Blockly.Msg["PWM_DEINIT"]);
     this.setHelpUrl("https://docs.micropython.org/en/latest/esp32/quickref.html#pwm-pulse-width-modulation");
   }
 };
@@ -621,7 +621,7 @@ Blockly.Blocks['gpio_set'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_INOUT_HUE}");
- this.setTooltip("Write to GPIO digital pin");
+ this.setTooltip(Blockly.Msg["GPIO_SET_TOOLTIP"]);
  this.setHelpUrl("bipes.net.br");
   }
 };
@@ -693,12 +693,12 @@ Blockly.Blocks['esp32_adc'] = {
 	}
 	else {
 		this.appendDummyInput()
-		.appendField("ESP32 Analog Input (ADC)");
+		.appendField(MSG["analog_amado_board"]);
 		this.appendDummyInput()
-		.appendField("Attenuation: ")
+		.appendField(MSG["Attenuation"])
 		.appendField(new Blockly.FieldDropdown([["ATTN_0DB","0"], ["ATTN_2_5DB","1"], ["ATTN_6DB","2"], ["ATTN_11DB","3"]]), "Attenuation");
 		this.appendDummyInput()
-		.appendField("Width: ")
+		.appendField(MSG["Width"])
 		.appendField(new Blockly.FieldDropdown([["WIDTH_9BIT","0"], ["WIDTH_10BIT","1"], ["WIDTH_11BIT","2"], ["WIDTH_12BIT","3"]]), "Width: ");
 		this.appendValueInput("pin")
 		.setCheck("Number")
@@ -706,7 +706,7 @@ Blockly.Blocks['esp32_adc'] = {
 		.appendField("pin");
 		this.setOutput(true, null);
 		this.setColour(colour="%{BKY_INOUT_HUE}");
-		this.setTooltip("Read ESP32 Analog Input");
+		this.setTooltip(Blockly.Msg["ESP32_ADC_TOOLTIP"]);
 	}
 
 	this.setColour(colour="%{BKY_INOUT_HUE}");
@@ -777,7 +777,7 @@ Blockly.Blocks['gpio_get'] = {
 
     this.setOutput(true, null);
     this.setColour(colour="%{BKY_INOUT_HUE}");
- this.setTooltip("Read digital pin");
+ this.setTooltip(Blockly.Msg["GPIO_GET_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -839,7 +839,7 @@ Blockly.Blocks['pinout'] = {
     } else {
       this.first_load = this.first_load - 1; // function is triggered twice on load due to setting values
     }
-    this.setTooltip(device_ + " Pins");
+    this.setTooltip(device_ + MSG["pins"]);
     let devices = UI ['workspace'].devices
 
     if (device_  in  devices && 'pinout' in devices [device_]){

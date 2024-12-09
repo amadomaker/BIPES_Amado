@@ -464,6 +464,18 @@ Blockly.Msg["VAR_TO_FLOAT_TOOLTIP"] = "Convierte cualquier cosa a Flotante.";
 Blockly.Msg["TRY_CATCH_TOOLTIP"] = "Bloque try-except para ejecutar código principal y manejar errores en caso de excepciones.";
 Blockly.Msg["OS_ERROR_TOOLTIP"] = "Bloque try-except para capturar OSError.";
 
+//blocos Pinos de entrada/saida
+Blockly.Msg["ESP32_ADC_TOOLTIP"] = "Bloque para leer valores de entrada analógica (ADC) en Amado board. Permite configurar atenuación y resolución en Amado board.";
+Blockly.Msg["PWM_TOOLTIP"] = "Inicia y configura PWM con frecuencia (1Hz a 40MHz) y ciclo de trabajo (0-1023)";
+Blockly.Msg["PWM_FREQUENCY_TOOLTIP"] = "Establece la frecuencia del PWM de 1Hz a 40MHz";
+Blockly.Msg["PWM_DUTY_TOOLTIP"] = "Establece el ciclo de trabajo del PWM en el rango de 0-1023";
+Blockly.Msg["PWM_INIT"] = "Iniciar PWM";
+Blockly.Msg["PWM_DEINIT"] = "Desactivar PWM";
+Blockly.Msg["PWM_DEINIT"] = "Desactivar PWM";
+Blockly.Msg["GPIO_GET_TOOLTIP"] = "Leer pin digital";
+Blockly.Msg["GPIO_SET_TOOLTIP"] = "Escribir en el pin digital GPIO";
+
+
 
 
 

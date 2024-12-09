@@ -174,7 +174,17 @@ var MSG = {
   //Blocos para as funções da categoria Python
   os_error: "Excepto OSError",
 
-
+  //Blocos para os pinos de entrada/saida
+  analog_amado_board: "Leer entrada analógica",
+  attenuation: "Atenuación: ",
+  width: "Ancho: ",
+  frequency: "Frecuencia",
+  frequency: "frecuencia",
+  Ddty: "Ciclo de trabajo",
+  init_pwm: "Iniciar",
+  deinit_pwm: "Desactivar PWM #",
+  pins: "pinos",
+  
 
 
 //Network

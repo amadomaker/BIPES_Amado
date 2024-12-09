@@ -543,8 +543,6 @@
         </shadow>
       </value>
     </block>
-    <block type="pinout"></block>
-
     <block type="esp32_adc">
      <value name="pin">
         <shadow type="pinout">
