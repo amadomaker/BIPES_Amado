@@ -159,7 +159,7 @@ function buildActiveNotes() {
   if (currentNote) {
     activeNotes.push(currentNote);
   }
-  
+
   activeNotes.pop();
 }
 
@@ -258,6 +258,9 @@ function playMelody() {
     return;
   }
 
+  // desabilita o piano
+  pianoContainer.classList.add("piano-disabled");
+
   let currentTime = 0;
   const playbackBar = document.getElementById("playback-bar");
   playbackBar.style.display = "block";
@@ -289,6 +292,7 @@ function playMelody() {
   // Esconde a barra quando a melodia termina
   const hideTimeout = setTimeout(() => {
     playbackBar.style.display = "none";
+    pianoContainer.classList.remove("piano-disabled");
   }, currentTime);
   timeoutHandles.push(hideTimeout);
 }
@@ -369,6 +373,8 @@ function exportMelody() {
 }
 
 function clearPiano() {
+  stopPlayback();
+  pianoContainer.classList.remove("piano-disabled");
   // limpa as notas ativas
   document.querySelectorAll(".note.active").forEach((noteDiv) => {
     noteDiv.classList.remove("active");

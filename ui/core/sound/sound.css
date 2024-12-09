@@ -271,3 +271,7 @@
     display: none;
     z-index: 100;
   }
+
+  .piano-disabled{
+    pointer-events: none;
+  }
