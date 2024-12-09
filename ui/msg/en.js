@@ -57,6 +57,9 @@ var MSG = {
   seconds: "seconds",
   milliseconds: "milliseconds",
   microseconds: "microseconds",
+  microseconds: "microseconds",
+  nanoseconds: "nanoseconds",
+  cpu_ticks: "CPU cycles",
   to: "to",
   setpin: "set output pin",
   pin: "pin",
@@ -110,7 +113,78 @@ var MSG = {
   dht_temp: "get DHT11/22 temperature",
   dht_humi: "get DHT11/22 humidity",
   type: "type",
+  start_thread: "start parallel task with function",
 
+  //categoria temporizador
+  get: "get counter in",
+  counter: "counter",
+  by: "by",
+  by2: "to",
+  sum_time: "add time",
+  diff_time: "time difference from",
+  timer: "timer n°",
+  do_timer: "execute",
+  every_timer: "every",
+  once_in: "once in",
+  until_deadline: "until deadline nº",
+  of: "of",
+  do: "execute",
+  stop_timer: "stop timer",
+  deep_sleep: "deep sleep",
+
+  //Categoria Comunicação
+  //Bluetooth
+  configure_bluetooth: "Configure and start Bluetooth with name",
+  handle_ble: "Set received bluetooth data to",
+  check_ble: "Check received data",
+  configure_data_plotter: "Configure plotter for sensors",
+  call_format_plotter: "Send data to the plotter",
+  bluetooth_name: "myBluetooth",
+
+  //espnow
+  initialize_wlan_title: "Initialize WLAN Interface",
+  get_mac_address_title: "Get MAC Address of Amado Board",
+  set_master_title: "Configure Amado Board as Master",
+  add_peer_title: "Add Device by MAC Address",
+  receive_message_title: "Receive Messages from Devices",
+  set_peer_title: "Set Amado Board as Secondary Device",
+  send_message_to_peer_title: "Send Message to Device by MAC",
+  send_message_title: "Send Message to Master Device",
+  receive_message_master_title: "Receive Messages from Master Device",
+  variable_list: "Variable list",
+  add_variable_container: "Add variable",
+  variable_name: "Variable name",
+  variable_value: "Variable value ",
+  if: "If",
+  is_none: "is None, set",
+  default_value: "to default value",
+
+  //Blocos lógica
+  math_min_title: "Minimum between",
+  math_max_title: "Maximum between",
+  and: "and",
+  //Blocos operadores
+  var_to_int_title: "To int",
+  var_to_float_title: "To float",
+
+  //Blocos para funções de texto
+  to_string_title: "To text",
+
+  //Blocos para as funções da categoria Python
+  os_error: "Except OSError",
+
+  //Blocos para os pinos de entrada/saida
+  analog_amado_board: "Read analog input",
+  attenuation: "Attenuation: ",
+  width: "Width: ",
+  frequency: "Frequency",
+  frequency2: "frequency",
+  duty: "Duty",
+  init_pwm: "init",
+  deinit_pwm: "Deactivate PWM #",
+  pins: "pins",
+
+    
 //Network
   net_http_get: "HTTP GET Request",
   net_http_get_status: "HTTP Status code",

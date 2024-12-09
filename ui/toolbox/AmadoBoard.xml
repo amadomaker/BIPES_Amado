@@ -194,10 +194,8 @@
         </value>
       </block>
       <block type="var_to_int">  
-        <field name="VAR">to int</field>
       </block>
       <block type="var_to_float">  
-        <field name="VAR">to float</field> 
       </block>
       </category>
     </category>
@@ -343,7 +341,6 @@
           </value>
         </block>
         <block type="text_to_str">  
-          <field name="VAR">to str</field>
         </block>
       </category>
       <!--FUNÇÕES DE LISTAS-->
@@ -546,8 +543,6 @@
         </shadow>
       </value>
     </block>
-    <block type="pinout"></block>
-
     <block type="esp32_adc">
      <value name="pin">
         <shadow type="pinout">
