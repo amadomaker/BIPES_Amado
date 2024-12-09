@@ -159,6 +159,13 @@ var MSG = {
   is_none: "is None, set",
   default_value: "to default value",
 
+  //Blocos lógica
+  math_min_title: "Minimum between",
+  math_max_title: "Maximum between",
+  and: "and",
+  //Blocos operadores
+  var_to_int_title: "To int",
+  var_to_float_title: "To float",
 
 
     

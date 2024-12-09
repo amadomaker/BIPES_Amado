@@ -2242,10 +2242,10 @@ Blockly.Blocks['decode_bytes_to_text'] = {
 Blockly.Blocks['var_to_int'] = {
   init: function() {
     this.appendValueInput("var")
-        .appendField(new Blockly.FieldLabelSerializable("to int"), "VAR");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["var_to_int_title"]), "VAR");
     this.setColour(colour="%{BKY_MATH_HUE}");
     this.setOutput(true, null);
-    this.setTooltip("Convert anything to Int.");
+    this.setTooltip(Blockly.Msg["VAR_TO_INT_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2254,10 +2254,10 @@ Blockly.Blocks['var_to_int'] = {
 Blockly.Blocks['var_to_float'] = {
   init: function() {
     this.appendValueInput("var")
-        .appendField(new Blockly.FieldLabelSerializable("to float"), "VAR");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["var_to_float_title"]), "VAR");
     this.setColour(colour="%{BKY_MATH_HUE}");
     this.setOutput(true, null);
-    this.setTooltip("Convert anything to float.");
+    this.setTooltip(Blockly.Msg["VAR_TO_FLOAT_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2266,7 +2266,7 @@ Blockly.Blocks['var_to_float'] = {
 Blockly.defineBlocksWithJsonArray([
   {
     "type": "map_value",
-    "message0": "mapear %1 in min %2 in max %3 out min %4 out max %5",
+    "message0": Blockly.Msg["MAP_VALUE_MESSAGE0"],
     "args0": [
       {
         "type": "input_value",
@@ -2294,10 +2294,10 @@ Blockly.defineBlocksWithJsonArray([
         "check": "Number"
       }
     ],
-    "inputsInline": true,  // Define que as entradas devem ser exibidas em linha
+    "inputsInline": false,  // Define que as entradas devem ser exibidas em linha
     "output": "Number",
     "colour": colour="%{BKY_MATH_HUE}",
-    "tooltip": "Mapeia um valor de uma faixa para outra.",
+    "tooltip": Blockly.Msg["MAP_VALUE_TOOLTIP"],
     "helpUrl": ""
   }
 ]);
@@ -11819,14 +11819,14 @@ Blockly.Blocks['math_min'] = {
   init: function() {
     this.appendValueInput("VALUE1")
         .setCheck("Number")
-        .appendField("min de");
+        .appendField(MSG["math_min_title"]);
     this.appendValueInput("VALUE2")
         .setCheck("Number")
-        .appendField("e");
+        .appendField(MSG["and"]);
     this.setInputsInline(true);
     this.setOutput(true, "Number");
     this.setColour(colour="%{BKY_MATH_HUE}");
-    this.setTooltip("Returns the lesser of the two values.");
+    this.setTooltip(Blockly.Msg["MATH_MIN_TOOLTIP"]);
     this.setHelpUrl("");
   }
 };
@@ -11835,14 +11835,14 @@ Blockly.Blocks['math_max'] = {
   init: function() {
     this.appendValueInput("VALUE1")
         .setCheck("Number")
-        .appendField("max de");
+        .appendField(MSG["math_max_title"]);
     this.appendValueInput("VALUE2")
         .setCheck("Number")
-        .appendField("e");
+        .appendField(MSG["and"]);
     this.setInputsInline(true);
     this.setOutput(true, "Number");
     this.setColour(colour="%{BKY_MATH_HUE}");
-    this.setTooltip("Returns the greater of the two values.");
+    this.setTooltip(Blockly.Msg["MATH_MAX_TOOLTIP"]);
     this.setHelpUrl("");
   }
 };

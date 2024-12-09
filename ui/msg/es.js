@@ -160,6 +160,15 @@ var MSG = {
   is_none: "es None, establecer",
   default_value: "a valor predeterminado",
 
+  //Blocos lógica
+  math_min_title: "Mínimo entre",
+  math_max_title: "Máximo entre",
+  and: "y",
+  //Blocos operadores
+  var_to_int_title: "A entero",
+  var_to_float_title: "A decimal",
+
+
 
 
 //Network

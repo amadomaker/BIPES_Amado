@@ -450,6 +450,14 @@ Blockly.Msg["RECEIVE_MESSAGE_MASTER_TOOLTIP"] = "Recebe mensagens enviadas pelo 
 Blockly.Msg["GET_VARIABLE_VALUE_TOOLTIP"] = "Obtém o valor de uma variável para um endereço MAC.";
 Blockly.Msg["CHECK_AND_ASSIGN_VALUE_TOOLTIP"] = "Verifica se a variável é None e, caso seja, atribui um valor padrão.";
 Blockly.Msg["GET_VARIABLE_VALUE_MESSAGE0"] = "Obter valor de %1 para o MAC %2";
+//blocos Lógica
+Blockly.Msg["MAP_VALUE_MESSAGE0"] = "mapear %1 entrada mínima %2 entrada máxima %3 saída mínima %4 saída máxima %5";
+Blockly.Msg["MAP_VALUE_TOOLTIP"] = "Mapeia um valor de uma faixa para outra.";
+Blockly.Msg["MATH_MIN_TOOLTIP"] = "Retorna o menor dos dois valores.";
+Blockly.Msg["MATH_MAX_TOOLTIP"] = "Retorna o maior dos dois valores.";
+//blocos Operadores
+Blockly.Msg["VAR_TO_INT_TOOLTIP"] = "Converte qualquer coisa para Inteiro.";
+Blockly.Msg["VAR_TO_FLOAT_TOOLTIP"] = "Converte qualquer coisa para Float.";
 
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";

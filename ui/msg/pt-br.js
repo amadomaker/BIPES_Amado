@@ -157,6 +157,15 @@ var MSG = {
   is_none: "for None, definir",
   default_value: "para valor padrão",
 
+  //Blocos Lógica
+  math_min_title: "Mínimo entre",
+  math_max_title: "Máximo entre",
+  and: "e",
+
+  //Blocos Operadores
+  var_to_int_title: "Para inteiro",
+  var_to_float_title: "Para decimal",
+
 
 //Network
   net_http_get: "Requisição HTTP GET",

@@ -450,6 +450,14 @@ Blockly.Msg["RECEIVE_MESSAGE_MASTER_TOOLTIP"] = "Receives messages sent by the m
 Blockly.Msg["GET_VARIABLE_VALUE_TOOLTIP"] = "Get the value of a variable for a MAC address.";
 Blockly.Msg["CHECK_AND_ASSIGN_VALUE_TOOLTIP"] = "Check if the variable is None, and if it is, set a default value.";
 Blockly.Msg["GET_VARIABLE_VALUE_MESSAGE0"] = "Get value of %1 for MAC %2";
+//blocos Lógica
+Blockly.Msg["MAP_VALUE_MESSAGE0"] = "map %1 input minimum %2 input maximum %3 output minimum %4 output maximum %5";
+Blockly.Msg["MAP_VALUE_TOOLTIP"] = "Maps a value from one range to another.";
+Blockly.Msg["MATH_MIN_TOOLTIP"] = "Returns the lesser of the two values.";
+Blockly.Msg["MATH_MAX_TOOLTIP"] = "Returns the greater of the two values.";
+//blocos Operadores
+Blockly.Msg["VAR_TO_INT_TOOLTIP"] = "Convert anything to Int."
+Blockly.Msg["VAR_TO_FLOAT_TOOLTIP"] = "Convert anything to Float."
 
 
 

@@ -194,10 +194,8 @@
         </value>
       </block>
       <block type="var_to_int">  
-        <field name="VAR">to int</field>
       </block>
       <block type="var_to_float">  
-        <field name="VAR">to float</field> 
       </block>
       </category>
     </category>
