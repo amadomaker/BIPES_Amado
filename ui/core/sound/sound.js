@@ -103,7 +103,6 @@ notes.forEach((note, rowIndex) => {
 function buildActiveNotes() {
   activeNotes = [];
   let currentNote = null;
-  let duration = 0;
 
   // percorre cada coluna para verificar notas ativas
   for (let col = 0; col < pianoCols; col++) {
@@ -116,42 +115,52 @@ function buildActiveNotes() {
       );
 
       if (noteDiv.classList.contains("active")) {
-        // se for a mesma nota que a anterior, incrementa a duração
-        if (currentNote && currentNote.note === noteDiv.dataset.note) {
-          duration++;
-        } else {
-          // adiciona a nota atual ao array e inicia uma nova
-          if (currentNote) {
-            currentNote.duration = duration;
-            activeNotes.push(currentNote);
-          }
-          currentNote = {
-            note: noteDiv.dataset.note,
-            frequency: parseFloat(noteDiv.dataset.frequency),
-            duration: 1,
-            startCol: col,
-          };
-          duration = 1;
-        }
         hasActiveNote = true;
+
+        if (currentNote) {
+          activeNotes.push(currentNote);
+        }
+
+        currentNote = {
+          note: noteDiv.dataset.note,
+          frequency: parseFloat(noteDiv.dataset.frequency),
+          duration: 1,
+          startCol: col,
+        };
+
+        break;
       }
     }
 
-    // adiciona a última nota ao array ou uma nota de silêncio se nenhuma estiver ativa na coluna
-    if (currentNote && hasActiveNote) {
-      currentNote.duration = duration;
-      activeNotes.push(currentNote);
-      currentNote = null;
-      duration = 0;
-    } else if (!hasActiveNote) {
-      activeNotes.push({
-        note: null,
-        frequency: null,
-        duration: 1,
-        startCol: col,
-      });
+    // Se não há nota ativa na coluna adicionar silêncio
+    if (!hasActiveNote) {
+      if (currentNote) {
+        activeNotes.push(currentNote);
+        currentNote = null;
+      }
+
+      if (
+        activeNotes.length > 0 &&
+        activeNotes[activeNotes.length - 1].note === null
+      ) {
+        activeNotes[activeNotes.length - 1].duration += 1;
+      } else {
+        activeNotes.push({
+          note: null,
+          frequency: null,
+          duration: 1,
+          startCol: col,
+          isSilence: true,
+        });
+      }
     }
   }
+
+  if (currentNote) {
+    activeNotes.push(currentNote);
+  }
+  
+  activeNotes.pop();
 }
 
 function verifyMelodyExists(name) {
@@ -199,7 +208,8 @@ function saveMelody() {
   buildActiveNotes();
 
   if (activeNotes.length > 0) {
-    const newMelody = { name: melodyName, notes: activeNotes };
+    const bpm = document.getElementById("bpm").value;
+    const newMelody = { name: melodyName, notes: activeNotes, bpm };
 
     addMelodyToLocalStorage(newMelody);
 

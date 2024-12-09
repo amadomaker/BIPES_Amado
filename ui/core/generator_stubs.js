@@ -5949,6 +5949,64 @@ Blockly.Python["rtttl_play"] = function(block) {
 	return code;
 };
 
+Blockly.Python["play_save_melody"] = function (block) {
+  var pin = Blockly.Python.valueToCode(block, 'pin', Blockly.Python.ORDER_ATOMIC);
+  var selectedMelody = block.getFieldValue('MELODY'); 
+
+  Blockly.Python.definitions_['import_pin'] = 'from machine import Pin';
+  Blockly.Python.definitions_['import_pwm'] = 'from machine import PWM';
+  Blockly.Python.definitions_['import_time'] = 'import time';
+  Blockly.Python.definitions_['import_json'] = 'import json';
+
+  let melodies = localStorage.getItem('bipes@melodies');
+  if (melodies) {
+    melodies = JSON.stringify(JSON.parse(melodies)); 
+  } else {  
+    melodies = "[]"; 
+  }
+
+  var code = '';
+
+  code += `
+melodies = json.loads('${melodies}')
+
+selected_melody = None
+for melody in melodies:
+    if melody["name"] == "${selectedMelody}":
+        selected_melody = melody
+        break
+
+if selected_melody is None:
+    raise Exception(f"Melodia '{selectedMelody}' não encontrada.")
+
+bpm = int(selected_melody.get("bpm", 120))  
+beat_duration = 60000 / bpm / 1000
+
+for index, note in enumerate(selected_melody["notes"]):
+    start_note_time = time.time()
+    duration = beat_duration * float(note["duration"])
+
+    if note.get("isSilence", False):
+        time.sleep(duration)
+    elif note["frequency"] is None:
+        continue
+    else:
+        pwm = PWM(Pin(${pin}), freq=int(note["frequency"]), duty=512)
+        
+        time.sleep(duration)
+        
+        pwm.duty(0)
+        time.sleep(0.01)
+        
+        pwm.deinit()
+        
+print("Melodia finalizada") \n`;
+
+  return code;
+};
+
+
+
 Blockly.Python['tone'] = function(block) {
 	var value_pin = Blockly.Python.valueToCode(block, 'pin', Blockly.Python.ORDER_ATOMIC);
 	var value_frequency = Blockly.Python.valueToCode(block, 'frequency', Blockly.Python.ORDER_ATOMIC);
@@ -6080,13 +6138,6 @@ Blockly.Python['snek_gpio_get'] = function(block) {
 
   return [code, Blockly.Python.ORDER_NONE];
 };
-
-Blockly.Python['play_song'] = function(block) {
-  var code = ``
-
-  return code;
-};
-
 
 Blockly.Python['google_spreadsheet'] = function(block) {
   Blockly.Python.definitions_['import_prequests'] = 'import prequests';
