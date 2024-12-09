@@ -377,7 +377,7 @@ document.body.appendChild(el);
       </div>
 
       <div class="modal-sound-body">
-          <form id="soundForm">
+          <form id="soundForm" onsubmit="saveMelody(event)">
               <div class="form-sound">
                   <label for="soundName">Nome da melodia</label>
                   <input type="text" id="soundName" class="input-sound" placeholder="Dê um nome a sua melodia" required>
@@ -389,7 +389,7 @@ document.body.appendChild(el);
 
       <div class="modal-sound-footer">
           <button class="btn btn-close-sound-modal" onclick="closeSoundModal()">Cancelar</button>
-          <button class="btn btn-save-sound" onclick="saveMelody()">Salvar</button>
+          <button class="btn btn-save-sound" onclick="saveMelody(event)">Salvar</button>
       </div>
   </div>
 </div>
@@ -401,7 +401,7 @@ document.body.appendChild(el);
       </div>
 
       <div class="modal-sound-body">
-          <form id="soundForm">
+          <form id="soundForm" onsubmit="exportMelody(event)">
               <div class="form-sound">
                   <label for="soundNameExport">Nome da melodia</label>
                   <input type="text" id="soundNameExport" class="input-sound" placeholder="Dê um nome a sua melodia" required>
@@ -413,7 +413,7 @@ document.body.appendChild(el);
 
       <div class="modal-sound-footer">
           <button  class="btn btn-close-sound-modal" onclick="closeExportSoundModal()">Cancelar</button>
-          <button  class="btn btn-save-sound" onclick="exportMelody()">Exportar</button>
+          <button  class="btn btn-save-sound" onclick="exportMelody(event)">Exportar</button>
       </div>
   </div>
 </div>
