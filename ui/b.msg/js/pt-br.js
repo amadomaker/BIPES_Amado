@@ -431,14 +431,25 @@ Blockly.Msg["UTIME.DEADLINE_TOOLTIP"] = "Cria um loop com prazo limite.";
 Blockly.Msg["STOP_TIMER_TOOLTIP"] = "Para o temporizador selecionado de executar ações futuras.";
 Blockly.Msg["DEEP_SLEEP_TOOLTIP"] = "Coloca o microcontrolador em modo de sono profundo pelo tempo especificado em milissegundos.";
 Blockly.Msg["START_THREAD_TOOLTIP"] = "Inicia uma nova thread para executar a função especificada em paralelo.";
+//blocos bluetooth
 Blockly.Msg["CONFIGURE_AND_START_BLUETOOTH_TOOLTIP"] = "Configura e inicia o Bluetooth BLE com o nome especificado.";
 Blockly.Msg["HANDLE_BLE_DATA_TOOLTIP"] = "Recebe dados via BLE e os armazena na variável escolhida.";
 Blockly.Msg["CHECK_BLE_DATA_TOOLTIP"] = "Verifica se há dados recebidos via BLE e chama a função handle_ble_data.";
 Blockly.Msg["CONFIGURE_DATA_PLOTER_TOOLTIP"] = "Configura o plotador para enviar dados de múltiplos sensores.";
 Blockly.Msg["CALL_FORMAT_PLOTTER_DATA_TOOLTIP"] = "Chama a função que formata e envia dados para o plotador.";
-
-
-
+//blocos espnow
+Blockly.Msg["INIT_WLAN_TOOLTIP"] = "Inicializa a interface WLAN e configura o endereço MAC.";
+Blockly.Msg["GET_MAC_ADDRESS_TOOLTIP"] = "Retorna o endereço MAC do ESP32 como uma string formatada.";
+Blockly.Msg["SET_MASTER_TOOLTIP"] = "Configura a placa como mestre para ESPNOW.";
+Blockly.Msg["ADD_PEER_TOOLTIP"] = "Adiciona um dispositivo (MAC) à lista de comunicação ESPNOW.";
+Blockly.Msg["RECEIVE_MESSAGE_TOOLTIP"] = "Recebe mensagens de dispositivos conectados.";
+Blockly.Msg["SET_PEER_TOOLTIP"] = "Configura a placa como um dispositivo secundário para ESPNOW.";
+Blockly.Msg["SEND_MESSAGE_TO_PEER_TOOLTIP"] = "Envia uma variável e seu valor para um dispositivo específico.";
+Blockly.Msg["SEND_MESSAGE_TOOLTIP"] = "Envia uma mensagem para o Mestre.";
+Blockly.Msg["RECEIVE_MESSAGE_MASTER_TOOLTIP"] = "Recebe mensagens enviadas pelo Mestre e as processa.";
+Blockly.Msg["GET_VARIABLE_VALUE_TOOLTIP"] = "Obtém o valor de uma variável para um endereço MAC.";
+Blockly.Msg["CHECK_AND_ASSIGN_VALUE_TOOLTIP"] = "Verifica se a variável é None e, caso seja, atribui um valor padrão.";
+Blockly.Msg["GET_VARIABLE_VALUE_MESSAGE0"] = "Obter valor de %1 para o MAC %2";
 
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";

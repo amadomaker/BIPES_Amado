@@ -142,6 +142,25 @@ var MSG = {
   call_format_plotter: "Enviar datos al trazador",
   bluetooth_name: "miBluetooth",
 
+  //espnow
+  initialize_wlan_title: "Inicializar Interfaz WLAN",
+  get_mac_address_title: "Obtener Dirección MAC de la Placa Amado",
+  set_master_title: "Configurar la Placa Amado como Maestra",
+  add_peer_title: "Agregar Dispositivo por Dirección MAC",
+  receive_message_title: "Recibir Mensajes de Dispositivos",
+  set_peer_title: "Configurar la Placa Amado como Dispositivo Secundario",
+  send_message_to_peer_title: "Enviar Mensaje a un Dispositivo por MAC",
+  send_message_title: "Enviar Mensaje al Dispositivo Maestro",
+  receive_message_master_title: "Recibir Mensajes del Dispositivo Maestro",
+  variable_list: "Lista de variables",
+  add_variable_container: "Añadir variable",
+  variable_name: "Nombre de la variable",
+  variable_value: "Valor de la variable",
+  if: "Si",
+  is_none: "es None, establecer",
+  default_value: "a valor predeterminado",
+
+
 
 //Network
   net_http_get: "HTTP GET Request",

@@ -139,6 +139,24 @@ var MSG = {
   call_format_plotter: "Enviar dados para o plotador",
   bluetooth_name: "meuBluetooth",
 
+  //espnow
+  initialize_wlan_title: "Inicializar Interface WLAN",
+  get_mac_address_title: "Obter Endereço MAC da Placa Amado",
+  set_master_title: "Configurar Placa Amado como Mestre",
+  add_peer_title: "Adicionar Dispositivo pelo Endereço MAC",
+  receive_message_title: "Receber Mensagens de Dispositivos",
+  set_peer_title: "Configurar Placa Amado como Dispositivo Secundário",
+  send_message_to_peer_title: "Enviar Mensagem para Dispositivo pelo MAC",
+  send_message_title: "Enviar Mensagem para o Dispositivo Mestre",
+  receive_message_master_title: "Receber Mensagens do Dispositivo Mestre",
+  variable_list: "Lista de variáveis",
+  add_variable_container: "Adicionar variável",
+  variable_name: "Nome da variável",
+  variable_value: "Valor da variável",
+  if: "Se",
+  is_none: "for None, definir",
+  default_value: "para valor padrão",
+
 
 //Network
   net_http_get: "Requisição HTTP GET",

@@ -431,11 +431,25 @@ Blockly.Msg["UTIME.DEADLINE_TOOLTIP"] = "Creates a loop with deadline.",
 Blockly.Msg["STOP_TIMER_TOOLTIP"] = "Stops the selected timer from executing further actions.";
 Blockly.Msg["DEEP_SLEEP_TOOLTIP"] = "Sets the microcontroller to deep sleep mode for the specified duration in milliseconds.";
 Blockly.Msg["START_THREAD_TOOLTIP"] = "Starts a new thread to execute the specified function in parallel.";
+//blocos bluetooth
 Blockly.Msg["CONFIGURE_AND_START_BLUETOOTH_TOOLTIP"] = "Configures and starts the BLE Bluetooth with the specified name.";
 Blockly.Msg["HANDLE_BLE_DATA_TOOLTIP"] = "Receives BLE data and stores it in the chosen variable.";
 Blockly.Msg["CHECK_BLE_DATA_TOOLTIP"] = "Checks if there are received data via BLE and calls the handle_ble_data function.";
 Blockly.Msg["CONFIGURE_DATA_PLOTER_TOOLTIP"] = "Configures the plotter to send data from multiple sensors.";
 Blockly.Msg["CALL_FORMAT_PLOTTER_DATA_TOOLTIP"] = "Call the function that formats and sends data to the plotter";
+//blocos espnow
+Blockly.Msg["INIT_WLAN_TOOLTIP"] = "Initializes the WLAN interface and configures the MAC address.";
+Blockly.Msg["GET_MAC_ADDRESS_TOOLTIP"] = "Returns the ESP32 MAC address as a formatted string.";
+Blockly.Msg["SET_MASTER_TOOLTIP"] = "Configures the board as a master for ESPNOW.";
+Blockly.Msg["ADD_PEER_TOOLTIP"] = "Adds a peer (MAC) to the ESPNOW communication list.";
+Blockly.Msg["RECEIVE_MESSAGE_TOOLTIP"] = "Receives messages from peers.";
+Blockly.Msg["SET_PEER_TOOLTIP"] = "Configures the board as a peer for ESPNOW.";
+Blockly.Msg["SEND_MESSAGE_TO_PEER_TOOLTIP"] = "Sends a variable and its value to a specific peer.";
+Blockly.Msg["SEND_MESSAGE_TOOLTIP"] = "Sends a message to the Master.";
+Blockly.Msg["RECEIVE_MESSAGE_MASTER_TOOLTIP"] = "Receives messages sent by the master and processes them.";
+Blockly.Msg["GET_VARIABLE_VALUE_TOOLTIP"] = "Get the value of a variable for a MAC address.";
+Blockly.Msg["CHECK_AND_ASSIGN_VALUE_TOOLTIP"] = "Check if the variable is None, and if it is, set a default value.";
+Blockly.Msg["GET_VARIABLE_VALUE_MESSAGE0"] = "Get value of %1 for MAC %2";
 
 
 

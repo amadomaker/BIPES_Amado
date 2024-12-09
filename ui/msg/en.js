@@ -141,6 +141,26 @@ var MSG = {
   call_format_plotter: "Send data to the plotter",
   bluetooth_name: "myBluetooth",
 
+  //espnow
+  initialize_wlan_title: "Initialize WLAN Interface",
+  get_mac_address_title: "Get MAC Address of Amado Board",
+  set_master_title: "Configure Amado Board as Master",
+  add_peer_title: "Add Device by MAC Address",
+  receive_message_title: "Receive Messages from Devices",
+  set_peer_title: "Set Amado Board as Secondary Device",
+  send_message_to_peer_title: "Send Message to Device by MAC",
+  send_message_title: "Send Message to Master Device",
+  receive_message_master_title: "Receive Messages from Master Device",
+  variable_list: "Variable list",
+  add_variable_container: "Add variable",
+  variable_name: "Variable name",
+  variable_value: "Variable value ",
+  if: "If",
+  is_none: "is None, set",
+  default_value: "to default value",
+
+
+
     
 //Network
   net_http_get: "HTTP GET Request",
