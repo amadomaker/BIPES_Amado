@@ -1,10 +1,10 @@
 {
 	"devices": {
 		"AmadoBoard": {
-			"title":"<b>AmadoBoard</b><br>",
+			"title":"<b>Amado Board</b><br>",
 			"speed":"115200",
 			"boardID":"AmadoBoard", 
-			"img":"devinfo/media/ESP32-Pinout.jpg",
+			"img":"devinfo/media/amadoBoardV3-legendas.svg",
 			"description":"",
 			"toolbox":"AmadoBoard.xml",
 			"pinout": [
