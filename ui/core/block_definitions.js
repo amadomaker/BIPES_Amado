@@ -11404,6 +11404,60 @@ Blockly.Blocks['play_save_melody'] = {
   }
 };
 
+function deleteSavedMelody(melodyName){
+  // deleta uma melodia pelo nome
+    const melodiesString = localStorage.getItem('bipes@melodies');
+    if(melodiesString){
+      const melodies = JSON.parse(melodiesString);
+
+      const updatedMelodies = melodies.filter(melody => melody.name !== melodyName)
+
+      localStorage.setItem('bipes@melodies', JSON.stringify(updatedMelodies));
+
+      alert(`Melodia '${melodyName}' excluída com sucesso!`);
+    }
+}
+
+function getMelodyDataByName(melodyName){
+  // busca melodia pelo nome
+  const melodiesString = localStorage.getItem('bipes@melodies');
+
+  if(melodiesString){
+    const melodies = JSON.parse(melodiesString);
+
+    const melodyData = melodies.filter(melody => melody.name === melodyName)[0];
+
+    return melodyData || null
+  }
+   
+}
+
+function exportSavedMelody(melodyName) {
+  // exporta melodai pelo nome
+  
+  const melodyData = getMelodyDataByName(melodyName);
+
+  if(!melodyData){
+    alert('Algo deu errado ao exportar a melodia');
+    return;
+  }
+
+    const jsonStr = JSON.stringify(melodyData, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = melodyData.name;
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+    inputExport.value = "";
+    closeExportSoundModal();
+    alert("Melodia '" + melodyData.name + "' exportada como sucesso!");
+}
+
 Blockly.Blocks['tone_type'] = {
   init: function() {
     this.appendDummyInput()
@@ -11913,61 +11967,6 @@ Blockly.Blocks['math_max'] = {
     this.setHelpUrl("");
   }
 };
-
-function deleteSavedMelody(melodyName){
-  // deleta uma melodia pelo nome
-    const melodiesString = localStorage.getItem('bipes@melodies');
-    if(melodiesString){
-      const melodies = JSON.parse(melodiesString);
-
-      const updatedMelodies = melodies.filter(melody => melody.name !== melodyName)
-
-      localStorage.setItem('bipes@melodies', JSON.stringify(updatedMelodies));
-
-      alert(`Melodia '${melodyName}' excluída com sucesso!`);
-    }
-}
-
-function getMelodyDataByName(melodyName){
-  // busca melodia pelo nome
-  const melodiesString = localStorage.getItem('bipes@melodies');
-
-  if(melodiesString){
-    const melodies = JSON.parse(melodiesString);
-
-    const melodyData = melodies.filter(melody => melody.name === melodyName)[0];
-
-    return melodyData || null
-  }
-   
-}
-
-function exportSavedMelody(melodyName) {
-  // exporta melodai pelo nome
-  
-  const melodyData = getMelodyDataByName(melodyName);
-
-  if(!melodyData){
-    alert('Algo deu errado ao exportar a melodia');
-    return;
-  }
-
-    const jsonStr = JSON.stringify(melodyData, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = melodyData.name;
-    a.click();
-
-    URL.revokeObjectURL(url);
-
-    inputExport.value = "";
-    closeExportSoundModal();
-    alert("Melodia '" + melodyData.name + "' exportada como sucesso!");
-}
-
 
 //Blocos para a comunicação ESPNOW
 // Bloco de inicialização do WLAN
