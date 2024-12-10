@@ -211,6 +211,18 @@ var MSG = {
   rfid_rc522_read_card_title: "Read RFID Card Memory",
   rfid_rc522_write_card_title: "Write RFID Card Memory",
 
+  //Display OLED
+  init_oled_title: "Init I2C SSD1306 OLED Display",
+  fill_oled_title: "Fill OLED Display with",
+  clear_oled_title: "Clear OLED Display",
+  show_oled_title: "Update OLED Display",
+  write_oled_title: "Write text on display",
+  write_oled_int_title: "Print value on display",
+  x_position: "X Position",
+  y_position: "Y Position",
+  value_display: "Value",
+
+
 
 
     

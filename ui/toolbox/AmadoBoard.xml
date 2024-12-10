@@ -1196,7 +1196,7 @@
     <!--Categoria para o display oled-->
     <category name = "%{BKY_CAT_OLEDDISPLAY}" colour="%{BKY_DISPLAY_HUE}">
       <label text="SSD1306 OLED I2C Display"></label>
-      <button text="Install ssd1306 library" callbackKey="installPyLib"></button>
+      <button text="Instalar biblioteca ssd1306" callbackKey="installPyLib"></button>
 
 	    
       <block type="init_oled">

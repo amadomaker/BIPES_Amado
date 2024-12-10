@@ -1049,7 +1049,7 @@ Blockly.Blocks['init_oled'] = {
   init: function() {
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
     this.appendDummyInput()
-        .appendField("Init I2C SSD1306 OLED Display");
+        .appendField(MSG["init_oled_title"]);
 
  this.appendDummyInput()
       .appendField(new Blockly.FieldImage(
@@ -1076,7 +1076,7 @@ Blockly.Blocks['init_oled'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["INIT_OLED_TOOLTIP"]);
   }
 };
 
@@ -1084,11 +1084,11 @@ Blockly.Blocks['fill_oled'] = {
   init: function() {
     this.appendValueInput("value")
         .setCheck("Number")
-        .appendField("Fill OLED Display with ");
+        .appendField(MSG["fill_oled_title"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
- this.setTooltip("Fill OLED Disiplay");
+ this.setTooltip(Blockly.Msg["INIT_OLED_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1096,11 +1096,11 @@ Blockly.Blocks['fill_oled'] = {
 Blockly.Blocks['clear_oled'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Clear OLED Display");
+        .appendField(MSG["clear_oled_title"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
- this.setTooltip("Clear OLED Disiplay");
+ this.setTooltip(Blockly.Msg["CLEAR_OLED_TOOLTIP"] );
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1108,11 +1108,11 @@ Blockly.Blocks['clear_oled'] = {
 Blockly.Blocks['show_oled'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Update OLED Display ");
+        .appendField(MSG["show_oled_title"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
- this.setTooltip("Update OLED Disiplay");
+ this.setTooltip(Blockly.Msg["SHOW_OLED_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1120,26 +1120,26 @@ Blockly.Blocks['show_oled'] = {
 Blockly.Blocks['write_oled'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Write text on display");
+        .appendField(MSG["write_oled_title"]);
 
     this.appendValueInput("x")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("X position");
+        .appendField(MSG["x_position"]);
     this.appendValueInput("y")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Y position");
+        .appendField(MSG["y_position"]);
     this.appendValueInput("text")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Text");
+        .appendField(MSG["catText"]);
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
 
- this.setTooltip("Write text to OLED Display");
+ this.setTooltip(Blockly.Msg["WRITE_OLED_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1148,32 +1148,32 @@ Blockly.Blocks['write_oled'] = {
 Blockly.Blocks['write_oled_int'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Print value on display");
+        .appendField(MSG["write_oled_int_title"]);
 
     // Campo para a posição X no display
     this.appendValueInput("x")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("X position");
+        .appendField(MSG["x_position"]);
         
 
     // Campo para a posição Y no display
     this.appendValueInput("y")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Y position");
+        .appendField(MSG["y_position"]);
 
     // Campo para o valor inteiro que será impresso
     this.appendValueInput("value")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Value");
+        .appendField(MSG["value_display"]);
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
 
-    this.setTooltip("Mostre um valor inteiro em uma posição especifica no display oled");
+    this.setTooltip(Blockly.Msg["WRITE_OLED_INT_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };

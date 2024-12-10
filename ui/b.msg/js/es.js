@@ -491,6 +491,13 @@ Blockly.Msg["RFID_RC522_DETECT_CARD_TOOLTIP"] = "Verifica si hay una tarjeta RFI
 Blockly.Msg["RFID_RC522_ANTICOLL_TOOLTIP"] = "Obtén la identificación única (UID) de la tarjeta RFID.";
 Blockly.Msg["RFID_RC522_READ_CARD_TOOLTIP"] = "Lee los datos almacenados en la memoria de la tarjeta RFID.";
 Blockly.Msg["RFID_RC522_WRITE_CARD_TOOLTIP"] = "Escribe datos en la memoria de la tarjeta RFID.";
+//Display OLED
+Blockly.Msg["INIT_OLED_TOOLTIP"] = "Inicializa la pantalla OLED SSD1306 I2C con los pines I2C, SCL y SDA especificados.";
+Blockly.Msg["FILL_OLED_TOOLTIP"] = "Llena toda la pantalla OLED con un valor específico.";
+Blockly.Msg["CLEAR_OLED_TOOLTIP"] = "Limpia todo el contenido de la pantalla OLED.";
+Blockly.Msg["SHOW_OLED_TOOLTIP"] = "Actualiza la pantalla OLED para mostrar los cambios.";
+Blockly.Msg["WRITE_OLED_TOOLTIP"] = "Escribe un texto en una posición X e Y especificada en la pantalla OLED.";
+Blockly.Msg["WRITE_OLED_INT_TOOLTIP"] = "Muestra un valor entero en una posición X e Y especificada en la pantalla OLED.";
 
 
 
