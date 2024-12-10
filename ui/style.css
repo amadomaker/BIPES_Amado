@@ -1020,3 +1020,7 @@ button.icon.medium:before  {
 .blocklyTreeIconClosed, .blocklyTreeIconOpen {
   display: none;
 }
+
+#deviceSelect button {
+  margin-left: 3.5px;
+}
