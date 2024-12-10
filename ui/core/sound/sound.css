@@ -54,6 +54,7 @@
 .btn-save {
     background-color: #F0893E;
     transition: background-color ease 300ms;
+    padding: 10px;
 }
 
 .btn-save:hover {
