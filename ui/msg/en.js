@@ -188,7 +188,23 @@ var MSG = {
   irq_falling: "IRQ_FALLING",
   irq_rising: "IRQ_RISING",
   both: "IRQ_FALLING and IRQ_RISING",
-  
+
+  //Sensor ultrassônico
+  hcsr04_title: "Initialize HCSR04 ultrasonic sensor",
+  get_distance_hcsr04: "Get distance",
+  echo_pin: "Echo pin",
+  trigger_pin: "Trigger pin",
+  timeout_hcsr04: "Timeout (μs)",
+  //acelerometro e giroscopio
+  mpu6050_init: "Initialize MPU6050 accelerometer and gyroscope sensor",
+  mpu6050_read_acc_x: "Read acceleration on X axis",
+  mpu6050_read_acc_y: "Read acceleration on Y axis",
+  mpu6050_read_acc_z: "Read acceleration on Z axis",
+  mpu6050_read_gyro_x: "Read angular velocity on X axis",
+  mpu6050_read_gyro_y: "Read angular velocity on Y axis",
+  mpu6050_read_gyro_z: "Read angular velocity on Z axis",
+
+
     
 //Network
   net_http_get: "HTTP GET Request",

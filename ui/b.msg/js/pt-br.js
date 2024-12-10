@@ -473,6 +473,18 @@ Blockly.Msg["PWM_DEINIT"] = "Desativar PWM";
 Blockly.Msg["GPIO_GET_TOOLTIP"] = "Ler pino digital";
 Blockly.Msg["GPIO_SET_TOOLTIP"] = "Escrever no pino digital GPIO";
 Blockly.Msg["GPIO_INTERRUPT_TOOLTIP"] = "Dispara uma interrupção quando o estado do pino muda";
+//Blocos para a categoria sensores
+Blockly.Msg["HCSR_INIT_TOOLTIP"] = "Iniciar sensor de distância ultrassônico HCSR04";
+Blockly.Msg["HCSR_READ_TOOLTIP"] = "Medir distância com o sensor ultrassônico";
+Blockly.Msg["MPU6050_INIT_TOOLTIP"] = "Inicializar o sensor acelerômetro e giroscópio MPU6050 para coleta de dados.";
+Blockly.Msg["MPU6050_READ_ACC_X_TOOLTIP"] = "Ler a aceleração no eixo X usando o sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_ACC_Y_TOOLTIP"] = "Ler a aceleração no eixo Y usando o sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_ACC_Z_TOOLTIP"] = "Ler a aceleração no eixo Z usando o sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_GYRO_X_TOOLTIP"] = "Ler a velocidade angular no eixo X usando o sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_GYRO_Y_TOOLTIP"] = "Ler a velocidade angular no eixo Y usando o sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_GYRO_Z_TOOLTIP"] = "Ler a velocidade angular no eixo Z usando o sensor MPU6050.";
+
+
 
 
 

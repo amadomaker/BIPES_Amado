@@ -188,6 +188,25 @@ var MSG = {
   irq_rising: "SUBIDA DE SINAL",
   both: "QUEDA E SUBIDA(AMBOS)",
 
+ 
+  //Sensor ultrassônico
+  hcsr04_title: "Iniciar sensor ultrassônico HCSR04",
+  get_distance_hcsr04: "Obter distancia",
+  echo_pin: "Pino echo",
+  trigger_pin: "Pino trigger",
+  timeout_hcsr04: "Tempo limite (μs)",
+
+  //acelerometro e giroscopio
+  mpu6050_init: "Iniciar sensor acelerômetro e giroscópio MPU6050",
+  mpu6050_read_acc_x: "Ler aceleração no eixo X",
+  mpu6050_read_acc_y: "Ler aceleração no eixo Y",
+  mpu6050_read_acc_z: "Ler aceleração no eixo Z",
+  mpu6050_read_gyro_x: "Ler velocidade angular no eixo X",
+  mpu6050_read_gyro_y: "Ler velocidade angular no eixo Y",
+  mpu6050_read_gyro_z: "Ler velocidade angular no eixo Z",
+  
+
+
 
 
 //Network

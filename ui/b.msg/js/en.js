@@ -475,6 +475,17 @@ Blockly.Msg["GPIO_GET_TOOLTIP"] = "Read digital pin";
 Blockly.Msg["GPIO_SET_TOOLTIP"] = "Write to GPIO digital pin";
 Blockly.Msg["GPIO_INTERRUPT_TOOLTIP"] = "Trigger interrupt when pin state changes";
 
+//Blocos para a categoria sensores
+Blockly.Msg["HCSR_INIT_TOOLTIP"] = "Start HCSR04 ultrasound distance sensor";
+Blockly.Msg["HCSR_READ_TOOLTIP"] = "Measure distance with ultrasound sensor";
+Blockly.Msg["MPU6050_INIT_TOOLTIP"] = "Initialize the MPU6050 accelerometer and gyroscope sensor for data collection.";
+Blockly.Msg["MPU6050_READ_ACC_X_TOOLTIP"] = "Read acceleration on the X axis using the MPU6050 sensor.";
+Blockly.Msg["MPU6050_READ_ACC_Y_TOOLTIP"] = "Read acceleration on the Y axis using the MPU6050 sensor.";
+Blockly.Msg["MPU6050_READ_ACC_Z_TOOLTIP"] = "Read acceleration on the Z axis using the MPU6050 sensor.";
+Blockly.Msg["MPU6050_READ_GYRO_X_TOOLTIP"] = "Read angular velocity on the X axis using the MPU6050 sensor.";
+Blockly.Msg["MPU6050_READ_GYRO_Y_TOOLTIP"] = "Read angular velocity on the Y axis using the MPU6050 sensor.";
+Blockly.Msg["MPU6050_READ_GYRO_Z_TOOLTIP"] = "Read angular velocity on the Z axis using the MPU6050 sensor.";
+
 
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";
