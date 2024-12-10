@@ -259,6 +259,9 @@ function playMelody() {
     return;
   }
 
+  // desabilita o piano
+  pianoContainer.classList.add("piano-disabled");
+
   let currentTime = 0;
   const playbackBar = document.getElementById("playback-bar");
   playbackBar.style.display = "block";
@@ -290,6 +293,7 @@ function playMelody() {
   // Esconde a barra quando a melodia termina
   const hideTimeout = setTimeout(() => {
     playbackBar.style.display = "none";
+    pianoContainer.classList.remove("piano-disabled");
   }, currentTime);
   timeoutHandles.push(hideTimeout);
 }
@@ -301,6 +305,7 @@ function pauseMelody() {
 
 // Limpa a reprodução em andamento
 function stopPlayback() {
+  pianoContainer.classList.remove("piano-disabled");
   timeoutHandles.forEach(clearTimeout);
   timeoutHandles = [];
 
@@ -374,6 +379,8 @@ function exportMelody(e) {
 }
 
 function clearPiano() {
+  stopPlayback();
+  pianoContainer.classList.remove("piano-disabled");
   // limpa as notas ativas
   document.querySelectorAll(".note.active").forEach((noteDiv) => {
     noteDiv.classList.remove("active");
