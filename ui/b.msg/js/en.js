@@ -473,6 +473,7 @@ Blockly.Msg["PWM_DEINIT"] = "Deinit PWM";
 Blockly.Msg["PWM_DEINIT"] = "Desativar PWM";
 Blockly.Msg["GPIO_GET_TOOLTIP"] = "Read digital pin";
 Blockly.Msg["GPIO_SET_TOOLTIP"] = "Write to GPIO digital pin";
+Blockly.Msg["GPIO_INTERRUPT_TOOLTIP"] = "Trigger interrupt when pin state changes";
 
 
 

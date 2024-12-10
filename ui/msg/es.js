@@ -184,7 +184,12 @@ var MSG = {
   init_pwm: "Iniciar",
   deinit_pwm: "Desactivar PWM #",
   pins: "pinos",
-  
+  external_event: "Evento externo (interrupción en el pin de entrada)",
+  trigger: "Disparador: ",
+  irq_falling: "CAÍDA DE SEÑAL",
+  irq_rising: "SUBIDA DE SEÑAL",
+  both: "CAÍDA Y SUBIDA (AMBOS)",
+
 
 
 //Network

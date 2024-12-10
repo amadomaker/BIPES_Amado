@@ -183,7 +183,12 @@ var MSG = {
   init_pwm: "init",
   deinit_pwm: "Deactivate PWM #",
   pins: "pins",
-
+  external_event: "External event (interrupt on input pin)",
+  trigger: "Trigger: ",
+  irq_falling: "IRQ_FALLING",
+  irq_rising: "IRQ_RISING",
+  both: "IRQ_FALLING and IRQ_RISING",
+  
     
 //Network
   net_http_get: "HTTP GET Request",

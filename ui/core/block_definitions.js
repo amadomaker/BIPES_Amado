@@ -785,21 +785,25 @@ Blockly.Blocks['gpio_get'] = {
 Blockly.Blocks['gpio_interrupt'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("External event (Interrupt on Input Pin)");
+        .appendField(MSG["external_event"]);
     this.appendDummyInput()
-        .appendField("Trigger:")
-        .appendField(new Blockly.FieldDropdown([["IRQ_FALLING","IRQ_FALLING"], ["IRQ_RISING","IRQ_RISING"], ["IRQ_FALLING and IRQ_RISING","BOTH"]]), "trigger");
+        .appendField(MSG["trigger"])
+        .appendField(new Blockly.FieldDropdown([
+          [MSG["irq_falling"], "IRQ_FALLING"], 
+          [MSG["irq_rising"], "IRQ_RISING"], 
+          [MSG["both"], "BOTH"]
+        ]), "trigger");        
     this.appendValueInput("pin")
         .setCheck(null)
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Pin");
+        .appendField(MSG["Pin"]);
     this.appendStatementInput("code")
         .setCheck(null)
-        .appendField("do");
+        .appendField(MSG["do"]);
     this.setColour(colour="%{BKY_INOUT_HUE}");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
- this.setTooltip("Trigger interrupt when pin state changes");
+ this.setTooltip(Blockly.Msg["GPIO_INTERRUPT_TOOLTIP"]);
  this.setHelpUrl("bipes.net.br");
   }
 };
