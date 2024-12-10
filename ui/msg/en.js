@@ -222,6 +222,16 @@ var MSG = {
   y_position: "Y Position",
   value_display: "Value",
 
+  //Servo motor
+  init_servo_title: "Init servo motor",
+  init_servo_name: "Servo name:",
+  init_servo_pin: "Pin",
+  move_servo_title: "Move servo motor",
+  move_servo_name: "Servo name",
+  move_servo_angle: "Angle",
+  no_servos: "No servos",
+
+
 
 
 

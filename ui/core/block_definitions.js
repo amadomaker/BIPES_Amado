@@ -1236,47 +1236,51 @@ Blockly.Blocks['init_servo'] = {
   init: function() {
     this.appendDummyInput()
       .appendField(new Blockly.FieldImage("media/servo.png", 55, 55, "*"))
-      .appendField("Init RC Servo Motor");
+      .appendField(MSG["init_servo_title"]);
 
     this.appendDummyInput()
       .setAlign(Blockly.ALIGN_RIGHT)
-      .appendField("Servo Name")
+      .appendField(MSG["init_servo_name"])
       .appendField(new Blockly.FieldTextInput("servo1"), "servo_name");  // Adicionando o campo de nome
 
     this.appendValueInput("pin")
       .setCheck("Number")
       .setAlign(Blockly.ALIGN_RIGHT)
-      .appendField("Pin");
+      .appendField(MSG["Pin"]);
 
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
 
-    this.setTooltip("Init RC servo motor");
+    this.setTooltip(Blockly.Msg["INIT_SERVO_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.ebr");
   }
 };
 
-
-
 Blockly.Blocks['move_servo'] = {
   init: function() {
     this.appendDummyInput()
-      .appendField("Move Servo Motor")
-      .appendField("Servo Name")
-      .appendField(new Blockly.FieldTextInput("servo1"), "servo_name");  // Adicionando o campo de nome
+      .appendField(MSG["move_servo_title"])  
+      .appendField(new Blockly.FieldDropdown(this.updateServoList), "servo_name"); 
 
     this.appendValueInput("angle")
       .setCheck("Number")
       .setAlign(Blockly.ALIGN_RIGHT)
-      .appendField("Angle");
+      .appendField(MSG["move_servo_angle"]);
 
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
 
-    this.setTooltip("Move RC servo motor to degrees");
+    this.setTooltip(Blockly.Msg["MOVE_SERVO_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.ebr");
+  },
+
+  // Função para atualizar a lista de servos
+  updateServoList: function() {
+    const servoBlocks = Blockly.getMainWorkspace().getBlocksByType('init_servo', true); // Obtem todos os blocos 'init_servo'
+    const servoNames = servoBlocks.map(block => [block.getFieldValue('servo_name') || 'default', block.getFieldValue('servo_name') || 'default']);
+    return servoNames.length ? servoNames : [[MSG["no_servos"], "none"]]; 
   }
 };
 

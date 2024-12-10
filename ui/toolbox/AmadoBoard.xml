@@ -1426,7 +1426,7 @@
     </category>
 
   <category name="%{BKY_CAT_SERVO}" colour = "%{BKY_ACTUATORS_HUE}">
-      <label text="Hobby RC Servo Motor"></label>
+      <label text="Servo Motor"></label>
     <block type="init_servo">
         <value name="pin">
           <shadow type="pinout">

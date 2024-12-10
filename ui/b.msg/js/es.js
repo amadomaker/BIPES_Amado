@@ -498,6 +498,9 @@ Blockly.Msg["CLEAR_OLED_TOOLTIP"] = "Limpia todo el contenido de la pantalla OLE
 Blockly.Msg["SHOW_OLED_TOOLTIP"] = "Actualiza la pantalla OLED para mostrar los cambios.";
 Blockly.Msg["WRITE_OLED_TOOLTIP"] = "Escribe un texto en una posición X e Y especificada en la pantalla OLED.";
 Blockly.Msg["WRITE_OLED_INT_TOOLTIP"] = "Muestra un valor entero en una posición X e Y especificada en la pantalla OLED.";
+//Servo motor
+Blockly.Msg["INIT_SERVO_TOOLTIP"] = "Inicializa un motor servo con el nombre y el pin de control especificados.";
+Blockly.Msg["MOVE_SERVO_TOOLTIP"] = "Mueve el motor servo  a un ángulo especificado en grados.";
 
 
 

@@ -223,6 +223,17 @@ var MSG = {
   y_position: "Posição Y",
   value_display: "Valor",
 
+  //Servo motor
+  init_servo_title: "Iniciar servo motor",
+  init_servo_name: "Nome do servo: ",
+  init_servo_pin: "Pino",
+  move_servo_title: "Mover servo",
+  move_servo_name: "Nome do servo: ",
+  move_servo_angle: "Ângulo",
+  no_servos: "Nenhum servo",
+
+
+
 
 //Network
   net_http_get: "Requisição HTTP GET",
