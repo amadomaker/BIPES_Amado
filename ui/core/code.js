@@ -804,6 +804,7 @@ Code.initLanguage = function() {
   document.getElementById('tab_files').textContent = MSG['files'];
   document.getElementById('tab_programs').textContent = MSG['shared'];
   document.getElementById('tab_device').textContent = MSG['device'];
+  document.getElementById('tab_sound').textContent = MSG['music'];
 
   document.getElementById('linkButton').title = MSG['linkTooltip'];
   document.getElementById('runButton').title = MSG['runTooltip'];
