@@ -804,6 +804,7 @@ Code.initLanguage = function() {
   document.getElementById('tab_files').textContent = MSG['files'];
   document.getElementById('tab_programs').textContent = MSG['shared'];
   document.getElementById('tab_device').textContent = MSG['device'];
+  document.getElementById('tab_sound').textContent = MSG['music'];
 
   document.getElementById('linkButton').title = MSG['linkTooltip'];
   document.getElementById('runButton').title = MSG['runTooltip'];
@@ -815,6 +816,22 @@ Code.initLanguage = function() {
   document.getElementById('toolbarButton').title = MSG['toolbarTooltip'];
   document.getElementById('forumButton').title = MSG['forumTooltip'];
   document.getElementById('accountButton').title = MSG['accountTooltip'];
+
+  // tab music
+  document.getElementById('openSoundModal').textContent = MSG['saveMelody'];
+  document.getElementById('openImportMelodyModal').textContent = MSG['importMelody'];
+  document.getElementById('openExportMelodyModal').textContent = MSG['exportMelody'];
+  document.getElementById('saveMelodyTitle').textContent = MSG['saveAMelody'];
+  document.getElementById('exportMelodyTitle').textContent = MSG['exportAMelody'];
+  document.getElementById('importMelodyTitle').textContent = MSG['importAMelody'];
+  document.getElementById('soundNameExport').textContent = MSG['melodyName'];
+  document.getElementById('soundNameSave').textContent = MSG['melodyName'];
+  document.getElementById('cancelExport').textContent = MSG['cancel'];
+  document.getElementById('cancelImport').textContent = MSG['cancel'];
+  document.getElementById('cancelSave').textContent = MSG['cancel'];
+  document.getElementById('confirmSave').textContent = MSG['save'];
+  document.getElementById('confirmImport').textContent = MSG['import'];
+  document.getElementById('confirmExport').textContent = MSG['export'];
 };
 
 /**
