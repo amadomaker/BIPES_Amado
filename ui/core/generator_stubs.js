@@ -6364,11 +6364,6 @@ if received_data:
 };
 
 
-Blockly.Python['show_received_data'] = function(block) {
-  var code = 'received_data';
-  return [code, Blockly.Python.ORDER_ATOMIC];
-};
-
 Blockly.Python['configure_data_plotter'] = function(block) {
   var sensorCount = block.sensorCount_;
   var code = 'def formatar_dados_para_plotter():\n';

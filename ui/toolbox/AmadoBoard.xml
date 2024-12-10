@@ -194,10 +194,8 @@
         </value>
       </block>
       <block type="var_to_int">  
-        <field name="VAR">to int</field>
       </block>
       <block type="var_to_float">  
-        <field name="VAR">to float</field> 
       </block>
       </category>
     </category>
@@ -343,7 +341,6 @@
           </value>
         </block>
         <block type="text_to_str">  
-          <field name="VAR">to str</field>
         </block>
       </category>
       <!--FUNÇÕES DE LISTAS-->
@@ -546,8 +543,6 @@
         </shadow>
       </value>
     </block>
-    <block type="pinout"></block>
-
     <block type="esp32_adc">
      <value name="pin">
         <shadow type="pinout">
@@ -614,7 +609,7 @@
 <category name="%{BKY_CAT_SENSORS}" colour="%{BKY_SENSORS_HUE}">
     <!--Categoria para o sensor de temperatura dht11-->
     <category name="%{BKY_CAT_DHT11/22}" colour="%{BKY_SENSORS_HUE}">
-      <label text="DHT11/22 Temperature and Humidity Sensor"></label>
+      <label text="DHT11/22 Sensor de temperatura e umidade"></label>
       <block type="dht_init">
         <field name="BLOCK_DHT_INIT">Start DHT11/22 sensor</field>
         <value name="pin">
@@ -691,8 +686,8 @@
       -->
   <!--Categoria para o sensor ultrassônico-->
   <category name="%{BKY_CAT_ULTRASONIC}" colour="%{BKY_SENSORS_HUE}">
-      <label text="HCSR04 ultrasound distance sensor"></label>
-      <label text="Library: https://github.com/rsc1975/micropython-hcsr04"></label>
+      <label text="HCSR04 sensor de distância ultrassônico"></label>
+      <label text="Biblioteca: https://github.com/rsc1975/micropython-hcsr04"></label>
         <button text="Install HCSR04 library" callbackKey="installPyLib"></button>
 
 
@@ -760,12 +755,10 @@
   -->
   <!--Categoria para o módulo de acelerômetro e giroscopio-->
   <category name="%{BKY_CAT_ACCELEROMETER}" colour="%{BKY_SENSORS_HUE}">
-      <label text="MPU6050 IMU"></label>
-   <label text="Library: https://github.com/"></label>
-        <button text="Install imu library (MPU6050)" callbackKey="installPyLib"></button>
-
-        <button text="Load example: mpu6050" callbackKey="loadExample"></button>
-        <button text="Documentation and how to connect: mpu6050" callbackKey="loadDoc"></button>
+      <label text="Acelerômetro e Giroscópio MPU-6050"></label>
+        <button text="Instalar biblioteca (MPU6050)" callbackKey="installPyLib"></button>
+        <button text="Carregar exemplo: mpu6050" callbackKey="loadExample"></button>
+        <button text="Documentação e como conectar: mpu6050" callbackKey="loadDoc"></button>
 
 
 
@@ -773,13 +766,13 @@
 
  <value name="scl">
         <shadow type="math_number">
-          <field name="NUM">5</field>
+          <field name="NUM">22</field>
         </shadow>
       </value>
 
  <value name="sda">
         <shadow type="math_number">
-          <field name="NUM">4</field>
+          <field name="NUM">21</field>
         </shadow>
       </value>
 
