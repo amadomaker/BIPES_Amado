@@ -124,6 +124,18 @@ var MSG = {
 
   // Music
   music: "Música",
+  saveMelody: "Guardar Melodía",
+  importMelody: "Importar Melodía",
+  exportMelody: "Exportar Melodía",
+  melodyName: "Nombre de la melodía",
+  cancel: "Cancelar", 
+  save: "Guardar",
+  import: "Importar", 
+  export: "Exportar",
+  saveAMelody: "Guardar una melodía", 
+  importAMelody: "Importar una melodía", 
+  exportAMelody: "Exportar una melodía",
+  
 
 };
 

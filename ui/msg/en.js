@@ -130,6 +130,17 @@ var MSG = {
 
   // Music
   music: "Music",
+  saveMelody: "Save Melody",
+  importMelody: "Import Melody",
+  exportMelody: "Export Melody",
+  melodyName: "Melody name",
+  cancel: "Cancel", 
+  save: "Save",
+  import: "Import", 
+  export: "Export",
+  saveAMelody: "Save a melody", 
+  importAMelody: "Import a melody", 
+  exportAMelody: "Export a melody"
   
 
 };

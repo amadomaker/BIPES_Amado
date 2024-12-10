@@ -131,7 +131,17 @@ var MSG = {
 
   // Music
   music: "Música",
-  
+  saveMelody: "Salvar Melodia",
+  importMelody: "Importar Melodia",
+  exportMelody: "Exportar Melodia",
+  melodyName: "Nome da melodia",
+  cancel: "Cancelar", 
+  save: "Salvar",
+  import: "Importar", 
+  export: "Exportar",
+  saveAMelody: "Salvar uma melodia", 
+  importAMelody: "Importar uma melodia", 
+  exportAMelody: "Exportar uma melodia",
 };
 
 //Categorias da caixa de ferramentas
