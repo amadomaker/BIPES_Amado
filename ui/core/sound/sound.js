@@ -304,6 +304,7 @@ function pauseMelody() {
 
 // Limpa a reprodução em andamento
 function stopPlayback() {
+  pianoContainer.classList.remove("piano-disabled");
   timeoutHandles.forEach(clearTimeout);
   timeoutHandles = [];
 
