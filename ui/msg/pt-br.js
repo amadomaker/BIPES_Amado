@@ -56,6 +56,8 @@ var MSG = {
   seconds: "segundos",
   milliseconds: "milisegundos",
   microseconds: "microsegundos",
+  nanoseconds: "nanosegundos",
+  cpu_ticks: "ciclos de CPU",
   to: "para",
   setpin: "ajustar pino de saida",
   pin: "pino",
@@ -87,7 +89,7 @@ var MSG = {
   file_write_line: "escrever linha no arquivo",
   file_line: "linha",
   try1: "tente",
-  exp1: "no erro",
+  exp1: "exceto",
   ntp_sync: "sincronizar data e hora com NTP",
   timezone: "fuso horário",
   project_info: "Dados do projeto",
@@ -109,7 +111,103 @@ var MSG = {
   dht_temp: "temperatura do DHT11/22",
   dht_humi: "umidade do DHT11/22",
   type: "modelo",
+  start_thread: "iniciar tarefa paralela com a função",
   
+  //categoria temporizador
+  get: "obter contador em",
+  counter: "contador",
+  by: "com",
+  by2: "para",
+  sum_time: "somar tempo",
+  diff_time: "diferença de tempo de",
+  timer: "temporizador n°",
+  do_timer: "executar",
+  every_timer: "a cada",
+  once_in: "uma vez em",
+  until_deadline: "até o tempo limite nº",
+  of: "de",
+  do: "executar",
+  stop_timer: "parar temporizador",
+  deep_sleep: "sono profundo",
+
+  //Categoria Comunicação
+  //Bluetooth
+  configure_bluetooth: "Configura e inicia o Bluetooth com o nome",
+  handle_ble: "Definir os dados recebidos via bluetooth para",
+  check_ble: "Verificar os dados recebidos",
+  configure_data_plotter: "Configurar o plotador para sensores",
+  call_format_plotter: "Enviar dados para o plotador",
+  bluetooth_name: "meuBluetooth",
+
+  //espnow
+  initialize_wlan_title: "Inicializar Interface WLAN",
+  get_mac_address_title: "Obter Endereço MAC da Placa Amado",
+  set_master_title: "Configurar Placa Amado como Mestre",
+  add_peer_title: "Adicionar Dispositivo pelo Endereço MAC",
+  receive_message_title: "Receber Mensagens de Dispositivos",
+  set_peer_title: "Configurar Placa Amado como Dispositivo Secundário",
+  send_message_to_peer_title: "Enviar Mensagem para Dispositivo pelo MAC",
+  send_message_title: "Enviar Mensagem para o Dispositivo Mestre",
+  receive_message_master_title: "Receber Mensagens do Dispositivo Mestre",
+  variable_list: "Lista de variáveis",
+  add_variable_container: "Adicionar variável",
+  variable_name: "Nome da variável",
+  variable_value: "Valor da variável",
+  if: "Se",
+  is_none: "for None, definir",
+  default_value: "para valor padrão",
+
+  //Blocos Lógica
+  math_min_title: "Mínimo entre",
+  math_max_title: "Máximo entre",
+  and: "e",
+
+  //Blocos Operadores
+  var_to_int_title: "Para inteiro",
+  var_to_float_title: "Para decimal",
+
+  //Blocos funções de texto
+  to_string_title: "Para texto",
+
+  //Blocos para as funções da categoria Python
+  os_error: "Exceto OSError",
+
+  //Blocos para os pinos de entrada/saida
+  analog_amado_board: "Ler entrada analógica",
+  attenuation: "Atenuação: ",
+  width: "Largura: ",
+  frequency: "Frequência",
+  frequency2: "frequência",
+  duty: "Ciclo de trabalho",
+  init_pwm: "Iniciar",
+  deinit_pwm: "Desativar PWM #",
+  pins: "pinos",
+  external_event: "Evento externo (interrupção no  pino de entrada)",
+  trigger: "Gatilho: ",
+  irq_falling: "QUEDA DE SINAL",
+  irq_rising: "SUBIDA DE SINAL",
+  both: "QUEDA E SUBIDA(AMBOS)",
+
+ 
+  //Sensor ultrassônico
+  hcsr04_title: "Iniciar sensor ultrassônico HCSR04",
+  get_distance_hcsr04: "Obter distancia",
+  echo_pin: "Pino echo",
+  trigger_pin: "Pino trigger",
+  timeout_hcsr04: "Tempo limite (μs)",
+
+  //acelerometro e giroscopio
+  mpu6050_init: "Iniciar sensor acelerômetro e giroscópio MPU6050",
+  mpu6050_read_acc_x: "Ler aceleração no eixo X",
+  mpu6050_read_acc_y: "Ler aceleração no eixo Y",
+  mpu6050_read_acc_z: "Ler aceleração no eixo Z",
+  mpu6050_read_gyro_x: "Ler velocidade angular no eixo X",
+  mpu6050_read_gyro_y: "Ler velocidade angular no eixo Y",
+  mpu6050_read_gyro_z: "Ler velocidade angular no eixo Z",
+  
+
+
+
 
 //Network
   net_http_get: "Requisição HTTP GET",

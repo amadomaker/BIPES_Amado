@@ -422,6 +422,74 @@ Blockly.Msg["PROCEDURES_DEFRETURN_PROCEDURE"] = Blockly.Msg["PROCEDURES_DEFNORET
 Blockly.Msg["PROCEDURES_DEFRETURN_TITLE"] = Blockly.Msg["PROCEDURES_DEFNORETURN_TITLE"];
 Blockly.Msg["TEXT_APPEND_VARIABLE"] = Blockly.Msg["VARIABLES_DEFAULT_NAME"];
 Blockly.Msg["TEXT_CREATE_JOIN_ITEM_TITLE_ITEM"] = Blockly.Msg["VARIABLES_DEFAULT_NAME"];
+Blockly.Msg["UTIME_VARS_TOOLTIP"] = "Devuelve un contador en la escala definida, solo valores enteros.";
+Blockly.Msg["UTIME.TICKS_ADD_TOOLTIP"] = "Desplaza el valor de los ciclos por un número dado, que puede ser positivo o negativo. Debe estar en la misma escala: milisegundos, microsegundos o ciclos de CPU.";
+Blockly.Msg["UTIME.TICKS_DIFF_TOOLTIP"] = "Mide la diferencia de ciclos entre valores. Debe estar en la misma escala: milisegundos, microsegundos o ciclos de CPU.";
+Blockly.Msg["SET_RTC_TOOLTIP"] = "Establece la fecha y hora actual en el RTC (Reloj de Tiempo Real). Asegúrate de que los valores se proporcionen en el formato correcto.";
+Blockly.Msg["TIMER_TOOLTIP"] = "Configura un temporizador para ejecutar periódicamente o solo una vez después del intervalo especificado en milisegundos.";
+Blockly.Msg["UTIME.DEADLINE_TOOLTIP"] = "Crea un bucle con fecha límite.";
+Blockly.Msg["STOP_TIMER_TOOLTIP"] = "Detiene el temporizador seleccionado de ejecutar acciones futuras.";
+Blockly.Msg["DEEP_SLEEP_TOOLTIP"] = "Pone el microcontrolador en modo de sueño profundo durante el tiempo especificado en milisegundos.";
+Blockly.Msg["START_THREAD_TOOLTIP"] = "Inicia un nuevo hilo para ejecutar la función especificada en paralelo.";
+//blocos bluetooth
+Blockly.Msg["CONFIGURE_AND_START_BLUETOOTH_TOOLTIP"] = "Configura e inicia el Bluetooth BLE con el nombre especificado.";
+Blockly.Msg["HANDLE_BLE_DATA_TOOLTIP"] = "Recibe datos a través de BLE y los almacena en la variable seleccionada.";
+Blockly.Msg["CHECK_BLE_DATA_TOOLTIP"] = "Verifica si hay datos recibidos mediante BLE y llama a la función handle_ble_data.";
+Blockly.Msg["CONFIGURE_DATA_PLOTER_TOOLTIP"] = "Configura el trazador para enviar datos de múltiples sensores.";
+Blockly.Msg["CALL_FORMAT_PLOTTER_DATA_TOOLTIP"] = "Llama a la función que formatea y envía datos al trazador.";
+//blocos espnow
+Blockly.Msg["INIT_WLAN_TOOLTIP"] = "Inicializa la interfaz WLAN y configura la dirección MAC.";
+Blockly.Msg["GET_MAC_ADDRESS_TOOLTIP"] = "Devuelve la dirección MAC del ESP32 como una cadena formateada.";
+Blockly.Msg["SET_MASTER_TOOLTIP"] = "Configura la placa como maestra para ESPNOW.";
+Blockly.Msg["ADD_PEER_TOOLTIP"] = "Añade un dispositivo (MAC) a la lista de comunicación ESPNOW.";
+Blockly.Msg["RECEIVE_MESSAGE_TOOLTIP"] = "Recibe mensajes de dispositivos conectados.";
+Blockly.Msg["SET_PEER_TOOLTIP"] = "Configura la placa como un dispositivo secundario para ESPNOW.";
+Blockly.Msg["SEND_MESSAGE_TO_PEER_TOOLTIP"] = "Envía una variable y su valor a un dispositivo específico.";
+Blockly.Msg["SEND_MESSAGE_TOOLTIP"] = "Envía un mensaje al Maestro.";
+Blockly.Msg["RECEIVE_MESSAGE_MASTER_TOOLTIP"] = "Recibe mensajes enviados por el Maestro y los procesa.";
+Blockly.Msg["GET_VARIABLE_VALUE_TOOLTIP"] = "Obtiene el valor de una variable para una dirección MAC.";
+Blockly.Msg["CHECK_AND_ASSIGN_VALUE_TOOLTIP"] = "Verifica si la variable es None y, si es así, asigna un valor predeterminado.";
+Blockly.Msg["GET_VARIABLE_VALUE_MESSAGE0"] = "Obtener valor de %1 para MAC %2";
+//blocos lógica
+Blockly.Msg["MAP_VALUE_MESSAGE0"] = "mapear %1 entrada mínima %2 entrada máxima %3 salida mínima %4 salida máxima %5";
+Blockly.Msg["MAP_VALUE_TOOLTIP"] = "Mapea un valor de un rango a otro.";
+Blockly.Msg["MATH_MIN_TOOLTIP"] = "Devuelve el menor de los dos valores.";
+Blockly.Msg["MATH_MAX_TOOLTIP"] = "Devuelve el mayor de los dos valores.";
+
+//blocos operadores
+Blockly.Msg["VAR_TO_INT_TOOLTIP"] = "Convierte cualquier cosa a Entero.";
+Blockly.Msg["VAR_TO_FLOAT_TOOLTIP"] = "Convierte cualquier cosa a Flotante.";
+
+//blocos python da categoria funções
+Blockly.Msg["TRY_CATCH_TOOLTIP"] = "Bloque try-except para ejecutar código principal y manejar errores en caso de excepciones.";
+Blockly.Msg["OS_ERROR_TOOLTIP"] = "Bloque try-except para capturar OSError.";
+
+//blocos Pinos de entrada/saida
+Blockly.Msg["ESP32_ADC_TOOLTIP"] = "Bloque para leer valores de entrada analógica (ADC) en Amado board. Permite configurar atenuación y resolución en Amado board.";
+Blockly.Msg["PWM_TOOLTIP"] = "Inicia y configura PWM con frecuencia (1Hz a 40MHz) y ciclo de trabajo (0-1023)";
+Blockly.Msg["PWM_FREQUENCY_TOOLTIP"] = "Establece la frecuencia del PWM de 1Hz a 40MHz";
+Blockly.Msg["PWM_DUTY_TOOLTIP"] = "Establece el ciclo de trabajo del PWM en el rango de 0-1023";
+Blockly.Msg["PWM_INIT"] = "Iniciar PWM";
+Blockly.Msg["PWM_DEINIT"] = "Desactivar PWM";
+Blockly.Msg["PWM_DEINIT"] = "Desactivar PWM";
+Blockly.Msg["GPIO_GET_TOOLTIP"] = "Leer pin digital";
+Blockly.Msg["GPIO_SET_TOOLTIP"] = "Escribir en el pin digital GPIO";
+Blockly.Msg["GPIO_INTERRUPT_TOOLTIP"] = "Dispara una interrupción cuando el estado del pin cambia";
+//Blocos para a categoria sensores
+Blockly.Msg["HCSR_INIT_TOOLTIP"] = "Iniciar sensor de distancia ultrasónico HCSR04";
+Blockly.Msg["HCSR_READ_TOOLTIP"] = "Medir distancia con el sensor ultrasónico";
+Blockly.Msg["MPU6050_INIT_TOOLTIP"] = "Inicializar el sensor acelerómetro y giroscopio MPU6050 para la recolección de datos.";
+Blockly.Msg["MPU6050_READ_ACC_X_TOOLTIP"] = "Leer la aceleración en el eje X usando el sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_ACC_Y_TOOLTIP"] = "Leer la aceleración en el eje Y usando el sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_ACC_Z_TOOLTIP"] = "Leer la aceleración en el eje Z usando el sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_GYRO_X_TOOLTIP"] = "Leer la velocidad angular en el eje X usando el sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_GYRO_Y_TOOLTIP"] = "Leer la velocidad angular en el eje Y usando el sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_GYRO_Z_TOOLTIP"] = "Leer la velocidad angular en el eje Z usando el sensor MPU6050.";
+
+
+
+
+
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";
 Blockly.Msg["MATH_HUE"] = "#008000";

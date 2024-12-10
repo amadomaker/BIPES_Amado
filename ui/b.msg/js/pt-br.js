@@ -422,6 +422,74 @@ Blockly.Msg["PROCEDURES_DEFRETURN_PROCEDURE"] = Blockly.Msg["PROCEDURES_DEFNORET
 Blockly.Msg["PROCEDURES_DEFRETURN_TITLE"] = Blockly.Msg["PROCEDURES_DEFNORETURN_TITLE"];
 Blockly.Msg["TEXT_APPEND_VARIABLE"] = Blockly.Msg["VARIABLES_DEFAULT_NAME"];
 Blockly.Msg["TEXT_CREATE_JOIN_ITEM_TITLE_ITEM"] = Blockly.Msg["VARIABLES_DEFAULT_NAME"];
+Blockly.Msg["UTIME_VARS_TOOLTIP"] = "Retorna um contador na escala definida, apenas valores inteiros.";
+Blockly.Msg["UTIME.TICKS_ADD_TOOLTIP"] = "Desloca o valor dos ciclos por um número definido, que pode ser positivo ou negativo. Deve estar na mesma escala: milissegundos, microsegundos ou ciclos de CPU.";
+Blockly.Msg["UTIME.TICKS_DIFF_TOOLTIP"] = "Mede a diferença de ciclos entre valores. Deve estar na mesma escala: milissegundos, microsegundos ou ciclos de CPU.";
+Blockly.Msg["SET_RTC_TOOLTIP"] = "Define a data e hora atual no RTC (Relógio em Tempo Real). Certifique-se de que os valores sejam fornecidos no formato correto.";
+Blockly.Msg["TIMER_TOOLTIP"] = "Configura um temporizador para executar periodicamente ou apenas uma vez após o intervalo especificado em milissegundos.";
+Blockly.Msg["UTIME.DEADLINE_TOOLTIP"] = "Cria um loop com prazo limite.";
+Blockly.Msg["STOP_TIMER_TOOLTIP"] = "Para o temporizador selecionado de executar ações futuras.";
+Blockly.Msg["DEEP_SLEEP_TOOLTIP"] = "Coloca o microcontrolador em modo de sono profundo pelo tempo especificado em milissegundos.";
+Blockly.Msg["START_THREAD_TOOLTIP"] = "Inicia uma nova thread para executar a função especificada em paralelo.";
+//blocos bluetooth
+Blockly.Msg["CONFIGURE_AND_START_BLUETOOTH_TOOLTIP"] = "Configura e inicia o Bluetooth BLE com o nome especificado.";
+Blockly.Msg["HANDLE_BLE_DATA_TOOLTIP"] = "Recebe dados via BLE e os armazena na variável escolhida.";
+Blockly.Msg["CHECK_BLE_DATA_TOOLTIP"] = "Verifica se há dados recebidos via BLE e chama a função handle_ble_data.";
+Blockly.Msg["CONFIGURE_DATA_PLOTER_TOOLTIP"] = "Configura o plotador para enviar dados de múltiplos sensores.";
+Blockly.Msg["CALL_FORMAT_PLOTTER_DATA_TOOLTIP"] = "Chama a função que formata e envia dados para o plotador.";
+//blocos espnow
+Blockly.Msg["INIT_WLAN_TOOLTIP"] = "Inicializa a interface WLAN e configura o endereço MAC.";
+Blockly.Msg["GET_MAC_ADDRESS_TOOLTIP"] = "Retorna o endereço MAC do ESP32 como uma string formatada.";
+Blockly.Msg["SET_MASTER_TOOLTIP"] = "Configura a placa como mestre para ESPNOW.";
+Blockly.Msg["ADD_PEER_TOOLTIP"] = "Adiciona um dispositivo (MAC) à lista de comunicação ESPNOW.";
+Blockly.Msg["RECEIVE_MESSAGE_TOOLTIP"] = "Recebe mensagens de dispositivos conectados.";
+Blockly.Msg["SET_PEER_TOOLTIP"] = "Configura a placa como um dispositivo secundário para ESPNOW.";
+Blockly.Msg["SEND_MESSAGE_TO_PEER_TOOLTIP"] = "Envia uma variável e seu valor para um dispositivo específico.";
+Blockly.Msg["SEND_MESSAGE_TOOLTIP"] = "Envia uma mensagem para o Mestre.";
+Blockly.Msg["RECEIVE_MESSAGE_MASTER_TOOLTIP"] = "Recebe mensagens enviadas pelo Mestre e as processa.";
+Blockly.Msg["GET_VARIABLE_VALUE_TOOLTIP"] = "Obtém o valor de uma variável para um endereço MAC.";
+Blockly.Msg["CHECK_AND_ASSIGN_VALUE_TOOLTIP"] = "Verifica se a variável é None e, caso seja, atribui um valor padrão.";
+Blockly.Msg["GET_VARIABLE_VALUE_MESSAGE0"] = "Obter valor de %1 para o MAC %2";
+//blocos Lógica
+Blockly.Msg["MAP_VALUE_MESSAGE0"] = "mapear %1 entrada mínima %2 entrada máxima %3 saída mínima %4 saída máxima %5";
+Blockly.Msg["MAP_VALUE_TOOLTIP"] = "Mapeia um valor de uma faixa para outra.";
+Blockly.Msg["MATH_MIN_TOOLTIP"] = "Retorna o menor dos dois valores.";
+Blockly.Msg["MATH_MAX_TOOLTIP"] = "Retorna o maior dos dois valores.";
+//blocos Operadores
+Blockly.Msg["VAR_TO_INT_TOOLTIP"] = "Converte qualquer coisa para Inteiro.";
+Blockly.Msg["VAR_TO_FLOAT_TOOLTIP"] = "Converte qualquer coisa para Float.";
+
+//blocos python da categoria funções
+Blockly.Msg["TRY_CATCH_TOOLTIP"] = "Bloco try-catch para executar um código principal e capturar erros em caso de exceções.";
+Blockly.Msg["OS_ERROR_TOOLTIP"] = "Bloco try-except para capturar OSError.";
+
+//blocos Pinos de entrada/saida
+Blockly.Msg["ESP32_ADC_TOOLTIP"] = "Bloco para ler valores de entrada analógica (ADC) na Amado board. Permite configurar atenuação e resolução na Amado board.";
+Blockly.Msg["PWM_TOOLTIP"] = "Inicia e configura PWM com frequência (1Hz a 40MHz) e ciclo de trabalho (0-1023)";
+Blockly.Msg["PWM_FREQUENCY_TOOLTIP"] = "Define a frequência do PWM de 1Hz a 40MHz";
+Blockly.Msg["PWM_DUTY_TOOLTIP"] = "Define o ciclo de trabalho do PWM na faixa de 0-1023";
+Blockly.Msg["PWM_INIT"] = "Iniciar PWM";
+Blockly.Msg["PWM_DEINIT"] = "Desativar PWM";
+Blockly.Msg["GPIO_GET_TOOLTIP"] = "Ler pino digital";
+Blockly.Msg["GPIO_SET_TOOLTIP"] = "Escrever no pino digital GPIO";
+Blockly.Msg["GPIO_INTERRUPT_TOOLTIP"] = "Dispara uma interrupção quando o estado do pino muda";
+//Blocos para a categoria sensores
+Blockly.Msg["HCSR_INIT_TOOLTIP"] = "Iniciar sensor de distância ultrassônico HCSR04";
+Blockly.Msg["HCSR_READ_TOOLTIP"] = "Medir distância com o sensor ultrassônico";
+Blockly.Msg["MPU6050_INIT_TOOLTIP"] = "Inicializar o sensor acelerômetro e giroscópio MPU6050 para coleta de dados.";
+Blockly.Msg["MPU6050_READ_ACC_X_TOOLTIP"] = "Ler a aceleração no eixo X usando o sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_ACC_Y_TOOLTIP"] = "Ler a aceleração no eixo Y usando o sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_ACC_Z_TOOLTIP"] = "Ler a aceleração no eixo Z usando o sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_GYRO_X_TOOLTIP"] = "Ler a velocidade angular no eixo X usando o sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_GYRO_Y_TOOLTIP"] = "Ler a velocidade angular no eixo Y usando o sensor MPU6050.";
+Blockly.Msg["MPU6050_READ_GYRO_Z_TOOLTIP"] = "Ler a velocidade angular no eixo Z usando o sensor MPU6050.";
+
+
+
+
+
+
+
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";
 Blockly.Msg["MATH_HUE"] = "#008000";

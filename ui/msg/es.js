@@ -53,25 +53,27 @@ var MSG = {
   notAvailableFlag: "$1 is not available on your browser.\r\nPlease make sure the $1 flag is enabled.",
 
 //Blocks
-  block_delay: "delay",
-  seconds: "seconds",
-  milliseconds: "milliseconds",
-  microseconds: "microseconds",
-  to: "to",
+  block_delay: "retraso",
+  seconds: "segundos",
+  milliseconds: "milisegundos",
+  microseconds: "microsegundos",
+  nanoseconds: "nanosegundos",
+  cpu_ticks: "ciclos de CPU",
+  to: "a",
   setpin: "set output pin",
   pin: "pin",
   read_digital_pin: "read digital input",
   read_analog_pin: "read analog input",
   show_iot: "show on IoT tab",
   data: "value",
-  set_rtc: "set date and time",
-  get_rtc: "get date and time",
-  year: "year",
-  month: "month",
-  day: "day",
-  hour: "hour",
-  minute: "minute",
-  second: "second",
+  set_rtc: "establecer fecha y hora",
+  get_rtc: "obtener fecha y hora",
+  year: "año",
+  month: "mes",
+  day: "día",
+  hour: "hora",
+  minute: "minuto",
+  second: "segundo",
   wifi_scan: "scan wifi networks",
   wifi_connect: "connect to wifi network",
   wifi_name: "network name",
@@ -87,8 +89,8 @@ var MSG = {
   file_close: "close file",
   file_write_line: "write line to file",
   file_line: "line",
-  try1: "try",
-  exp1: "except",
+  try1: "intentar",
+  exp1: "excepto",  
   ntp_sync: "sync date and time with NTP",
   timezone: "timezone",
   project_info: "Project Info",
@@ -110,6 +112,102 @@ var MSG = {
   dht_temp: "get DHT11/22 temperature",
   dht_humi: "get DHT11/22 humidity",
   type: "type",
+  start_thread: "iniciar tarea paralela con la función",
+  
+  
+  //Categoria temporizador
+  get: "obtener contador en",
+  counter: "contador",
+  by: "con",
+  by2: "a",
+  sum_time: "sumar tiempo",
+  diff_time: "diferencia de tiempo de",
+  timer: "temporizador n°",
+  do_timer: "ejecutar",
+  every_timer: "cada",
+  once_in: "una vez en",
+  until_deadline: "hasta el tiempo límite nº",
+  of: "de",
+  do: "ejecutar",
+  stop_timer: "detener temporizador",
+  deep_sleep: "sueño profundo",
+
+
+  //Categoria Comunicação
+  //Bluetooth
+  configure_bluetooth: "Configurar e iniciar el Bluetooth con el nombre",
+  handle_ble: "Establecer los datos recibidos a través de bluetooth en",
+  check_ble: "Verificar los datos recibidos",
+  configure_data_plotter: "Configurar el trazador para sensores",
+  call_format_plotter: "Enviar datos al trazador",
+  bluetooth_name: "miBluetooth",
+
+  //espnow
+  initialize_wlan_title: "Inicializar Interfaz WLAN",
+  get_mac_address_title: "Obtener Dirección MAC de la Placa Amado",
+  set_master_title: "Configurar la Placa Amado como Maestra",
+  add_peer_title: "Agregar Dispositivo por Dirección MAC",
+  receive_message_title: "Recibir Mensajes de Dispositivos",
+  set_peer_title: "Configurar la Placa Amado como Dispositivo Secundario",
+  send_message_to_peer_title: "Enviar Mensaje a un Dispositivo por MAC",
+  send_message_title: "Enviar Mensaje al Dispositivo Maestro",
+  receive_message_master_title: "Recibir Mensajes del Dispositivo Maestro",
+  variable_list: "Lista de variables",
+  add_variable_container: "Añadir variable",
+  variable_name: "Nombre de la variable",
+  variable_value: "Valor de la variable",
+  if: "Si",
+  is_none: "es None, establecer",
+  default_value: "a valor predeterminado",
+
+  //Blocos lógica
+  math_min_title: "Mínimo entre",
+  math_max_title: "Máximo entre",
+  and: "y",
+  //Blocos operadores
+  var_to_int_title: "A entero",
+  var_to_float_title: "A decimal",
+
+  //Blocos para funções de texto
+  to_string_title: "A texto",
+
+  //Blocos para as funções da categoria Python
+  os_error: "Excepto OSError",
+
+  //Blocos para os pinos de entrada/saida
+  analog_amado_board: "Leer entrada analógica",
+  attenuation: "Atenuación: ",
+  width: "Ancho: ",
+  frequency: "Frecuencia",
+  frequency: "frecuencia",
+  Ddty: "Ciclo de trabajo",
+  init_pwm: "Iniciar",
+  deinit_pwm: "Desactivar PWM #",
+  pins: "pinos",
+  external_event: "Evento externo (interrupción en el pin de entrada)",
+  trigger: "Disparador: ",
+  irq_falling: "CAÍDA DE SEÑAL",
+  irq_rising: "SUBIDA DE SEÑAL",
+  both: "CAÍDA Y SUBIDA (AMBOS)",
+
+  //Sensor ultrassônico
+  hcsr04_title: "Iniciar sensor ultrasónico HCSR04",
+  get_distance_hcsr04: "Obtener distancia",
+  echo_pin: "Pin de eco",
+  trigger_pin: "Pin de disparo",
+  timeout_hcsr04: "Tiempo límite (μs)",
+  //acelerometro e giroscopio
+  mpu6050_init: "Iniciar sensor acelerómetro y giroscopio MPU6050",
+  mpu6050_read_acc_x: "Leer aceleración en el eje X",
+  mpu6050_read_acc_y: "Leer aceleración en el eje Y",
+  mpu6050_read_acc_z: "Leer aceleración en el eje Z",
+  mpu6050_read_gyro_x: "Leer velocidad angular en el eje X",
+  mpu6050_read_gyro_y: "Leer velocidad angular en el eje Y",
+  mpu6050_read_gyro_z: "Leer velocidad angular en el eje Z",
+
+
+
+
 
 //Network
   net_http_get: "HTTP GET Request",
