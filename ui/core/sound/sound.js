@@ -159,7 +159,7 @@ function buildActiveNotes() {
   if (currentNote) {
     activeNotes.push(currentNote);
   }
-  
+
   activeNotes.pop();
 }
 
@@ -192,7 +192,8 @@ function clearSoundInput() {
 }
 
 // salva a melodia no localStorage
-function saveMelody() {
+function saveMelody(e) {
+  e.preventDefault();
   const melodyName = document.getElementById("soundName").value;
 
   if (!melodyName) {
@@ -328,7 +329,8 @@ function playTone(frequency, duration) {
 
 // import e export
 
-function exportMelody() {
+function exportMelody(e) {
+  e.preventDefault();
   buildActiveNotes();
 
   if (
