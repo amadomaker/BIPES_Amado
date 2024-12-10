@@ -349,9 +349,12 @@ function exportMelody(e) {
     return;
   }
 
+  const bpm = document.getElementById("bpm").value;
+
   const melodyData = {
     name: melodyName,
     notes: activeNotes,
+    bpm: bpm || 120
   };
 
   const jsonStr = JSON.stringify(melodyData, null, 2);
@@ -395,6 +398,7 @@ function displayImportedMelody(notes) {
       }
     }
   });
+
 }
 
 async function importMelody() {
@@ -412,10 +416,16 @@ async function importMelody() {
     localStorage.setItem("bipes@melodies", JSON.stringify(filteredMelodies));
   }
 
+  const bpm = newMelody.bpm || 120
+
   addMelodyToLocalStorage({
     name: melodyName,
     notes: newMelody.notes,
+    bpm
   });
+
+  // atualiza o bpm
+  document.getElementById("bpm").value = bpm;
 
   // Exibe a melodia importada no piano
   displayImportedMelody(newMelody.notes);
