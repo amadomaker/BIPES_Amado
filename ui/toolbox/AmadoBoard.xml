@@ -817,11 +817,10 @@
 
   <!--Categoria para o módulo RFID-->
   <category name="%{BKY_CAT_RFID}" colour="%{BKY_SENSORS_HUE}">
-      <label text="RC522 13.56MHz RFID Reader"></label>
-      <label text="Library: https://github.com/wendlers/micropython-mfrc522"></label>
-        <button text="Install mfrc522 library" callbackKey="installPyLib"></button>
-        <button text="Load example: mfrc522" callbackKey="loadExample"></button>
-        <button text="Documentation and how to connect: mfrc522" callbackKey="loadDoc"></button>
+      <label text="Leitor RFID MFRC522"></label>
+        <button text="Instalar biblioteca mfrc522" callbackKey="installPyLib"></button>
+        <button text="Carregar exemplo: mfrc522" callbackKey="loadExample"></button>
+        <button text="Documentação e como conectar: mfrc522" callbackKey="loadDoc"></button>
 
       <block type="rfid_rc522_init">
         <value name="sck">

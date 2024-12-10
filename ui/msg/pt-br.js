@@ -205,6 +205,13 @@ var MSG = {
   mpu6050_read_gyro_y: "Ler velocidade angular no eixo Y",
   mpu6050_read_gyro_z: "Ler velocidade angular no eixo Z",
   
+  //Leitor RFID
+  rfid_rc522_init_title: "Iniciar leitor RFID MFRC522",
+  rfid_rc522_detect_card_title: "Verificar se o cartão RFID está presente",
+  rfid_rc522_anticoll_title: "Obter identificação do cartão (UID)",
+  rfid_rc522_read_card_title: "Ler memória do cartão RFID",
+  rfid_rc522_write_card_title: "Escrever na memória do cartão RFID",
+  
 
 
 

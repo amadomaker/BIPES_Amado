@@ -9498,7 +9498,7 @@ Blockly.Blocks['rfid_rc522_init'] = {
   init: function() {
     this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
-        .appendField("Init RC522 RFID Module");
+        .appendField(MSG["rfid_rc522_init_title"]);
 
  this.appendDummyInput()
       .appendField(new Blockly.FieldImage(
@@ -9535,7 +9535,7 @@ Blockly.Blocks['rfid_rc522_init'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["RFID_RC522_INIT_TOOLTIP"]);
   }
 };
 
@@ -9543,7 +9543,7 @@ Blockly.Blocks['rfid_rc522_detect_card'] = {
   init: function() {
     this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
-        .appendField("Check if RFID Card is present");
+        .appendField(MSG["rfid_rc522_detect_card_title"]);
 
     this.appendValueInput("stat")
         .setCheck("Number")
@@ -9561,7 +9561,7 @@ Blockly.Blocks['rfid_rc522_detect_card'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
 
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["RFID_RC522_DETECT_CARD_TOOLTIP"]);
   }
 };
 
@@ -9570,7 +9570,7 @@ Blockly.Blocks['rfid_rc522_anticoll'] = {
   init: function() {
     this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
-        .appendField("Get card identification (UID)");
+        .appendField(MSG["rfid_rc522_anticoll_title"]);
 
     this.appendValueInput("stat")
         .setCheck("Number")
@@ -9588,7 +9588,7 @@ Blockly.Blocks['rfid_rc522_anticoll'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
 
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["RFID_RC522_ANTICOLL_TOOLTIP"]);
   }
 };
 
@@ -9599,11 +9599,11 @@ Blockly.Blocks['rfid_rc522_read_card'] = {
   init: function() {
     this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
-        .appendField("Read RFID Card Memory");
+        .appendField(MSG["rfid_rc522_read_card_title"]);
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["RFID_RC522_READ_CARD_TOOLTIP"]);
   }
 };
 
@@ -9613,11 +9613,11 @@ Blockly.Blocks['rfid_rc522_write_card'] = {
   init: function() {
     this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
-        .appendField("Write RFID Card Memory");
+        .appendField(MSG["rfid_rc522_write_card_title"]);
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["RFID_RC522_WRITE_CARD_TOOLTIP"]);
   }
 };
 

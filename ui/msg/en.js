@@ -203,6 +203,14 @@ var MSG = {
   mpu6050_read_gyro_x: "Read angular velocity on X axis",
   mpu6050_read_gyro_y: "Read angular velocity on Y axis",
   mpu6050_read_gyro_z: "Read angular velocity on Z axis",
+  
+  //Leitor RFID
+  rfid_rc522_init_title: "Initialize RFID MFRC522 Reader",
+  rfid_rc522_detect_card_title: "Check if RFID Card is present",
+  rfid_rc522_anticoll_title: "Get card identification (UID)",
+  rfid_rc522_read_card_title: "Read RFID Card Memory",
+  rfid_rc522_write_card_title: "Write RFID Card Memory",
+
 
 
     

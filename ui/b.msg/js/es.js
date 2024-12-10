@@ -485,7 +485,12 @@ Blockly.Msg["MPU6050_READ_ACC_Z_TOOLTIP"] = "Leer la aceleración en el eje Z us
 Blockly.Msg["MPU6050_READ_GYRO_X_TOOLTIP"] = "Leer la velocidad angular en el eje X usando el sensor MPU6050.";
 Blockly.Msg["MPU6050_READ_GYRO_Y_TOOLTIP"] = "Leer la velocidad angular en el eje Y usando el sensor MPU6050.";
 Blockly.Msg["MPU6050_READ_GYRO_Z_TOOLTIP"] = "Leer la velocidad angular en el eje Z usando el sensor MPU6050.";
-
+//Leitor RFID
+Blockly.Msg["RFID_RC522_INIT_TOOLTIP"] = "Inicializa el lector RFID MFRC522 con los pines especificados.";
+Blockly.Msg["RFID_RC522_DETECT_CARD_TOOLTIP"] = "Verifica si hay una tarjeta RFID presente y obtiene su estado y etiqueta.";
+Blockly.Msg["RFID_RC522_ANTICOLL_TOOLTIP"] = "Obtén la identificación única (UID) de la tarjeta RFID.";
+Blockly.Msg["RFID_RC522_READ_CARD_TOOLTIP"] = "Lee los datos almacenados en la memoria de la tarjeta RFID.";
+Blockly.Msg["RFID_RC522_WRITE_CARD_TOOLTIP"] = "Escribe datos en la memoria de la tarjeta RFID.";
 
 
 
