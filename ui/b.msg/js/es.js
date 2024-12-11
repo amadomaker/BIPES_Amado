@@ -506,6 +506,12 @@ Blockly.Msg["DC_MOTOR_INIT_TOOLTIP"] = "Inicializa un motor de CC configurando l
 Blockly.Msg["DC_MOTOR_POWER_TOOLTIP"] = "Establece la potencia (velocidad) del motor de CC entre 0 y 1023.";
 Blockly.Msg["DC_MOTOR_DIRECTION_TOOLTIP"] = "Establece la dirección del motor de CC (adelante o atrás).";
 Blockly.Msg["DC_MOTOR_STOP_TOOLTIP"] = "Detiene el motor de CC.";
+//Buzzer
+Blockly.Msg["TONE_TOOLTIP"] = "Genera un tono con una frecuencia y duración especificadas. Use 0 en duración para tono continuo.";
+Blockly.Msg["NOTE_TOOLTIP"] = "Reproduce una nota musical con su frecuencia correspondiente durante una duración específica. Use 0 en duración para nota continua.";
+Blockly.Msg["RTTTL_PLAY_TOOLTIP"] = "Reproduce una canción predefinida en formato RTTTL (Ring Tone Text Transfer Language). Seleccione la canción de la biblioteca.";
+Blockly.Msg["PLAY_SAVE_MELODY_TOOLTIP"] = "Reproduce una melodía previamente guardada en la pestaña Sonido.";
+
 
 
 

@@ -506,6 +506,12 @@ Blockly.Msg["DC_MOTOR_INIT_TOOLTIP"] = "Initializes a DC motor by setting up PWM
 Blockly.Msg["DC_MOTOR_POWER_TOOLTIP"] = "Sets the power (speed) for the DC motor between 0 and 1023";
 Blockly.Msg["DC_MOTOR_DIRECTION_TOOLTIP"] = "Sets the direction of the DC motor (forward or reverse).";
 Blockly.Msg["DC_MOTOR_STOP_TOOLTIP"] = "Stops the DC motor.";
+//Buzzer
+Blockly.Msg["TONE_TOOLTIP"] = "Generates a tone with specified frequency and duration. Use 0 for continuous tone.";
+Blockly.Msg["NOTE_TOOLTIP"] = "Plays a musical note with its corresponding frequency for a specified duration. Use 0 for continuous note.";
+Blockly.Msg["RTTTL_PLAY_TOOLTIP"] = "Plays a predefined song in RTTTL (Ring Tone Text Transfer Language) format. Select the song from the library.";
+Blockly.Msg["PLAY_SAVE_MELODY_TOOLTIP"] = "Plays a previously saved melody from the Sound tab.";
+
 
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";

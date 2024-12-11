@@ -243,6 +243,18 @@ var MSG = {
   dc_motor_direction_label: "Dirección",
   dc_motor_stop_title: "Detener motor de CC",
   
+  //Buzzer
+  tone_title: "Reproducir zumbador en",
+  note_title: "Reproducir zumbador en",
+  rttl_play_title: "Reproducir música",
+  duration_label: "duración (s): ",
+  duration_label2: "(0 para duración infinita)",
+  note_label: "nota",
+  frequency_label: "frecuencia",
+  songs_label: "Canción:",
+  melody_label: "melodía",
+
+
 
 
 

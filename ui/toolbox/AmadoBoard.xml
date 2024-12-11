@@ -1523,13 +1523,9 @@ _
   </category>
 
   <category name="%{BKY_CAT_BUZZER}" colour = "%{BKY_ACTUATORS_HUE}">
-        <label text="Sounds and RTTTL:"></label>
-        <label text="Ring Tone Text Transfer Language (RTTTL) "></label>
-        <label text="Library: "></label>
-        <button text="Install rtttl library" callbackKey="installPyLib"></button>
-        <button text="Install songs library" callbackKey="installPyLib"></button>
-        <button text="Load example: songs" callbackKey="loadExample"></button>
-        <button text="Documentation and how to connect: sound" callbackKey="loadDoc"></button>
+        <label text="Bibliotecas necessárias para tocar sons: "></label>
+        <button text="Instalar biblioteca rtttl" callbackKey="installPyLib"></button>
+        <button text="Instalar biblioteca songs" callbackKey="installPyLib"></button>
 
     <block type="tone"> 
       <value name="pin">
@@ -1582,7 +1578,7 @@ _
       </value>
     </block>
 
-    <label text="User Created Songs:"></label>
+    <label text="Múscias criadas pelo usuário:"></label>
 
     <block type="play_save_melody"> 
       <value name="pin">
@@ -1592,8 +1588,8 @@ _
       </value>
     </block>
 
-    <label text="Songs:"></label>
-    <button text="Install songs library" callbackKey="installPyLib"></button>
+    <label text="Músicas disponíveis da biblioteca songs:"></label>
+    <button text="Instalar biblioteca songs" callbackKey="installPyLib"></button>
 
     <block type="text"> <field name="TEXT">Super Mario - Main Theme</field> </block>
     <block type="text"> <field name="TEXT">Super Mario - Title Music</field> </block>

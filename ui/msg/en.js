@@ -243,6 +243,17 @@ var MSG = {
   dc_motor_direction_label: "Direction",
   dc_motor_stop_title: "Stop DC Motor",
   
+  //Buzzer
+  tone_title: "Play buzzer on",
+  note_title: "Play buzzer on",
+  rttl_play_title: "Play music",
+  duration_label: "duration (s): ",
+  duration_label2: "(0 for infinite duration)",
+  note_label: "note",
+  frequency_label: "frequency",
+  songs_label: "Song:",
+  melody_label: "melody",
+
 
 
 

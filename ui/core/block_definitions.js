@@ -11281,27 +11281,27 @@ Blockly.Blocks['esp32_cam_white_led'] = {
 Blockly.Blocks['tone'] = {
   init: function(){
     this.appendDummyInput()
-        .appendField("Tone (Hz)");
+        .appendField(MSG["tone_title"]);
 
     this.appendValueInput("pin")
         .setCheck(null)
-	.appendField("Pin");
+	.appendField(MSG["Pin"]);
     this.appendValueInput("frequency")
         .setCheck("Number")
-	  .appendField("Frequency");
+	  .appendField(MSG["frequency_label"]);
 
     this.appendValueInput("duration")
         .setCheck("Number")
-	.appendField("Duration (s):");
+	.appendField(MSG["duration_label"]);
 
     this.appendDummyInput()
-        .appendField("(0 for infinite duration)");
+        .appendField(MSG["duration_label2"]);
 
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
- this.setTooltip("Sound - tone generator");
+ this.setTooltip(Blockly.Msg["TONE_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
  }
 };
@@ -11309,26 +11309,26 @@ Blockly.Blocks['tone'] = {
 Blockly.Blocks['note'] = {
   init: function(){
     this.appendDummyInput()
-        .appendField("Play music note");
+        .appendField(MSG["note_title"]);
     this.appendValueInput("pin")
         .setCheck(null)
-	.appendField("Pin");
+	.appendField("");
 
     this.appendValueInput("note")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Note");
+        .appendField(MSG["note_label"]);
 
     this.appendValueInput("duration")
         .setCheck("Number")
-	.appendField("Duration (s):");
+	.appendField(MSG["duration_label"]);
 
     this.appendDummyInput()
-        .appendField("(0 for infinite duration)");
+        .appendField(MSG["duration_label2"]);
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
- this.setTooltip("Sound - tone generator (music note)");
+ this.setTooltip(Blockly.Msg["NOTE_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
  }
 };
@@ -11338,20 +11338,21 @@ Blockly.Blocks['note'] = {
 Blockly.Blocks['rtttl_play'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Play song (RTTTL)");
+        .appendField(MSG["rttl_play_title"]);
 
     this.appendValueInput("pin")
         .setCheck(null)
-	.appendField("Pin");
+        .setAlign(Blockly.ALIGN_RIGHT)
+	      .appendField(MSG["pin"]);
 
     this.appendValueInput("song")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Song");
+        .appendField(MSG["songs_label"]);
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
- this.setTooltip("Control ESP32-CAM White LED (flashlight)");
+ this.setTooltip(Blockly.Msg["RTTTL_PLAY_TOOLTIP"]);
  this.setHelpUrl("bipes.net.br");
   }
 };
@@ -11359,14 +11360,14 @@ Blockly.Blocks['rtttl_play'] = {
 Blockly.Blocks['play_save_melody'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Reproduzir");
+        .appendField(MSG["tone_title"]);
 
     this.appendValueInput("pin")
         .setCheck(null)
-	.appendField("Pino");
+	.appendField("");
 
   this.appendDummyInput()
-  .appendField("Melodia")
+  .appendField(MSG["melody_label"])
   .appendField(new Blockly.FieldDropdown(() => {
       // Recupera as melodias salvas no localStorage
       const savedMelodies = localStorage.getItem('bipes@melodies');
@@ -11388,7 +11389,7 @@ Blockly.Blocks['play_save_melody'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
-    this.setTooltip("Reproduz uma melodia previamente salva");
+    this.setTooltip(Blockly.Msg["PLAY_SAVE_MELODY_TOOLTIP"]);
 
     //menu de contexto
     this.customContextMenu = function(options) {
@@ -11467,7 +11468,7 @@ function exportSavedMelody(melodyName) {
 Blockly.Blocks['tone_type'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Note:")
+        .appendField(MSG["note_label"])
 //        .appendField(new Blockly.FieldDropdown([["B1","31"], ["C2","33"], ["CS2","35"], ["D2","37"], ["DS2","39"], ["E2","41"], ["F2","44"], ["FS2","46"], ["G2","49"], ["GS2","52"], ["A2","55"], ["AS2","58"]]), "tone");
         .appendField(new Blockly.FieldDropdown([["B1","31"],["C2","33"],["CS2","35"],["D2","37"],["DS2","39"],["E2","41"],["F2","44"],["FS2","46"],["G2","49"],["GS2","52"],["A2","55"],["AS2","58"],["B2","62"],["C3","65"],["CS3","69"],["D3","73"],["DS3","78"],["E3","82"],["F3","87"],["FS3","93"],["G3","98"],["GS3","104"],["A3","110"],["AS3","117"],["B3","123"],["C4","131"],["CS4","139"],["D4","147"],["DS4","156"],["E4","165"],["F4","175"],["FS4","185"],["G4","196"],["GS4","208"],["A4","220"],["AS4","233"],["B4","247"],["C5","262"],["CS5","277"],["D5","294"],["DS5","311"],["E5","330"],["F5","349"],["FS5","370"],["G5","392"],["GS5","415"],["A5","440"],["AS5","466"],["B5","494"],["C6","523"],["CS6","554"],["D6","587"],["DS6","622"],["E6","659"],["F6","698"],["FS6","740"],["G6","784"],["GS6","831"],["A6","880"],["AS6","932"],["B6","988"],["C7","1047"],["CS7","1109"],["D7","1175"],["DS7","1245"],["E7","1319"],["F7","1397"],["FS7","1480"],["G7","1568"],["GS7","1661"],["A7","1760"],["AS7","1865"],["B7","1976"],["C8","2093"],["CS8","2217"],["D8","2349"],["DS8","2489"],["E8","2637"],["F8","2794"],["FS8","2960"],["G8","3136"],["GS8","3322"],["A8","3520"],["AS8","3729"],["B8","3951"],["C9","4186"],["CS9","4435"],["D9","4699"],["DS9","4978"],["P","0"]]), "tone");
 
