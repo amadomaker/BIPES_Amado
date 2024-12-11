@@ -524,6 +524,13 @@ Blockly.Msg["NET_GET_REQUEST_TOOLTIP"] = "Makes an HTTP GET request to the speci
 Blockly.Msg["NET_POST_REQUEST_TOOLTIP"] = "Makes an HTTP POST request with the specified URL and data.";
 Blockly.Msg["HTTP_GET_STATUS_TOOLTIP"] = "Gets the status code of the HTTP GET request.";
 Blockly.Msg["HTTP_GET_CONTENT_TOOLTIP"] = "Gets the content of the HTTP GET request response.";
+//Servidor HTTP
+Blockly.Msg["NET_HTTP_SERVER_START_TOOLTIP"] = "Starts an HTTP server on the specified port.";
+Blockly.Msg["NET_HTTP_SERVER_ACCEPT_TOOLTIP"] = "Waits for an HTTP client to connect to the server.";
+Blockly.Msg["NET_HTTP_SERVER_REQUESTED_PAGE_TOOLTIP"] = "Gets the page requested by the HTTP client.";
+Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_TOOLTIP"] = "Sends an HTTP response with the specified HTML content.";
+Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_JPG_TOOLTIP"] = "Sends an HTTP response containing a JPG image.";
+Blockly.Msg["NET_HTTP_SERVER_CLOSE_TOOLTIP"] = "Closes the HTTP server.";
 
 
 

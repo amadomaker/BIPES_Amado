@@ -522,8 +522,13 @@ Blockly.Msg["NET_GET_REQUEST_TOOLTIP"] = "Faz uma requisição HTTP GET para a U
 Blockly.Msg["NET_POST_REQUEST_TOOLTIP"] = "Faz uma requisição HTTP POST com a URL e os dados especificados.";
 Blockly.Msg["HTTP_GET_STATUS_TOOLTIP"] = "Obtém o código de status da requisição HTTP GET.";
 Blockly.Msg["HTTP_GET_CONTENT_TOOLTIP"] = "Obtém o conteúdo da resposta da requisição HTTP GET.";
-
-
+//Servidor HTTP
+Blockly.Msg["NET_HTTP_SERVER_START_TOOLTIP"] = "Inicia um servidor HTTP na porta especificada.";
+Blockly.Msg["NET_HTTP_SERVER_ACCEPT_TOOLTIP"] = "Aguarda a conexão de um cliente HTTP ao servidor.";
+Blockly.Msg["NET_HTTP_SERVER_REQUESTED_PAGE_TOOLTIP"] = "Obtém a página solicitada pelo cliente HTTP.";
+Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_TOOLTIP"] = "Envia uma resposta HTTP com o conteúdo HTML especificado.";
+Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_JPG_TOOLTIP"] = "Envia uma resposta HTTP contendo uma imagem JPG.";
+Blockly.Msg["NET_HTTP_SERVER_CLOSE_TOOLTIP"] = "Fecha o servidor HTTP.";
 
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";

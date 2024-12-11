@@ -273,9 +273,18 @@ var MSG = {
 
 
 //Network
-  net_http_get: "HTTP GET Request",
-  net_http_get_status: "HTTP Status code",
-  net_http_get_content: "HTTP Response content",
+  net_http_get: "Solicitud HTTP GET",
+  net_http_get_status: "Estado de la respuesta HTTP",
+  net_http_get_content: "Contenido de la respuesta HTTP",
+  net_http_server_start: "Iniciar servidor web HTTP",
+  net_http_server_start_port: "Puerto",
+  net_http_server_wait: "Esperar cliente HTTP",
+  net_http_server_requested_page: "Página web solicitada",
+  net_http_server_send_response: "Enviar respuesta HTTP",
+  net_http_server_send_html: "HTML",
+  net_http_server_close_title: "Cerrar servidor web HTTP",
+
+
 
 //Splash screen
   splash_welcome: "Bienvenida a BIPES",

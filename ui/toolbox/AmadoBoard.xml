@@ -2098,7 +2098,9 @@ _
     </category>
 
     <category name="%{BKY_CAT_HTTPSERVER}" colour="%{BKY_NET_HUE}">
-      <label text="HTTP Web Server"></label>
+      <label text="Blocos para configurar um servidor HTTP que responde a solicitações de páginas web ou dados." />
+      <label text="Permite criar servidores simples para acessar informações via navegador ou integrar dispositivos IoT." />
+
       <button text="Load example: webserver" callbackKey="loadExample"></button>
       <button text="Documentation: webserver" callbackKey="loadDoc"></button>
 
@@ -2116,7 +2118,7 @@ _
     <block type="net_http_server_send_response">
 	 <value name="html">
           <shadow type="text">
-            <field name="TEXT">You reached BIPES WebServer!</field>
+            <field name="TEXT">Você acessou o servidor web do Dblocks!</field>
           </shadow>
         </value>
     </block>

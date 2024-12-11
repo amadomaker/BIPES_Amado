@@ -9885,7 +9885,7 @@ Blockly.Blocks['net_http_server_start'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_START_TOOLTIP"]);
   }
 };
 
@@ -9898,7 +9898,7 @@ Blockly.Blocks['net_http_server_accept'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_ACCEPT_TOOLTIP"] );
   }
 };
 
@@ -9910,7 +9910,7 @@ Blockly.Blocks['net_http_server_requested_page'] = {
         .appendField(MSG["net_http_server_requested_page"]);
 
     this.setOutput(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_REQUESTED_PAGE_TOOLTIP"]);
   }
 };
 
@@ -9928,7 +9928,7 @@ Blockly.Blocks['net_http_server_send_response'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_TOOLTIP"]);
   }
 };
 
@@ -9945,7 +9945,7 @@ Blockly.Blocks['net_http_server_send_response_jpg'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_JPG_TOOLTIP"]);
   }
 };
 
@@ -9955,10 +9955,10 @@ Blockly.Blocks['net_http_server_close'] = {
   init: function() {
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
-        .appendField("Close HTTP Web Server");
+        .appendField(MSG["net_http_server_close_title"]);
 
     this.setOutput(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_CLOSE_TOOLTIP"]);
   }
 };
 

@@ -280,6 +280,7 @@ var MSG = {
   net_http_server_requested_page: "Requested Web Page",
   net_http_server_send_response: "Send HTTP Response",
   net_http_server_send_html: "HTML",
+  net_http_server_close_title: "Close HTTP web server",
 
 //Splash screen
   splash_welcome: "Welcome to BIPES!",

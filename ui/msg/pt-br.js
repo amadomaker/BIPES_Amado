@@ -281,6 +281,7 @@ var MSG = {
   net_http_server_requested_page: "Página web solicitada",
   net_http_server_send_response: "Enviar resposta HTTP",
   net_http_server_send_html: "HTML",
+  net_http_server_close_title: "Fechar HTTP web server",
 
 
 //Splash screen
