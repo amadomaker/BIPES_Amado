@@ -231,6 +231,18 @@ var MSG = {
   move_servo_angle: "Angle",
   no_servos: "No servos",
 
+  //DC motor
+  dc_motor_init_title: "Init DC Motor",
+  dc_motor_pwm_label: "PWM",
+  dc_motor_dir1_label: "Direction 1",
+  dc_motor_dir2_label: "Direction 2",
+  dc_motor_name_label: "Motor Name: ",
+  dc_motor_power_title: "Set DC Motor Power  -",
+  dc_motor_power_label: "Power",
+  dc_motor_direction_title: "Set DC Motor Direction  -",
+  dc_motor_direction_label: "Direction",
+  dc_motor_stop_title: "Stop DC Motor",
+  
 
 
 

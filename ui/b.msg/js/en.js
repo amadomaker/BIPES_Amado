@@ -501,7 +501,11 @@ Blockly.Msg["WRITE_OLED_INT_TOOLTIP"] = "Display an integer value at a specified
 //Servo motor
 Blockly.Msg["INIT_SERVO_TOOLTIP"] = "Initialize an servo motor with the specified name and control pin.";
 Blockly.Msg["MOVE_SERVO_TOOLTIP"] = "Move the servo motor to a specified angle in degrees.";
-
+//Motor DC
+Blockly.Msg["DC_MOTOR_INIT_TOOLTIP"] = "Initializes a DC motor by setting up PWM, Dir1, and Dir2 pins.";
+Blockly.Msg["DC_MOTOR_POWER_TOOLTIP"] = "Sets the power (speed) for the DC motor between 0 and 1023";
+Blockly.Msg["DC_MOTOR_DIRECTION_TOOLTIP"] = "Sets the direction of the DC motor (forward or reverse).";
+Blockly.Msg["DC_MOTOR_STOP_TOOLTIP"] = "Stops the DC motor.";
 
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";

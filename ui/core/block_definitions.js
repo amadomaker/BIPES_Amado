@@ -10482,7 +10482,7 @@ Blockly.Blocks['dc_motor_init'] = {
   init: function() {
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
-        .appendField("Init DC Motor");
+        .appendField(MSG["dc_motor_init_title"]);
 
     this.appendDummyInput()
       .appendField(new Blockly.FieldImage(
@@ -10494,25 +10494,25 @@ Blockly.Blocks['dc_motor_init'] = {
     this.appendValueInput("pwm")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("PWM");
+        .appendField(MSG["dc_motor_pwm_label"]);
 
     this.appendValueInput("dir1")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Dir1");
+        .appendField(MSG["dc_motor_dir1_label"]);
 
     this.appendValueInput("dir2")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Dir2");
+        .appendField(MSG["dc_motor_dir2_label"]);
 
     this.appendDummyInput()
-        .appendField("Motor Name")
+        .appendField(MSG["dc_motor_name_label"])
         .appendField(new Blockly.FieldTextInput('motor1'), 'motor_name');
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["DC_MOTOR_INIT_TOOLTIP"]);
   }
 };
 
@@ -10520,12 +10520,12 @@ Blockly.Blocks['dc_motor_power'] = {
   init: function() {
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
-        .appendField("Set DC Motor Power");
+        .appendField(MSG["dc_motor_power_title"]);
 
     this.appendValueInput("power")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Power");
+        .appendField(MSG["dc_motor_power_label"]);
 
     this.appendDummyInput()
         //.appendField("Motor Name")
@@ -10534,7 +10534,7 @@ Blockly.Blocks['dc_motor_power'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
 
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["DC_MOTOR_POWER_TOOLTIP"]);
   }
 };
 
@@ -10542,12 +10542,12 @@ Blockly.Blocks['dc_motor_direction'] = {
   init: function() {
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
-        .appendField("Set DC Motor Direction");
+        .appendField(MSG["dc_motor_direction_title"]);
 
     this.appendValueInput("dir")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Direction");
+        .appendField(MSG["dc_motor_direction_label"]);
 
     this.appendDummyInput()
         //.appendField("Motor Name")
@@ -10556,7 +10556,7 @@ Blockly.Blocks['dc_motor_direction'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
 
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["DC_MOTOR_DIRECTION_TOOLTIP"]);
   }
 };
 
@@ -10564,7 +10564,7 @@ Blockly.Blocks['dc_motor_stop'] = {
   init: function() {
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
-        .appendField("Stop DC Motor");
+        .appendField(MSG["dc_motor_stop_title"]);
 
     this.appendDummyInput()
         //.appendField("Motor Name")
@@ -10573,7 +10573,7 @@ Blockly.Blocks['dc_motor_stop'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
 
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["DC_MOTOR_STOP_TOOLTIP"]);
   }
 };
 

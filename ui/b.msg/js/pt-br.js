@@ -499,8 +499,11 @@ Blockly.Msg["WRITE_OLED_INT_TOOLTIP"] = "Mostre um valor inteiro em uma posiçã
 //Servo motor
 Blockly.Msg["INIT_SERVO_TOOLTIP"] = "Inicialize um servo motor com o nome e pino de controle especificados.";
 Blockly.Msg["MOVE_SERVO_TOOLTIP"] = "Mova o servo motor  para um ângulo especificado em graus.";
-
-
+//Motor DC
+Blockly.Msg["DC_MOTOR_INIT_TOOLTIP"] = "Inicializa um motor DC configurando os pinos PWM, Dir1 e Dir2.";
+Blockly.Msg["DC_MOTOR_POWER_TOOLTIP"] = "Define a potência (velocidade) do motor DC entre 0 e 1023";
+Blockly.Msg["DC_MOTOR_DIRECTION_TOOLTIP"] = "Define a direção do motor DC (frente ou ré).";
+Blockly.Msg["DC_MOTOR_STOP_TOOLTIP"] = "Para o motor DC.";
 
 
 

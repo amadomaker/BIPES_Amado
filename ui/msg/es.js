@@ -231,7 +231,18 @@ var MSG = {
   move_servo_name: "Nombre del servo",
   move_servo_angle: "Ángulo",
   no_servos: "Ningún servo",
-
+  //DC motor
+  dc_motor_init_title: "Iniciar motor de CC",
+  dc_motor_pwm_label: "PWM",
+  dc_motor_dir1_label: "Dirección 1",
+  dc_motor_dir2_label: "Dirección 2",
+  dc_motor_name_label: "Nombre del motor:",
+  dc_motor_power_title: "Establecer potencia del motor de CC  -",
+  dc_motor_power_label: "Potencia",
+  dc_motor_direction_title: "Establecer dirección del motor de CC  -",
+  dc_motor_direction_label: "Dirección",
+  dc_motor_stop_title: "Detener motor de CC",
+  
 
 
 
