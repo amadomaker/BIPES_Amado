@@ -140,7 +140,7 @@ var MSG = {
   bluetooth_name: "meuBluetooth",
 
   //espnow
-  initialize_wlan_title: "Inicializar Interface WLAN",
+  initialize_wlan_title: "Preparar para obter endereço MAC",
   get_mac_address_title: "Obter Endereço MAC da Placa Amado",
   set_master_title: "Configurar Placa Amado como Mestre",
   add_peer_title: "Adicionar Dispositivo pelo Endereço MAC",
@@ -254,6 +254,17 @@ var MSG = {
   frequency_label: "frequência",
   songs_label: "Música:",
   melody_label: "melodia",
+
+  //Bluetooth REPL
+  bluetooth_repl_start_title: "Iniciar REPL via Web Bluetooth",
+  bluetooth_repl_setup_title: "Configurar REPL via Web Bluetooth",
+  bluetooth_name_label: "Nome Bluetooth:",
+
+  //Wifi
+  net_ap_mode_title: "Configurar Modo Ponto de Acesso",
+  net_network_name_label: "Nome da rede",
+  net_network_key_label: "Senha da rede",
+  net_ifconfig_title: "Endereço IP Atual",
 
 
 

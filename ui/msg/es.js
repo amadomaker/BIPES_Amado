@@ -74,10 +74,10 @@ var MSG = {
   hour: "hora",
   minute: "minuto",
   second: "segundo",
-  wifi_scan: "scan wifi networks",
-  wifi_connect: "connect to wifi network",
-  wifi_name: "network name",
-  wifi_key: "key/password",
+  wifi_scan: "escanear redes wifi",
+  wifi_connect: "conectar a red wifi",
+  wifi_name: "nombre de la red",
+  wifi_key: "clave/contraseña",  
   easymqtt_start: "EasyMQTT Start",
   easymqtt_publish: "EasyMQTT Publish Data",
   topic: "topic",
@@ -143,7 +143,7 @@ var MSG = {
   bluetooth_name: "miBluetooth",
 
   //espnow
-  initialize_wlan_title: "Inicializar Interfaz WLAN",
+  initialize_wlan_title: "Preparar para obtener dirección MAC",
   get_mac_address_title: "Obtener Dirección MAC de la Placa Amado",
   set_master_title: "Configurar la Placa Amado como Maestra",
   add_peer_title: "Agregar Dispositivo por Dirección MAC",
@@ -254,7 +254,16 @@ var MSG = {
   songs_label: "Canción:",
   melody_label: "melodía",
 
-
+  //Bluetooth REPL
+  bluetooth_repl_start_title: "Iniciar REPL mediante Web Bluetooth",
+  bluetooth_repl_setup_title: "Configurar REPL mediante Web Bluetooth",
+  bluetooth_name_label: "Nombre Bluetooth:",
+  
+  //Wifi
+  net_ap_mode_title: "Configurar Modo Punto de Acceso",
+  net_network_name_label: "Nombre de la red",
+  net_network_key_label: "Contraseña de la red",
+  net_ifconfig_title: "Dirección IP Actual",
 
 
 

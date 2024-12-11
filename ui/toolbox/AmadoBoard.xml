@@ -1625,49 +1625,60 @@ _
 
 <!--Categoria comunicação-->
 <category name="%{BKY_CAT_COMM}" colour="%{BKY_COMM_HUE}">
-<!--categoria bluetooth-->
-  <category name="Bluetooth" colour="%{BKY_COMM_HUE}">
-    <label text="Bluetooth low energy"></label>
-    <block type="configure_and_start_bluetooth"></block>
-    <block type="handle_ble_data"></block>
-    <block type="check_ble_data"></block>
-    <block type="configure_data_plotter"></block>
-    <block type="call_format_plotter_data"></block>
+<!-- Categoria Bluetooth -->
+<category name="Bluetooth" colour="%{BKY_COMM_HUE}">
+  <label text="Bluetooth Low Energy (BLE) - baixo consumo"></label>
+  <label text="Compatível com o aplicativo 'Bluefruit Connect' disponível nas lojas de aplicativos"></label>
+  <label text="Baixe o app: https://play.google.com/store/apps/details?id=com.adafruit.bluefruit.le.connect"></label>
+  <block type="configure_and_start_bluetooth"></block>
+  <block type="handle_ble_data"></block>
+  <block type="check_ble_data"></block>
+  <block type="configure_data_plotter"></block>
+  <block type="call_format_plotter_data"></block>
 </category>
-<!--Categoria bluetooth REPL-->
+
+<!--Categoria Bluetooth REPL-->
 <category name="Bluetooth REPL" colour="%{BKY_COMM_HUE}">
-  <label text="Bluetooth REPL"></label>
-  <label text="This block allows terminal/console access using bluetooth."></label>
-  <label text="Library: https://github.com/micropython/micropython/tree/master/examples/bluetooth"></label>
-  <label text="You need to install 3 files to use:"></label>
-  <button text="Install ble_advertising library" callbackKey="installPyLib"></button>
-  <button text="Install ble_uart_peripheral library" callbackKey="installPyLib"></button>
-  <button text="Install ble_uart_repl library" callbackKey="installPyLib"></button>
+  <label text="Bluetooth REPL(Read-Eval-Print Loop)"></label>
+  <label text="Este bloco permite acesso ao terminal/console usando Bluetooth, além de possibilitar o envio de programação diretamente para o dispositivo via Bluetooth."></label>
+  <label text="Biblioteca: https://github.com/micropython/micropython/tree/master/examples/bluetooth"></label>
+  <label text="Você precisa instalar 3 arquivos para usar:"></label>
+  <button text="Instalar a biblioteca ble_advertising" callbackKey="installPyLib"></button>
+  <button text="Instalar a biblioteca ble_uart_peripheral" callbackKey="installPyLib"></button>
+  <button text="Instalar a biblioteca ble_uart_repl" callbackKey="installPyLib"></button>
 
   <label text="Web Bluetooth REPL"></label>
   <block type="bluetooth_repl_setup">
   <value name="name">
       <shadow type="text">
-        <field name="TEXT">BIPES-BLE</field>
+        <field name="TEXT">DBLOCKS-BLE</field>
       </shadow>
     </value>
   </block>
   <block type="bluetooth_repl_start">
   <value name="name">
       <shadow type="text">
-        <field name="TEXT">BIPES-BLE</field>
+        <field name="TEXT">DBLOCKS-BLE</field>
       </shadow>
     </value>
   </block>
-  <label text="Usage:"></label>
-  <label text="1. Install the 3 files above"></label>
-  <label text="2. Start Web Bluetooth REPL"></label>
-  <label text="3. Pair the ESP32 with your device /"></label>
-  <label text="4. Go to https://bipes.net.br/beta2/ui/"></label>
-  <label text="5. Select the bluetooth option and Connect (Web Bluetooth)"></label>
+  <label text="Uso:"></label>
+  <label text="1. Instale os 3 arquivos acima"></label>
+  <label text="2. Inicie o Web Bluetooth REPL"></label>
+  <label text="3. Emparelhe a Amado board com seu dispositivo"></label>
+  <label text="4. Acesse https://dblocks.com.br/ui/"></label>
+  <label text="5. Selecione a opção de Bluetooth e Conectar (Web Bluetooth)"></label>
 </category>
+
 <!--Categoria espnow-->
 <category name="Espnow" colour="%{BKY_COMM_HUE}">
+  <label text="Protocolo de comunicação ESP-NOW"></label>
+  <label text="Permite comunicação sem fio entre as placas Amado board."></label>
+  <label text="Características:"></label>
+  <label text="1. Alta velocidade e baixa latência."></label>
+  <label text="2. Comunicação ponto-a-ponto sem necessidade de Wi-Fi."></label>
+  <label text="Requisitos:"></label>
+  <label text="1. Os dispositivos devem estar próximos(20m a 50m) e configurados corretamente."></label>
   <block type="init_wlan"></block>
   <block type="get_mac_address"></block>
   <block type="set_master"></block>
@@ -1681,6 +1692,10 @@ _
   <block type="check_and_assign_value"></block>
 </category>
 <category name="%{BKY_CAT_WIFI}" colour="%{BKY_COMM_HUE}">
+  <label text="Blocos para configurar Wi-Fi."></label>
+  <label text="Inclui suporte para modo Ponto de Acesso (AP) e Cliente Wi-Fi."></label>
+  <label text="Permite conectar, escanear redes e obter o IP atual."></label>
+
   <block type="wifi_client_connect">
     <value name="wifi_client_essid">
       <shadow type="text">
@@ -1694,7 +1709,6 @@ _
     </value>
   </block>
   <block type="net_ap_mode">
-    <field name="NAME">Configure Access Point Mode</field>
     <value name="wifi_essid">
       <shadow type="text">
         <field name="TEXT"></field>
@@ -1709,7 +1723,6 @@ _
   <block type="wifi_client_scan_networks">
   </block>
   <block type="net_ifconfig">
-    <field name="NET_IFCONFIG">Wifi current IP</field>
   </block>
 </category>
 

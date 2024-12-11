@@ -1317,16 +1317,6 @@ Blockly.Blocks['net_post_request'] = {
   }
 };
 
-Blockly.Blocks['net_ifconfig'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField(new Blockly.FieldLabelSerializable("Wifi current IP"), "NET_IFCONFIG");
-    this.setOutput(true, null);
-    this.setColour("#7b49ad");
- this.setTooltip("Wifi current IP");
- this.setHelpUrl("http://www.bipes.net.br");
-  }
-};
 
 Blockly.Blocks['exec_python_output'] = {
   init: function() {
@@ -1343,19 +1333,19 @@ Blockly.Blocks['exec_python_output'] = {
 Blockly.Blocks['net_ap_mode'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField(new Blockly.FieldLabelSerializable("Configure Access Point Mode"), "NAME");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["net_ap_mode_title"]), "NAME");
     this.appendValueInput("wifi_essid")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField(new Blockly.FieldLabelSerializable("Network name"), "NET_NETWORK_NAME");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["net_network_name_label"]), "NET_NETWORK_NAME");
     this.appendValueInput("wifi_key")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField(new Blockly.FieldLabelSerializable("Network password"), "NET_NETWORK_KEY");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["net_network_key_label"]), "NET_NETWORK_KEY");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
- this.setTooltip("Configure Access Point Mode");
+ this.setTooltip(Blockly.Msg["NET_AP_MODE_TOOLTIP"] );
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1375,7 +1365,7 @@ Blockly.Blocks['wifi_client_connect'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
- this.setTooltip("Connect to a Wifi network");
+ this.setTooltip(Blockly.Msg["WIFI_CLIENT_CONNECT_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1386,7 +1376,18 @@ Blockly.Blocks['wifi_client_scan_networks'] = {
         .appendField(new Blockly.FieldLabelSerializable(MSG["wifi_scan"]), "NET_SCAN_WIFI");
     this.setOutput(true, null);
     this.setColour("#7b49ad");
- this.setTooltip("Scan wifi networks");
+ this.setTooltip(Blockly.Msg["WIFI_CLIENT_SCAN_NETWORKS_TOOLTIP"]);
+ this.setHelpUrl("http://www.bipes.net.br");
+  }
+};
+
+Blockly.Blocks['net_ifconfig'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldLabelSerializable(MSG["net_ifconfig_title"]), "NET_IFCONFIG");
+    this.setOutput(true, null);
+    this.setColour("#7b49ad");
+ this.setTooltip(Blockly.Msg["NET_IFCONFIG_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -10973,37 +10974,37 @@ Blockly.Blocks['localstorage_store_item'] = {
 Blockly.Blocks['bluetooth_repl_start'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Start Web Bluetooth REPL");
+        .appendField(MSG["bluetooth_repl_start_title"]);
 
     this.appendValueInput("name")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Bluetooth name:");
+        .appendField(MSG["bluetooth_name_label"]);
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
- this.setTooltip("Start REPL over Web Bluetooth");
- this.setHelpUrl("www.bipes.net.br");
+ this.setTooltip(Blockly.Msg["BLUETOOTH_REPL_START_TOOLTIP"]);
+ this.setHelpUrl("");
   }
 };
 
 Blockly.Blocks['bluetooth_repl_setup'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Setup Web Bluetooth REPL");
+        .appendField(MSG["bluetooth_repl_setup_title"]);
 
     this.appendValueInput("name")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Bluetooth name:");
+        .appendField(MSG["bluetooth_name_label"]);
 
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
- this.setTooltip("Setup Web Bluetooth REPL");
- this.setHelpUrl("www.bipes.net.br");
+ this.setTooltip(Blockly.Msg["BLUETOOTH_REPL_SETUP_TOOLTIP"]);
+ this.setHelpUrl("");
   }
 };
 

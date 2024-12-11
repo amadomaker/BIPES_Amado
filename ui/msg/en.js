@@ -77,8 +77,8 @@ var MSG = {
   second: "second",
   wifi_scan: "scan wifi networks",
   wifi_connect: "connect to wifi network",
-  wifi_name: "network name",
-  wifi_key: "key/password",
+  wifi_name: "Network name",
+  wifi_key: "Key/password",
   easymqtt_start: "EasyMQTT Start",
   easymqtt_publish: "EasyMQTT Publish Data",
   topic: "topic",
@@ -142,7 +142,7 @@ var MSG = {
   bluetooth_name: "myBluetooth",
 
   //espnow
-  initialize_wlan_title: "Initialize WLAN Interface",
+  initialize_wlan_title: "Prepare to get MAC address",
   get_mac_address_title: "Get MAC Address of Amado Board",
   set_master_title: "Configure Amado Board as Master",
   add_peer_title: "Add Device by MAC Address",
@@ -254,7 +254,16 @@ var MSG = {
   songs_label: "Song:",
   melody_label: "melody",
 
-
+  //Bluetooth REPL
+  bluetooth_repl_start_title: "Start REPL over Web Bluetooth",
+  bluetooth_repl_setup_title: "Setup REPL over Web Bluetooth",
+  bluetooth_name_label: "Bluetooth name:",
+  
+  //Wifi
+  net_ap_mode_title: "Configure Access Point Mode",
+  net_network_name_label: "Network name",
+  net_network_key_label: "Network password",
+  net_ifconfig_title: "Wifi current IP",
 
 
 

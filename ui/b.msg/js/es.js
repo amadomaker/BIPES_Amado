@@ -511,6 +511,14 @@ Blockly.Msg["TONE_TOOLTIP"] = "Genera un tono con una frecuencia y duración esp
 Blockly.Msg["NOTE_TOOLTIP"] = "Reproduce una nota musical con su frecuencia correspondiente durante una duración específica. Use 0 en duración para nota continua.";
 Blockly.Msg["RTTTL_PLAY_TOOLTIP"] = "Reproduce una canción predefinida en formato RTTTL (Ring Tone Text Transfer Language). Seleccione la canción de la biblioteca.";
 Blockly.Msg["PLAY_SAVE_MELODY_TOOLTIP"] = "Reproduce una melodía previamente guardada en la pestaña Sonido.";
+//Bluetooth REPL
+Blockly.Msg["BLUETOOTH_REPL_START_TOOLTIP"] = "Inicia el REPL (terminal interactivo) a través de Web Bluetooth, permitiendo la ejecución de comandos en el dispositivo conectado.";
+Blockly.Msg["BLUETOOTH_REPL_SETUP_TOOLTIP"] = "Configura el REPL (terminal interactivo) a través de Web Bluetooth, incluyendo la definición del nombre Bluetooth para el dispositivo.";
+//Wifi
+Blockly.Msg["NET_AP_MODE_TOOLTIP"] = "Configura el dispositivo como un punto de acceso Wi-Fi (AP).";
+Blockly.Msg["WIFI_CLIENT_CONNECT_TOOLTIP"] = "Conecta el dispositivo a una red Wi-Fi específica.";
+Blockly.Msg["WIFI_CLIENT_SCAN_NETWORKS_TOOLTIP"] = "Busca redes Wi-Fi disponibles en el alcance.";
+Blockly.Msg["NET_IFCONFIG_TOOLTIP"] = "Obtiene la dirección IP actual del dispositivo en la red Wi-Fi.";
 
 
 
