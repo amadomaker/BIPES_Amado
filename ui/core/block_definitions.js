@@ -1296,7 +1296,7 @@ Blockly.Blocks['net_get_request'] = {
         .appendField(new Blockly.FieldLabelSerializable("URL"), "BLOCK_NET_GET");
     this.setOutput(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
- this.setTooltip("Make HTTP GET Request");
+ this.setTooltip(Blockly.Msg["NET_GET_REQUEST_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1305,14 +1305,14 @@ Blockly.Blocks['net_post_request'] = {
   init: function() {
     this.appendValueInput("URL")
         .setCheck("String")
-        .appendField(new Blockly.FieldLabelSerializable("Make HTTP POST Request URL"), "NET_POST_REQUEST_URL");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["Make_HTTP_POST_Request_URL_title"]), "NET_POST_REQUEST_URL");
     this.appendValueInput("URL")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField(new Blockly.FieldLabelSerializable("Data"), "NET_POST_REQUEST_DATA");
     this.setOutput(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
- this.setTooltip("Make HTTP POST Request");
+ this.setTooltip(Blockly.Msg["NET_POST_REQUEST_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -11762,7 +11762,7 @@ Blockly.Blocks['http_get_status'] = {
         .appendField(new Blockly.FieldVariable("request"), "request");
     this.setOutput(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
- this.setTooltip("Status code of the HTTP GET request");
+ this.setTooltip(Blockly.Msg["HTTP_GET_STATUS_TOOLTIP"]);
  this.setHelpUrl("bipes.net.br");
   }
 };
@@ -11774,7 +11774,7 @@ Blockly.Blocks['http_get_content'] = {
         .appendField(new Blockly.FieldVariable("request"), "request");
     this.setOutput(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
- this.setTooltip("Content of HTTP GET request");
+ this.setTooltip(Blockly.Msg["HTTP_GET_CONTENT_TOOLTIP"]);
  this.setHelpUrl("bipes.net.br");
   }
 };

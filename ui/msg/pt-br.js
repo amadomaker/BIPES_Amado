@@ -266,6 +266,9 @@ var MSG = {
   net_network_key_label: "Senha da rede",
   net_ifconfig_title: "Endereço IP Atual",
 
+  //Cliente HTTP
+  Make_HTTP_POST_Request_URL_title: "Fazer requisição HTTP POST -  URL",
+
 
 
 //Network

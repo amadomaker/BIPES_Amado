@@ -1977,8 +1977,10 @@ _
   <category name="%{BKY_CAT_NET}" colour="%{BKY_NET_HUE}">
 
     <category name="%{BKY_CAT_HTTPCLIENT}" colour="%{BKY_NET_HUE}">
-      <label text="HTTP (web) Client"></label>
-      <label text="GET Method"></label>
+      <label text="Blocos para realizar requisições HTTP (GET/POST)."></label>
+      <label text="Use para conectar-se a APIs e recuperar ou enviar dados."></label>
+
+      <label text="Método GET"></label>
 
       <block type="net_get_request"></block>
     <block type="net_get_request">
@@ -2047,7 +2049,7 @@ _
 <mutation items="2"/>
 <value name="ADD0">
 <block type="text" id="CqCB]Gb8.24=oZ!:4sB~">
-<field name="TEXT">Success. Response content: </field>
+<field name="TEXT">"Sucesso. Conteúdo da resposta:"</field>
 </block>
 </value>
 <value name="ADD1">
@@ -2069,7 +2071,8 @@ _
 <mutation items="2"/>
 <value name="ADD0">
 <block type="text" id="Gq9,.$(51,A0{y*siaQ~">
-<field name="TEXT">Request Error. Status code = </field>
+<field name="TEXT">"Erro na requisição. Código de status"
+ = </field>
 </block>
 </value>
 <value name="ADD1">
@@ -2086,11 +2089,10 @@ _
 </block>
 
 
-      <label text="POST Method"></label>
+    <label text="Método POST"></label>
 
     <block type="net_post_request">
-      <field name="NET_POST_REQUEST_URL">Make HTTP POST Request URL</field>
-      <field name="NET_POST_REQUEST_DATA">Data</field>
+      <field name="NET_POST_REQUEST_DATA">Dados</field>
     </block>
 
     </category>

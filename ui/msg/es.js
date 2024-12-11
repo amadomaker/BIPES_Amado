@@ -265,6 +265,9 @@ var MSG = {
   net_network_key_label: "Contraseña de la red",
   net_ifconfig_title: "Dirección IP Actual",
 
+  //Cliente HTTP
+  Make_HTTP_POST_Request_URL_title: "Realizar solicitud HTTP POST - URL",
+
 
 
 

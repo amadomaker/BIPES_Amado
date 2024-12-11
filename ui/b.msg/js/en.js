@@ -519,6 +519,11 @@ Blockly.Msg["NET_AP_MODE_TOOLTIP"] = "Configures the device as a Wi-Fi access po
 Blockly.Msg["WIFI_CLIENT_CONNECT_TOOLTIP"] = "Connects the device to a specific Wi-Fi network.";
 Blockly.Msg["WIFI_CLIENT_SCAN_NETWORKS_TOOLTIP"] = "Scans for Wi-Fi networks available in range.";
 Blockly.Msg["NET_IFCONFIG_TOOLTIP"] = "Gets the current IP address of the device on the Wi-Fi network.";
+//Cliente HTTP
+Blockly.Msg["NET_GET_REQUEST_TOOLTIP"] = "Makes an HTTP GET request to the specified URL.";
+Blockly.Msg["NET_POST_REQUEST_TOOLTIP"] = "Makes an HTTP POST request with the specified URL and data.";
+Blockly.Msg["HTTP_GET_STATUS_TOOLTIP"] = "Gets the status code of the HTTP GET request.";
+Blockly.Msg["HTTP_GET_CONTENT_TOOLTIP"] = "Gets the content of the HTTP GET request response.";
 
 
 

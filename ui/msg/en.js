@@ -265,6 +265,8 @@ var MSG = {
   net_network_key_label: "Network password",
   net_ifconfig_title: "Wifi current IP",
 
+  //Cliente HTTP
+  Make_HTTP_POST_Request_URL_title: "Make HTTP POST Request - URL",
 
 
     
