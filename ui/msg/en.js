@@ -101,6 +101,7 @@ var MSG = {
   when: "when",
   data_received: "is received",
   easymqtt_receive: "EasyMQTT receive data",
+  easymqtt_disconnect_title: "EasyMQTT stop",
   relay: "relay",
   on: "turn on",
   off: "turn off",

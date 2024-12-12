@@ -97,6 +97,7 @@ var MSG = {
   project_info_desc: "Descrição",
   easymqtt_subscribe: "incrição no tópico EasyMQTT",
   easymqtt_receive: "receber dados EasyMQTT",
+  easymqtt_disconnect_title: "Desconectar EasyMQTT",
   when: "quando",
   data_received: "for recebido",
   relay: "rele",

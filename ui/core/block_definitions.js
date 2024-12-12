@@ -2111,7 +2111,7 @@ Blockly.Blocks['easymqtt_init'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
-    this.setTooltip("Start EasyMQTT Client");
+    this.setTooltip(Blockly.Msg["EASYMQTT_INIT_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2132,7 +2132,7 @@ Blockly.Blocks['easymqtt_publish_data'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
-    this.setTooltip("Publish Data to EasyMQTT Server");
+    this.setTooltip(Blockly.Msg["EASYMQTT_PUBLISH_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2159,7 +2159,7 @@ Blockly.Blocks['easymqtt_subscribe'] = {
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setInputsInline(false);
-    this.setTooltip("Subscribe to a topic and define what to do when data is received from EasyMQTT Server");
+    this.setTooltip(Blockly.Msg["EASYMQTT_SUBSCRIBE_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2178,7 +2178,7 @@ Blockly.Blocks['easymqtt_receive_data'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
-    this.setTooltip("Receive Data from EasyMQTT Server");
+    this.setTooltip(Blockly.Msg["EASYMQTT_RECEIVE_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2187,12 +2187,12 @@ Blockly.Blocks['easymqtt_receive_data'] = {
 Blockly.Blocks['easymqtt_disconnect'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField(new Blockly.FieldLabelSerializable("EasyMQTT Stop"), "BLOCK_EASYMQTT_DISCONNECT");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["easymqtt_disconnect_title"]), "BLOCK_EASYMQTT_DISCONNECT");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
-    this.setTooltip("Disconnect the EasyMQTT Client from Server.");
-    this.setHelpUrl("http://www.bipes.net.br");
+    this.setTooltip(Blockly.Msg["EASYMQTT_DISCONNECT_TOOLTIP"]);
+    this.setHelpUrl('');
   }
 };
 
@@ -2219,7 +2219,7 @@ Blockly.Blocks['relay_switch'] = {
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setTooltip("Turn On Relay on GPIO digital pin");
-    this.setHelpUrl("bipes.net.br");
+    this.setHelpUrl('');
   }
 };
 
@@ -2231,7 +2231,7 @@ Blockly.Blocks['text_to_str'] = {
     this.setColour(290);
     this.setOutput(true, null);
     this.setTooltip("Convert anything to String.");
-    this.setHelpUrl("http://www.bipes.net.br");
+    this.setHelpUrl('');
   }
 };
 
@@ -2243,7 +2243,7 @@ Blockly.Blocks['decode_bytes_to_text'] = {
     this.setColour(160);
     this.setOutput(true, null);
     this.setTooltip("Decode bytes to a String.");
-    this.setHelpUrl("http://www.bipes.net.br");
+    this.setHelpUrl('');
   }
 };
 
@@ -2255,7 +2255,7 @@ Blockly.Blocks['var_to_int'] = {
     this.setColour(colour="%{BKY_MATH_HUE}");
     this.setOutput(true, null);
     this.setTooltip(Blockly.Msg["VAR_TO_INT_TOOLTIP"]);
-    this.setHelpUrl("http://www.bipes.net.br");
+    this.setHelpUrl('');
   }
 };
 

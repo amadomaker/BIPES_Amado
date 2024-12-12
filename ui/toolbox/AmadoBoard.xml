@@ -2317,7 +2317,8 @@ _
     </category>
     -->
     <category name="EasyMQTT" colour="%{BKY_NET_HUE}">
-      <label text="IoT: EasyMQTT"></label>
+      <label text="Configure conexões MQTT para IoT, publique e receba dados."></label>
+      <label text="Acompanhe os resultados na aba EasyMQTT."></label>
       <block type="easymqtt_init">
       </block>
       <block type="easymqtt_publish_data">
@@ -2341,7 +2342,6 @@ _
       </block>
       <block type="easymqtt_receive_data"></block>
       <block type="easymqtt_disconnect">
-        <field name="BLOCK_EASYMQTT_DISCONNECT">EasyMQTT Stop</field>
       </block>
     </category>
     

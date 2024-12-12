@@ -531,6 +531,12 @@ Blockly.Msg["NET_HTTP_SERVER_REQUESTED_PAGE_TOOLTIP"] = "Gets the page requested
 Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_TOOLTIP"] = "Sends an HTTP response with the specified HTML content.";
 Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_JPG_TOOLTIP"] = "Sends an HTTP response containing a JPG image.";
 Blockly.Msg["NET_HTTP_SERVER_CLOSE_TOOLTIP"] = "Closes the HTTP server.";
+//Easy MQTT
+Blockly.Msg["EASYMQTT_INIT_TOOLTIP"] = "Start EasyMQTT Client";
+Blockly.Msg["EASYMQTT_PUBLISH_TOOLTIP"] = "Publish Data to EasyMQTT Server";
+Blockly.Msg["EASYMQTT_SUBSCRIBE_TOOLTIP"] = "Subscribe to a topic and define what to do when data is received from EasyMQTT Server";
+Blockly.Msg["EASYMQTT_RECEIVE_TOOLTIP"] = "Receive Data from EasyMQTT Server";
+Blockly.Msg["EASYMQTT_DISCONNECT_TOOLTIP"] = "Disconnect the EasyMQTT Client from Server";
 
 
 
