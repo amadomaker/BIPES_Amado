@@ -1049,7 +1049,7 @@ Blockly.Blocks['init_oled'] = {
   init: function() {
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
     this.appendDummyInput()
-        .appendField("Init I2C SSD1306 OLED Display");
+        .appendField(MSG["init_oled_title"]);
 
  this.appendDummyInput()
       .appendField(new Blockly.FieldImage(
@@ -1076,7 +1076,7 @@ Blockly.Blocks['init_oled'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["INIT_OLED_TOOLTIP"]);
   }
 };
 
@@ -1084,11 +1084,11 @@ Blockly.Blocks['fill_oled'] = {
   init: function() {
     this.appendValueInput("value")
         .setCheck("Number")
-        .appendField("Fill OLED Display with ");
+        .appendField(MSG["fill_oled_title"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
- this.setTooltip("Fill OLED Disiplay");
+ this.setTooltip(Blockly.Msg["INIT_OLED_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1096,11 +1096,11 @@ Blockly.Blocks['fill_oled'] = {
 Blockly.Blocks['clear_oled'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Clear OLED Display");
+        .appendField(MSG["clear_oled_title"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
- this.setTooltip("Clear OLED Disiplay");
+ this.setTooltip(Blockly.Msg["CLEAR_OLED_TOOLTIP"] );
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1108,11 +1108,11 @@ Blockly.Blocks['clear_oled'] = {
 Blockly.Blocks['show_oled'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Update OLED Display ");
+        .appendField(MSG["show_oled_title"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
- this.setTooltip("Update OLED Disiplay");
+ this.setTooltip(Blockly.Msg["SHOW_OLED_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1120,26 +1120,26 @@ Blockly.Blocks['show_oled'] = {
 Blockly.Blocks['write_oled'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Write text on display");
+        .appendField(MSG["write_oled_title"]);
 
     this.appendValueInput("x")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("X position");
+        .appendField(MSG["x_position"]);
     this.appendValueInput("y")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Y position");
+        .appendField(MSG["y_position"]);
     this.appendValueInput("text")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Text");
+        .appendField(MSG["catText"]);
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
 
- this.setTooltip("Write text to OLED Display");
+ this.setTooltip(Blockly.Msg["WRITE_OLED_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1148,32 +1148,32 @@ Blockly.Blocks['write_oled'] = {
 Blockly.Blocks['write_oled_int'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Print value on display");
+        .appendField(MSG["write_oled_int_title"]);
 
     // Campo para a posição X no display
     this.appendValueInput("x")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("X position");
+        .appendField(MSG["x_position"]);
         
 
     // Campo para a posição Y no display
     this.appendValueInput("y")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Y position");
+        .appendField(MSG["y_position"]);
 
     // Campo para o valor inteiro que será impresso
     this.appendValueInput("value")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Value");
+        .appendField(MSG["value_display"]);
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_DISPLAY_HUE}");
 
-    this.setTooltip("Mostre um valor inteiro em uma posição especifica no display oled");
+    this.setTooltip(Blockly.Msg["WRITE_OLED_INT_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1236,47 +1236,51 @@ Blockly.Blocks['init_servo'] = {
   init: function() {
     this.appendDummyInput()
       .appendField(new Blockly.FieldImage("media/servo.png", 55, 55, "*"))
-      .appendField("Init RC Servo Motor");
+      .appendField(MSG["init_servo_title"]);
 
     this.appendDummyInput()
       .setAlign(Blockly.ALIGN_RIGHT)
-      .appendField("Servo Name")
+      .appendField(MSG["init_servo_name"])
       .appendField(new Blockly.FieldTextInput("servo1"), "servo_name");  // Adicionando o campo de nome
 
     this.appendValueInput("pin")
       .setCheck("Number")
       .setAlign(Blockly.ALIGN_RIGHT)
-      .appendField("Pin");
+      .appendField(MSG["Pin"]);
 
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
 
-    this.setTooltip("Init RC servo motor");
+    this.setTooltip(Blockly.Msg["INIT_SERVO_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.ebr");
   }
 };
 
-
-
 Blockly.Blocks['move_servo'] = {
   init: function() {
     this.appendDummyInput()
-      .appendField("Move Servo Motor")
-      .appendField("Servo Name")
-      .appendField(new Blockly.FieldTextInput("servo1"), "servo_name");  // Adicionando o campo de nome
+      .appendField(MSG["move_servo_title"])  
+      .appendField(new Blockly.FieldDropdown(this.updateServoList), "servo_name"); 
 
     this.appendValueInput("angle")
       .setCheck("Number")
       .setAlign(Blockly.ALIGN_RIGHT)
-      .appendField("Angle");
+      .appendField(MSG["move_servo_angle"]);
 
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
 
-    this.setTooltip("Move RC servo motor to degrees");
+    this.setTooltip(Blockly.Msg["MOVE_SERVO_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.ebr");
+  },
+
+  // Função para atualizar a lista de servos
+  updateServoList: function() {
+    const servoBlocks = Blockly.getMainWorkspace().getBlocksByType('init_servo', true); // Obtem todos os blocos 'init_servo'
+    const servoNames = servoBlocks.map(block => [block.getFieldValue('servo_name') || 'default', block.getFieldValue('servo_name') || 'default']);
+    return servoNames.length ? servoNames : [[MSG["no_servos"], "none"]]; 
   }
 };
 
@@ -1292,7 +1296,7 @@ Blockly.Blocks['net_get_request'] = {
         .appendField(new Blockly.FieldLabelSerializable("URL"), "BLOCK_NET_GET");
     this.setOutput(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
- this.setTooltip("Make HTTP GET Request");
+ this.setTooltip(Blockly.Msg["NET_GET_REQUEST_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1301,28 +1305,18 @@ Blockly.Blocks['net_post_request'] = {
   init: function() {
     this.appendValueInput("URL")
         .setCheck("String")
-        .appendField(new Blockly.FieldLabelSerializable("Make HTTP POST Request URL"), "NET_POST_REQUEST_URL");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["Make_HTTP_POST_Request_URL_title"]), "NET_POST_REQUEST_URL");
     this.appendValueInput("URL")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField(new Blockly.FieldLabelSerializable("Data"), "NET_POST_REQUEST_DATA");
     this.setOutput(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
- this.setTooltip("Make HTTP POST Request");
+ this.setTooltip(Blockly.Msg["NET_POST_REQUEST_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
 
-Blockly.Blocks['net_ifconfig'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField(new Blockly.FieldLabelSerializable("Wifi current IP"), "NET_IFCONFIG");
-    this.setOutput(true, null);
-    this.setColour("#7b49ad");
- this.setTooltip("Wifi current IP");
- this.setHelpUrl("http://www.bipes.net.br");
-  }
-};
 
 Blockly.Blocks['exec_python_output'] = {
   init: function() {
@@ -1339,19 +1333,19 @@ Blockly.Blocks['exec_python_output'] = {
 Blockly.Blocks['net_ap_mode'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField(new Blockly.FieldLabelSerializable("Configure Access Point Mode"), "NAME");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["net_ap_mode_title"]), "NAME");
     this.appendValueInput("wifi_essid")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField(new Blockly.FieldLabelSerializable("Network name"), "NET_NETWORK_NAME");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["net_network_name_label"]), "NET_NETWORK_NAME");
     this.appendValueInput("wifi_key")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField(new Blockly.FieldLabelSerializable("Network password"), "NET_NETWORK_KEY");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["net_network_key_label"]), "NET_NETWORK_KEY");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
- this.setTooltip("Configure Access Point Mode");
+ this.setTooltip(Blockly.Msg["NET_AP_MODE_TOOLTIP"] );
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1371,7 +1365,7 @@ Blockly.Blocks['wifi_client_connect'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
- this.setTooltip("Connect to a Wifi network");
+ this.setTooltip(Blockly.Msg["WIFI_CLIENT_CONNECT_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -1382,7 +1376,18 @@ Blockly.Blocks['wifi_client_scan_networks'] = {
         .appendField(new Blockly.FieldLabelSerializable(MSG["wifi_scan"]), "NET_SCAN_WIFI");
     this.setOutput(true, null);
     this.setColour("#7b49ad");
- this.setTooltip("Scan wifi networks");
+ this.setTooltip(Blockly.Msg["WIFI_CLIENT_SCAN_NETWORKS_TOOLTIP"]);
+ this.setHelpUrl("http://www.bipes.net.br");
+  }
+};
+
+Blockly.Blocks['net_ifconfig'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldLabelSerializable(MSG["net_ifconfig_title"]), "NET_IFCONFIG");
+    this.setOutput(true, null);
+    this.setColour("#7b49ad");
+ this.setTooltip(Blockly.Msg["NET_IFCONFIG_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2106,7 +2111,7 @@ Blockly.Blocks['easymqtt_init'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
-    this.setTooltip("Start EasyMQTT Client");
+    this.setTooltip(Blockly.Msg["EASYMQTT_INIT_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2127,7 +2132,7 @@ Blockly.Blocks['easymqtt_publish_data'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
-    this.setTooltip("Publish Data to EasyMQTT Server");
+    this.setTooltip(Blockly.Msg["EASYMQTT_PUBLISH_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2154,7 +2159,7 @@ Blockly.Blocks['easymqtt_subscribe'] = {
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.setInputsInline(false);
-    this.setTooltip("Subscribe to a topic and define what to do when data is received from EasyMQTT Server");
+    this.setTooltip(Blockly.Msg["EASYMQTT_SUBSCRIBE_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2173,7 +2178,7 @@ Blockly.Blocks['easymqtt_receive_data'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
-    this.setTooltip("Receive Data from EasyMQTT Server");
+    this.setTooltip(Blockly.Msg["EASYMQTT_RECEIVE_TOOLTIP"]);
     this.setHelpUrl("http://www.bipes.net.br");
   }
 };
@@ -2182,12 +2187,12 @@ Blockly.Blocks['easymqtt_receive_data'] = {
 Blockly.Blocks['easymqtt_disconnect'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField(new Blockly.FieldLabelSerializable("EasyMQTT Stop"), "BLOCK_EASYMQTT_DISCONNECT");
+        .appendField(new Blockly.FieldLabelSerializable(MSG["easymqtt_disconnect_title"]), "BLOCK_EASYMQTT_DISCONNECT");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
-    this.setTooltip("Disconnect the EasyMQTT Client from Server.");
-    this.setHelpUrl("http://www.bipes.net.br");
+    this.setTooltip(Blockly.Msg["EASYMQTT_DISCONNECT_TOOLTIP"]);
+    this.setHelpUrl('');
   }
 };
 
@@ -2214,7 +2219,7 @@ Blockly.Blocks['relay_switch'] = {
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.setTooltip("Turn On Relay on GPIO digital pin");
-    this.setHelpUrl("bipes.net.br");
+    this.setHelpUrl('');
   }
 };
 
@@ -2226,7 +2231,7 @@ Blockly.Blocks['text_to_str'] = {
     this.setColour(290);
     this.setOutput(true, null);
     this.setTooltip("Convert anything to String.");
-    this.setHelpUrl("http://www.bipes.net.br");
+    this.setHelpUrl('');
   }
 };
 
@@ -2238,7 +2243,7 @@ Blockly.Blocks['decode_bytes_to_text'] = {
     this.setColour(160);
     this.setOutput(true, null);
     this.setTooltip("Decode bytes to a String.");
-    this.setHelpUrl("http://www.bipes.net.br");
+    this.setHelpUrl('');
   }
 };
 
@@ -2250,7 +2255,7 @@ Blockly.Blocks['var_to_int'] = {
     this.setColour(colour="%{BKY_MATH_HUE}");
     this.setOutput(true, null);
     this.setTooltip(Blockly.Msg["VAR_TO_INT_TOOLTIP"]);
-    this.setHelpUrl("http://www.bipes.net.br");
+    this.setHelpUrl('');
   }
 };
 
@@ -9498,7 +9503,7 @@ Blockly.Blocks['rfid_rc522_init'] = {
   init: function() {
     this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
-        .appendField("Init RC522 RFID Module");
+        .appendField(MSG["rfid_rc522_init_title"]);
 
  this.appendDummyInput()
       .appendField(new Blockly.FieldImage(
@@ -9535,7 +9540,7 @@ Blockly.Blocks['rfid_rc522_init'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["RFID_RC522_INIT_TOOLTIP"]);
   }
 };
 
@@ -9543,7 +9548,7 @@ Blockly.Blocks['rfid_rc522_detect_card'] = {
   init: function() {
     this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
-        .appendField("Check if RFID Card is present");
+        .appendField(MSG["rfid_rc522_detect_card_title"]);
 
     this.appendValueInput("stat")
         .setCheck("Number")
@@ -9561,7 +9566,7 @@ Blockly.Blocks['rfid_rc522_detect_card'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
 
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["RFID_RC522_DETECT_CARD_TOOLTIP"]);
   }
 };
 
@@ -9570,7 +9575,7 @@ Blockly.Blocks['rfid_rc522_anticoll'] = {
   init: function() {
     this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
-        .appendField("Get card identification (UID)");
+        .appendField(MSG["rfid_rc522_anticoll_title"]);
 
     this.appendValueInput("stat")
         .setCheck("Number")
@@ -9588,7 +9593,7 @@ Blockly.Blocks['rfid_rc522_anticoll'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
 
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["RFID_RC522_ANTICOLL_TOOLTIP"]);
   }
 };
 
@@ -9599,11 +9604,11 @@ Blockly.Blocks['rfid_rc522_read_card'] = {
   init: function() {
     this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
-        .appendField("Read RFID Card Memory");
+        .appendField(MSG["rfid_rc522_read_card_title"]);
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["RFID_RC522_READ_CARD_TOOLTIP"]);
   }
 };
 
@@ -9613,11 +9618,11 @@ Blockly.Blocks['rfid_rc522_write_card'] = {
   init: function() {
     this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.appendDummyInput()
-        .appendField("Write RFID Card Memory");
+        .appendField(MSG["rfid_rc522_write_card_title"]);
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["RFID_RC522_WRITE_CARD_TOOLTIP"]);
   }
 };
 
@@ -9880,7 +9885,7 @@ Blockly.Blocks['net_http_server_start'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_START_TOOLTIP"]);
   }
 };
 
@@ -9893,7 +9898,7 @@ Blockly.Blocks['net_http_server_accept'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_ACCEPT_TOOLTIP"] );
   }
 };
 
@@ -9905,7 +9910,7 @@ Blockly.Blocks['net_http_server_requested_page'] = {
         .appendField(MSG["net_http_server_requested_page"]);
 
     this.setOutput(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_REQUESTED_PAGE_TOOLTIP"]);
   }
 };
 
@@ -9923,7 +9928,7 @@ Blockly.Blocks['net_http_server_send_response'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_TOOLTIP"]);
   }
 };
 
@@ -9940,7 +9945,7 @@ Blockly.Blocks['net_http_server_send_response_jpg'] = {
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_JPG_TOOLTIP"]);
   }
 };
 
@@ -9950,10 +9955,10 @@ Blockly.Blocks['net_http_server_close'] = {
   init: function() {
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
     this.appendDummyInput()
-        .appendField("Close HTTP Web Server");
+        .appendField(MSG["net_http_server_close_title"]);
 
     this.setOutput(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_CLOSE_TOOLTIP"]);
   }
 };
 
@@ -10478,7 +10483,7 @@ Blockly.Blocks['dc_motor_init'] = {
   init: function() {
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
-        .appendField("Init DC Motor");
+        .appendField(MSG["dc_motor_init_title"]);
 
     this.appendDummyInput()
       .appendField(new Blockly.FieldImage(
@@ -10490,25 +10495,25 @@ Blockly.Blocks['dc_motor_init'] = {
     this.appendValueInput("pwm")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("PWM");
+        .appendField(MSG["dc_motor_pwm_label"]);
 
     this.appendValueInput("dir1")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Dir1");
+        .appendField(MSG["dc_motor_dir1_label"]);
 
     this.appendValueInput("dir2")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Dir2");
+        .appendField(MSG["dc_motor_dir2_label"]);
 
     this.appendDummyInput()
-        .appendField("Motor Name")
+        .appendField(MSG["dc_motor_name_label"])
         .appendField(new Blockly.FieldTextInput('motor1'), 'motor_name');
 
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["DC_MOTOR_INIT_TOOLTIP"]);
   }
 };
 
@@ -10516,12 +10521,12 @@ Blockly.Blocks['dc_motor_power'] = {
   init: function() {
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
-        .appendField("Set DC Motor Power");
+        .appendField(MSG["dc_motor_power_title"]);
 
     this.appendValueInput("power")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Power");
+        .appendField(MSG["dc_motor_power_label"]);
 
     this.appendDummyInput()
         //.appendField("Motor Name")
@@ -10530,7 +10535,7 @@ Blockly.Blocks['dc_motor_power'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
 
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["DC_MOTOR_POWER_TOOLTIP"]);
   }
 };
 
@@ -10538,12 +10543,12 @@ Blockly.Blocks['dc_motor_direction'] = {
   init: function() {
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
-        .appendField("Set DC Motor Direction");
+        .appendField(MSG["dc_motor_direction_title"]);
 
     this.appendValueInput("dir")
         .setCheck("Number")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Direction");
+        .appendField(MSG["dc_motor_direction_label"]);
 
     this.appendDummyInput()
         //.appendField("Motor Name")
@@ -10552,7 +10557,7 @@ Blockly.Blocks['dc_motor_direction'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
 
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["DC_MOTOR_DIRECTION_TOOLTIP"]);
   }
 };
 
@@ -10560,7 +10565,7 @@ Blockly.Blocks['dc_motor_stop'] = {
   init: function() {
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
     this.appendDummyInput()
-        .appendField("Stop DC Motor");
+        .appendField(MSG["dc_motor_stop_title"]);
 
     this.appendDummyInput()
         //.appendField("Motor Name")
@@ -10569,7 +10574,7 @@ Blockly.Blocks['dc_motor_stop'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
 
-    this.setTooltip('');
+    this.setTooltip(Blockly.Msg["DC_MOTOR_STOP_TOOLTIP"]);
   }
 };
 
@@ -10969,37 +10974,37 @@ Blockly.Blocks['localstorage_store_item'] = {
 Blockly.Blocks['bluetooth_repl_start'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Start Web Bluetooth REPL");
+        .appendField(MSG["bluetooth_repl_start_title"]);
 
     this.appendValueInput("name")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Bluetooth name:");
+        .appendField(MSG["bluetooth_name_label"]);
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
- this.setTooltip("Start REPL over Web Bluetooth");
- this.setHelpUrl("www.bipes.net.br");
+ this.setTooltip(Blockly.Msg["BLUETOOTH_REPL_START_TOOLTIP"]);
+ this.setHelpUrl("");
   }
 };
 
 Blockly.Blocks['bluetooth_repl_setup'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Setup Web Bluetooth REPL");
+        .appendField(MSG["bluetooth_repl_setup_title"]);
 
     this.appendValueInput("name")
         .setCheck("String")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Bluetooth name:");
+        .appendField(MSG["bluetooth_name_label"]);
 
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour("#7b49ad");
- this.setTooltip("Setup Web Bluetooth REPL");
- this.setHelpUrl("www.bipes.net.br");
+ this.setTooltip(Blockly.Msg["BLUETOOTH_REPL_SETUP_TOOLTIP"]);
+ this.setHelpUrl("");
   }
 };
 
@@ -11277,27 +11282,27 @@ Blockly.Blocks['esp32_cam_white_led'] = {
 Blockly.Blocks['tone'] = {
   init: function(){
     this.appendDummyInput()
-        .appendField("Tone (Hz)");
+        .appendField(MSG["tone_title"]);
 
     this.appendValueInput("pin")
         .setCheck(null)
-	.appendField("Pin");
+	.appendField(MSG["Pin"]);
     this.appendValueInput("frequency")
         .setCheck("Number")
-	  .appendField("Frequency");
+	  .appendField(MSG["frequency_label"]);
 
     this.appendValueInput("duration")
         .setCheck("Number")
-	.appendField("Duration (s):");
+	.appendField(MSG["duration_label"]);
 
     this.appendDummyInput()
-        .appendField("(0 for infinite duration)");
+        .appendField(MSG["duration_label2"]);
 
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
- this.setTooltip("Sound - tone generator");
+ this.setTooltip(Blockly.Msg["TONE_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
  }
 };
@@ -11305,26 +11310,26 @@ Blockly.Blocks['tone'] = {
 Blockly.Blocks['note'] = {
   init: function(){
     this.appendDummyInput()
-        .appendField("Play music note");
+        .appendField(MSG["note_title"]);
     this.appendValueInput("pin")
         .setCheck(null)
-	.appendField("Pin");
+	.appendField("");
 
     this.appendValueInput("note")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Note");
+        .appendField(MSG["note_label"]);
 
     this.appendValueInput("duration")
         .setCheck("Number")
-	.appendField("Duration (s):");
+	.appendField(MSG["duration_label"]);
 
     this.appendDummyInput()
-        .appendField("(0 for infinite duration)");
+        .appendField(MSG["duration_label2"]);
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
- this.setTooltip("Sound - tone generator (music note)");
+ this.setTooltip(Blockly.Msg["NOTE_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
  }
 };
@@ -11334,20 +11339,21 @@ Blockly.Blocks['note'] = {
 Blockly.Blocks['rtttl_play'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Play song (RTTTL)");
+        .appendField(MSG["rttl_play_title"]);
 
     this.appendValueInput("pin")
         .setCheck(null)
-	.appendField("Pin");
+        .setAlign(Blockly.ALIGN_RIGHT)
+	      .appendField(MSG["pin"]);
 
     this.appendValueInput("song")
         .setAlign(Blockly.ALIGN_RIGHT)
-        .appendField("Song");
+        .appendField(MSG["songs_label"]);
 
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
- this.setTooltip("Control ESP32-CAM White LED (flashlight)");
+ this.setTooltip(Blockly.Msg["RTTTL_PLAY_TOOLTIP"]);
  this.setHelpUrl("bipes.net.br");
   }
 };
@@ -11355,14 +11361,14 @@ Blockly.Blocks['rtttl_play'] = {
 Blockly.Blocks['play_save_melody'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Reproduzir");
+        .appendField(MSG["tone_title"]);
 
     this.appendValueInput("pin")
         .setCheck(null)
-	.appendField("Pino");
+	.appendField("");
 
   this.appendDummyInput()
-  .appendField("Melodia")
+  .appendField(MSG["melody_label"])
   .appendField(new Blockly.FieldDropdown(() => {
       // Recupera as melodias salvas no localStorage
       const savedMelodies = localStorage.getItem('bipes@melodies');
@@ -11384,7 +11390,7 @@ Blockly.Blocks['play_save_melody'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(colour="%{BKY_ACTUATORS_HUE}");
-    this.setTooltip("Reproduz uma melodia previamente salva");
+    this.setTooltip(Blockly.Msg["PLAY_SAVE_MELODY_TOOLTIP"]);
 
     //menu de contexto
     this.customContextMenu = function(options) {
@@ -11463,7 +11469,7 @@ function exportSavedMelody(melodyName) {
 Blockly.Blocks['tone_type'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Note:")
+        .appendField(MSG["note_label"])
 //        .appendField(new Blockly.FieldDropdown([["B1","31"], ["C2","33"], ["CS2","35"], ["D2","37"], ["DS2","39"], ["E2","41"], ["F2","44"], ["FS2","46"], ["G2","49"], ["GS2","52"], ["A2","55"], ["AS2","58"]]), "tone");
         .appendField(new Blockly.FieldDropdown([["B1","31"],["C2","33"],["CS2","35"],["D2","37"],["DS2","39"],["E2","41"],["F2","44"],["FS2","46"],["G2","49"],["GS2","52"],["A2","55"],["AS2","58"],["B2","62"],["C3","65"],["CS3","69"],["D3","73"],["DS3","78"],["E3","82"],["F3","87"],["FS3","93"],["G3","98"],["GS3","104"],["A3","110"],["AS3","117"],["B3","123"],["C4","131"],["CS4","139"],["D4","147"],["DS4","156"],["E4","165"],["F4","175"],["FS4","185"],["G4","196"],["GS4","208"],["A4","220"],["AS4","233"],["B4","247"],["C5","262"],["CS5","277"],["D5","294"],["DS5","311"],["E5","330"],["F5","349"],["FS5","370"],["G5","392"],["GS5","415"],["A5","440"],["AS5","466"],["B5","494"],["C6","523"],["CS6","554"],["D6","587"],["DS6","622"],["E6","659"],["F6","698"],["FS6","740"],["G6","784"],["GS6","831"],["A6","880"],["AS6","932"],["B6","988"],["C7","1047"],["CS7","1109"],["D7","1175"],["DS7","1245"],["E7","1319"],["F7","1397"],["FS7","1480"],["G7","1568"],["GS7","1661"],["A7","1760"],["AS7","1865"],["B7","1976"],["C8","2093"],["CS8","2217"],["D8","2349"],["DS8","2489"],["E8","2637"],["F8","2794"],["FS8","2960"],["G8","3136"],["GS8","3322"],["A8","3520"],["AS8","3729"],["B8","3951"],["C9","4186"],["CS9","4435"],["D9","4699"],["DS9","4978"],["P","0"]]), "tone");
 
@@ -11756,7 +11762,7 @@ Blockly.Blocks['http_get_status'] = {
         .appendField(new Blockly.FieldVariable("request"), "request");
     this.setOutput(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
- this.setTooltip("Status code of the HTTP GET request");
+ this.setTooltip(Blockly.Msg["HTTP_GET_STATUS_TOOLTIP"]);
  this.setHelpUrl("bipes.net.br");
   }
 };
@@ -11768,7 +11774,7 @@ Blockly.Blocks['http_get_content'] = {
         .appendField(new Blockly.FieldVariable("request"), "request");
     this.setOutput(true, null);
     this.setColour(colour="%{BKY_SUB_NET_HUE}");
- this.setTooltip("Content of HTTP GET request");
+ this.setTooltip(Blockly.Msg["HTTP_GET_CONTENT_TOOLTIP"]);
  this.setHelpUrl("bipes.net.br");
   }
 };

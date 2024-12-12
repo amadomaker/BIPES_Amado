@@ -483,12 +483,58 @@ Blockly.Msg["MPU6050_READ_ACC_Z_TOOLTIP"] = "Ler a aceleração no eixo Z usando
 Blockly.Msg["MPU6050_READ_GYRO_X_TOOLTIP"] = "Ler a velocidade angular no eixo X usando o sensor MPU6050.";
 Blockly.Msg["MPU6050_READ_GYRO_Y_TOOLTIP"] = "Ler a velocidade angular no eixo Y usando o sensor MPU6050.";
 Blockly.Msg["MPU6050_READ_GYRO_Z_TOOLTIP"] = "Ler a velocidade angular no eixo Z usando o sensor MPU6050.";
-
-
-
-
-
-
+//Leitor RFID
+Blockly.Msg["RFID_RC522_INIT_TOOLTIP"] = "Inicialize o leitor RFID MFRC522 com os pinos especificados.";
+Blockly.Msg["RFID_RC522_DETECT_CARD_TOOLTIP"] = "Verifique se um cartão RFID está presente e obtenha seu status e tag.";
+Blockly.Msg["RFID_RC522_ANTICOLL_TOOLTIP"] = "Obtenha a identificação única (UID) do cartão RFID.";
+Blockly.Msg["RFID_RC522_READ_CARD_TOOLTIP"] = "Leia os dados armazenados na memória do cartão RFID.";
+Blockly.Msg["RFID_RC522_WRITE_CARD_TOOLTIP"] = "Escreva dados na memória do cartão RFID.";
+//Display OLED
+Blockly.Msg["INIT_OLED_TOOLTIP"] = "Inicialize o display OLED SSD1306 I2C com os pinos I2C, SCL e SDA especificados.";
+Blockly.Msg["FILL_OLED_TOOLTIP"] = "Preencha todo o display OLED com um valor específico.";
+Blockly.Msg["CLEAR_OLED_TOOLTIP"] = "Limpe todo o conteúdo do display OLED.";
+Blockly.Msg["SHOW_OLED_TOOLTIP"] = "Atualize o display OLED para exibir alterações.";
+Blockly.Msg["WRITE_OLED_TOOLTIP"] = "Escreva um texto em uma posição X e Y especificada no display OLED.";
+Blockly.Msg["WRITE_OLED_INT_TOOLTIP"] = "Mostre um valor inteiro em uma posição X e Y especificada no display OLED.";
+//Servo motor
+Blockly.Msg["INIT_SERVO_TOOLTIP"] = "Inicialize um servo motor com o nome e pino de controle especificados.";
+Blockly.Msg["MOVE_SERVO_TOOLTIP"] = "Mova o servo motor  para um ângulo especificado em graus.";
+//Motor DC
+Blockly.Msg["DC_MOTOR_INIT_TOOLTIP"] = "Inicializa um motor DC configurando os pinos PWM, Dir1 e Dir2.";
+Blockly.Msg["DC_MOTOR_POWER_TOOLTIP"] = "Define a potência (velocidade) do motor DC entre 0 e 1023";
+Blockly.Msg["DC_MOTOR_DIRECTION_TOOLTIP"] = "Define a direção do motor DC (frente ou ré).";
+Blockly.Msg["DC_MOTOR_STOP_TOOLTIP"] = "Para o motor DC.";
+//Buzzer
+Blockly.Msg["TONE_TOOLTIP"] = "Gera um tom com uma frequência e duração especificadas. Use 0 na duração para tom contínuo.";
+Blockly.Msg["NOTE_TOOLTIP"] = "Toca uma nota musical com a frequência correspondente por uma duração específica. Use 0 na duração para nota contínua.";
+Blockly.Msg["RTTTL_PLAY_TOOLTIP"] = "Toca uma música predefinida no formato RTTTL (Ring Tone Text Transfer Language). Selecione a música da biblioteca.";
+Blockly.Msg["PLAY_SAVE_MELODY_TOOLTIP"] = "Reproduz uma melodia previamente salva na aba Som";
+//Bluetooth REPL
+Blockly.Msg["BLUETOOTH_REPL_START_TOOLTIP"] = "Inicia o REPL (terminal interativo) via Web Bluetooth, permitindo a execução de comandos no dispositivo conectado.";
+Blockly.Msg["BLUETOOTH_REPL_SETUP_TOOLTIP"] = "Configura o REPL (terminal interativo) via Web Bluetooth, incluindo a definição do nome Bluetooth para o dispositivo.";
+//Wifi
+Blockly.Msg["NET_AP_MODE_TOOLTIP"] = "Configura o dispositivo como ponto de acesso Wi-Fi (AP).";
+Blockly.Msg["WIFI_CLIENT_CONNECT_TOOLTIP"] = "Conecta o dispositivo a uma rede Wi-Fi específica.";
+Blockly.Msg["WIFI_CLIENT_SCAN_NETWORKS_TOOLTIP"] = "Busca redes Wi-Fi disponíveis no alcance.";
+Blockly.Msg["NET_IFCONFIG_TOOLTIP"] = "Obtém o endereço IP atual do dispositivo na rede Wi-Fi.";
+//Cliente HTTP
+Blockly.Msg["NET_GET_REQUEST_TOOLTIP"] = "Faz uma requisição HTTP GET para a URL especificada.";
+Blockly.Msg["NET_POST_REQUEST_TOOLTIP"] = "Faz uma requisição HTTP POST com a URL e os dados especificados.";
+Blockly.Msg["HTTP_GET_STATUS_TOOLTIP"] = "Obtém o código de status da requisição HTTP GET.";
+Blockly.Msg["HTTP_GET_CONTENT_TOOLTIP"] = "Obtém o conteúdo da resposta da requisição HTTP GET.";
+//Servidor HTTP
+Blockly.Msg["NET_HTTP_SERVER_START_TOOLTIP"] = "Inicia um servidor HTTP na porta especificada.";
+Blockly.Msg["NET_HTTP_SERVER_ACCEPT_TOOLTIP"] = "Aguarda a conexão de um cliente HTTP ao servidor.";
+Blockly.Msg["NET_HTTP_SERVER_REQUESTED_PAGE_TOOLTIP"] = "Obtém a página solicitada pelo cliente HTTP.";
+Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_TOOLTIP"] = "Envia uma resposta HTTP com o conteúdo HTML especificado.";
+Blockly.Msg["NET_HTTP_SERVER_SEND_RESPONSE_JPG_TOOLTIP"] = "Envia uma resposta HTTP contendo uma imagem JPG.";
+Blockly.Msg["NET_HTTP_SERVER_CLOSE_TOOLTIP"] = "Fecha o servidor HTTP.";
+//Easy MQTT
+Blockly.Msg["EASYMQTT_INIT_TOOLTIP"] = "Iniciar o cliente EasyMQTT";
+Blockly.Msg["EASYMQTT_PUBLISH_TOOLTIP"] = "Publicar dados no servidor EasyMQTT";
+Blockly.Msg["EASYMQTT_SUBSCRIBE_TOOLTIP"] = "Inscreva-se em um tópico e defina o que fazer quando os dados forem recebidos do servidor EasyMQTT";
+Blockly.Msg["EASYMQTT_RECEIVE_TOOLTIP"] = "Receber dados do servidor EasyMQTT";
+Blockly.Msg["EASYMQTT_DISCONNECT_TOOLTIP"] = "Desconectar o cliente EasyMQTT do servidor";
 
 
 Blockly.Msg["CONTROL_HUE"] = "#d9a600";

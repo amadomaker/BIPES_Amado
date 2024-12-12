@@ -74,12 +74,12 @@ var MSG = {
   hour: "hora",
   minute: "minuto",
   second: "segundo",
-  wifi_scan: "scan wifi networks",
-  wifi_connect: "connect to wifi network",
-  wifi_name: "network name",
-  wifi_key: "key/password",
-  easymqtt_start: "EasyMQTT Start",
-  easymqtt_publish: "EasyMQTT Publish Data",
+  wifi_scan: "escanear redes wifi",
+  wifi_connect: "conectar a red wifi",
+  wifi_name: "nombre de la red",
+  wifi_key: "clave/contraseña",  
+  easymqtt_start: "Inicio de EasyMQTT",
+  easymqtt_publish: "Publicar datos de EasyMQTT",  
   topic: "topic",
   session_id: "session ID",
   file_open: "open File",
@@ -96,10 +96,12 @@ var MSG = {
   project_info: "Project Info",
   project_info_author: "Author",
   project_info_desc: "Description",
-  easymqtt_subscribe: "EasyMQTT subscribe to topic",
   when: "when",
   data_received: "is received",
-  easymqtt_receive: "EasyMQTT receive data",
+  easymqtt_subscribe: "suscripción al tema EasyMQTT",
+  easymqtt_receive: "recibir datos de EasyMQTT",
+  easymqtt_disconnect_title: "Desconectar EasyMQTT",
+  
   relay: "relay",
   on: "turn on",
   off: "turn off",
@@ -143,7 +145,7 @@ var MSG = {
   bluetooth_name: "miBluetooth",
 
   //espnow
-  initialize_wlan_title: "Inicializar Interfaz WLAN",
+  initialize_wlan_title: "Preparar para obtener dirección MAC",
   get_mac_address_title: "Obtener Dirección MAC de la Placa Amado",
   set_master_title: "Configurar la Placa Amado como Maestra",
   add_peer_title: "Agregar Dispositivo por Dirección MAC",
@@ -205,14 +207,86 @@ var MSG = {
   mpu6050_read_gyro_y: "Leer velocidad angular en el eje Y",
   mpu6050_read_gyro_z: "Leer velocidad angular en el eje Z",
 
+  //Leitor RFID
+  rfid_rc522_init_title: "Iniciar lector RFID MFRC522",
+  rfid_rc522_detect_card_title: "Verificar si la tarjeta RFID está presente",
+  rfid_rc522_anticoll_title: "Obtener identificación de la tarjeta (UID)",
+  rfid_rc522_read_card_title: "Leer memoria de la tarjeta RFID",
+  rfid_rc522_write_card_title: "Escribir en la memoria de la tarjeta RFID",
+
+  //Display OLED
+  init_oled_title: "Iniciar pantalla OLED SSD1306 I2C",
+  fill_oled_title: "Rellenar pantalla OLED con",
+  clear_oled_title: "Limpiar pantalla OLED",
+  show_oled_title: "Actualizar pantalla OLED",
+  write_oled_title: "Escribir texto en la pantalla",
+  write_oled_int_title: "Mostrar valor en la pantalla",
+  x_position: "Posición X",
+  y_position: "Posición Y",
+  value_display: "Valor",
+
+  //Servo motor
+  init_servo_title: "Iniciar motor servo",
+  init_servo_name: "Nombre del servo:",
+  init_servo_pin: "Pin",
+  move_servo_title: "Mover servo",
+  move_servo_name: "Nombre del servo",
+  move_servo_angle: "Ángulo",
+  no_servos: "Ningún servo",
+  //DC motor
+  dc_motor_init_title: "Iniciar motor de CC",
+  dc_motor_pwm_label: "PWM",
+  dc_motor_dir1_label: "Dirección 1",
+  dc_motor_dir2_label: "Dirección 2",
+  dc_motor_name_label: "Nombre del motor:",
+  dc_motor_power_title: "Establecer potencia del motor de CC  -",
+  dc_motor_power_label: "Potencia",
+  dc_motor_direction_title: "Establecer dirección del motor de CC  -",
+  dc_motor_direction_label: "Dirección",
+  dc_motor_stop_title: "Detener motor de CC",
+  
+  //Buzzer
+  tone_title: "Reproducir zumbador en",
+  note_title: "Reproducir zumbador en",
+  rttl_play_title: "Reproducir música",
+  duration_label: "duración (s): ",
+  duration_label2: "(0 para duración infinita)",
+  note_label: "nota",
+  frequency_label: "frecuencia",
+  songs_label: "Canción:",
+  melody_label: "melodía",
+
+  //Bluetooth REPL
+  bluetooth_repl_start_title: "Iniciar REPL mediante Web Bluetooth",
+  bluetooth_repl_setup_title: "Configurar REPL mediante Web Bluetooth",
+  bluetooth_name_label: "Nombre Bluetooth:",
+  
+  //Wifi
+  net_ap_mode_title: "Configurar Modo Punto de Acceso",
+  net_network_name_label: "Nombre de la red",
+  net_network_key_label: "Contraseña de la red",
+  net_ifconfig_title: "Dirección IP Actual",
+
+  //Cliente HTTP
+  Make_HTTP_POST_Request_URL_title: "Realizar solicitud HTTP POST - URL",
+
 
 
 
 
 //Network
-  net_http_get: "HTTP GET Request",
-  net_http_get_status: "HTTP Status code",
-  net_http_get_content: "HTTP Response content",
+  net_http_get: "Solicitud HTTP GET",
+  net_http_get_status: "Estado de la respuesta HTTP",
+  net_http_get_content: "Contenido de la respuesta HTTP",
+  net_http_server_start: "Iniciar servidor web HTTP",
+  net_http_server_start_port: "Puerto",
+  net_http_server_wait: "Esperar cliente HTTP",
+  net_http_server_requested_page: "Página web solicitada",
+  net_http_server_send_response: "Enviar respuesta HTTP",
+  net_http_server_send_html: "HTML",
+  net_http_server_close_title: "Cerrar servidor web HTTP",
+
+
 
 //Splash screen
   splash_welcome: "Bienvenida a BIPES",

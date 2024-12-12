@@ -97,6 +97,7 @@ var MSG = {
   project_info_desc: "Descrição",
   easymqtt_subscribe: "incrição no tópico EasyMQTT",
   easymqtt_receive: "receber dados EasyMQTT",
+  easymqtt_disconnect_title: "Desconectar EasyMQTT",
   when: "quando",
   data_received: "for recebido",
   relay: "rele",
@@ -140,7 +141,7 @@ var MSG = {
   bluetooth_name: "meuBluetooth",
 
   //espnow
-  initialize_wlan_title: "Inicializar Interface WLAN",
+  initialize_wlan_title: "Preparar para obter endereço MAC",
   get_mac_address_title: "Obter Endereço MAC da Placa Amado",
   set_master_title: "Configurar Placa Amado como Mestre",
   add_peer_title: "Adicionar Dispositivo pelo Endereço MAC",
@@ -205,7 +206,69 @@ var MSG = {
   mpu6050_read_gyro_y: "Ler velocidade angular no eixo Y",
   mpu6050_read_gyro_z: "Ler velocidade angular no eixo Z",
   
+  //Leitor RFID
+  rfid_rc522_init_title: "Iniciar leitor RFID MFRC522",
+  rfid_rc522_detect_card_title: "Verificar se o cartão RFID está presente",
+  rfid_rc522_anticoll_title: "Obter identificação do cartão (UID)",
+  rfid_rc522_read_card_title: "Ler memória do cartão RFID",
+  rfid_rc522_write_card_title: "Escrever na memória do cartão RFID",
+  
+  //Display OLED
+  init_oled_title: "Iniciar display OLED SSD1306 I2C",
+  fill_oled_title: "Preencher display OLED com",
+  clear_oled_title: "Limpar display OLED",
+  show_oled_title: "Atualizar display OLED",
+  write_oled_title: "Escrever texto no display",
+  write_oled_int_title: "Exibir valor no display",
+  x_position: "Posição X",
+  y_position: "Posição Y",
+  value_display: "Valor",
 
+  //Servo motor
+  init_servo_title: "Iniciar servo motor",
+  init_servo_name: "Nome do servo: ",
+  init_servo_pin: "Pino",
+  move_servo_title: "Mover servo",
+  move_servo_name: "Nome do servo: ",
+  move_servo_angle: "Ângulo",
+  no_servos: "Nenhum servo",
+
+  //DC motor
+  dc_motor_init_title: "Iniciar motor DC",
+  dc_motor_pwm_label: "PWM",
+  dc_motor_dir1_label: "Direção 1",
+  dc_motor_dir2_label: "Direção 2",
+  dc_motor_name_label: "Nome do motor: ",
+  dc_motor_power_title: "Definir potência do motor DC  -",
+  dc_motor_power_label: "Potência:",
+  dc_motor_direction_title: "Definir direção do motor DC  -",
+  dc_motor_direction_label: "Direção:",
+  dc_motor_stop_title: "Parar motor DC",
+
+  //Buzzer
+  tone_title: "Reproduzir buzzer no",
+  note_title: "Reproduzir buzzer no",
+  rttl_play_title: "Reproduzir música",
+  duration_label: "duração (s): ",
+  duration_label2: "(0 para duração infinita)",
+  note_label: "nota",
+  frequency_label: "frequência",
+  songs_label: "Música:",
+  melody_label: "melodia",
+
+  //Bluetooth REPL
+  bluetooth_repl_start_title: "Iniciar REPL via Web Bluetooth",
+  bluetooth_repl_setup_title: "Configurar REPL via Web Bluetooth",
+  bluetooth_name_label: "Nome Bluetooth:",
+
+  //Wifi
+  net_ap_mode_title: "Configurar Modo Ponto de Acesso",
+  net_network_name_label: "Nome da rede",
+  net_network_key_label: "Senha da rede",
+  net_ifconfig_title: "Endereço IP Atual",
+
+  //Cliente HTTP
+  Make_HTTP_POST_Request_URL_title: "Fazer requisição HTTP POST -  URL",
 
 
 
@@ -219,6 +282,7 @@ var MSG = {
   net_http_server_requested_page: "Página web solicitada",
   net_http_server_send_response: "Enviar resposta HTTP",
   net_http_server_send_html: "HTML",
+  net_http_server_close_title: "Fechar HTTP web server",
 
 
 //Splash screen

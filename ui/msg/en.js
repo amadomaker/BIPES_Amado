@@ -77,8 +77,8 @@ var MSG = {
   second: "second",
   wifi_scan: "scan wifi networks",
   wifi_connect: "connect to wifi network",
-  wifi_name: "network name",
-  wifi_key: "key/password",
+  wifi_name: "Network name",
+  wifi_key: "Key/password",
   easymqtt_start: "EasyMQTT Start",
   easymqtt_publish: "EasyMQTT Publish Data",
   topic: "topic",
@@ -101,6 +101,7 @@ var MSG = {
   when: "when",
   data_received: "is received",
   easymqtt_receive: "EasyMQTT receive data",
+  easymqtt_disconnect_title: "EasyMQTT stop",
   relay: "relay",
   on: "turn on",
   off: "turn off",
@@ -142,7 +143,7 @@ var MSG = {
   bluetooth_name: "myBluetooth",
 
   //espnow
-  initialize_wlan_title: "Initialize WLAN Interface",
+  initialize_wlan_title: "Prepare to get MAC address",
   get_mac_address_title: "Get MAC Address of Amado Board",
   set_master_title: "Configure Amado Board as Master",
   add_peer_title: "Add Device by MAC Address",
@@ -203,6 +204,70 @@ var MSG = {
   mpu6050_read_gyro_x: "Read angular velocity on X axis",
   mpu6050_read_gyro_y: "Read angular velocity on Y axis",
   mpu6050_read_gyro_z: "Read angular velocity on Z axis",
+  
+  //Leitor RFID
+  rfid_rc522_init_title: "Initialize RFID MFRC522 Reader",
+  rfid_rc522_detect_card_title: "Check if RFID Card is present",
+  rfid_rc522_anticoll_title: "Get card identification (UID)",
+  rfid_rc522_read_card_title: "Read RFID Card Memory",
+  rfid_rc522_write_card_title: "Write RFID Card Memory",
+
+  //Display OLED
+  init_oled_title: "Init I2C SSD1306 OLED Display",
+  fill_oled_title: "Fill OLED Display with",
+  clear_oled_title: "Clear OLED Display",
+  show_oled_title: "Update OLED Display",
+  write_oled_title: "Write text on display",
+  write_oled_int_title: "Print value on display",
+  x_position: "X Position",
+  y_position: "Y Position",
+  value_display: "Value",
+
+  //Servo motor
+  init_servo_title: "Init servo motor",
+  init_servo_name: "Servo name:",
+  init_servo_pin: "Pin",
+  move_servo_title: "Move servo motor",
+  move_servo_name: "Servo name",
+  move_servo_angle: "Angle",
+  no_servos: "No servos",
+
+  //DC motor
+  dc_motor_init_title: "Init DC Motor",
+  dc_motor_pwm_label: "PWM",
+  dc_motor_dir1_label: "Direction 1",
+  dc_motor_dir2_label: "Direction 2",
+  dc_motor_name_label: "Motor Name: ",
+  dc_motor_power_title: "Set DC Motor Power  -",
+  dc_motor_power_label: "Power",
+  dc_motor_direction_title: "Set DC Motor Direction  -",
+  dc_motor_direction_label: "Direction",
+  dc_motor_stop_title: "Stop DC Motor",
+  
+  //Buzzer
+  tone_title: "Play buzzer on",
+  note_title: "Play buzzer on",
+  rttl_play_title: "Play music",
+  duration_label: "duration (s): ",
+  duration_label2: "(0 for infinite duration)",
+  note_label: "note",
+  frequency_label: "frequency",
+  songs_label: "Song:",
+  melody_label: "melody",
+
+  //Bluetooth REPL
+  bluetooth_repl_start_title: "Start REPL over Web Bluetooth",
+  bluetooth_repl_setup_title: "Setup REPL over Web Bluetooth",
+  bluetooth_name_label: "Bluetooth name:",
+  
+  //Wifi
+  net_ap_mode_title: "Configure Access Point Mode",
+  net_network_name_label: "Network name",
+  net_network_key_label: "Network password",
+  net_ifconfig_title: "Wifi current IP",
+
+  //Cliente HTTP
+  Make_HTTP_POST_Request_URL_title: "Make HTTP POST Request - URL",
 
 
     
@@ -216,6 +281,7 @@ var MSG = {
   net_http_server_requested_page: "Requested Web Page",
   net_http_server_send_response: "Send HTTP Response",
   net_http_server_send_html: "HTML",
+  net_http_server_close_title: "Close HTTP web server",
 
 //Splash screen
   splash_welcome: "Welcome to BIPES!",
