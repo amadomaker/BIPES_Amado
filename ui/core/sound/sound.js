@@ -214,6 +214,19 @@ function saveMelody(e) {
 
     addMelodyToLocalStorage(newMelody);
 
+    // atualiza o bloco de tocar melodias salvas
+    const workspace = Blockly.getMainWorkspace();
+    workspace.getAllBlocks().forEach((block) => {
+      if (block.type === "play_save_melody") {
+        const dropdownField = block.getField("MELODY");
+        const newOptions = getMelodyOptions();
+        dropdownField.menuGenerator_ = newOptions;
+
+        // Define o valor da nova melodia ou o primeiro disponível
+        dropdownField.setValue(newOptions[0][1]);
+      }
+    });
+
     closeSoundModal();
     clearSoundInput();
     alert("Melodia salva com sucesso!");
@@ -359,7 +372,7 @@ function exportMelody(e) {
   const melodyData = {
     name: melodyName,
     notes: activeNotes,
-    bpm: bpm || 120
+    bpm: bpm || 120,
   };
 
   const jsonStr = JSON.stringify(melodyData, null, 2);
@@ -405,7 +418,6 @@ function displayImportedMelody(notes) {
       }
     }
   });
-
 }
 
 async function importMelody() {
@@ -423,12 +435,12 @@ async function importMelody() {
     localStorage.setItem("bipes@melodies", JSON.stringify(filteredMelodies));
   }
 
-  const bpm = newMelody.bpm || 120
+  const bpm = newMelody.bpm || 120;
 
   addMelodyToLocalStorage({
     name: melodyName,
     notes: newMelody.notes,
-    bpm
+    bpm,
   });
 
   // atualiza o bpm
