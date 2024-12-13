@@ -284,10 +284,11 @@ var MSG = {
   net_http_server_close_title: "Close HTTP web server",
 
 //Splash screen
-  splash_welcome: "Welcome to BIPES!",
+  splash_welcome: "Welcome to DBLOCKS!",
   splash_footer: "Do not show this screen again",
   splash_close: "Close",
-  splash_message: "<p><b>BIPES: Block based Integrated Platform for Embedded Systems</B> allows text and block based programming for several types of embedded systems and Internet of Things modules using MicroPython, CircuitPython, Python or Snek. You can connect, program, debug and monitor several types of boards using network, USB or Bluetooth. Please check a list of <a href=https://bipes.net.br/wp/boards/>compatible boards here</a>. Compatible boards include STM32, ESP32, ESP8266, Raspberry Pi Pico and even Arduino.  <p><b>BIPES</b> is fully <a href=https://bipes.net.br/wp/development/>open source</a> and based on HTML and JavaScript, so no software install or configuration is needed and you can use it offline! We hope BIPES is useful for you and that you can enjoy using BIPES. If you need help, we now have a <a href=https://github.com/BIPES/BIPES/discussions>discussion forum</a>, where we also post <a href=https://github.com/BIPES/BIPES/discussions/categories/announcements>new features and announcements about BIPES</a>. Feel free to use it! Also, we invite you to use the forum to leave feedbacks and suggestions for BIPES!</p><p>Now you can easily load MicroPython on your ESP32 or ESP8226 to use with BIPES: <a href=https://bipes.net.br/flash/esp-web-tools/>https://bipes.net.br/flash/esp-web-tools/</a></p><p>Checkout BIPES Book at <a href=https://bipes.net.br/wp/book-livro/>https://bipes.net.br/wp/book-livro/</a></p> <p>Thank you from the BIPES Team!</p>",
+  splash_message: "<p><b>Dblocks: An Educational Platform for Block-Based Programming</b> enables programming of embedded systems and Internet of Things (IoT) devices in a practical and intuitive way, using blocks or code. Currently, the platform is optimized for the Amado Board, based on the ESP32 chip, but it also supports programming ESP32 devices directly, without complications.</p><p>To get started, it is necessary to flash the MicroPython firmware onto the device. Use our tool for direct installation via your browser: <a href='https://amadomaker.github.io/Instalador_Micropython/'>MicroPython Installer</a>.</p><p>Dblocks is a solution created by Amado Maker, a company focused on educational technology, aiming to simplify the teaching of programming and electronics.</p><p>We appreciate your interest and hope that Dblocks will be a useful and inspiring tool for your educational projects!</p>",
+
 
   // Music
   music: "Music",
