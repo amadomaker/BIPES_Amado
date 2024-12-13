@@ -11370,21 +11370,9 @@ Blockly.Blocks['play_save_melody'] = {
   this.appendDummyInput()
   .appendField(MSG["melody_label"])
   .appendField(new Blockly.FieldDropdown(() => {
-      // Recupera as melodias salvas no localStorage
-      const savedMelodies = localStorage.getItem('bipes@melodies');
-      let options = [];
+     const newOptions = getMelodyOptions()
 
-      if (savedMelodies) {
-          const melodies = JSON.parse(savedMelodies);
-          options = melodies.map(melody => [melody.name, melody.name]);
-      }
-
-      // Se não houver melodias, adiciona uma opção padrão
-      if (options.length === 0) {
-          options = [['Nenhuma melodia disponível', 'NONE']];
-      }
-
-      return options;
+     return newOptions
   }), "MELODY");
 
     this.setPreviousStatement(true, null);
@@ -11399,7 +11387,17 @@ Blockly.Blocks['play_save_melody'] = {
         options.push({
           text: `Excluir '${melodyName}'`,
           enabled: true,
-          callback: () => deleteSavedMelody(melodyName)
+          callback: () => {
+            deleteSavedMelody(melodyName)
+            // Atualiza o dropdown após deletar a melodia
+            const newOptions = getMelodyOptions()
+
+            const dropdownField = this.getField("MELODY");
+            dropdownField.menuGenerator_ = newOptions;
+
+            dropdownField.setValue(newOptions[0][1]);
+
+          }
         });
 
         options.push({
@@ -11411,6 +11409,24 @@ Blockly.Blocks['play_save_melody'] = {
     };
   }
 };
+
+function getMelodyOptions(){
+  // Recupera as melodias salvas no localStorage
+  const savedMelodies = localStorage.getItem('bipes@melodies');
+  let options = [];
+
+  if (savedMelodies) {
+      const melodies = JSON.parse(savedMelodies);
+      options = melodies.map(melody => [melody.name, melody.name]);
+  }
+
+  // Se não houver melodias, adiciona uma opção padrão
+  if (options.length === 0) {
+      options = [['Nenhuma melodia disponível', 'NONE']];
+  }
+
+  return options;
+}
 
 function deleteSavedMelody(melodyName){
   // deleta uma melodia pelo nome
