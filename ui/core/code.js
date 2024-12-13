@@ -819,8 +819,8 @@ Code.initLanguage = function() {
 
   // tab music
   document.getElementById('openSoundModal').textContent = MSG['saveMelody'];
-  document.getElementById('openImportMelodyModal').textContent = MSG['importMelody'];
-  document.getElementById('openExportMelodyModal').textContent = MSG['exportMelody'];
+  document.getElementById('openImportMelodyModal').title = MSG['importMelody'];
+  document.getElementById('openExportMelodyModal').title = MSG['exportMelody'];
   document.getElementById('saveMelodyTitle').textContent = MSG['saveAMelody'];
   document.getElementById('exportMelodyTitle').textContent = MSG['exportAMelody'];
   document.getElementById('importMelodyTitle').textContent = MSG['importAMelody'];
