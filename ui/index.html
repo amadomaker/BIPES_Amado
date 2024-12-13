@@ -571,10 +571,13 @@ window.onload = function() {
 	if (!pLang)
 		pLang='en';
 
+  //Comentando opção de selecionar o idioma na splash screen
+  /*
 	if ((userLang.startsWith("pt")) || (pLang.startsWith("pt"))) {	
 		addMsg="<p><a href=/beta2/ui/?lang=pt-br>Acessar o BIPES em Português</a>";
 		addMsg+=" | <a href=/beta2/ui/?lang=en>Access BIPES in English</a>";
 	}
+    */
 
 	if (MSG["splash_welcome"]) 
 		document.getElementById("modalTitle").innerHTML = MSG["splash_welcome"];
@@ -712,7 +715,7 @@ cursor: pointer;
 
 .modal-header {
 padding: 2px 16px;
-background-color: #4d4dff;
+background-color: #EE8537;
 color: white;
 }
 
@@ -720,7 +723,7 @@ color: white;
 
 .modal-footer {
 padding: 2px 16px;
-background-color: #4d4dff;
+background-color: #EE8537;
 color: white;
 }
 </style>
