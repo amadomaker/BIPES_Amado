@@ -346,7 +346,7 @@ function exportMelody(e) {
     return;
   }
 
-  const inputExport = document.getElementById("soundNameExport");
+  const inputExport = document.getElementById("soundNameExportInput");
   const melodyName = inputExport.value;
 
   if (!melodyName) {
