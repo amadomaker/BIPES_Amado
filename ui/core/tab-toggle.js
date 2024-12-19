@@ -1,6 +1,9 @@
 const verifyAmadoBoardIsSelected = () => {
-  // verifica se a AmadoBoard está selecionada e esconde as abas não usadas
   const valueDeviceSelector = document.getElementById("device_selector").value;
+
+  // Salva o valor no localStorage
+  localStorage.setItem("bipes@selectedDevice", valueDeviceSelector);
+
   const tabSound = document.getElementById("tab_sound");
   const contentSound = document.getElementById("containerSound");
 
@@ -22,7 +25,15 @@ const verifyAmadoBoardIsSelected = () => {
   }
 };
 
-verifyAmadoBoardIsSelected();
-document
-  .getElementById("device_selector")
-  .addEventListener("change", verifyAmadoBoardIsSelected);
+window.onload = function () {
+  const deviceSelector = document.getElementById("device_selector");
+
+  const savedValue = localStorage.getItem("bipes@selectedDevice");
+  if (savedValue) {
+    deviceSelector.value = savedValue;
+  }
+
+  verifyAmadoBoardIsSelected();
+
+  deviceSelector.addEventListener("change", verifyAmadoBoardIsSelected);
+};
