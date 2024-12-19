@@ -3,7 +3,7 @@
     url = https://github.com/BIPES/freeboard
 [submodule "databoard"]
     path = databoard
-    url = git@github.com:joaodrj/databoard.git
+    url = https://github.com/BIPES/Databoard
 
 [submodule "blockly"]
     path = blockly
