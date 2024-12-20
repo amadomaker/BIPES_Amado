@@ -1,28 +1,40 @@
-const verifyAmadoBoardIsSelected = () => {
-  // verifica se a AmadoBoard está selecionada e esconde as abas não usadas
-  const valueDeviceSelector = document.getElementById("device_selector").value;
-  const tabSound = document.getElementById("tab_sound");
-  const contentSound = document.getElementById("containerSound");
+document.addEventListener("DOMContentLoaded", () => {
+  
+  const deviceSelector = document.getElementById("device_selector");
 
-  const tabShared = document.getElementById("tab_programs");
-  const tabDataboard = document.getElementById("tab_databoard");
-
-  if (valueDeviceSelector === "AmadoBoard") {
-    tabSound.style.display = "block";
-    contentSound.style.display = "block";
-
-    tabShared.style.display = "none";
-    tabDataboard.style.display = "none";
-  } else {
-    tabSound.style.display = "none";
-    contentSound.style.display = "none";
-
-    tabShared.style.display = "block";
-    tabDataboard.style.display = "block";
+  const savedValue = localStorage.getItem("bipes@selectedDevice");
+  if (savedValue) {
+    deviceSelector.value = savedValue;
   }
-};
 
-verifyAmadoBoardIsSelected();
-document
-  .getElementById("device_selector")
-  .addEventListener("change", verifyAmadoBoardIsSelected);
+  const verifyAmadoBoardIsSelected = () => {
+    const valueDeviceSelector = deviceSelector.value;
+
+    // Salva o valor no localStorage
+    localStorage.setItem("bipes@selectedDevice", valueDeviceSelector);
+
+    const tabSound = document.getElementById("tab_sound");
+    const contentSound = document.getElementById("containerSound");
+
+    const tabShared = document.getElementById("tab_programs");
+    const tabDataboard = document.getElementById("tab_databoard");
+
+    if (valueDeviceSelector === "AmadoBoard") {
+      tabSound.style.display = "block";
+      contentSound.style.display = "block";
+
+      tabShared.style.display = "none";
+      tabDataboard.style.display = "none";
+    } else {
+      tabSound.style.display = "none";
+      contentSound.style.display = "none";
+
+      tabShared.style.display = "block";
+      tabDataboard.style.display = "block";
+    }
+  };
+
+  verifyAmadoBoardIsSelected();
+
+  deviceSelector.addEventListener("change", verifyAmadoBoardIsSelected);
+});
