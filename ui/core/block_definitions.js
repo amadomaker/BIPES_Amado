@@ -11987,7 +11987,7 @@ Blockly.Blocks['init_wlan'] = {
         .appendField(MSG["initialize_wlan_title"]);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour('#4a2667');
+    this.setColour("#7b49ad");
     this.setTooltip(Blockly.Msg["INIT_WLAN_TOOLTIP"]);
     this.setHelpUrl("");
   }
@@ -11999,7 +11999,7 @@ Blockly.Blocks['get_mac_address'] = {
     this.appendDummyInput()
         .appendField(MSG["get_mac_address_title"]);
     this.setOutput(true, 'String');
-    this.setColour('#4a2667');
+    this.setColour("#7b49ad");
     this.setTooltip(Blockly.Msg["GET_MAC_ADDRESS_TOOLTIP"]);
     this.setHelpUrl("");
   }
