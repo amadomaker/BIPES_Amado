@@ -1835,7 +1835,7 @@ Blockly.Blocks['hcsr_read'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["get_distance_hcsr04"]), "MSG_READ_DHT_TEMP");
     this.setOutput(true, null);
-    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
  this.setTooltip(Blockly.Msg["HCSR_READ_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
