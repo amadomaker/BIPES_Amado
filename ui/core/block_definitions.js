@@ -1890,8 +1890,7 @@ Blockly.Blocks['dht_read_temp'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["dht_temp"]), "MSG_READ_DHT_TEMP");
     this.setOutput(true, null);
-    this.setColour(colour="%{BKY_VARIABLES_HUE}"
-    );
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.setTooltip("Read DHT11/22 Temperature");
     this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1903,8 +1902,7 @@ Blockly.Blocks['dht_read_humidity'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["dht_humi"]), "MSG_READ_DHT_HUMI");
     this.setOutput(true, null);
-    this.setColour(colour="%{BKY_VARIABLES_HUE}"
-    );
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
     this.setTooltip("Read DHT11/22 Humidity");
     this.setHelpUrl("http://www.bipes.net.br");
   }
