@@ -975,7 +975,7 @@ Blockly.Blocks['mpu6050_read_acc_x'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["mpu6050_read_acc_x"]), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
  this.setTooltip(Blockly.Msg["MPU6050_READ_ACC_X_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -988,7 +988,7 @@ Blockly.Blocks['mpu6050_read_acc_y'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["mpu6050_read_acc_y"]), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
  this.setTooltip(Blockly.Msg["MPU6050_READ_ACC_Y_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1000,7 +1000,7 @@ Blockly.Blocks['mpu6050_read_acc_z'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["mpu6050_read_acc_z"]), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
  this.setTooltip(Blockly.Msg["MPU6050_READ_ACC_Z_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1012,7 +1012,7 @@ Blockly.Blocks['mpu6050_read_gyro_x'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["mpu6050_read_gyro_x"]), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
  this.setTooltip(Blockly.Msg["MPU6050_READ_GYRO_X_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1025,7 +1025,7 @@ Blockly.Blocks['mpu6050_read_gyro_y'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["mpu6050_read_gyro_y"]), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
  this.setTooltip(Blockly.Msg["MPU6050_READ_GYRO_Y_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
@@ -1037,7 +1037,7 @@ Blockly.Blocks['mpu6050_read_gyro_z'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldLabelSerializable(MSG["mpu6050_read_gyro_z"]), "MSG_READ_MPU6050");
     this.setOutput(true, null);
-    this.setColour(colour="%{BKY_VARIABLES_HUE}");
+    this.setColour(colour="%{BKY_SENSORS_HUE}");
  this.setTooltip(Blockly.Msg["MPU6050_READ_GYRO_Z_TOOLTIP"]);
  this.setHelpUrl("http://www.bipes.net.br");
   }
