@@ -4,7 +4,7 @@
 			"title":"<b>Amado Board</b><br>",
 			"speed":"115200",
 			"boardID":"AmadoBoard", 
-			"img":"devinfo/media/amadoBoardV3-legendas.svg",
+			"img":"devinfo/media/amadoboard-legendas.svg",
 			"description":"",
 			"toolbox":"AmadoBoard.xml",
 			"pinout": [
