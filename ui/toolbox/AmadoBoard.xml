@@ -688,7 +688,7 @@
   <category name="%{BKY_CAT_ULTRASONIC}" colour="%{BKY_SENSORS_HUE}">
       <label text="HCSR04 sensor de distância ultrassônico"></label>
       <label text="Biblioteca: https://github.com/rsc1975/micropython-hcsr04"></label>
-        <button text="Install HCSR04 library" callbackKey="installPyLib"></button>
+        <!--<button text="Install HCSR04 library" callbackKey="installPyLib"></button>-->
 
 
       <block type="hcsr_init">
@@ -756,7 +756,7 @@
   <!--Categoria para o módulo de acelerômetro e giroscopio-->
   <category name="%{BKY_CAT_ACCELEROMETER}" colour="%{BKY_SENSORS_HUE}">
       <label text="Acelerômetro e Giroscópio MPU-6050"></label>
-        <button text="Instalar biblioteca (MPU6050)" callbackKey="installPyLib"></button>
+        <button text="Install imu library (MPU6050)" callbackKey="installPyLib"></button>
         <button text="Carregar exemplo: mpu6050" callbackKey="loadExample"></button>
         <button text="Documentação e como conectar: mpu6050" callbackKey="loadDoc"></button>
 
@@ -818,7 +818,7 @@
   <!--Categoria para o módulo RFID-->
   <category name="%{BKY_CAT_RFID}" colour="%{BKY_SENSORS_HUE}">
       <label text="Leitor RFID MFRC522"></label>
-        <button text="Instalar biblioteca mfrc522" callbackKey="installPyLib"></button>
+        <button text="Install mfrc522 library" callbackKey="installPyLib"></button>
         <button text="Carregar exemplo: mfrc522" callbackKey="loadExample"></button>
         <button text="Documentação e como conectar: mfrc522" callbackKey="loadDoc"></button>
 
@@ -1196,7 +1196,7 @@
     <!--Categoria para o display oled-->
     <category name = "%{BKY_CAT_OLEDDISPLAY}" colour="%{BKY_DISPLAY_HUE}">
       <label text="SSD1306 OLED I2C Display"></label>
-      <button text="Instalar biblioteca ssd1306" callbackKey="installPyLib"></button>
+      <button text="Install ssd1306 library" callbackKey="installPyLib"></button>
 
 	    
       <block type="init_oled">
@@ -1524,8 +1524,7 @@ _
 
   <category name="%{BKY_CAT_BUZZER}" colour = "%{BKY_ACTUATORS_HUE}">
         <label text="Bibliotecas necessárias para tocar sons: "></label>
-        <button text="Instalar biblioteca rtttl" callbackKey="installPyLib"></button>
-        <button text="Instalar biblioteca songs" callbackKey="installPyLib"></button>
+        <button text="Install rtttl library" callbackKey="installPyLib"></button>
 
     <block type="tone"> 
       <value name="pin">
@@ -1589,7 +1588,7 @@ _
     </block>
 
     <label text="Músicas disponíveis da biblioteca songs:"></label>
-    <button text="Instalar biblioteca songs" callbackKey="installPyLib"></button>
+    <button text="Install songs library" callbackKey="installPyLib"></button>
 
     <block type="text"> <field name="TEXT">Super Mario - Main Theme</field> </block>
     <block type="text"> <field name="TEXT">Super Mario - Title Music</field> </block>
@@ -1643,9 +1642,9 @@ _
   <label text="Este bloco permite acesso ao terminal/console usando Bluetooth, além de possibilitar o envio de programação diretamente para o dispositivo via Bluetooth."></label>
   <label text="Biblioteca: https://github.com/micropython/micropython/tree/master/examples/bluetooth"></label>
   <label text="Você precisa instalar 3 arquivos para usar:"></label>
-  <button text="Instalar a biblioteca ble_advertising" callbackKey="installPyLib"></button>
-  <button text="Instalar a biblioteca ble_uart_peripheral" callbackKey="installPyLib"></button>
-  <button text="Instalar a biblioteca ble_uart_repl" callbackKey="installPyLib"></button>
+  <button text="Install ble_advertising library" callbackKey="installPyLib"></button>
+  <button text="Install ble_uart_peripheral library" callbackKey="installPyLib"></button>
+  <button text="Install ble_uart_repl library" callbackKey="installPyLib"></button>
 
   <label text="Web Bluetooth REPL"></label>
   <block type="bluetooth_repl_setup">

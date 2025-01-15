@@ -310,7 +310,7 @@ class Tool {
     let imp = [...code.matchAll(/import (.*)/g)]
 
     if (ext == '') {
-      return desc ? `${desc [1].slice()}${ext}` : 'My BIPES Project';
+      return desc ? `${desc [1].slice()}${ext}` : 'My DBLOCKS Project';
     } else {
       if (desc == null) {
         desc = [];
@@ -584,7 +584,7 @@ class files {
    * @param {string} file - File name of the file to be deleted.
    */
   delete (file) {
-    let msg = "Are you sure you want to delete " + file + "?";
+    let msg = "Você tem certeza que deseja deletar " + file + "?";
 
     if (confirm(msg)) {
       let txt = "Will delete file " + file;
