@@ -638,23 +638,45 @@ workspace.prototype.changeTo = function (device) {
  */
 workspace.prototype.saveXML = function (uid) {
   let xmlText = '';
+  let fileName = 'workspace.bipes.xml';
+
   if (uid == undefined) {
     xmlText = Blockly.Xml.domToPrettyText(Blockly.Xml.workspaceToDom(Code.workspace));
-    xmlText = this.writeWorkspace (xmlText, true);
+    xmlText = this.writeWorkspace(xmlText, true);
   } else {
     // Bounce in Blockly to make Pretty Text formatting
-    xmlText = Blockly.Xml.domToPrettyText(Blockly.Xml.textToDom(localStorage [uid]));
+    xmlText = Blockly.Xml.domToPrettyText(Blockly.Xml.textToDom(localStorage[uid]));
   }
 
-  let data = "data:x-application/xml;charset=utf-8," + encodeURIComponent(xmlText);
-	let element = document.createElement('a');
-	element.setAttribute('href', data),
-	element.setAttribute('download', 'workspace.bipes.xml'),
-	element.style.display = 'none';
-	document.body.appendChild(element);
-	element.click ();
-	document.body.removeChild(element);
-}
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+    const blocks = xmlDoc.getElementsByTagName("block");
+
+    for (let i = 0; i < blocks.length; i++) {
+      const block = blocks[i];
+      if (block.getAttribute("type") === "project_metadata") {
+        const descriptionValue = block.querySelector('value[name="project_description"] shadow field[name="TEXT"]');
+        if (descriptionValue && descriptionValue.textContent.trim()) {
+          fileName = descriptionValue.textContent.trim() + ".xml"; // Atualiza o nome do arquivo
+          break;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Erro ao processar o nome do arquivo:", error);
+  }
+
+  const data = "data:x-application/xml;charset=utf-8," + encodeURIComponent(xmlText);
+  const element = document.createElement('a');
+  element.setAttribute('href', data);
+  element.setAttribute('download', fileName);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+};
+
 
 /**
  * Read freeboard, device, timestamp and origin from BIPES generated XML.
