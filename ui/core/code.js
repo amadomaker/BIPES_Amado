@@ -610,7 +610,7 @@ Code.init = function() {
 	var lib = button.text_.split(" ")[1];
 	console.log(button.text_);
 	console.log(lib)
-        alert("This will automatic download and install the library on the connected board: " + lib + ". Internet is required for this operation. Install results will be shown on console tab.");
+        alert("Isso fará o download e a instalação automática da biblioteca na placa conectada: " + lib + ". É necessário ter acesso à internet para essa operação. Os resultados da instalação serão exibidos na aba do console.");
 
 
 	UI ['notify'].send('Installing library, check console')
