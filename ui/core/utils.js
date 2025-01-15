@@ -310,7 +310,7 @@ class Tool {
     let imp = [...code.matchAll(/import (.*)/g)]
 
     if (ext == '') {
-      return desc ? `${desc [1].slice()}${ext}` : 'My BIPES Project';
+      return desc ? `${desc [1].slice()}${ext}` : 'My DBLOCKS Project';
     } else {
       if (desc == null) {
         desc = [];
