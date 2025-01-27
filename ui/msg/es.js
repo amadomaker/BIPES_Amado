@@ -338,3 +338,4 @@ Blockly.Msg['CAT_BUZZER'] = "Buzzer";
 Blockly.Msg['CAT_WIFI'] = "Wifi";
 Blockly.Msg['CAT_HTTPCLIENT'] = "cliente HTTP";
 Blockly.Msg['CAT_HTTPSERVER'] = "Servidor HTTP";
+Blockly.Msg['INSTALL_LIBRARY'] = "Instalar biblioteca:"

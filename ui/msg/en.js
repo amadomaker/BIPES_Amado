@@ -333,3 +333,5 @@ Blockly.Msg['CAT_BUZZER'] = "Buzzer";
 Blockly.Msg['CAT_WIFI'] = "Wifi";
 Blockly.Msg['CAT_HTTPCLIENT'] = "HTTP client";
 Blockly.Msg['CAT_HTTPSERVER'] = "HTTP server";
+Blockly.Msg['INSTALL_LIBRARY'] = "Install library:"
+
