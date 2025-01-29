@@ -605,72 +605,42 @@ Code.init = function() {
   }
   Blockly.svgResize(Code.workspace);
 
-  Code.workspace.registerButtonCallback('installPyLib', function(button) {
-    
+  Code.workspace.registerButtonCallback("installPyLib", function (button) {
     var lib = button.text_.split(" ")[1];
+    console.log("Instalando biblioteca:", lib);
 
-	console.log(button.text_);
-	console.log(lib)
-        alert("Isso fará o download e a instalação automática da biblioteca na placa conectada: " + lib + ". É necessário ter acesso à internet para essa operação. Os resultados da instalação serão exibidos na aba do console.");
+    alert(
+        "Isso fará a instalação automática da biblioteca na placa conectada: " +
+        lib
+    );
 
+    UI["notify"].send("Instalando biblioteca, confira o console...");
 
-	UI ['notify'].send('Installing library, check console')
+    var filePath = "../ui/pylibs/" + lib + ".py";
 
-	var installCmd = `
-def bipesInstall(url, lib):
-    import socket
-    _, _, host, path = url.split('/', 3)
-    addr = socket.getaddrinfo(host, 80)[0][-1]
-    s = socket.socket()
-    s.connect(addr)
-    print('Downloading from ' + url)
-    s.send(bytes('GET /%s HTTP/1.0\\r\\nHost: %s\\r\\n\\r\\n' % (path, host), 'utf8'))
+    fetch(filePath)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Erro ao carregar biblioteca: " + filePath);
+            }
+            return response.text();
+        })
+        .then((pythonCode) => {
+            console.log("Biblioteca carregada com sucesso:", lib);
+            installLib(pythonCode, lib);
+        })
+        .catch((error) => console.error(error));
+});
 
-    f = open('tmplib.py', 'w')
-    #f = open(lib, 'w')
-
-    while True:
-        data = s.recv(100)
-        if data:
-            #print(str(data, 'utf8'), end='')
-            f.write(data)
-            #print('.')
-        else:
-            break
-    s.close()
-    f.close()
-    print('Download done')
-
-`;
- 
-    installCmd = installCmd + "lib = '" + lib + ".py'" + '\r';
-    installCmd = installCmd + "bipesInstall('https://dblocks.com.br/ui/pylibs/' + lib, lib)";
-	    
-
-     Tool.runPython(installCmd);
-
-     var copyCmd = `      
-f=open("tmplib.py", "r")
-c=open("`;
-
-copyCmd += lib + `.py", "w")
-lineC=0
-for line in f:
-	lineC=lineC+1
-	#Jump 10 lines to skip HTTP header
-	if lineC >= 10:
-		r=c.write(line)
-		print('.', end='')
+function installLib(pythonCode, lib) {
+    var installCmd = `
+f = open("${lib}.py", "w")
+f.write("""${pythonCode}""")
 f.close()
-c.close()
-print('Install done.')
-
+print("Instalação da biblioteca ${lib} concluída.")
 `;
- 
-     Tool.runPython(copyCmd);
-
-
-      });
+    Tool.runPython(installCmd);
+}
 
 
     Code.workspace.registerButtonCallback('loadExample', function(button) {
