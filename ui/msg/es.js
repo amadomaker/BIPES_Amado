@@ -378,6 +378,7 @@ Blockly.Msg['MQTT_CONFIG_LEGEND'] = "Configura conexiones MQTT para IoT, publica
 Blockly.Msg['EASYMQTT_TAB_LEGEND'] = "Sigue los resultados en la pestaña EasyMQTT.";
 Blockly.Msg['DOCUMENTATION_LEGEND'] = "Documentación";
 Blockly.Msg['LOAD_EXAMPLE_LEGEND'] = "Cargar ejemplo";
+Blockly.Msg['REQUIRED_LIBRARY_LEGEND'] = "Biblioteca necesaria";
 
 
 

@@ -1629,6 +1629,8 @@ _
   <label text="Bluetooth Low Energy (BLE) - %{BKY_LOW_CONSUMPTION_LEGEND}"></label>
   <label text="%{BKY_BLUEFRUIT_CONNECT_COMPATIBLE_LEGEND}"></label>
   <label text="%{BKY_DOWNLOAD_APP_LEGEND}: https://play.google.com/store/apps/details?id=com.adafruit.bluefruit.le.connect"></label>
+  <label text="%{BKY_REQUIRED_LIBRARY_LEGEND}:"></label>
+  <button text="%{BKY_INSTALL_LIBRARY} ble_advertising" callbackKey="installPyLib"></button>
   <block type="configure_and_start_bluetooth"></block>
   <block type="handle_ble_data"></block>
   <block type="check_ble_data"></block>
