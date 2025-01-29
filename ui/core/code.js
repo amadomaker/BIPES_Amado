@@ -606,8 +606,9 @@ Code.init = function() {
   Blockly.svgResize(Code.workspace);
 
   Code.workspace.registerButtonCallback('installPyLib', function(button) {
+    
+    var lib = button.text_.split(" ")[1];
 
-	var lib = button.text_.split(" ")[1];
 	console.log(button.text_);
 	console.log(lib)
         alert("Isso fará o download e a instalação automática da biblioteca na placa conectada: " + lib + ". É necessário ter acesso à internet para essa operação. Os resultados da instalação serão exibidos na aba do console.");
@@ -643,12 +644,12 @@ def bipesInstall(url, lib):
 `;
  
     installCmd = installCmd + "lib = '" + lib + ".py'" + '\r';
-    installCmd = installCmd + "bipesInstall('http://bipes.net.br/beta2/ui/pylibs/' + lib, lib)";
+    installCmd = installCmd + "bipesInstall('https://dblocks.com.br/ui/pylibs/' + lib, lib)";
 	    
 
      Tool.runPython(installCmd);
 
-     var copyCmd = `
+     var copyCmd = `      
 f=open("tmplib.py", "r")
 c=open("`;
 

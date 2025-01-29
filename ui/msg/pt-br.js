@@ -334,5 +334,50 @@ Blockly.Msg['CAT_BUZZER'] = "Campainha";
 Blockly.Msg['CAT_WIFI'] = "WiFi";
 Blockly.Msg['CAT_HTTPCLIENT'] = "Cliente HTTP";
 Blockly.Msg['CAT_HTTPSERVER'] = "Servidor HTTP"
+Blockly.Msg['INSTALL_LIBRARY'] = "Instalar biblioteca:"
+Blockly.Msg['PINOUT_LEGEND'] = "Pinos de entrada e saída"
+Blockly.Msg['DHT_SENSOR_LEGEND'] = "Sensor de temperatura e umidade DHT11/22";
+Blockly.Msg['HCSR04_LEGEND'] = "Sensor de distância ultrassônico HCSR04";
+Blockly.Msg['LIBRARY_LEGEND'] = "Biblioteca";
+Blockly.Msg['MPU6050_LEGEND'] = "Acelerômetro e Giroscópio MPU-6050";
+Blockly.Msg['MFRC522_LEGEND'] = "Leitor RFID MFRC522";
+Blockly.Msg['RELAY_LEGEND'] = "Relé";
+Blockly.Msg['SOUND_LIBRARIES_LEGEND'] = "Bibliotecas necessárias para tocar sons";
+Blockly.Msg['USER_CREATED_MUSIC_LEGEND'] = "Músicas criadas pelo usuário";
+Blockly.Msg['LIBRARY_SONGS_LEGEND'] = "Músicas disponíveis da biblioteca songs";
+Blockly.Msg['LOW_CONSUMPTION_LEGEND'] = "Baixo consumo";
+Blockly.Msg['BLUEFRUIT_CONNECT_COMPATIBLE_LEGEND'] = "Compatível com o aplicativo 'Bluefruit Connect' disponível nas lojas de aplicativos";
+Blockly.Msg['DOWNLOAD_APP_LEGEND'] = "Baixe o app";
+Blockly.Msg['BLUETOOTH_TERMINAL_LEGEND'] = "Este bloco permite acesso ao terminal/console usando Bluetooth, além de possibilitar o envio de programação diretamente para o dispositivo via Bluetooth.";
+Blockly.Msg['INSTALL_THREE_FILES_LEGEND'] = "Você precisa instalar 3 arquivos para usar";
+Blockly.Msg['USAGE_LEGEND'] = "Uso";
+Blockly.Msg['INSTALL_THREE_FILES_ABOVE_LEGEND'] = "Instale os 3 arquivos acima";
+Blockly.Msg['START_WEB_BLUETOOTH_REPL_LEGEND'] = "Inicie o Web Bluetooth REPL";
+Blockly.Msg['PAIR_AMADO_BOARD_LEGEND'] = "Emparelhe a Amado board com seu dispositivo";
+Blockly.Msg['ACCESS_LEGEND'] = "Acesse";
+Blockly.Msg['SELECT_BLUETOOTH_CONNECT_LEGEND'] = "Selecione a opção de Bluetooth e Conectar (Web Bluetooth)";
+Blockly.Msg['ESP_NOW_PROTOCOL_LEGEND'] = "Protocolo de comunicação ESP-NOW";
+Blockly.Msg['ESP_NOW_COMMUNICATION_LEGEND'] = "Permite comunicação sem fio entre as placas Amado board.";
+Blockly.Msg['FEATURES_LEGEND'] = "Características";
+Blockly.Msg['HIGH_SPEED_LOW_LATENCY_LEGEND'] = "Alta velocidade e baixa latência";
+Blockly.Msg['P2P_COMMUNICATION_NO_WIFI_LEGEND'] = "Comunicação ponto-a-ponto sem necessidade de Wi-Fi";
+Blockly.Msg['REQUIREMENTS_LEGEND'] = "Requisitos";
+Blockly.Msg['ESP_NOW_RANGE_CONFIG_LEGEND'] = "Os dispositivos devem estar próximos (20m a 50m) e configurados corretamente";
+Blockly.Msg['WIFI_CONFIG_BLOCKS_LEGEND'] = "Blocos para configurar Wi-Fi.";
+Blockly.Msg['WIFI_AP_CLIENT_SUPPORT_LEGEND'] = "Inclui suporte para modo Ponto de Acesso (AP) e Cliente Wi-Fi.";
+Blockly.Msg['WIFI_SCAN_CONNECT_IP_LEGEND'] = "Permite conectar, escanear redes e obter o IP atual.";
+Blockly.Msg['HTTP_REQUEST_BLOCKS_LEGEND'] = "Blocos para realizar requisições HTTP (GET/POST).";
+Blockly.Msg['HTTP_API_CONNECT_SEND_LEGEND'] = "Use para conectar-se a APIs e recuperar ou enviar dados.";
+Blockly.Msg['HTTP_SERVER_BLOCKS_LEGEND'] = "Blocos para configurar um servidor HTTP que responde a solicitações de páginas web ou dados.";
+Blockly.Msg['HTTP_SERVER_IOT_LEGEND'] = "Permite criar servidores simples para acessar informações via navegador ou integrar dispositivos IoT.";
+Blockly.Msg['MQTT_CONFIG_LEGEND'] = "Configure conexões MQTT para IoT, publique e receba dados.";
+Blockly.Msg['EASYMQTT_TAB_LEGEND'] = "Acompanhe os resultados na aba EasyMQTT.";
+Blockly.Msg['DOCUMENTATION_LEGEND'] = "Documentação";
+Blockly.Msg['LOAD_EXAMPLE_LEGEND'] = "Carregar exemplo";
+Blockly.Msg['REQUIRED_LIBRARY_LEGEND'] = "Biblioteca necessária";
+
+
+
+
 
 
