@@ -757,8 +757,8 @@
   <category name="%{BKY_CAT_ACCELEROMETER}" colour="%{BKY_SENSORS_HUE}">
       <label text="%{BKY_MPU6050_LEGEND}"></label>
         <button text="%{BKY_INSTALL_LIBRARY} imu (MPU6050)" callbackKey="installPyLib"></button>
-        <button text="Carregar exemplo: mpu6050" callbackKey="loadExample"></button>
-        <button text="Documentação e como conectar: mpu6050" callbackKey="loadDoc"></button>
+        <button text="%{BKY_LOAD_EXAMPLE_LEGEND}: mpu6050" callbackKey="loadExample"></button>
+        <button text="%{BKY_DOCUMENTATION_LEGEND}: mpu6050" callbackKey="loadDoc"></button>
 
 
 
@@ -819,8 +819,8 @@
   <category name="%{BKY_CAT_RFID}" colour="%{BKY_SENSORS_HUE}">
       <label text="%{BKY_MFRC522_LEGEND}"></label>
         <button text="%{BKY_INSTALL_LIBRARY} mfrc522" callbackKey="installPyLib"></button>
-        <button text="Carregar exemplo: mfrc522" callbackKey="loadExample"></button>
-        <button text="Documentação e como conectar: mfrc522" callbackKey="loadDoc"></button>
+        <button text="%{BKY_LOAD_EXAMPLE_LEGEND}: mfrc522" callbackKey="loadExample"></button>
+        <button text="%{BKY_DOCUMENTATION_LEGEND}: mfrc522" callbackKey="loadDoc"></button>
 
       <block type="rfid_rc522_init">
         <value name="sck">
@@ -2100,8 +2100,8 @@ _
       <label text="%{BKY_HTTP_SERVER_BLOCKS_LEGEND}" />
       <label text="%{BKY_HTTP_SERVER_IOT_LEGEND}" />
 
-      <button text="Load example: webserver" callbackKey="loadExample"></button>
-      <button text="Documentation: webserver" callbackKey="loadDoc"></button>
+      <button text="%{BKY_LOAD_EXAMPLE_LEGEND}: webserver" callbackKey="loadExample"></button>
+      <button text="%{BKY_DOCUMENTATION_LEGEND}: webserver" callbackKey="loadDoc"></button>
 
     <block type="net_http_server_start">
         <value name="port">

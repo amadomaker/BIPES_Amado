@@ -371,6 +371,9 @@ Blockly.Msg['HTTP_SERVER_BLOCKS_LEGEND'] = "Blocks to configure an HTTP server t
 Blockly.Msg['HTTP_SERVER_IOT_LEGEND'] = "Allows creating simple servers to access information via a browser or integrate IoT devices.";
 Blockly.Msg['MQTT_CONFIG_LEGEND'] = "Configure MQTT connections for IoT, publish, and receive data.";
 Blockly.Msg['EASYMQTT_TAB_LEGEND'] = "Monitor results in the EasyMQTT tab.";
+Blockly.Msg['DOCUMENTATION_LEGEND'] = "Documentation";
+Blockly.Msg['LOAD_EXAMPLE_LEGEND'] = "Load example";
+
 
 
 
