@@ -6,6 +6,7 @@ var MSG = {
   device: "Dispositivo",
   linkTooltip: "Salvar e ligar aos blocos.",
   runTooltip: "Execute o programa definido pelos blocos na área de trabalho.",
+  microPythonTooltip: 'Instalar MicroPython',
   badCode: "Erro no programa:\n%1",
   timeout: "Máximo de iterações de execução excedido.",
   trashTooltip: "Descartar todos os blocos.",

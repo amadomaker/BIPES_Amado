@@ -728,13 +728,38 @@ span.icon:before {
   display:inline-block;
 }
 
+#micropythonButton > svg{
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 button.icon.medium:before  {
   width: 2.5rem;
   height: 2.5rem;
   background-size: auto 5rem;
 }
-#linkButton:before {
-  background-position: left calc(-1.5rem*0) top; /* icon size * index on icons.svg*/
+
+#linkButton{
+  display: none !important;
+}
+
+#micropythonButton{
+    border-radius: 2rem;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: #000;
+  padding: .25rem;
+  transition: border-color ease .125s;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+#micropythonButton:hover {
+  border-color: #aaa;
+}
+
+#micropythonButton:before {
+  /* background-position: left calc(-1.5rem*0) top; icon size * index on icons.svg */
 }
 #saveButton:before, #downloadIcon:before  {
   background-position: left calc(-1.5rem*1) top;

@@ -5,6 +5,7 @@ var MSG = {
   shared: "Shared",
   device: "Device",
   linkTooltip: "Save and link to blocks.",
+  microPythonTooltip: 'Install MicroPython',
   runTooltip: "Run the program defined by the blocks in the workspace.",
   badCode: "Program error:\n%1",
   timeout: "Maximum execution iterations exceeded.",

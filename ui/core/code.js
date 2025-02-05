@@ -574,21 +574,25 @@ Code.init = function() {
   Code.bindClick('forumButton',
     function () {window.open("https://github.com/BIPES/BIPES/discussions",'_blank')}
   )
+  
+  Code.bindClick('micropythonButton',
+    function () {window.open("https://joaodrj.github.io/Micropython_install/",'_blank')}
+  )
 
 
 
   // Disable the link button if page isn't backed by App Engine storage.
-  var linkButton = document.getElementById('linkButton');
-  if ('BlocklyStorage' in window) {
-    BlocklyStorage['HTTPREQUEST_ERROR'] = MSG['httpRequestError'];
-    BlocklyStorage['LINK_ALERT'] = MSG['linkAlert'];
-    BlocklyStorage['HASH_ERROR'] = MSG['hashError'];
-    BlocklyStorage['XML_ERROR'] = MSG['xmlError'];
-    Code.bindClick(linkButton,
-        function () {BlocklyStorage.link(Code.workspace);});
-  } else if (linkButton) {
-    linkButton.className = 'disabled';
-  }
+  // var linkButton = document.getElementById('linkButton');
+  // if ('BlocklyStorage' in window) {
+  //   BlocklyStorage['HTTPREQUEST_ERROR'] = MSG['httpRequestError'];
+  //   BlocklyStorage['LINK_ALERT'] = MSG['linkAlert'];
+  //   BlocklyStorage['HASH_ERROR'] = MSG['hashError'];
+  //   BlocklyStorage['XML_ERROR'] = MSG['xmlError'];
+  //   Code.bindClick(linkButton,
+  //       function () {BlocklyStorage.link(Code.workspace);});
+  // } else if (linkButton) {
+  //   linkButton.className = 'disabled';
+  // }
 
   // Bind left click/tap and right click on tabs
   for (var i = 0; i < Code.TABS_.length; i++) {
@@ -777,7 +781,8 @@ Code.initLanguage = function() {
   document.getElementById('tab_device').textContent = MSG['device'];
   document.getElementById('tab_sound').textContent = MSG['music'];
 
-  document.getElementById('linkButton').title = MSG['linkTooltip'];
+  // document.getElementById('linkButton').title = MSG['linkTooltip'];
+  document.getElementById('micropythonButton').title = MSG['microPythonTooltip'];
   document.getElementById('runButton').title = MSG['runTooltip'];
   //document.getElementById('trashButton').title = MSG['trashTooltip'];
   document.getElementById('saveButton').title = MSG['saveTooltip'];
