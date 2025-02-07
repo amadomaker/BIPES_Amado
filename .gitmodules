@@ -7,6 +7,3 @@
     url = https://github.com/google/blockly.git
 
 
-[submodule "ui/freeboard"]
-	path = ui/freeboard
-	url = https://github.com/Freeboard/freeboard.git
