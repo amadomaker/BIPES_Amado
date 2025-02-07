@@ -1,0 +1,53 @@
+name: CI/CD para Cloud Run
+
+on:
+  pull_request:
+    branches: [ staging, master ]
+    types: [closed]  # Só roda quando um PR é mergeado
+
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true  # Garante que só roda se o PR foi mergeado
+    name: Deploy para Cloud Run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v3
+
+      - name: Autenticação no GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configurar Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configurar Docker para Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Definir Variáveis do Ambiente
+        run: |
+          if [[ "${{ github.base_ref }}" == "master" ]]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+            echo "SERVICE_NAME=meu-servidor-web" >> $GITHUB_ENV
+          else
+            echo "ENV=staging" >> $GITHUB_ENV
+            echo "SERVICE_NAME=meu-servidor-web-staging" >> $GITHUB_ENV
+          fi
+
+      - name: Build da Imagem Docker
+        run: |
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/meu-servidor-web/${{ env.SERVICE_NAME }}:${{ github.sha }} .
+
+      - name: Push da Imagem para o Artifact Registry
+        run: |
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/meu-servidor-web/${{ env.SERVICE_NAME }}:${{ github.sha }}
+
+      - name: Deploy para o Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/meu-servidor-web/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --region us-central1 \
+            --platform managed \
+            --allow-unauthenticated
