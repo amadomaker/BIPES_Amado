@@ -7,13 +7,18 @@ on:
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true  # Garante que só roda se o PR foi mergeado
+    if: github.event.pull_request.merged == true
     name: Deploy para Cloud Run
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout do Código
         uses: actions/checkout@v3
+        with:
+          submodules: true  # Garante que submódulos sejam clonados
+
+      - name: Atualizar Submódulos Específicos
+        run: git submodule update --init ui/freeboard
 
       - name: Autenticação no GCP
         uses: google-github-actions/auth@v2
