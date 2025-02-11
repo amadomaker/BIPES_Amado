@@ -622,7 +622,7 @@ Code.init = function() {
 
     var filePath = "../ui/pylibs/" + lib + ".py";
 
-    fetch(filePath)
+    fetch(filePath, { headers: { "Content-Type": "text/plain; charset=UTF-8" }, cache: "no-store" })
         .then((response) => {
             if (!response.ok) {
                 throw new Error("Erro ao carregar biblioteca: " + filePath);
@@ -631,20 +631,24 @@ Code.init = function() {
         })
         .then((pythonCode) => {
             console.log("Biblioteca carregada com sucesso:", lib);
+            console.log(pythonCode)
             installLib(pythonCode, lib);
         })
         .catch((error) => console.error(error));
 });
 
 function installLib(pythonCode, lib) {
-    var installCmd = `
+  pythonCode = JSON.stringify(pythonCode);
+  
+  var installCmd = `
 f = open("${lib}.py", "w")
-f.write("""${pythonCode}""")
+f.write(${pythonCode})
 f.close()
 print("Instalação da biblioteca ${lib} concluída.")
 `;
-    Tool.runPython(installCmd);
+  Tool.runPython(installCmd);
 }
+
 
 
     Code.workspace.registerButtonCallback('loadExample', function(button) {
