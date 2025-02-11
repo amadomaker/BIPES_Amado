@@ -631,7 +631,6 @@ Code.init = function() {
         })
         .then((pythonCode) => {
             console.log("Biblioteca carregada com sucesso:", lib);
-            console.log(pythonCode)
             installLib(pythonCode, lib);
         })
         .catch((error) => console.error(error));
