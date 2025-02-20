@@ -1,12 +1,18 @@
 [submodule "ui/freeboard"]
     path = ui/freeboard
-    url = https://github.com/BIPES/freeboard
+    url = https://github.com/BIPES/freeboard.git
 [submodule "databoard"]
     path = databoard
-    url = git@github.com:joaodrj/databoard.git
+    url = https://github.com/BIPES/databoard.git
 
 [submodule "blockly"]
     path = blockly
     url = https://github.com/google/blockly.git
 
+[submodule "ui/bipes-micropython-unicorn"]
+    path = ui/bipes-micropython-unicorn
+    url = https://github.com/micropython/micropython-unicorn.git
 
+[submodule "webrepl"]
+    path = webrepl
+    url = https://github.com/webrepl/webrepl.git
