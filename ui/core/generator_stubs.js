@@ -6238,6 +6238,13 @@ Blockly.Python['try_catch'] = function(block) {
   return code;
 };
 
+Blockly.Python['try_except_oserror'] = function(block) {
+  var statements_try = Blockly.Python.statementToCode(block, 'TRY');
+  var statements_except = Blockly.Python.statementToCode(block, 'EXCEPT');
+  var code = 'try:\n' + statements_try + 'except OSError as e:\n' + statements_except;
+  return code;
+};
+
 Blockly.Python['http_get_status'] = function(block) {
   var variable_request = Blockly.Python.nameDB_.getName(block.getFieldValue('request'), Blockly.VARIABLE_CATEGORY_NAME);
  
