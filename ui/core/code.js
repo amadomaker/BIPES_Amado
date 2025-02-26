@@ -24,11 +24,11 @@ Code.LANGUAGE_NAME = {
   'en': 'English',
   'pt-br': 'Português Brasileiro',
   'es': 'Español',
-  'it': 'Italiano',
-  'fr': 'Français',
-  'de': 'Deutsch',
-  'zh-hans': 'Chinese (simplified)',
-  'zh-hant': 'Chinese (traditional)'
+  //'it': 'Italiano',
+  //'fr': 'Français',
+  //'de': 'Deutsch',
+  //'zh-hans': 'Chinese (simplified)',
+  //'zh-hant': 'Chinese (traditional)'
 };
 
 /**
