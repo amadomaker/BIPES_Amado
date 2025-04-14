@@ -430,7 +430,7 @@
         <!--Comentando blocos da categoria python-->
       <category name="Python" colour="%{BKY_PROCEDURES_HUE}">
         <label text="Python"></label>
-        <block type="declarar_global"></block>
+        <block type="global_var"></block>
         <block type="try_catch"></block>
         <block type="try_except_oserror">
           <value name="TRY">
@@ -1277,6 +1277,7 @@
   <block type="move_sprite"></block>
   <block type="move_sprite_limited"></block>
   <block type="move_sprite_random"></block>
+  <block type="get_sprite_position"></block>
   
     <!--
     <block type="init_tank">

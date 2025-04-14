@@ -12685,12 +12685,14 @@ function deleteSavedSprite(name){
 Blockly.Blocks['create_sprite'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Criar sprite")
-        .appendField(new Blockly.FieldDropdown(() => {
-          const spritesOptions = getSpritesOptions()
-          
-          return spritesOptions
-        }), 'SPRITE_NAME')
+      .appendField("Criar sprite")
+      .appendField(new Blockly.FieldDropdown(() => {
+        const spritesOptions = getSpritesOptions();
+        return spritesOptions;
+      }), 'SPRITE_NAME')
+      .appendField(new Blockly.FieldCheckbox("TRUE"), "COMPACTAR")
+      .appendField("Compactar");
+
 
     this.customContextMenu = function(options) {
         const spriteName = this.getFieldValue("SPRITE_NAME");
@@ -12865,15 +12867,34 @@ Blockly.Blocks['move_sprite_random'] = {
 };
 
 //Declara uma váriavel como global
-Blockly.Blocks['declarar_global'] = {
+Blockly.defineBlocksWithJsonArray([{
+  "type": "global_var",
+  "message0": "declarar variável global %1",
+  "args0": [
+    {
+      "type": "field_input",
+      "name": "VAR_NAME",
+      "text": "nome_da_variavel"
+    }
+  ],
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": colour="%{BKY_PROCEDURES_HUE}",
+  "tooltip": "Declara uma variável como global",
+  "helpUrl": ""
+}]);
+
+Blockly.Blocks['get_sprite_position'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("declarar global")
-        .appendField(new Blockly.FieldTextInput("variavel"), "VARIAVEL");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(colour="%{BKY_PROCEDURES_HUE}"); 
-    this.setTooltip("Declara a variável como global para usar dentro de funções.");
+        .appendField("posição")
+        .appendField(new Blockly.FieldDropdown([["X", "X"], ["Y", "Y"]]), "AXIS")
+        .appendField("do sprite");
+    this.appendValueInput("SPRITE")
+        .setCheck(null);
+    this.setOutput(true, "Number");
+    this.setColour(230);
+    this.setTooltip("Retorna a posição X ou Y de um sprite");
     this.setHelpUrl("");
   }
 };

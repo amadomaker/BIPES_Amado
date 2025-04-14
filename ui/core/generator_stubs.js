@@ -6874,14 +6874,17 @@ Blockly.Python['create_sprite'] = function(block) {
     throw new Error('Sprite não encontrado');
   }
 
-  // Compacta antes de gerar o código
-  spriteData = compactSpriteMatrix(spriteData);
+  // Verifica se deve compactar
+  var compactOption = block.getFieldValue('COMPACTAR');
+  if (compactOption === "TRUE") {
+    spriteData = compactSpriteMatrix(spriteData);
+  }
 
-  // Adiciona declaração global
-  //var code = `global ${spriteName}\n${spriteName} = Sprite(${JSON.stringify(spriteData)})\n`;
-  var code = `${spriteName} = Sprite(${JSON.stringify(spriteData)})\n`;
+  var code = `${spriteName} = Sprite(${JSON.stringify(spriteData)}, compact=${compactOption === "TRUE" ? "True" : "False"})\n`;
+
   return code;
 };
+
 
 
 Blockly.Python['draw_sprite'] = function(block) {
@@ -6895,10 +6898,17 @@ Blockly.Python['draw_sprite'] = function(block) {
 Blockly.Python['inicializar_sprite'] = function(block) {
   var code = `
 class Sprite:
-    def __init__(self, sprite, pos_x=0, pos_y=0):
-        self.sprite = Sprite.trim_sprite(sprite)
+    def __init__(self, sprite, pos_x=0, pos_y=0, compact=True):
+        if compact:
+            self.sprite = Sprite.trim_sprite(sprite)
+        else:
+            self.sprite = sprite
         self.pos_x = pos_x
         self.pos_y = pos_y
+
+    def get_position(self):
+      return (self.pos_x, self.pos_y)
+
 
           
     @staticmethod
@@ -7046,9 +7056,17 @@ ${spriteName}.set_position(pos_x, pos_y)
 };
 
 //Declara uma váriavel como global
-Blockly.Python['declarar_global'] = function(block) {
-  var variavel = block.getFieldValue('VARIAVEL');
-  var code = `declarar_variavel_global('${variavel}')\n`;
+Blockly.Python['global_var'] = function(block) {
+  var varName = block.getFieldValue('VAR_NAME');
+  if (!varName) varName = 'variavel';
+  var code = 'global ' + varName + '\n';
   return code;
 };
 
+
+Blockly.Python['get_sprite_position'] = function(block) {
+  var axis = block.getFieldValue('AXIS');
+  var sprite = Blockly.Python.valueToCode(block, 'SPRITE', Blockly.Python.ORDER_ATOMIC);
+  var code = `${sprite}.pos_${axis.toLowerCase()}`;
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
