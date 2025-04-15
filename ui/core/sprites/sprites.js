@@ -177,7 +177,8 @@ const getSpriteData = () => {
 function saveDesign() {
   const spriteData = getSpriteData();
   const nameInput = document.getElementById("spriteName");
-  const name = nameInput?.value?.trim() || "Sprite " + new Date().getTime();
+  const rawName = nameInput?.value?.trim() || "Sprite " + new Date().getTime();
+  const name = rawName.replace(/\s+/g, "_").replace(/[^\w\-]/g, "");
 
   const newSprite = {
     name: name,
@@ -185,7 +186,6 @@ function saveDesign() {
   };
 
   const prevSprites = JSON.parse(localStorage.getItem("bipes@sprites") || "[]");
-
   const updatedSprites = [...prevSprites, newSprite];
 
   localStorage.setItem("bipes@sprites", JSON.stringify(updatedSprites));
