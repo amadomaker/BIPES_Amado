@@ -12,6 +12,14 @@ let isErasing = false;
 const undoStack = [];
 const redoStack = [];
 
+function applyActionToCell(cell) {
+  if (isErasing && cell.classList.contains("active")) {
+    cell.classList.remove("active");
+  } else if (!isErasing && !cell.classList.contains("active")) {
+    cell.classList.add("active");
+  }
+}
+
 function initializeGrid() {
   if (aspectRatio === "2:1") {
     cols = Math.max(Math.min(cols, maxCols), minCols);
@@ -33,23 +41,16 @@ function initializeGrid() {
     const cell = document.createElement("div");
     cell.classList.add("grid-item");
 
-    cell.addEventListener("mousedown", () => {
+    cell.addEventListener("mousedown", (e) => {
+      e.preventDefault();
       addToUndoStack();
-      if (isErasing) {
-        cell.classList.remove("active");
-      } else {
-        cell.classList.add("active");
-      }
       isDrawing = true;
+      applyActionToCell(cell);
     });
 
     cell.addEventListener("mousemove", () => {
       if (isDrawing) {
-        if (isErasing) {
-          cell.classList.remove("active");
-        } else {
-          cell.classList.add("active");
-        }
+        applyActionToCell(cell);
       }
     });
 
@@ -176,7 +177,8 @@ const getSpriteData = () => {
 function saveDesign() {
   const spriteData = getSpriteData();
   const nameInput = document.getElementById("spriteName");
-  const name = nameInput?.value?.trim() || "Sprite " + new Date().getTime();
+  const rawName = nameInput?.value?.trim() || "Sprite " + new Date().getTime();
+  const name = rawName.replace(/\s+/g, "_").replace(/[^\w\-]/g, "");
 
   const newSprite = {
     name: name,
@@ -184,7 +186,6 @@ function saveDesign() {
   };
 
   const prevSprites = JSON.parse(localStorage.getItem("bipes@sprites") || "[]");
-
   const updatedSprites = [...prevSprites, newSprite];
 
   localStorage.setItem("bipes@sprites", JSON.stringify(updatedSprites));
@@ -245,13 +246,12 @@ function toggleEraser() {
 
   if (isErasing) {
     eraserBtn.classList.remove("active");
-    eraserIcon.className = 'bx bx-pencil';
+    eraserIcon.className = "bx bx-pencil";
   } else {
     eraserBtn.classList.add("active");
-    eraserIcon.className = 'bx bx-eraser';
+    eraserIcon.className = "bx bx-eraser";
   }
 }
-
 
 function changeAspectRatio() {
   aspectRatio = document.getElementById("aspectRatio").value;
@@ -287,10 +287,9 @@ function clearDraw() {
   addToUndoStack();
 
   const cells = gridContainer.querySelectorAll(".grid-item");
-  cells.forEach(cell => {
+  cells.forEach((cell) => {
     cell.classList.remove("active");
   });
 }
-
 
 initializeGrid();
