@@ -12723,19 +12723,28 @@ Blockly.Blocks['create_sprite'] = {
   }
 };
 
-Blockly.Blocks['draw_sprite'] = {
+Blockly.Blocks['get_sprite_variable'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Exibir sprite")
-        .appendField(new Blockly.FieldDropdown(() => {
-          const spritesOptions = getSpritesOptions()
-          
-          return spritesOptions
-       }), 'SPRITE_NAME')
+        .appendField("sprite")
+        .appendField(new Blockly.FieldDropdown(getSpritesOptions), "SPRITE_NAME");
+    this.setOutput(true, null); // é um bloco de saída (tipo variável)
+    this.setColour(210);
+    this.setTooltip("Retorna o sprite selecionado como valor");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['draw_sprite'] = {
+  init: function() {
+    this.appendValueInput("SPRITE")
+        .setCheck(null)
+        .appendField("Exibir sprite");
+
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(210);
-    this.setTooltip("Exibe o sprite selecionado na tela");
+    this.setTooltip("Exibe o sprite selecionado ou vindo de uma variável/lista");
     this.setHelpUrl("");
   }
 };
@@ -12755,9 +12764,9 @@ Blockly.Blocks['inicializar_sprite'] = {
 
 Blockly.Blocks['set_sprite_position'] = {
   init: function() {
-    this.appendDummyInput()
-        .appendField("definir posição do sprite")
-        .appendField(new Blockly.FieldDropdown(getSpritesOptions), "SPRITE_NAME");
+    this.appendValueInput("SPRITE")
+        .setCheck(null)
+        .appendField("definir posição do sprite");
     this.appendValueInput("POS_X")
         .setCheck("Number")
         .appendField("x");
@@ -12767,17 +12776,12 @@ Blockly.Blocks['set_sprite_position'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(210);
-    this.setTooltip("Define a posição inicial do sprite.");
+    this.setTooltip("Define a posição inicial do sprite (pode vir de variável, lista, ou expressão).");
     this.setHelpUrl("");
   }
 };
 
-Blockly.Python['set_sprite_position'] = function(block) {
-  var spriteName = block.getFieldValue('SPRITE_NAME');
-  var value_x = Blockly.Python.valueToCode(block, 'POS_X', Blockly.Python.ORDER_ATOMIC) || 0;
-  var value_y = Blockly.Python.valueToCode(block, 'POS_Y', Blockly.Python.ORDER_ATOMIC) || 0;
-  return `${spriteName}.set_position(${value_x}, ${value_y})\n`;
-};
+
 
 
 Blockly.Blocks['check_collision'] = {
@@ -12898,3 +12902,17 @@ Blockly.Blocks['get_sprite_position'] = {
     this.setHelpUrl("");
   }
 };
+Blockly.Blocks['destroy_sprite'] = {
+  init: function() {
+    this.appendValueInput("SPRITE")
+        .setCheck(null)
+        .appendField("destruir sprite");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(0);
+    this.setTooltip("Remove o sprite da tela");
+    this.setHelpUrl("");
+  }
+};
+
+

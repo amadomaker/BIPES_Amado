@@ -6885,11 +6885,20 @@ Blockly.Python['create_sprite'] = function(block) {
   return code;
 };
 
+Blockly.Python['get_sprite_variable'] = function(block) {
+  var spriteName = block.getFieldValue('SPRITE_NAME');
+  return [spriteName, Blockly.Python.ORDER_ATOMIC];
+};
 
 
 Blockly.Python['draw_sprite'] = function(block) {
-  var spriteName = block.getFieldValue('SPRITE_NAME');
-  var code = `${spriteName}.draw(oled)\n`;
+  var spriteCode = Blockly.Python.valueToCode(block, 'SPRITE', Blockly.Python.ORDER_ATOMIC) || 'None';
+  var code = `\n`;
+  code += `if isinstance(${spriteCode}, list):\n`;
+  code += `  for s in ${spriteCode}:\n`;
+  code += `    s.draw(oled)\n`;
+  code += `else:\n`;
+  code += `  ${spriteCode}.draw(oled)\n`;
   return code;
 };
 
@@ -6974,19 +6983,21 @@ class Sprite:
         return False
 
     def set_position(self, x, y):
-        self.pos_x = x
-        self.pos_y = y
+        self.pos_x = int(x)
+        self.pos_y = int(y)
+
 
 `;
   return code;
 };
 
 Blockly.Python['set_sprite_position'] = function(block) {
-  var spriteName = block.getFieldValue('SPRITE_NAME');
-  var value_x = Blockly.Python.valueToCode(block, 'POS_X', Blockly.Python.ORDER_ATOMIC) || 0;
-  var value_y = Blockly.Python.valueToCode(block, 'POS_Y', Blockly.Python.ORDER_ATOMIC) || 0;
-  return `${spriteName}.set_position(${value_x}, ${value_y})\n`;
+  var sprite = Blockly.Python.valueToCode(block, 'SPRITE', Blockly.Python.ORDER_ATOMIC) || 'None';
+  var x = Blockly.Python.valueToCode(block, 'POS_X', Blockly.Python.ORDER_ATOMIC) || '0';
+  var y = Blockly.Python.valueToCode(block, 'POS_Y', Blockly.Python.ORDER_ATOMIC) || '0';
+  return `${sprite}.set_position(${x}, ${y})\n`;
 };
+
 
 Blockly.Python['check_collision'] = function(block) {
   const sprite1 = block.getFieldValue('SPRITE_1');
@@ -7070,3 +7081,12 @@ Blockly.Python['get_sprite_position'] = function(block) {
   var code = `${sprite}.pos_${axis.toLowerCase()}`;
   return [code, Blockly.Python.ORDER_ATOMIC];
 };
+
+Blockly.Python['destroy_sprite'] = function(block) {
+  var sprite = Blockly.Python.valueToCode(block, 'SPRITE', Blockly.Python.ORDER_ATOMIC);
+  var code = sprite + '.visible = False\n';
+  return code;
+};
+
+
+

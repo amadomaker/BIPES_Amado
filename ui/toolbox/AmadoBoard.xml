@@ -1271,6 +1271,8 @@
   <block type="draw_sprite">
     <field name="SPRITE_NAME"></field>
   </block>
+  <block type="get_sprite_variable"></block>
+  <block type="destroy_sprite"></block>
   <block type="set_sprite_position"></block>
   <block type="check_collision"> </block>
   <block type="sprite_within_bounds"> </block>
