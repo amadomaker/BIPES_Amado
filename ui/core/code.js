@@ -577,7 +577,7 @@ Code.init = function() {
   )
   
   Code.bindClick('micropythonButton',
-    function () {window.open("https://joaodrj.github.io/Micropython_install/",'_blank')}
+    function () {window.open("https://amadomaker.github.io/Instalador_Micropython/",'_blank')}
   )
 
 
