@@ -8,6 +8,7 @@ const minCols = 4;
 let aspectRatio = "2:1";
 let isDrawing = false;
 let isErasing = false;
+let zoomLevel = 1;
 
 const undoStack = [];
 const redoStack = [];
@@ -292,4 +293,11 @@ function clearDraw() {
   });
 }
 
+function updateZoom(value) {
+  zoomLevel = value / 100;
+  gridContainer.style.transform = `scale(${zoomLevel})`;
+  document.getElementById("zoomValue").textContent = value + "%";
+}
+
 initializeGrid();
+updateZoom(zoomLevel * 100);

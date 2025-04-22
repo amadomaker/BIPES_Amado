@@ -551,10 +551,24 @@ document.body.appendChild(el);
           <option value="2:1" selected>2:1</option>
           <option value="1:1">1:1</option>
         </select> -->
+        <label for="zoomRange">Zoom:</label>
+<input
+  type="range"
+  id="zoomRange"
+  min="50"
+  max="400"
+  value="100"
+  step="10"
+  oninput="updateZoom(this.value)"
+/>
+<span id="zoomValue">100%</span>
+
       </div>
     </div>
     <div class="sprite-container-main-grid">
-      <div id="grid-container"></div>
+      <div id="grid-wrapper">
+        <div id="grid-container"></div>
+      </div>
     </div>
   </div>
 </div>
