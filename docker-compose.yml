@@ -1,0 +1,54 @@
+#version: "3.8"
+
+services:
+  mqtt:
+    image: eclipse-mosquitto:2.0.21
+    ports:
+      - "1883:1883" 
+    restart: always
+    volumes:
+      - ./mosquitto-conf/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  mongo:
+    image: mongo
+    ports: ["27017:27017"]
+    restart: always
+
+  subscriber:
+    build:
+      context: ./easymqtt
+      dockerfile: Dockerfile-subscriber
+    depends_on:
+      - mqtt
+      - mongo
+    restart: on-failure
+
+
+  api:
+    build:
+      context: ./easymqtt
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - mongo
+    restart: always
+
+
+  mongo-express:
+      image: mongo-express:latest
+      restart: always
+      ports:
+        - "8081:8081"
+      environment:
+        ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
+        ME_CONFIG_MONGODB_SERVER: mongo
+        ME_CONFIG_MONGODB_PORT: 27017
+        ME_CONFIG_BASICAUTH_USERNAME: admin
+        ME_CONFIG_BASICAUTH_PASSWORD: admin123
+        ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+        ME_CONFIG_MONGODB_AUTH_DATABASE: admin
+      depends_on:
+        - mongo
+      networks:
+        - default
