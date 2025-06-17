@@ -124,16 +124,27 @@
     }
 
     // Init
+    // Tenta ler ?session=xxx da URL
     let urlSession = getSessionFromURL();
-    if (urlSession){
+
+    if (urlSession) {
+      // Se veio um session ID, inicia o dashboard
       startEasyMQTT(urlSession);
-    }else{
-      if (parent === window){
-        errorEasyMQTT("EasyMQTT Session ID is not currently defined!<br><span>Try passing it as parameter in URL (?session=<session_id>)</span>");
-      }else{
-          errorEasyMQTT("EasyMQTT Session ID is not currently defined!<br><span>If the EasyMQTT Start block is set try clicking on 'Python' tab first.</span>");
+    } else {
+      // Se não, exibe a mensagem de erro padrão
+      if (parent === window) {
+        errorEasyMQTT(
+          "EasyMQTT Session ID is not currently defined!" +
+          "<br><span>Try passing it as parameter in URL (?session=&lt;session_id&gt;)</span>"
+        );
+      } else {
+        errorEasyMQTT(
+          "EasyMQTT Session ID is not currently defined!" +
+          "<br><span>If the EasyMQTT Start block is set try clicking on 'Python' tab first.</span>"
+        );
       }
     }
+
 
     function startEasyMQTT(session){ 
       if (typeof session === 'undefined'){
@@ -182,43 +193,56 @@
       $('#easymqtt-warning').show();
 
     }
+    function clearEasyMQTTSession() {
+      if (confirm(
+            "Are you sure you want to clear all data in this topic?\n" +
+            "This action cannot be reverted"
+          )) {
 
-    function clearEasyMQTTSession(){
-      if (confirm("Are you sure you want to clear all data in this topic?\nThis action can not be reverted") == true){
-        $.get( `https://bipes.net.br/easymqtt/clearsession.php`,
-          {"session": easyMQTT_session_chart}, 
-          function( data ) {
-            if (data.success){
+        $.get(
+          "clearsession.php",
+          { session: easyMQTT_session_chart },
+          function(data) {
+            if (data.success) {
               resetEasyMQTTCharts();
               errorEasyMQTT(data.result);
-            }else{
+            } else {
               errorEasyMQTT(data.result);
             }
-          }, "json")
-        .fail(function(xhr, status, error){
-            errorEasyMQTT("Error clearing session. " + status + " " + error);
-          }
-        );
+          },
+          "json"
+        )
+        .fail(function(xhr, status, error) {
+          errorEasyMQTT("Error clearing session. " + status + " " + error);
+        });
       }
-    }
+}
 
-    function publishEasyMQTT(topic,value){
-      if (typeof topic === 'undefined' || typeof value === 'undefined' || topic.length < 1){
+
+    function publishEasyMQTT(topic, value) {
+      if (typeof topic === 'undefined' ||
+          typeof value === 'undefined' ||
+          topic.length < 1) {
         alert("Invalid input");
         return;
       }
-      $.get( `https://bipes.net.br/easymqtt/publish.php`,
-        {"session": easyMQTT_session_chart,
-         "topic": topic,
-         "value": value
-        }, 
-        function( data ) {
+
+      $.get(
+        "publish.php",
+        {
+          session: easyMQTT_session_chart,
+          topic: topic,
+          value: value
+        },
+        function(data) {
+          // Exibe mensagem de resultado no banner de aviso
           errorEasyMQTT(data.result);
-        }, "json")
-      .fail(function(xhr, status, error){
-          errorEasyMQTT("Error publising data. " + status + " " + error);
-        }
-      );
+        },
+        "json"
+      )
+      .fail(function(xhr, status, error) {
+        errorEasyMQTT("Error publishing data. " + status + " " + error);
+      });
     }
 
     function addNewChart(topic){
@@ -277,34 +301,47 @@
         }]
       });
     }
-
-    function updateEasyMQTTTopic(topic,since=0){
-      $.get( `https://bipes.net.br/easymqtt/gettopic.php`,
-        {"session": easyMQTT_session_chart, "topic": topic, "since": since}, 
-        function( data ) {
-          if (data.success){
-            if (data.result.length > 0){
-              if (!(topic in MQTTCharts)){
-                $("#easymqtt-charts").append('<div id="easymqtt-'+topic+'" class="easymqtt-chart card"></div>')
+    function updateEasyMQTTTopic(topic, since = 0) {
+      $.get(
+        "gettopic.php",
+        {
+          session: easyMQTT_session_chart,
+          topic: topic,
+          since: since
+        },
+        function(data) {
+          if (data.success) {
+            if (data.result.length > 0) {
+              // Se ainda não existe um gráfico para este tópico, cria um
+              if (!(topic in MQTTCharts)) {
+                $("#easymqtt-charts")
+                  .append('<div id="easymqtt-' + topic + '" class="easymqtt-chart card"></div>');
                 addNewChart(topic);
-                for (i in MQTTCharts){
-                  MQTTCharts[i].reflow();
+                // Redimensiona os gráficos existentes
+                for (let t in MQTTCharts) {
+                  MQTTCharts[t].reflow();
                 }
               }
-              for (i in data.result){
-                MQTTCharts[topic].series[0].addPoint([data.result[i].timestamp*1000,parseFloat(data.result[i].data)],false);
-              }
+              // Adiciona cada ponto ao gráfico
+              data.result.forEach(function(point) {
+                MQTTCharts[topic].series[0].addPoint(
+                  [point.timestamp * 1000, parseFloat(point.data)],
+                  false
+                );
+              });
               MQTTCharts[topic].redraw();
             }
-          }else{
+          } else {
             errorEasyMQTT(data.result);
           }
-        }, "json")
-      .fail(function(xhr, status, error){
-          errorEasyMQTT(topic + " request error. " + status + " " + error);
-        }
-      );
+        },
+        "json"
+      )
+      .fail(function(xhr, status, error) {
+        errorEasyMQTT(topic + " request error. " + status + " " + error);
+      });
     }
+
     function updateEasyMQTTJson(){
       //$(".highcharts-navigator").removeAttr("visibility"); //needed only if not used as an iframe in the main page
       $.get(`getsession.php`,
