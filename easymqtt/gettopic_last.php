@@ -1,34 +1,48 @@
 <?php
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
-if(!isset($_GET['session']) || empty($_GET['session']) || !isset($_GET['topic']) || empty($_GET['topic']))
-{
-    echo(json_encode(array("success" => False, "result" => "Invalid Parameters")));
-    die();
+
+// Valida parâmetros obrigatórios
+if (
+    !isset($_GET['session']) || empty($_GET['session']) ||
+    !isset($_GET['topic'])   || empty($_GET['topic'])
+) {
+    echo json_encode([
+        "success" => false,
+        "result"  => "Invalid Parameters"
+    ]);
+    exit;
 }
 
-require("vendor/autoload.php");
-
-$client = new MongoDB\Client("mongodb://localhost:27017");
+// Sanitização
 $session = htmlspecialchars($_GET["session"]);
-$topic = htmlspecialchars($_GET["topic"]);
+$topic   = htmlspecialchars($_GET["topic"]);
 
-$db = $client->selectDatabase($session);
-$collection = $db->selectCollection($topic);
+// Conexão ao MongoDB via driver nativo
+$manager = new MongoDB\Driver\Manager("mongodb://mongo:27017");
 
-if (isset($_GET["since"]) && !empty($_GET["since"])){
-    $since = htmlspecialchars($_GET["since"]);
-    $results = $collection->find(['timestamp' => ['$gte' => intval($since)]]);
-}else{
-    $results = $collection->find();
+// Prepara filtro opcional "since"
+$filter = [];
+if (isset($_GET["since"]) && $_GET["since"] !== "") {
+    $since = intval($_GET["since"]);
+    $filter['timestamp'] = ['$gte' => $since];
 }
 
-$values = array();
-foreach ($results as $item) {
-    $values = array();
-    $values[] = array("timestamp" => $item['timestamp'], "data" => $item['data']);
-}
-$return = array("success" => True, "result" => $values);
+// Executa a query ordenada por timestamp ascendente
+$query  = new MongoDB\Driver\Query($filter, ['sort' => ['timestamp' => 1]]);
+$cursor = $manager->executeQuery("{$session}.{$topic}", $query);
 
-echo(json_encode($return));
-?>
+// Coleta resultados
+$values = [];
+foreach ($cursor as $item) {
+    $values[] = [
+        "timestamp" => $item->timestamp,
+        "data"      => $item->data
+    ];
+}
+
+// Retorna JSON
+echo json_encode([
+    "success" => true,
+    "result"  => $values
+]);
