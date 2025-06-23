@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile-ui
     ports:
-      - "3000:80"    # ou "8082:80", como preferir
+      - "8080:80"    # ou "8082:80", como preferir
     restart: always
 
   api:
@@ -14,7 +14,7 @@ services:
       context: ./easymqtt
       dockerfile: Dockerfile   # seu Dockerfile PHP
     ports:
-      - "8080:80"
+      - "3000:80"
     depends_on:
       - mongo
     restart: always
