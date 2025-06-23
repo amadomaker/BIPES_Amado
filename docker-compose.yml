@@ -41,3 +41,4 @@ services:
       - mqtt
       - mongo
     restart: on-failure
+
