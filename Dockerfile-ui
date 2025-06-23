@@ -1,13 +1,16 @@
-# Dockerfile-ui
 FROM httpd:latest
 
 WORKDIR /usr/local/apache2/htdocs
 
-# Copia apenas o conteúdo da pasta ui/ para o DocumentRoot
-COPY ui/ ./
+# Copia a landing para a raiz do servidor
+COPY ui/landing.html ./
 
-# Opcional: define o ServerName
-RUN echo "ServerName localhost" >> /usr/local/apache2/conf/httpd.conf
+# Copia o restante da UI para a subpasta /ui
+COPY ui ./ui
+
+# Configura o Apache para abrir a landing como página inicial
+RUN sed -i 's/DirectoryIndex .*/DirectoryIndex landing.html/' /usr/local/apache2/conf/httpd.conf && \
+    echo "ServerName localhost" >> /usr/local/apache2/conf/httpd.conf
 
 EXPOSE 80
 
