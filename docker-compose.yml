@@ -42,3 +42,12 @@ services:
       - mongo
     restart: on-failure
 
+  publisher:
+    build:
+      context: ./easymqtt
+      dockerfile: Dockerfile-publisher
+    depends_on:
+      - mqtt
+    restart: unless-stopped
+
+
