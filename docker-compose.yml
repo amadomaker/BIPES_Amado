@@ -6,17 +6,17 @@ services:
       context: .
       dockerfile: Dockerfile-ui
     ports:
-      - "8080:80"    # ou "8082:80", como preferir
+      - "8080:80"   
     restart: always
 
   api:
     build:
       context: ./easymqtt
-      dockerfile: Dockerfile   # seu Dockerfile PHP
+      dockerfile: Dockerfile   #Dockerfile PHP
     ports:
       - "3000:80"
-    depends_on:
-      - mongo
+    #depends_on:
+      #- mongo
     restart: always
 
   mqtt:
@@ -27,19 +27,19 @@ services:
       - ./mosquitto-conf/mosquitto.conf:/mosquitto/config/mosquitto.conf
     restart: always
 
-  mongo:
-    image: mongo
-    ports:
-      - "27017:27017"
-    restart: always
-
+  #mongo:
+    #image: mongo
+    #ports:
+     # - "27017:27017"
+    #restart: always
+  
   subscriber:
     build:
       context: ./easymqtt
       dockerfile: Dockerfile-subscriber
     depends_on:
       - mqtt
-      - mongo
+      #- mongo
     restart: on-failure
 
   publisher:

@@ -19,7 +19,7 @@ $session = htmlspecialchars($_GET["session"]);
 $topic   = htmlspecialchars($_GET["topic"]);
 
 // Conexão direta ao MongoDB via driver nativo
-$manager = new MongoDB\Driver\Manager("mongodb://mongo:27017");
+$manager = new MongoDB\Driver\Manager("mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db");
 
 // Montagem do filtro "since", se fornecido
 $filter = [];

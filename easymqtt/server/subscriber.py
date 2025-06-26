@@ -5,8 +5,10 @@ import json
 
 print("Subscriber starting...")  # Debug – deve aparecer imediatamente
 
+mongo_uri = "mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db"
 # Conexão ao MongoDB dentro do Docker Compose
-mongo_client = MongoClient('mongo', 27017)
+mongo_client = MongoClient(mongo_uri)
+#mongo_client = MongoClient('mongo', 27017)
 print("Connected to MongoDB")  # Debug
 
 # Cria o cliente MQTT (versão atualizada para resolver o warning)
