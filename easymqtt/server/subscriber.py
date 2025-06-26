@@ -1,15 +1,19 @@
-from pymongo import MongoClient
-import paho.mqtt.client as mqtt
+import os
 import time
 import json
+import paho.mqtt.client as mqtt
+from pymongo import MongoClient
 
-print("Subscriber starting...")  # Debug – deve aparecer imediatamente
+print("🚀 Starting Subscriber...")
 
-mongo_uri = "mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db"
-# Conexão ao MongoDB dentro do Docker Compose
+# === MongoDB ===
+mongo_uri = os.getenv("MONGO_URI")
+if not mongo_uri:
+    print("❌ MONGO_URI not set")
+    exit(1)
+
 mongo_client = MongoClient(mongo_uri)
-#mongo_client = MongoClient('mongo', 27017)
-print("Connected to MongoDB")  # Debug
+print("✅ Connected to MongoDB")
 
 # Cria o cliente MQTT (versão atualizada para resolver o warning)
 mqtt_client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
@@ -82,7 +86,11 @@ mqtt_client.on_disconnect = mqtt_on_disconnect
 mqtt_client.on_subscribe = mqtt_on_subscribe
 
 # Configura credenciais
-mqtt_client.username_pw_set("bipes", password="m8YLUr5uW3T")
+mqtt_host = os.getenv("MQTT_HOST", "localhost")
+mqtt_user = os.getenv("MQTT_USER", "bipes")
+mqtt_pass = os.getenv("MQTT_PASS", "senha")
+
+mqtt_client.username_pw_set(mqtt_user, password=mqtt_pass)
 print("Callbacks set, will attempt connect")  # Debug
 
 # Loop de retry para aguardar o broker subir
@@ -92,7 +100,7 @@ max_retries = 30  # Máximo 1 minuto tentando
 while retry_count < max_retries:
     try:
         print(f"Attempting to connect to mqtt:1883 (attempt {retry_count + 1}/{max_retries})")
-        mqtt_client.connect("mqtt", 1883, 60)
+        mqtt_client.connect(mqtt_host, 1883, 60)
         print("Connected to MQTT broker")
         break
     except Exception as e:
