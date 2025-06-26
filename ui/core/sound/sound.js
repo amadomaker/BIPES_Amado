@@ -43,6 +43,13 @@ function closeImportSoundModal() {
 
 // array de notas musicais com seus nomes e frequências
 const notes = [
+  { name: "Do", frequency: 130.81 },
+  { name: "Re", frequency: 146.83 },
+  { name: "Mi", frequency: 164.81 },
+  { name: "Fa", frequency: 174.61 },
+  { name: "Sol", frequency: 196.0 },
+  { name: "La", frequency: 220.0 },
+  { name: "Si", frequency: 246.94 },
   { name: "C4", frequency: 261.63 },
   { name: "D4", frequency: 293.66 },
   { name: "E4", frequency: 329.63 },
@@ -51,6 +58,13 @@ const notes = [
   { name: "A4", frequency: 440.0 },
   { name: "B4", frequency: 493.88 },
   { name: "C5", frequency: 523.25 },
+  { name: "D5", frequency: 587.33 },
+  { name: "E5", frequency: 659.25 },
+  { name: "F5", frequency: 698.46 },
+  { name: "G5", frequency: 783.99 },
+  { name: "A5", frequency: 880.0 },
+  { name: "B5", frequency: 987.77 },
+  { name: "C6", frequency: 1046.5 },
 ];
 
 const pianoContainer = document.getElementById("piano-container");
