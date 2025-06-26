@@ -3,7 +3,7 @@ header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
 
 // 1) Conexão direta ao MongoDB via Driver nativo
-$manager = new MongoDB\Driver\Manager("mongodb://mongo:27017");
+$manager = new MongoDB\Driver\Manager("mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db");
 
 // 2) Comando para listar bancos de dados
 $cmdListDBs = new MongoDB\Driver\Command(['listDatabases' => 1]);

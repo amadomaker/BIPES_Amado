@@ -14,7 +14,7 @@ if (!isset($_GET['session']) || empty($_GET['session'])) {
 $session = htmlspecialchars($_GET["session"]);
 
 // Conexão direta ao MongoDB via driver nativo
-$manager = new MongoDB\Driver\Manager("mongodb://mongo:27017");
+$manager = new MongoDB\Driver\Manager("mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db");
 
 // Comando para listar coleções (tópicos) no banco de dados da sessão
 $cmdListCols = new MongoDB\Driver\Command(['listCollections' => 1]);
