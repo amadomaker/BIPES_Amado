@@ -18,8 +18,17 @@ if (
 $session = htmlspecialchars($_GET["session"]);
 $topic   = htmlspecialchars($_GET["topic"]);
 
-// Conexão direta ao MongoDB via driver nativo
-$manager = new MongoDB\Driver\Manager("mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db");
+// Pega as variáveis de ambiente
+$mongoUri = getenv('MONGO_URI');
+if (!$mongoUri) {
+    echo json_encode([
+        "success" => false,
+        "result"  => "Mongo URI is not set in environment"
+    ]);
+    exit;
+}
+
+$manager = new MongoDB\Driver\Manager($mongoUri);
 
 // Montagem do filtro "since", se fornecido
 $filter = [];
