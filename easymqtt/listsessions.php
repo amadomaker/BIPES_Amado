@@ -2,8 +2,17 @@
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
 
-// 1) Conexão direta ao MongoDB via Driver nativo
-$manager = new MongoDB\Driver\Manager("mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db");
+// Pega as variáveis de ambiente
+$mongoUri = getenv('MONGO_URI');
+if (!$mongoUri) {
+    echo json_encode([
+        "success" => false,
+        "result"  => "Mongo URI is not set in environment"
+    ]);
+    exit;
+}
+
+$manager = new MongoDB\Driver\Manager($mongoUri);
 
 // 2) Comando para listar bancos de dados
 $cmdListDBs = new MongoDB\Driver\Command(['listDatabases' => 1]);

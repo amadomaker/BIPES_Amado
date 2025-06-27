@@ -4,6 +4,17 @@ import json
 import paho.mqtt.client as mqtt
 from pymongo import MongoClient
 
+# Associa callbacks
+mqtt_client.on_connect = mqtt_on_connect
+mqtt_client.on_message = mqtt_on_message
+mqtt_client.on_disconnect = mqtt_on_disconnect
+mqtt_client.on_subscribe = mqtt_on_subscribe
+
+# Configura credenciais
+mqtt_host = os.getenv("MQTT_HOST", "localhost")
+mqtt_user = os.getenv("MQTT_USER", "bipes")
+mqtt_pass = os.getenv("MQTT_PASS", "senha")
+
 print("🚀 Starting Subscriber...")
 
 # === MongoDB ===
@@ -78,17 +89,6 @@ def mqtt_on_disconnect(client, userdata, rc, properties=None):
 
 def mqtt_on_subscribe(client, userdata, mid, granted_qos, properties=None):
     print(f"Subscribed successfully with QoS {granted_qos}")
-
-# Associa callbacks
-mqtt_client.on_connect = mqtt_on_connect
-mqtt_client.on_message = mqtt_on_message
-mqtt_client.on_disconnect = mqtt_on_disconnect
-mqtt_client.on_subscribe = mqtt_on_subscribe
-
-# Configura credenciais
-mqtt_host = os.getenv("MQTT_HOST", "localhost")
-mqtt_user = os.getenv("MQTT_USER", "bipes")
-mqtt_pass = os.getenv("MQTT_PASS", "senha")
 
 mqtt_client.username_pw_set(mqtt_user, password=mqtt_pass)
 print("Callbacks set, will attempt connect")  # Debug

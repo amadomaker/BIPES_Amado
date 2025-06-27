@@ -1,53 +1,40 @@
-version: "3.8"
-
 services:
-  ui:
-    build:
-      context: .
-      dockerfile: Dockerfile-ui
-    ports:
-      - "8080:80"   
-    restart: always
-
-  api:
-    build:
-      context: ./easymqtt
-      dockerfile: Dockerfile   #Dockerfile PHP
-    ports:
-      - "3000:80"
-    #depends_on:
-      #- mongo
-    restart: always
-
   mqtt:
     image: eclipse-mosquitto:2.0.21
     ports:
       - "1883:1883"
     volumes:
       - ./mosquitto-conf/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto-conf/passwd:/mosquitto/config/passwd
     restart: always
+    networks:
+      - private-network
 
-  #mongo:
-    #image: mongo
-    #ports:
-     # - "27017:27017"
-    #restart: always
-  
   subscriber:
-    build:
-      context: ./easymqtt
-      dockerfile: Dockerfile-subscriber
+    image: us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/subscriber:v1
     depends_on:
       - mqtt
-      #- mongo
     restart: on-failure
+    environment:
+      - MONGO_URI
+      - MQTT_HOST
+      - MQTT_USER
+      - MQTT_PASS
+    networks:
+      - private-network
 
   publisher:
-    build:
-      context: ./easymqtt
-      dockerfile: Dockerfile-publisher
+    image: us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/publisher:v1
     depends_on:
       - mqtt
     restart: unless-stopped
+    environment:
+      - MQTT_HOST
+      - MQTT_USER
+      - MQTT_PASS
+    networks:
+      - private-network
 
-
+networks:
+  private-network:
+    external: true
