@@ -25,7 +25,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/publisher:${{ github.run_number }} ./easymqtt/publisher
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/publisher:${{ github.run_number }} -f easymqtt/publisher/Dockerfile .
 
       - name: Push Docker image
         run: |
@@ -49,8 +49,8 @@ jobs:
             echo "MQTT_PASS=${{ secrets.MQTT_PASS }}" >> .env
 
             echo "Stopping old container..."
-            docker stop publisher || true
-            docker rm publisher || true
+            docker stop ${{ secrets.GCP_VM_USER }}-publisher-1 || true
+            docker rm ${{ secrets.GCP_VM_USER }}-publisher-1 || true
 
             echo "Pulling latest image..."
             docker compose --env-file .env pull
