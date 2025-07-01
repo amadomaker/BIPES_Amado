@@ -1,4 +1,4 @@
-name: CI/CD para Cloud Run
+name: Build UI
 
 on:
   workflow_dispatch: 

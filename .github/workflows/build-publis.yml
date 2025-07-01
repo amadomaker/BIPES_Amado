@@ -49,8 +49,8 @@ jobs:
             echo "MQTT_PASS=${{ secrets.MQTT_PASS }}" >> .env
 
             echo "Stopping old container..."
-            docker stop ${{ secrets.GCP_VM_USER }}-publisher-1 || true
-            docker rm ${{ secrets.GCP_VM_USER }}-publisher-1 || true
+            docker stop vinicius_pereira-publisher-1 || true
+            docker rm vinicius_pereira-publisher-1 || true
 
             echo "Pulling latest image..."
             docker compose --env-file .env pull
