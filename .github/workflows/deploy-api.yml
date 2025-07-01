@@ -2,9 +2,8 @@ name: Build API
 
 on:
 
-    push: 
-        branches: 
-            - feat/deploy-gcp
+    workflow_dispatch:
+
     # pull_request: 
     #     branches: [ staging, master ]
     #     types: [closed]
