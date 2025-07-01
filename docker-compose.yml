@@ -11,7 +11,8 @@ services:
       - private-network
 
   subscriber:
-    image: us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/subscriber:v1
+    container_name: subscriber
+    image: us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/dblocks/subscriber:${TAG_SUBS}
     depends_on:
       - mqtt
     restart: on-failure
@@ -24,7 +25,8 @@ services:
       - private-network
 
   publisher:
-    image: us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/publisher:v1
+    container_name: publisher
+    image: us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/dblocks/publisher:${TAG_PUBLIS}
     depends_on:
       - mqtt
     restart: unless-stopped

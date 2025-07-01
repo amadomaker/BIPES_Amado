@@ -1,0 +1,45 @@
+name: Build and Deploy the API
+
+on:
+
+    push: 
+        branches: 
+            - feat/deploy-gcp
+    # pull_request: 
+    #     branches: [ staging, master ]
+    #     types: [closed]
+jobs:
+    build:
+        # if: github.event.pull_request.merged == true
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Auth with Google Cloud
+              uses: google-github-actions/auth@v2
+              with:
+                credentials_json: ${{ secrets.GCP_SA_KEY }} 
+            
+            - name: Configuration to Google Cloud SDK
+              uses: google-github-actions/setup-gcloud@v2
+
+            - name: Configuration Docker to Artifact Registry
+              run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+            - name: Build in Docker image
+              run: |
+                docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/api:${{ github.run_number }} ./easymqtt
+
+            - name: Push the Docker image
+              run: |
+                docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/api:${{ github.run_number }}
+
+            - name: Deploy in Cloud Run
+              run: |
+                gcloud run deploy bipes-api \
+                --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/api:${{ github.run_number }} \
+                --region us-central1 \
+                --platform managed \
+                --allow-unauthenticated \
+                --set-env-vars MONGO_URI=${{ secrets.MONGO_URI }}

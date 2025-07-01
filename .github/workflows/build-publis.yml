@@ -1,0 +1,59 @@
+name: Build Publisher
+
+on:
+  push:
+    branches:
+      - feat/deploy-gcp
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Autenticação no GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configurar Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configurar Docker para Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Build Docker image
+        run: |
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/publisher:${{ github.run_number }} ./easymqtt/publisher
+
+      - name: Push Docker image
+        run: |
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/publisher:${{ github.run_number }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy on remote VM
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.GCP_VM_IP }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.GCP_VM_SSH_KEY }}
+          script: |
+            echo "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" > .env
+            echo "TAG_PUBLIS=${{ github.run_number }}" >> .env
+            echo "MQTT_HOST=${{ secrets.MQTT_HOST }}" >> .env
+            echo "MQTT_USER=${{ secrets.MQTT_USER }}" >> .env
+            echo "MQTT_PASS=${{ secrets.MQTT_PASS }}" >> .env
+
+            echo "Stopping old container..."
+            docker stop publisher || true
+            docker rm publisher || true
+
+            echo "Pulling latest image..."
+            docker compose --env-file .env pull
+
+            echo "Starting new container..."
+            docker compose --env-file .env up -d
