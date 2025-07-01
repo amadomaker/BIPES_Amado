@@ -1,4 +1,4 @@
-name: Build and Deploy the API
+name: Build API
 
 on:
 
