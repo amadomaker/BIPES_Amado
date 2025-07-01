@@ -1,19 +1,20 @@
 name: CI/CD para Cloud Run
 
 on:
-  pull_request:
-    branches: [ staging, master ]
-    types: [closed]  # Só roda quando um PR é mergeado
+  workflow_dispatch: 
+  # pull_request:
+  #   branches: [ staging, master ]
+  #   types: [closed]  # Só roda quando um PR é mergeado
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     name: Deploy para Cloud Run
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout do Código
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
           fetch-depth: 0
