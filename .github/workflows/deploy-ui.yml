@@ -1,10 +1,15 @@
 name: Build UI
 
 on:
-  workflow_dispatch: 
+  push:
+    branches:
+      - feat/deploy-gcp 
   # pull_request:
   #   branches: [ staging, master ]
   #   types: [closed]  # Só roda quando um PR é mergeado
+
+env:
+  ENVIROMENT: staging  
 
 jobs:
   deploy:
@@ -19,45 +24,45 @@ jobs:
           submodules: 'recursive'
           fetch-depth: 0
 
-      - name: Verificar Submódulos
+      - name: Modules Check
         run: git submodule status
 
       - name: Atualizar Submódulos Específicos
         run: git submodule update --init --recursive ui/freeboard
 
-      - name: Autenticação no GCP
+      - name: Auth with Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Configurar Google Cloud SDK
+      - name: Configuration to Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Configurar Docker para Artifact Registry
+      - name: Configuration Docker to Artifact Registry
         run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      - name: Definir Variáveis do Ambiente
+      - name: Environment Check
         run: |
-          if [[ "${{ github.base_ref }}" == "master" ]]; then
+          if [[ "ENVIROMENT" == "master" ]]; then
             echo "ENV=prod" >> $GITHUB_ENV
-            echo "SERVICE_NAME=meu-servidor-web" >> $GITHUB_ENV
+            echo "SERVICE_NAME=dblocks-ui-prod" >> $GITHUB_ENV
           else
             echo "ENV=staging" >> $GITHUB_ENV
-            echo "SERVICE_NAME=meu-servidor-web-staging" >> $GITHUB_ENV
+            echo "SERVICE_NAME=dblocks-ui-staging" >> $GITHUB_ENV
           fi
 
-      - name: Build da Imagem Docker
+      - name: Build in Docker image
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/meu-servidor-web/${{ env.SERVICE_NAME }}:${{ github.sha }} .
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }} .
 
-      - name: Push da Imagem para o Artifact Registry
+      - name: Push the Docker image
         run: |
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/meu-servidor-web/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }}
 
-      - name: Deploy para o Cloud Run
+      - name: Deploy in Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/meu-servidor-web/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }} \
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated
