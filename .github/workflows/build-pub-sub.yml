@@ -1,4 +1,4 @@
-name: Build Publisher
+name: Build and Deploy Pub/Sub
 
 on:
   push:
@@ -26,10 +26,12 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/publisher:${{ github.run_number }} -f easymqtt/publisher/Dockerfile .
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/subscriber:${{ github.run_number }} ./easymqtt/server
 
       - name: Push Docker image
         run: |
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/publisher:${{ github.run_number }}
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/subscriber:${{ github.run_number }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,17 +45,21 @@ jobs:
           key: ${{ secrets.GCP_VM_SSH_KEY }}
           script: |
             echo "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" > .env
-            echo "TAG_PUBLIS=${{ github.run_number }}" >> .env
+            echo "TAG_SUBS=${{ github.run_number }}" >> .env
+            echo "TAG_TAG_PUBLIS=${{ github.run_number }}" >> .env
+            echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
             echo "MQTT_HOST=${{ secrets.MQTT_HOST }}" >> .env
             echo "MQTT_USER=${{ secrets.MQTT_USER }}" >> .env
             echo "MQTT_PASS=${{ secrets.MQTT_PASS }}" >> .env
 
             echo "Stopping old container..."
-            docker stop vinicius_pereira-publisher-1 || true
-            docker rm vinicius_pereira-publisher-1 || true
+            docker compose stop
+
+            export TAG_PUBLIS=${{ github.run_number }}
+            export TAG_SUBS=${{ github.run_number }}
 
             echo "Pulling latest image..."
-            docker compose --env-file .env pull
+            docker compose pull
 
             echo "Starting new container..."
-            docker compose --env-file .env up -d
+            docker compose up -d
