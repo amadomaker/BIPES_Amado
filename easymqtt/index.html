@@ -126,7 +126,7 @@
     // Init
     // Tenta ler ?session=xxx da URL
     let urlSession = getSessionFromURL();
-    let easyMQTT_session_chart = urlSession || "default-session";
+    easyMQTT_session_chart = urlSession || "default-session";
 
 
     if (urlSession) {
