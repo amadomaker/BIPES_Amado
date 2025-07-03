@@ -2,17 +2,17 @@ name: Build and Deploy Pub/Sub
 
 on:
 
-  push:
-    branches: 
-      - feat/deploy-gcp
+  # push:
+  #   branches: 
+  #     - feat/deploy-gcp
 
-  # pull_request: 
-  #       branches: [ staging, master ]
-  #       types: [closed]
+  pull_request: 
+        branches: [ staging, master ]
+        types: [closed]
 
 jobs:
   build:
-    # if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
