@@ -2,9 +2,13 @@ name: Build and Deploy Pub/Sub
 
 on:
 
-  pull_request: 
-        branches: [ staging, master ]
-        types: [closed]
+  push:
+    branches: 
+      - feat/deploy-gcp
+
+  # pull_request: 
+  #       branches: [ staging, master ]
+  #       types: [closed]
 
 jobs:
   build:
