@@ -45,7 +45,7 @@ jobs:
 
       - name: Environment Check
         run: |
-          if [[ "ENVIROMENT" == "master" ]]; then
+          if [[ "${{ github.base_ref }}" == "master" ]]; then
             echo "ENV=prod" >> $GITHUB_ENV
             echo "SERVICE_NAME=dblocks-ui-prod" >> $GITHUB_ENV
           else

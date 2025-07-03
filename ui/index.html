@@ -377,9 +377,9 @@ function abrirEasyMQTT() {
     const iframe = document.getElementById('easymqtt_iframe');
 
     if (session) {
-        iframe.src = `https://bipes-api-143389608818.us-central1.run.app/?session=${session}`;
+        iframe.src = `https://dblocks-api-staging-143389608818.us-central1.run.app/?session=${session}`;
     } else {
-        iframe.src = 'https://bipes-api-143389608818.us-central1.run.app/';
+        iframe.src = 'https://dblocks-api-staging-143389608818.us-central1.run.app/';
         console.warn('Sessão não definida. Abrindo EasyMQTT sem sessão.');
     }
     
