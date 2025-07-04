@@ -347,7 +347,7 @@
 
     function updateEasyMQTTJson(){
       //$(".highcharts-navigator").removeAttr("visibility"); //needed only if not used as an iframe in the main page
-      $.get(`getsession.php`,
+      $.get(`/easymqtt/getsession.php`,
       {"session": easyMQTT_session_chart}, 
       function( data ) {
         if (data.success){
