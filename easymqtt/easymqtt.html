@@ -1,39 +1,48 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>EasyMQTT</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-    }
-    iframe {
-      border: none;
-      width: 100%;
-      height: 100%;
-    }
-  </style>
-</head>
-<body onload="abrirEasyMQTT()">
-  <div id="content_mqtt" class="content" style="padding: 0;">
-    <iframe id="easymqtt_iframe" width="100%" height="100%" frameBorder="0"></iframe>
-  </div>
+  <head>
+    <meta charset="UTF-8">
+    <title>EasyMQTT</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden; /* evita barra de rolagem */
+      }
 
-  <script>
-    function abrirEasyMQTT() {
-      const params = new URLSearchParams(window.location.search);
-      const session = params.get("session");
-      const iframe = document.getElementById('easymqtt_iframe');
+      #content_mqtt {
+        height: 100%;
+        width: 100%;
+        padding: 0;
+      }
 
-      if (session) {
+      iframe {
+        border: none;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+    </style>
+  </head>
+  <body onload="abrirEasyMQTT()">
+    <div id="content_mqtt" class="content">
+      <iframe id="easymqtt_iframe" width="100%" height="100%" frameBorder="0"></iframe>
+    </div>
+
+    <script>
+      function abrirEasyMQTT() {
+        const params = new URLSearchParams(window.location.search);
+        const session = params.get("session");
+        const iframe = document.getElementById('easymqtt_iframe');
+
+        if (session) {
           iframe.src = `https://dblocks-api-staging-143389608818.us-central1.run.app/?session=${session}`;
-      } else {
+        } else {
           iframe.src = 'https://dblocks-api-staging-143389608818.us-central1.run.app/';
           console.warn('Sessão não definida. Abrindo EasyMQTT sem sessão.');
+        }
       }
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>
