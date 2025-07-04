@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>EasyMQTT</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      iframe {
+        border: none;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe id="easymqttIframe" src=""></iframe>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const session = params.get("session");
+
+      const iframe = document.getElementById("easymqttIframe");
+
+      if (session) {
+        iframe.src = `/easymqtt/index.html?session=${session}`;
+      } else {
+        iframe.src = `/easymqtt/index.html`;
+        console.warn("Session ID not provided");
+      }
+    </script>
+  </body>
+</html>
