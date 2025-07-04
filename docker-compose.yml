@@ -1,4 +1,20 @@
 services:
+  api:
+    container_name: bipes_amado-api
+    build:
+      context: ./easymqtt
+    ports:
+      - "3000:80"
+    environment:
+      - MQTT_HOST=mqtt
+      - MQTT_USER=usuario_aqui
+      - MQTT_PASS=senha_aqui
+      - MONGO_URI=mongodb://<user>:<pass>@mongo:27017
+    depends_on:
+      - mqtt
+    networks:
+      - private-network
+
   mqtt:
     image: eclipse-mosquitto:2.0.21
     ports:
