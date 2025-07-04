@@ -25,10 +25,13 @@
 
       const iframe = document.getElementById("easymqttIframe");
 
+      // Aponta diretamente para o servidor que interpreta o PHP
+      const baseURL = "https://staging.dblocks.com.br/easymqtt";
+
       if (session) {
-        iframe.src = `/easymqtt/index.html?session=${session}`;
+        iframe.src = `${baseURL}/index.html?session=${session}`;
       } else {
-        iframe.src = `/easymqtt/index.html`;
+        iframe.src = `${baseURL}/index.html`;
         console.warn("Session ID not provided");
       }
     </script>
