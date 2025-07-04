@@ -52,7 +52,7 @@ jobs:
           script: |
             echo "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" > .env
             echo "TAG_SUBS=${{ github.run_number }}" >> .env
-            echo "TAG_TAG_PUBLIS=${{ github.run_number }}" >> .env
+            echo "TAG_PUBLIS=${{ github.run_number }}" >> .env
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
             echo "MQTT_HOST=${{ secrets.MQTT_HOST }}" >> .env
             echo "MQTT_USER=${{ secrets.MQTT_USER }}" >> .env
