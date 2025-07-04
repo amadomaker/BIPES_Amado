@@ -1,39 +1,39 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>EasyMQTT</title>
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-      }
-      iframe {
-        border: none;
-        width: 100%;
-        height: 100%;
-      }
-    </style>
-  </head>
-  <body>
-    <iframe id="easymqttIframe" src=""></iframe>
+<head>
+  <meta charset="UTF-8">
+  <title>EasyMQTT</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body onload="abrirEasyMQTT()">
+  <div id="content_mqtt" class="content" style="padding: 0;">
+    <iframe id="easymqtt_iframe" width="100%" height="100%" frameBorder="0"></iframe>
+  </div>
 
-    <script>
+  <script>
+    function abrirEasyMQTT() {
       const params = new URLSearchParams(window.location.search);
       const session = params.get("session");
-
-      const iframe = document.getElementById("easymqttIframe");
-
-      // Aponta diretamente para o servidor que interpreta o PHP
-      const baseURL = "https://staging.dblocks.com.br/easymqtt";
+      const iframe = document.getElementById('easymqtt_iframe');
 
       if (session) {
-        iframe.src = `${baseURL}/index.html?session=${session}`;
+          iframe.src = `https://dblocks-api-staging-143389608818.us-central1.run.app/?session=${session}`;
       } else {
-        iframe.src = `${baseURL}/index.html`;
-        console.warn("Session ID not provided");
+          iframe.src = 'https://dblocks-api-staging-143389608818.us-central1.run.app/';
+          console.warn('Sessão não definida. Abrindo EasyMQTT sem sessão.');
       }
-    </script>
-  </body>
+    }
+  </script>
+</body>
 </html>
