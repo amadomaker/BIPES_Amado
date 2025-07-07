@@ -12,12 +12,11 @@ mqtt_pass = os.getenv("MQTT_PASS", "senha")
 print("🚀 Starting Subscriber...")
 
 # === MongoDB ===
-# mongo_uri = os.getenv("MONGO_URI")
-# if not mongo_uri:
-#     print("❌ MONGO_URI not set")
-#     exit(1)
+mongo_uri = os.getenv("MONGO_URI")
+if not mongo_uri:
+    print("❌ MONGO_URI not set")
+    exit(1)
 
-mongo_uri = "mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db"
 mongo_client = MongoClient(mongo_uri)
 print("✅ Connected to MongoDB")
 

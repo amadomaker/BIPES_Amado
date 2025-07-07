@@ -23,7 +23,7 @@ $session = htmlspecialchars($_GET["session"]);
 //     exit;
 // }
 
-$mongoUri = "mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db"
+$mongoUri = "mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db";
 $manager = new MongoDB\Driver\Manager($mongoUri);
 
 // Comando para listar coleções (tópicos) no banco de dados da sessão

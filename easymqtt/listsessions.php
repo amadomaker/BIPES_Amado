@@ -12,7 +12,7 @@ header("Access-Control-Allow-Origin: *");
 //     exit;
 // }
 
-$mongoUri = "mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db"
+$mongoUri = "mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db";
 $manager = new MongoDB\Driver\Manager($mongoUri);
 
 // 2) Comando para listar bancos de dados

@@ -12,7 +12,7 @@ services:
       - MQTT_PASS
       - MONGO_URI=mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db
     networks:
-      - private-network
+      - bipes_amado_default
 
   ui:
     container_name: ui
@@ -21,7 +21,7 @@ services:
       - "80:80"
       - "443:443"
     networks:
-      - private-network
+      - bipes_amado_default
 
   mqtt:
     container_name: mqtt
@@ -33,7 +33,7 @@ services:
       - ./mosquitto-conf/passwd:/mosquitto/config/passwd
     restart: always
     networks:
-      - private-network
+      - bipes_amado_default
 
   subscriber:
     container_name: subscriber
@@ -47,7 +47,7 @@ services:
       - MQTT_USER
       - MQTT_PASS
     networks:
-      - private-network
+      - bipes_amado_default
 
   publisher:
     container_name: publisher
@@ -60,8 +60,8 @@ services:
       - MQTT_USER
       - MQTT_PASS
     networks:
-      - private-network
+      - bipes_amado_default
 
 networks:
-  private-network:
+  bipes_amado_default:
     external: true
