@@ -188,6 +188,13 @@ button {
   line-height: normal;
 }
 
+.container-main-buttons {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .section-main-image {
   border: 1px solid #cacaca;
 
@@ -424,8 +431,8 @@ button {
     justify-content: center;
   }
 
-  .main-section .btn-primary{
-    margin: auto;
+  .container-main-buttons {
+    justify-content: center;
   }
 
   .container-main-text {
