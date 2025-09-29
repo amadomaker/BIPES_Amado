@@ -828,7 +828,7 @@ Blockly.Python['relay_switch'] = function(block) {
 /// EasyMQTT
 /// EasyMQTT Init
 Blockly.Python['easymqtt_init'] = function(block) {
-  var server = '"34.31.56.112"';
+  var server = '"192.168.68.72"';
   var port = '1883';
   var user = '"bipes"';
   var pass = '"m8YLUr5uW3T"';

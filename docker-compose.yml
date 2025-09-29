@@ -7,9 +7,9 @@ services:
     depends_on:
       - mqtt
     environment:
-      - MQTT_HOST
-      - MQTT_USER
-      - MQTT_PASS
+      - MQTT_HOST=mqtt
+      - MQTT_USER=bipes
+      - MQTT_PASS=m8YLUr5uW3T
       - MONGO_URI=mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db
     networks:
       - bipes_amado_default
@@ -18,7 +18,7 @@ services:
     container_name: ui
     image: us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/ui:v5
     ports:
-      - "80:80"
+      - "8080:80"
       - "443:443"
     networks:
       - bipes_amado_default
@@ -42,10 +42,10 @@ services:
       - mqtt
     restart: on-failure
     environment:
+      - MQTT_HOST=mqtt
+      - MQTT_USER=bipes
+      - MQTT_PASS=m8YLUr5uW3T
       - MONGO_URI=mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db
-      - MQTT_HOST
-      - MQTT_USER
-      - MQTT_PASS
     networks:
       - bipes_amado_default
 
@@ -56,9 +56,10 @@ services:
       - mqtt
     restart: unless-stopped
     environment:
-      - MQTT_HOST
-      - MQTT_USER
-      - MQTT_PASS
+      - MQTT_HOST=mqtt
+      - MQTT_USER=bipes
+      - MQTT_PASS=m8YLUr5uW3T
+      - MONGO_URI=mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db
     networks:
       - bipes_amado_default
 
