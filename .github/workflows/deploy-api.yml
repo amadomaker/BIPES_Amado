@@ -1,0 +1,52 @@
+name: Build API
+
+on:
+  
+    pull_request: 
+        branches: [ staging, master ]
+        types: [closed]
+jobs:
+    build:
+        if: github.event.pull_request.merged == true
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Auth with Google Cloud
+              uses: google-github-actions/auth@v2
+              with:
+                credentials_json: ${{ secrets.GCP_SA_KEY }} 
+            
+            - name: Configuration to Google Cloud SDK
+              uses: google-github-actions/setup-gcloud@v2
+
+            - name: Configuration Docker to Artifact Registry
+              run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+            - name: Environment Check
+              run: |
+                if [[ "${{ github.base_ref }}" == "master" ]]; then
+                  echo "ENV=prod" >> $GITHUB_ENV
+                  echo "SERVICE_NAME=dblocks-api-prod" >> $GITHUB_ENV
+                else
+                  echo "ENV=staging" >> $GITHUB_ENV
+                  echo "SERVICE_NAME=dblocks-api-staging" >> $GITHUB_ENV
+                fi
+
+            - name: Build in Docker image
+              run: |
+                docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }} ./easymqtt
+
+            - name: Push the Docker image
+              run: |
+                docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }}
+
+            - name: Deploy in Cloud Run
+              run: |
+                gcloud run deploy ${{ env.SERVICE_NAME }} \
+                --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }} \
+                --region us-central1 \
+                --platform managed \
+                --allow-unauthenticated \
+                --set-env-vars MONGO_URI=${{ secrets.MONGO_URI }}

@@ -1,0 +1,68 @@
+services:
+  api:
+    container_name: api
+    image: us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/api:v2
+    ports:
+      - "3000:8080"
+    depends_on:
+      - mqtt
+    environment:
+      - MQTT_HOST=mqtt
+      - MQTT_USER=bipes
+      - MQTT_PASS=m8YLUr5uW3T
+      - MONGO_URI=mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db
+    networks:
+      - bipes_amado_default
+
+  ui:
+    container_name: ui
+    image: us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/ui:v5
+    ports:
+      - "8080:80"
+      - "443:443"
+    networks:
+      - bipes_amado_default
+
+  mqtt:
+    container_name: mqtt
+    image: eclipse-mosquitto:2.0.21
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto-conf/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto-conf/passwd:/mosquitto/config/passwd
+    restart: always
+    networks:
+      - bipes_amado_default
+
+  subscriber:
+    container_name: subscriber
+    image: us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/subscriber:v2
+    depends_on:
+      - mqtt
+    restart: on-failure
+    environment:
+      - MQTT_HOST=mqtt
+      - MQTT_USER=bipes
+      - MQTT_PASS=m8YLUr5uW3T
+      - MONGO_URI=mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db
+    networks:
+      - bipes_amado_default
+
+  publisher:
+    container_name: publisher
+    image: us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/publisher:v1
+    depends_on:
+      - mqtt
+    restart: unless-stopped
+    environment:
+      - MQTT_HOST=mqtt
+      - MQTT_USER=bipes
+      - MQTT_PASS=m8YLUr5uW3T
+      - MONGO_URI=mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db
+    networks:
+      - bipes_amado_default
+
+networks:
+  bipes_amado_default:
+    external: true
