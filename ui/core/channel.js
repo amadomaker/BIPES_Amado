@@ -176,6 +176,7 @@ class websocket {
     this.buffer_ = [];
     this.connected = false;
     this.completeBufferCallback = [];
+    this.last4chars = '';
   }
 
 	/**
@@ -216,6 +217,7 @@ class websocket {
 
       this.connected = true;
       UI ['workspace'].websocket.url.disabled = true;
+      this.last4chars = '';
 
       this.ws.onmessage = (event) => {
         if (event.data instanceof ArrayBuffer) {
@@ -301,7 +303,8 @@ class websocket {
         term.write(event.data);
         if (typeof event.data == 'string') {
           Tool.bipesVerify ();
-          if (event.data.includes(">>> ")) {
+          this.last4chars = (this.last4chars + event.data).slice(-4);
+          if (event.data.includes(">>> ") || this.last4chars.includes(">>> ")) {
             UI ['workspace'].runButton.status = true;
             UI ['workspace'].runButton.dom.className = 'icon';
             UI ['workspace'].toolbarButton.className = 'icon medium';
@@ -331,6 +334,7 @@ class websocket {
       term.off();
       this.buffer_ = [];
       this.connected = false;
+      this.last4chars = '';
       UI ['workspace'].runAbort();
       clearInterval(this.watcher);
     }
