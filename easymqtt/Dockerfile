@@ -1,16 +1,18 @@
 FROM php:8.1-apache
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-      libssl-dev \
-      libcurl4-openssl-dev \
-      libpcre3-dev \
-      python3 \
-      python3-pip \
- && pip3 install --break-system-packages paho-mqtt \
- && pecl install mongodb \
- && docker-php-ext-enable mongodb \
- && rm -rf /var/lib/apt/lists/*
+# Dependências para compilar/extensões: usar PHPIZE_DEPS oficial
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        $PHPIZE_DEPS \
+        libssl-dev \
+        libcurl4-openssl-dev \
+    ; \
+    pecl install mongodb; \
+    docker-php-ext-install curl; \
+    docker-php-ext-enable mongodb curl; \
+    apt-get purge -y --auto-remove $PHPIZE_DEPS; \
+    rm -rf /var/lib/apt/lists/*
 
 # Configura Apache para priorizar index.html antes de index.php
 RUN a2enmod dir && \

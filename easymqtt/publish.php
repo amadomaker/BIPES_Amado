@@ -26,20 +26,44 @@ if (!is_numeric($value)) {
         "result"  => "Error publishing value '{$value}' to topic '{$topic}'. Non-numeric input value!"
     ];
 } else {
-    // Executa o script Python de publicação
-    $cmd = escapeshellcmd("python3 server/publish.py {$session}/{$topic} {$value}");
-    exec($cmd, $out, $ret);
+    // Encaminha para a Cloud Function HTTP de publicação
+    $publisherUrl = getenv('PUBLISHER_URL');
+    if (!$publisherUrl) {
+        // fallback padrão (altere para sua URL se preferir configurar via env)
+        $publisherUrl = 'https://us-central1-erudite-nation-440421-p7.cloudfunctions.net/mqtt-publisher';
+    }
 
-    if ($ret === 0) {
+    $url = $publisherUrl . '?session=' . urlencode($session) . '&topic=' . urlencode($topic) . '&value=' . urlencode($value);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $response = curl_exec($ch);
+    $curlErr  = curl_error($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($response === false) {
         $return = [
-            "success" => true,
-            "result"  => "Value '{$value}' published to topic '{$topic}' successfully!"
+            'success' => false,
+            'result'  => "Error publishing value '{$value}' to topic '{$topic}'. CURL error: {$curlErr}"
         ];
     } else {
-        $return = [
-            "success" => false,
-            "result"  => "Error publishing value '{$value}' to topic '{$topic}'. " . implode("\n", $out)
-        ];
+        $decoded = json_decode($response, true);
+        if (is_array($decoded) && isset($decoded['success'])) {
+            $return = $decoded;
+        } else if ($httpCode >= 200 && $httpCode < 300) {
+            $return = [
+                'success' => true,
+                'result'  => "Value '{$value}' published to topic '{$topic}' successfully!"
+            ];
+        } else {
+            $return = [
+                'success' => false,
+                'result'  => "Error publishing value '{$value}' to topic '{$topic}'. HTTP {$httpCode}: {$response}"
+            ];
+        }
     }
 }
 
