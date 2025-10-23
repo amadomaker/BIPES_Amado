@@ -4,19 +4,19 @@ on:
   push:
     branches: [master, staging]
     paths:
-      - 'ui/**'
-      - 'Dockerfile'
-      - '.github/workflows/deploy-ui.yml'
+      - "ui/**"
+      - "Dockerfile"
+      - ".github/workflows/deploy-ui.yml"
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy'
+        description: "Environment to deploy"
         required: true
-        default: 'staging'
+        default: "staging"
         type: choice
         options:
-        - staging
-        - production
+          - staging
+          - production
 
 env:
   PROJECT_ID: erudite-nation-440421-p7
@@ -28,87 +28,90 @@ jobs:
   deploy-ui:
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
-    
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+          fetch-depth: 0
 
-    - name: Update Submodules
-      run: git submodule update --init --recursive
+      - name: Update Submodules
+        run: git submodule update --init --recursive
 
-    - name: Setup Google Cloud CLI
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        project_id: ${{ env.PROJECT_ID }}
-        export_default_credentials: true
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Configure Docker for Artifact Registry
-      run: gcloud auth configure-docker us-central1-docker.pkg.dev
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
 
-    - name: Set environment variables
-      run: |
-        TAG="${GITHUB_SHA:0:8}"
-        echo "TAG=$TAG" >> $GITHUB_ENV
-        
-        if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-          echo "ENV_SUFFIX=" >> $GITHUB_ENV
-        else
-          echo "ENV_SUFFIX=-staging" >> $GITHUB_ENV
-        fi
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
-    - name: Build and Push Docker Image
-      run: |
-        IMAGE_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.IMAGE }}:${{ env.TAG }}"
-        
-        docker build -t $IMAGE_URI .
-        docker push $IMAGE_URI
-        
-        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      - name: Set environment variables
+        run: |
+          TAG="${GITHUB_SHA:0:8}"
+          echo "TAG=$TAG" >> $GITHUB_ENV
 
-    - name: Deploy to Cloud Run
-      run: |
-        gcloud run deploy bipes-ui${{ env.ENV_SUFFIX }} \
-          --image=${{ env.IMAGE_URI }} \
-          --platform=managed \
-          --region=${{ env.REGION }} \
-          --allow-unauthenticated \
-          --port=80 \
-          --memory=256Mi \
-          --cpu=1 \
-          --min-instances=0 \
-          --max-instances=5 \
-          --timeout=300
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "ENV_SUFFIX=" >> $GITHUB_ENV
+          else
+            echo "ENV_SUFFIX=-staging" >> $GITHUB_ENV
+          fi
 
-    - name: Get Service URL
-      id: service-url
-      run: |
-        SERVICE_URL=$(gcloud run services describe bipes-ui${{ env.ENV_SUFFIX }} \
-          --region=${{ env.REGION }} \
-          --format="value(status.url)")
-        echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
-        echo "✅ UI deployed: $SERVICE_URL"
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.IMAGE }}:${{ env.TAG }}"
 
-    - name: Test UI Health
-      run: |
-        sleep 30  # Wait for deployment
-        RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.service-url.outputs.url }}/")
-        if [[ "$RESPONSE" == "200" || "$RESPONSE" == "302" ]]; then
-          echo "✅ UI health check passed"
-        else
-          echo "❌ UI health check failed (HTTP $RESPONSE)"
-          exit 1
-        fi
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
 
-    - name: Test UI Content
-      run: |
-        RESPONSE=$(curl -s "${{ steps.service-url.outputs.url }}/ui/landing.html")
-        if echo "$RESPONSE" | grep -q "BIPES\|Dblocks"; then
-          echo "✅ UI content check passed"
-        else
-          echo "❌ UI content check failed"
-          exit 1
-        fi
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy bipes-ui${{ env.ENV_SUFFIX }} \
+            --image=${{ env.IMAGE_URI }} \
+            --platform=managed \
+            --region=${{ env.REGION }} \
+            --allow-unauthenticated \
+            --port=80 \
+            --memory=256Mi \
+            --cpu=1 \
+            --min-instances=0 \
+            --max-instances=5 \
+            --timeout=300
+
+      - name: Get Service URL
+        id: service-url
+        run: |
+          SERVICE_URL=$(gcloud run services describe bipes-ui${{ env.ENV_SUFFIX }} \
+            --region=${{ env.REGION }} \
+            --format="value(status.url)")
+          echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "✅ UI deployed: $SERVICE_URL"
+
+      - name: Test UI Health
+        run: |
+          sleep 30  # Wait for deployment
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.service-url.outputs.url }}/")
+          if [[ "$RESPONSE" == "200" || "$RESPONSE" == "302" ]]; then
+            echo "✅ UI health check passed"
+          else
+            echo "❌ UI health check failed (HTTP $RESPONSE)"
+            exit 1
+          fi
+
+      - name: Test UI Content
+        run: |
+          RESPONSE=$(curl -s "${{ steps.service-url.outputs.url }}/ui/landing.html")
+          if echo "$RESPONSE" | grep -q "BIPES\|Dblocks"; then
+            echo "✅ UI content check passed"
+          else
+            echo "❌ UI content check failed"
+            exit 1
+          fi
