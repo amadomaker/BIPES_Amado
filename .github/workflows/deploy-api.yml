@@ -1,52 +1,116 @@
-name: Build API
+name: Deploy API to Cloud Run
 
 on:
-  
-    pull_request: 
-        branches: [ staging, master ]
-        types: [closed]
+  push:
+    branches: [master, staging]
+    paths:
+      - "easymqtt/**"
+      - ".github/workflows/deploy-api.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  PROJECT_ID: erudite-nation-440421-p7
+  REGION: us-central1
+  REPO: dblocks
+  IMAGE: api
+
 jobs:
-    build:
-        if: github.event.pull_request.merged == true
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  deploy-api:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
 
-            - name: Auth with Google Cloud
-              uses: google-github-actions/auth@v2
-              with:
-                credentials_json: ${{ secrets.GCP_SA_KEY }} 
-            
-            - name: Configuration to Google Cloud SDK
-              uses: google-github-actions/setup-gcloud@v2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Configuration Docker to Artifact Registry
-              run: gcloud auth configure-docker us-central1-docker.pkg.dev
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ env.PROJECT_ID }}
+          export_default_credentials: true
 
-            - name: Environment Check
-              run: |
-                if [[ "${{ github.base_ref }}" == "master" ]]; then
-                  echo "ENV=prod" >> $GITHUB_ENV
-                  echo "SERVICE_NAME=dblocks-api-prod" >> $GITHUB_ENV
-                else
-                  echo "ENV=staging" >> $GITHUB_ENV
-                  echo "SERVICE_NAME=dblocks-api-staging" >> $GITHUB_ENV
-                fi
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
-            - name: Build in Docker image
-              run: |
-                docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }} ./easymqtt
+      - name: Set environment variables
+        run: |
+          TAG="${GITHUB_SHA:0:8}"
+          echo "TAG=$TAG" >> $GITHUB_ENV
 
-            - name: Push the Docker image
-              run: |
-                docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }}
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "ENV_SUFFIX=" >> $GITHUB_ENV
+            echo "FUNCTION_URL=https://${{ env.REGION }}-${{ env.PROJECT_ID }}.cloudfunctions.net/mqtt-publisher" >> $GITHUB_ENV
+          else
+            echo "ENV_SUFFIX=-staging" >> $GITHUB_ENV
+            echo "FUNCTION_URL=https://${{ env.REGION }}-${{ env.PROJECT_ID }}.cloudfunctions.net/mqtt-publisher-staging" >> $GITHUB_ENV
+          fi
 
-            - name: Deploy in Cloud Run
-              run: |
-                gcloud run deploy ${{ env.SERVICE_NAME }} \
-                --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }} \
-                --region us-central1 \
-                --platform managed \
-                --allow-unauthenticated \
-                --set-env-vars MONGO_URI=${{ secrets.MONGO_URI }}
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.IMAGE }}:${{ env.TAG }}"
+
+          docker build -t $IMAGE_URI -f easymqtt/Dockerfile easymqtt
+          docker push $IMAGE_URI
+
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy bipes-api${{ env.ENV_SUFFIX }} \
+            --image=${{ env.IMAGE_URI }} \
+            --platform=managed \
+            --region=${{ env.REGION }} \
+            --allow-unauthenticated \
+            --port=8080 \
+            --memory=512Mi \
+            --cpu=1 \
+            --min-instances=0 \
+            --max-instances=10 \
+            --set-env-vars="PUBLISHER_URL=${{ env.FUNCTION_URL }}" \
+            --timeout=300
+
+      - name: Get Service URL
+        id: service-url
+        run: |
+          SERVICE_URL=$(gcloud run services describe bipes-api${{ env.ENV_SUFFIX }} \
+            --region=${{ env.REGION }} \
+            --format="value(status.url)")
+          echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "✅ API deployed: $SERVICE_URL"
+
+      - name: Test API Health
+        run: |
+          sleep 30  # Wait for deployment
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.service-url.outputs.url }}/")
+          if [[ "$RESPONSE" == "200" ]]; then
+            echo "✅ API health check passed"
+          else
+            echo "❌ API health check failed (HTTP $RESPONSE)"
+            exit 1
+          fi
+
+      - name: Test Publish Endpoint
+        run: |
+          RESPONSE=$(curl -s "${{ steps.service-url.outputs.url }}/publish.php?session=ci-test&topic=api-health&value=42")
+          echo "Publish test response: $RESPONSE"
+          if echo "$RESPONSE" | grep -q '"success":true'; then
+            echo "✅ Publish endpoint test passed"
+          else
+            echo "❌ Publish endpoint test failed"
+            exit 1
+          fi
+
+    outputs:
+      service-url: ${{ steps.service-url.outputs.url }}
+        --allow-unauthenticated \
+        --set-env-vars MONGO_URI=${{ secrets.MONGO_URI }}
