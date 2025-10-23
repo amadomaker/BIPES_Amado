@@ -1,0 +1,88 @@
+name: Deploy Publisher Function
+
+on:
+  push:
+    branches: [master, staging]
+    paths:
+      - "infra/cloud-functions/publisher/**"
+      - ".github/workflows/deploy-publisher.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  PROJECT_ID: erudite-nation-440421-p7
+  REGION: us-central1
+
+jobs:
+  deploy-publisher:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ env.PROJECT_ID }}
+          export_default_credentials: true
+
+      - name: Set environment variables
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "ENV_SUFFIX=" >> $GITHUB_ENV
+            echo "MQTT_HOST=${{ secrets.PROD_MQTT_HOST }}" >> $GITHUB_ENV
+          else
+            echo "ENV_SUFFIX=-staging" >> $GITHUB_ENV
+            echo "MQTT_HOST=${{ secrets.STAGING_MQTT_HOST }}" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy Cloud Function
+        run: |
+          cd infra/cloud-functions/publisher
+
+          gcloud functions deploy mqtt-publisher${{ env.ENV_SUFFIX }} \
+            --gen2 \
+            --runtime=python312 \
+            --region=${{ env.REGION }} \
+            --source=. \
+            --entry-point=publish_http \
+            --trigger-http \
+            --allow-unauthenticated \
+            --memory=256Mi \
+            --timeout=60s \
+            --set-env-vars="MQTT_HOST=${{ env.MQTT_HOST }},MQTT_PORT=1883,MQTT_USER=${{ secrets.MQTT_USER }},MQTT_PASS=${{ secrets.MQTT_PASS }}"
+
+      - name: Get Function URL
+        id: function-url
+        run: |
+          FUNCTION_URL=$(gcloud functions describe mqtt-publisher${{ env.ENV_SUFFIX }} \
+            --region=${{ env.REGION }} \
+            --format="value(serviceConfig.uri)")
+          echo "url=$FUNCTION_URL" >> $GITHUB_OUTPUT
+          echo "✅ Function deployed: $FUNCTION_URL"
+
+      - name: Test Function
+        run: |
+          sleep 30  # Wait for deployment
+          RESPONSE=$(curl -s "${{ steps.function-url.outputs.url }}?session=ci-test&topic=healthcheck&value=1")
+          echo "Response: $RESPONSE"
+          if echo "$RESPONSE" | grep -q '"success":true'; then
+            echo "✅ Function health check passed"
+          else
+            echo "❌ Function health check failed"
+            exit 1
+          fi
+
+    outputs:
+      function-url: ${{ steps.function-url.outputs.url }}

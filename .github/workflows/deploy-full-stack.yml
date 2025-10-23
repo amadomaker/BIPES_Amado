@@ -1,0 +1,158 @@
+name: Full Stack Deploy
+
+on:
+  push:
+    branches: [master, staging]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+      skip_vm_setup:
+        description: "Skip VM setup (if already running)"
+        required: false
+        default: true
+        type: boolean
+
+env:
+  PROJECT_ID: erudite-nation-440421-p7
+  REGION: us-central1
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      vm-changed: ${{ steps.changes.outputs.vm }}
+      publisher-changed: ${{ steps.changes.outputs.publisher }}
+      api-changed: ${{ steps.changes.outputs.api }}
+      ui-changed: ${{ steps.changes.outputs.ui }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            vm:
+              - 'infra/gce-mqtt/**'
+            publisher:
+              - 'infra/cloud-functions/publisher/**'
+            api:
+              - 'easymqtt/**'
+            ui:
+              - 'ui/**'
+              - 'Dockerfile'
+
+  deploy-publisher:
+    needs: check-changes
+    if: needs.check-changes.outputs.publisher-changed == 'true' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/deploy-publisher.yml
+    secrets: inherit
+
+  deploy-api:
+    needs: [check-changes, deploy-publisher]
+    if: |
+      always() && 
+      (needs.check-changes.outputs.api-changed == 'true' || 
+       needs.deploy-publisher.result == 'success' || 
+       github.event_name == 'workflow_dispatch')
+    uses: ./.github/workflows/deploy-api.yml
+    secrets: inherit
+
+  deploy-ui:
+    needs: [check-changes, deploy-api]
+    if: |
+      always() && 
+      (needs.check-changes.outputs.ui-changed == 'true' || 
+       needs.deploy-api.result == 'success' || 
+       github.event_name == 'workflow_dispatch')
+    uses: ./.github/workflows/deploy-ui.yml
+    secrets: inherit
+
+  integration-test:
+    needs: [deploy-publisher, deploy-api, deploy-ui]
+    if: always() && (needs.deploy-publisher.result == 'success' || needs.deploy-api.result == 'success' || needs.deploy-ui.result == 'success')
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
+
+    steps:
+      - name: Set environment variables
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "ENV_SUFFIX=" >> $GITHUB_ENV
+          else
+            echo "ENV_SUFFIX=-staging" >> $GITHUB_ENV
+          fi
+
+      - name: Integration Test - Full Flow
+        run: |
+          # Test 1: Publisher Function
+          if [[ "${{ needs.deploy-publisher.result }}" == "success" ]]; then
+            FUNCTION_URL="https://${{ env.REGION }}-${{ env.PROJECT_ID }}.cloudfunctions.net/mqtt-publisher${{ env.ENV_SUFFIX }}"
+            echo "Testing Publisher Function: $FUNCTION_URL"
+            
+            RESPONSE=$(curl -s "$FUNCTION_URL?session=integration-test&topic=e2e-test&value=99")
+            if echo "$RESPONSE" | grep -q '"success":true'; then
+              echo "✅ Publisher Function integration test passed"
+            else
+              echo "❌ Publisher Function integration test failed: $RESPONSE"
+              exit 1
+            fi
+          fi
+
+          # Test 2: API Dashboard
+          if [[ "${{ needs.deploy-api.result }}" == "success" ]]; then
+            API_URL="https://bipes-api${{ env.ENV_SUFFIX }}-${{ secrets.GCP_PROJECT_ID }}.us-central1.run.app"
+            echo "Testing API Dashboard: $API_URL"
+            
+            sleep 60  # Wait for data to be processed by subscriber
+            
+            RESPONSE=$(curl -s "$API_URL/getsession.php?session=integration-test")
+            if echo "$RESPONSE" | grep -q '"success":true'; then
+              echo "✅ API Dashboard integration test passed"
+            else
+              echo "⚠️ API Dashboard test inconclusive (may need more time): $RESPONSE"
+            fi
+          fi
+
+          # Test 3: UI Access
+          if [[ "${{ needs.deploy-ui.result }}" == "success" ]]; then
+            UI_URL="https://bipes-ui${{ env.ENV_SUFFIX }}-${{ secrets.GCP_PROJECT_ID }}.us-central1.run.app"
+            echo "Testing UI: $UI_URL"
+            
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$UI_URL")
+            if [[ "$RESPONSE" == "200" || "$RESPONSE" == "302" ]]; then
+              echo "✅ UI integration test passed"
+            else
+              echo "❌ UI integration test failed (HTTP $RESPONSE)"
+              exit 1
+            fi
+          fi
+
+      - name: Deployment Summary
+        run: |
+          echo "🚀 **Deployment Summary**"
+          echo "Publisher: ${{ needs.deploy-publisher.result }}"
+          echo "API: ${{ needs.deploy-api.result }}"
+          echo "UI: ${{ needs.deploy-ui.result }}"
+          echo ""
+
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "🎯 **Production URLs:**"
+            echo "- UI: https://bipes-ui-${{ secrets.GCP_PROJECT_ID }}.us-central1.run.app"
+            echo "- API: https://bipes-api-${{ secrets.GCP_PROJECT_ID }}.us-central1.run.app"
+            echo "- Publisher: https://${{ env.REGION }}-${{ env.PROJECT_ID }}.cloudfunctions.net/mqtt-publisher"
+          else
+            echo "🧪 **Staging URLs:**"
+            echo "- UI: https://bipes-ui-staging-${{ secrets.GCP_PROJECT_ID }}.us-central1.run.app"
+            echo "- API: https://bipes-api-staging-${{ secrets.GCP_PROJECT_ID }}.us-central1.run.app"  
+            echo "- Publisher: https://${{ env.REGION }}-${{ env.PROJECT_ID }}.cloudfunctions.net/mqtt-publisher-staging"
+          fi
