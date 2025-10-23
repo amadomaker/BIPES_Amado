@@ -109,8 +109,3 @@ jobs:
             echo "❌ Publish endpoint test failed"
             exit 1
           fi
-
-    outputs:
-      service-url: ${{ steps.service-url.outputs.url }}
-        --allow-unauthenticated \
-        --set-env-vars MONGO_URI=${{ secrets.MONGO_URI }}
