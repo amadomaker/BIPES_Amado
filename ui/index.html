@@ -375,11 +375,26 @@ document.body.appendChild(el);
 function abrirEasyMQTT() {
     const session = window.easyMQTT_session;
     const iframe = document.getElementById('easymqtt_iframe');
+    
+    // Detecta automaticamente o ambiente baseado na URL atual
+    const currentHost = window.location.hostname;
+    let apiUrl;
+    
+    if (currentHost.includes('staging')) {
+        // Se a UI for staging, usar API staging
+        apiUrl = 'https://bipes-api-staging-tgtka7akja-uc.a.run.app';
+    } else if (currentHost.includes('localhost') || currentHost.includes('127.0.0.1')) {
+        // Para desenvolvimento local, usar staging como padrão
+        apiUrl = 'https://bipes-api-staging-tgtka7akja-uc.a.run.app';
+    } else {
+        // Para production ou qualquer outro ambiente
+        apiUrl = 'https://bipes-api-tgtka7akja-uc.a.run.app';
+    }
 
     if (session) {
-        iframe.src = `https://bipes-api-143389608818.us-central1.run.app/?session=${session}`;
+        iframe.src = `${apiUrl}/?session=${session}`;
     } else {
-        iframe.src = 'https://bipes-api-143389608818.us-central1.run.app/';
+        iframe.src = `${apiUrl}/`;
         console.warn('Sessão não definida. Abrindo EasyMQTT sem sessão.');
     }
     
