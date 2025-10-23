@@ -50,15 +50,20 @@ Nossa arquitetura segue esta ordem de dependência:
 
 ### **Staging** (branch `staging`)
 
-- Publisher: `mqtt-publisher-staging`
-- API: `bipes-api-staging`
-- UI: `bipes-ui-staging`
+- Publisher: `https://mqtt-publisher-staging-tgtka7akja-uc.a.run.app`
+- API: `https://bipes-api-staging-tgtka7akja-uc.a.run.app`
+- UI: `https://bipes-ui-staging-tgtka7akja-uc.a.run.app`
 
 ### **Production** (branch `master`)
 
-- Publisher: `mqtt-publisher`
-- API: `bipes-api`
-- UI: `bipes-ui`
+- Publisher: `https://mqtt-publisher-tgtka7akja-uc.a.run.app`
+- API: `https://bipes-api-tgtka7akja-uc.a.run.app`
+- UI: `https://bipes-ui-tgtka7akja-uc.a.run.app`
+
+### **Infraestrutura Compartilhada**
+
+- VM MQTT: `34.71.118.245:1883` (broker-subscriber)
+- MongoDB: Atlas (externa)
 
 ## 🔐 **Secrets Necessários**
 
@@ -168,14 +173,26 @@ gcloud run services logs read bipes-api --region=us-central1 --limit=100
 ### **Teste de conectividade**
 
 ```bash
-# Test MQTT direto
-mosquitto_pub -h VM_IP -p 1883 -u bipes -P PASSWORD -t "test/topic" -m "hello"
+# Test MQTT direto na VM (34.71.118.245)
+mosquitto_pub -h 34.71.118.245 -p 1883 -u bipes -P PASSWORD -t "test/topic" -m "hello"
 
-# Test Function
-curl "https://us-central1-PROJECT.cloudfunctions.net/mqtt-publisher?session=test&topic=health&value=1"
+# Test Function - Staging
+curl "https://mqtt-publisher-staging-tgtka7akja-uc.a.run.app?session=test&topic=health&value=1"
 
-# Test API
-curl "https://bipes-api-PROJECT.us-central1.run.app/"
+# Test Function - Production
+curl "https://mqtt-publisher-tgtka7akja-uc.a.run.app?session=test&topic=health&value=1"
+
+# Test API - Staging
+curl "https://bipes-api-staging-tgtka7akja-uc.a.run.app/"
+
+# Test API - Production
+curl "https://bipes-api-tgtka7akja-uc.a.run.app/"
+
+# Test UI - Staging
+curl "https://bipes-ui-staging-tgtka7akja-uc.a.run.app/"
+
+# Test UI - Production
+curl "https://bipes-ui-tgtka7akja-uc.a.run.app/"
 ```
 
 ## 📊 **Monitoramento**

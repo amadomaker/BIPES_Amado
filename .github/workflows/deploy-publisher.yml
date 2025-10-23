@@ -86,20 +86,20 @@ jobs:
           echo "Testing function at: ${{ steps.function-url.outputs.url }}"
 
           # Test with verbose output
-          RESPONSE=$(curl -s -w "HTTP_CODE:%{http_code}" "${{ steps.function-url.outputs.url }}?session=ci-test&topic=healthcheck&value=1")
+          RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" "${{ steps.function-url.outputs.url }}?session=ci-test&topic=healthcheck&value=1")
           echo "Full response: $RESPONSE"
 
           # Extract HTTP code and body
-          HTTP_CODE=$(echo "$RESPONSE" | grep -o "HTTP_CODE:[0-9]*" | cut -d: -f2)
-          BODY=$(echo "$RESPONSE" | sed 's/HTTP_CODE:[0-9]*$//')
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1 | grep -o "HTTP_CODE:[0-9]*" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | head -n -1)
 
           echo "HTTP Code: $HTTP_CODE"
           echo "Response Body: $BODY"
 
           # Check if function responded (even if MQTT failed)
-          if [[ "$HTTP_CODE" == "200" ]] && echo "$BODY" | grep -q '"success":true'; then
+          if [[ "$HTTP_CODE" == "200" ]] && echo "$BODY" | grep -q '"success"[[:space:]]*:[[:space:]]*true'; then
             echo "✅ Function health check passed - MQTT publish successful"
-          elif [[ "$HTTP_CODE" == "500" ]] && echo "$BODY" | grep -q '"success":false'; then
+          elif [[ "$HTTP_CODE" == "500" ]] && echo "$BODY" | grep -q '"success"[[:space:]]*:[[:space:]]*false'; then
             echo "⚠️  Function deployed but MQTT connection failed - this is expected if VM firewall blocks external connections"
             echo "Function is working, MQTT connectivity needs to be verified separately"
           elif [[ "$HTTP_CODE" == "400" ]]; then
@@ -108,4 +108,3 @@ jobs:
           else
             echo "❌ Function health check failed with unexpected response"
             exit 1
-          fi
