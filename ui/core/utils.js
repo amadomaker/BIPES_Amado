@@ -288,8 +288,25 @@ class Tool {
   static EasyMQTTBridge(id_, value_) {
     var easyMQTTsession = window.localStorage["bridgeSession"];
     if (easyMQTTsession) {
+      // Detecta automaticamente a URL do publisher baseado no ambiente
+      const currentHost = window.location.hostname;
+      let publisherUrl;
+
+      if (currentHost.includes("staging")) {
+        publisherUrl = "https://mqtt-publisher-staging-tgtka7akja-uc.a.run.app";
+      } else if (
+        currentHost.includes("localhost") ||
+        currentHost.includes("127.0.0.1")
+      ) {
+        // Para desenvolvimento local, usar staging como padrão
+        publisherUrl = "https://mqtt-publisher-staging-tgtka7akja-uc.a.run.app";
+      } else {
+        // Para production ou qualquer outro ambiente
+        publisherUrl = "https://mqtt-publisher-tgtka7akja-uc.a.run.app";
+      }
+
       xhrGET(
-        `https://us-central1-erudite-nation-440421-p7.cloudfunctions.net/mqtt-publisher?session=${easyMQTTsession}&topic=Topic${id_}&value=${value_}`,
+        `${publisherUrl}?session=${easyMQTTsession}&topic=Topic${id_}&value=${value_}`,
         "",
         (ev) => {
           UI["notify"].log(ev);
