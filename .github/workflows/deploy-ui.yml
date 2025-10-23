@@ -115,23 +115,3 @@ jobs:
 
     outputs:
       service-url: ${{ steps.service-url.outputs.url }}
-          else
-            echo "ENV=staging" >> $GITHUB_ENV
-            echo "SERVICE_NAME=dblocks-ui-staging" >> $GITHUB_ENV
-          fi
-
-      - name: Build in Docker image
-        run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }} .
-
-      - name: Push the Docker image
-        run: |
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }}
-
-      - name: Deploy in Cloud Run
-        run: |
-          gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/dblocks/${{ env.SERVICE_NAME }}:${{ github.run_number }} \
-            --region us-central1 \
-            --platform managed \
-            --allow-unauthenticated
