@@ -29,8 +29,13 @@ if (!is_numeric($value)) {
     // Encaminha para a Cloud Function HTTP de publicação
     $publisherUrl = getenv('PUBLISHER_URL');
     if (!$publisherUrl) {
-        // fallback padrão (altere para sua URL se preferir configurar via env)
-        $publisherUrl = 'https://us-central1-erudite-nation-440421-p7.cloudfunctions.net/mqtt-publisher';
+        // Detecta ambiente baseado na URL atual para fallback inteligente
+        $currentHost = $_SERVER['HTTP_HOST'] ?? '';
+        if (strpos($currentHost, 'staging') !== false) {
+            $publisherUrl = 'https://mqtt-publisher-staging-tgtka7akja-uc.a.run.app';
+        } else {
+            $publisherUrl = 'https://mqtt-publisher-tgtka7akja-uc.a.run.app';
+        }
     }
 
     $url = $publisherUrl . '?session=' . urlencode($session) . '&topic=' . urlencode($topic) . '&value=' . urlencode($value);
