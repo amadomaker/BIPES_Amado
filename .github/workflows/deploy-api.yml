@@ -52,10 +52,10 @@ jobs:
 
           if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
             echo "ENV_SUFFIX=" >> $GITHUB_ENV
-            echo "FUNCTION_URL=https://${{ env.REGION }}-${{ env.PROJECT_ID }}.cloudfunctions.net/mqtt-publisher" >> $GITHUB_ENV
+            echo "PUBLISHER_URL=https://mqtt-publisher-tgtkazakja-uc.a.run.app" >> $GITHUB_ENV
           else
             echo "ENV_SUFFIX=-staging" >> $GITHUB_ENV
-            echo "FUNCTION_URL=https://${{ env.REGION }}-${{ env.PROJECT_ID }}.cloudfunctions.net/mqtt-publisher-staging" >> $GITHUB_ENV
+            echo "PUBLISHER_URL=https://mqtt-publisher-staging-tgtkazakja-uc.a.run.app" >> $GITHUB_ENV
           fi
 
       - name: Build and Push Docker Image
@@ -79,7 +79,7 @@ jobs:
             --cpu=1 \
             --min-instances=0 \
             --max-instances=10 \
-            --set-env-vars="PUBLISHER_URL=${{ env.FUNCTION_URL }}" \
+            --set-env-vars="PUBLISHER_URL=${{ env.PUBLISHER_URL }}" \
             --timeout=300
 
       - name: Get Service URL
