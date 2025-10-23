@@ -112,6 +112,3 @@ jobs:
           echo "❌ UI content check failed"
           exit 1
         fi
-
-    outputs:
-      service-url: ${{ steps.service-url.outputs.url }}
