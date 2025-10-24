@@ -19,6 +19,8 @@ const SAVE_DEBOUNCE_MS = 400;
 let canvasManager;
 let simulationResetNotified = false;
 let componentSearchTerm = '';
+let componentViewMode = 'grid';
+let componentFilterGroup = 'all';
 let blocklyWorkspace;
 let pendingSaveTimeoutId = null;
 let isRestoringState = false;
@@ -45,6 +47,8 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   setupComponentSearch();
+  setupComponentFilter();
+  setupViewToggle();
   renderComponentPalette();
   setupDropZone();
   setupKeyboardShortcuts();
@@ -198,6 +202,54 @@ function setupComponentSearch() {
   searchInput.addEventListener('input', (event) => {
     componentSearchTerm = event.target.value;
     renderComponentPalette(componentSearchTerm);
+  });
+}
+
+function setupComponentFilter() {
+  const filterSelect = document.getElementById('component-filter-select');
+  if (!filterSelect) return;
+
+  filterSelect.innerHTML = '';
+
+  const allOption = document.createElement('option');
+  allOption.value = 'all';
+  allOption.textContent = 'Todos';
+  filterSelect.appendChild(allOption);
+
+  componentGroups.forEach((group) => {
+    const option = document.createElement('option');
+    option.value = group.id;
+    option.textContent = group.name;
+    filterSelect.appendChild(option);
+  });
+
+  filterSelect.value = componentFilterGroup;
+  filterSelect.addEventListener('change', (event) => {
+    componentFilterGroup = event.target.value || 'all';
+    renderComponentPalette();
+  });
+}
+
+function setupViewToggle() {
+  const buttons = document.querySelectorAll('.view-toggle-button');
+  if (!buttons.length) return;
+
+  const updateActive = (activeView) => {
+    buttons.forEach((button) => {
+      button.classList.toggle('active', button.dataset.view === activeView);
+    });
+  };
+
+  updateActive(componentViewMode);
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const view = button.dataset.view;
+      if (!view || componentViewMode === view) return;
+      componentViewMode = view;
+      updateActive(view);
+      renderComponentPalette();
+    });
   });
 }
 
@@ -370,6 +422,10 @@ function renderComponentPalette(filterText = componentSearchTerm) {
   const searchTerm = filterText.trim().toLowerCase();
 
   componentGroups.forEach((group) => {
+    if (componentFilterGroup !== 'all' && componentFilterGroup !== group.id) {
+      return;
+    }
+
     const groupComponents = availableComponents.filter(
       (component) =>
         component.group === group.id &&
@@ -390,7 +446,7 @@ function renderComponentPalette(filterText = componentSearchTerm) {
     groupTitle.textContent = group.name;
 
     const groupList = document.createElement('div');
-    groupList.className = 'component-group-list';
+    groupList.className = `component-group-list component-view-${componentViewMode}`;
 
     groupComponents.forEach((component) => {
       const card = createComponentCard(component);
@@ -411,7 +467,7 @@ function renderComponentPalette(filterText = componentSearchTerm) {
 
 function createComponentCard(component) {
   const card = document.createElement('div');
-  card.className = 'component-card';
+  card.className = `component-card component-view-${componentViewMode}`;
   card.draggable = true;
   card.dataset.componentId = component.id;
 

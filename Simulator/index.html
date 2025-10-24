@@ -18,6 +18,16 @@
     <!-- Paleta de componentes (lado esquerdo) -->
     <aside id="component-palette">
       <h2>Componentes</h2>
+      <div class="component-controls">
+        <div class="component-filter">
+          <label for="component-filter-select">Categoria</label>
+          <select id="component-filter-select"></select>
+        </div>
+        <div class="component-view-toggle" role="group" aria-label="Visualização">
+          <button type="button" class="view-toggle-button active" data-view="grid">Grade</button>
+          <button type="button" class="view-toggle-button" data-view="list">Lista</button>
+        </div>
+      </div>
       <div class="component-search">
         <input type="text" id="component-search-input" placeholder="Buscar componentes..." aria-label="Buscar componentes">
       </div>
