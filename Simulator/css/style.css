@@ -121,6 +121,11 @@ body {
   overflow-y: auto;
 }
 
+#canvas-area.blockly-open #workspace,
+#canvas-area.blockly-open .blockly-toggle-bar {
+  display: none;
+}
+
 #toolbar {
   background-color: #252526;
   padding: 12px 16px;
@@ -166,13 +171,18 @@ body {
   background-color: #252526;
   border: 1px solid #3e3e42;
   border-radius: 8px;
-  display: flex;
+  display: none;
+  flex: 1 1 auto;
   flex-direction: column;
-  position: relative;
-  flex: 0 0 320px;
-  min-height: 280px;
-  max-height: none;
-  overflow: visible;
+  overflow: hidden;
+}
+
+#canvas-area.blockly-open #blockly-panel {
+  display: flex;
+}
+
+#canvas-area.blockly-open #workspace {
+  display: none;
 }
 
 .blockly-panel-header {
@@ -213,36 +223,40 @@ body {
   display: flex;
 }
 
+.blockly-toggle-bar {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 6px;
+  color: #fff;
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.blockly-toggle-bar:hover {
+  background-color: #2f2f33;
+  border-color: #007acc;
+}
+
 #blockly-container > .injectionDiv {
   flex: 1;
-}
-
-#blockly-panel.blockly-panel-collapsed {
-  max-height: 56px;
-  min-height: 0;
-  flex: 0 0 auto;
-  overflow: hidden;
-}
-
-#blockly-panel.blockly-panel-collapsed .blockly-panel-header {
-  border-bottom: none;
-}
-
-#blockly-panel.blockly-panel-collapsed #blockly-container {
-  display: none;
 }
 
 
 .components-list {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 8px;
 }
 
 .component-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
 }
 
 .component-group-title {
@@ -250,6 +264,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #9da5b4;
+  margin-bottom: 4px;
 }
 
 .component-group-list {
@@ -263,7 +278,8 @@ body {
 .component-group-list.component-view-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  row-gap: 6px;
+  column-gap: 18px;
 }
 
 .component-card.component-view-grid {
@@ -272,8 +288,8 @@ body {
   text-align: center;
   padding: 10px 12px;
   width: 100%;
-  height: 80%;
-  min-height: 92px;
+  min-height: 96px;
+  max-height: 110px;
 }
 
 .component-card.component-view-grid .component-card-info {

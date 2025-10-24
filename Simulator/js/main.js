@@ -25,6 +25,8 @@ let blocklyWorkspace;
 let pendingSaveTimeoutId = null;
 let isRestoringState = false;
 let simulationInteractionBypass = false;
+let openBlocklyPanel = () => {};
+let closeBlocklyPanel = () => {};
 
 window.addEventListener('DOMContentLoaded', () => {
   initUI({
@@ -33,6 +35,7 @@ window.addEventListener('DOMContentLoaded', () => {
     onSave: handleSaveWorkspace,
     onLoad: handleLoadWorkspace,
     onToggleSerialMonitor: handleToggleSerialMonitor,
+    onOpenBlockly: handleOpenBlockly,
   });
 
   canvasManager = new CanvasManager({
@@ -159,22 +162,35 @@ function handleLoadWorkspace() {
 }
 
 function setupBlocklyPanelControls() {
+  const canvasArea = document.getElementById('canvas-area');
   const panel = document.getElementById('blockly-panel');
-  const toggleButton = document.getElementById('blockly-toggle-button');
-  if (!panel || !toggleButton) return;
+  const closeButton = document.getElementById('blockly-toggle-button');
+  const openButton = document.getElementById('blockly-open-trigger');
+  if (!canvasArea || !panel || !closeButton || !openButton) {
+    openBlocklyPanel = () => {};
+    closeBlocklyPanel = () => {};
+    return;
+  }
 
-  toggleButton.addEventListener('click', () => {
-    const isCollapsed = panel.classList.toggle('blockly-panel-collapsed');
-    toggleButton.textContent = isCollapsed ? 'Expandir' : 'Minimizar';
-    toggleButton.setAttribute('aria-expanded', String(!isCollapsed));
+  const setOpen = (isOpen) => {
+    canvasArea.classList.toggle('blockly-open', isOpen);
+    openButton.setAttribute('aria-expanded', String(isOpen));
+    openButton.style.display = isOpen ? 'none' : 'inline-flex';
 
-    window.setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-      if (blocklyWorkspace && window.Blockly) {
+    if (isOpen && blocklyWorkspace && window.Blockly) {
+      window.requestAnimationFrame(() => {
         window.Blockly.svgResize(blocklyWorkspace);
-      }
-    }, 0);
-  });
+      });
+    }
+  };
+
+  setOpen(false);
+
+  openButton.addEventListener('click', () => setOpen(true));
+  closeButton.addEventListener('click', () => setOpen(false));
+
+  openBlocklyPanel = () => setOpen(true);
+  closeBlocklyPanel = () => setOpen(false);
 }
 
 function resetSimulationIfNecessary() {
@@ -261,6 +277,10 @@ function attachSimulationInteractionBypass() {
 
 function handleToggleSerialMonitor(force) {
   toggleSerialMonitor(force);
+}
+
+function handleOpenBlockly() {
+  openBlocklyPanel?.();
 }
 
 function handleSerialLog(entry) {
