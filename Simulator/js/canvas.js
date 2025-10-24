@@ -390,9 +390,17 @@ export class CanvasManager {
       fields.push({ label: 'Pinos', value: pins.map((pin) => pin.dataset.pinName).join(', ') });
     }
 
+    const anchor = {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+
     updatePropertiesPanel({
       title: 'Componente selecionado',
       fields,
+      anchor,
     });
   }
 }

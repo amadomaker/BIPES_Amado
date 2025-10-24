@@ -325,6 +325,14 @@ export class WiringManager {
   }
 
   displayWireProperties(connection) {
+    const rect = connection.line.getBoundingClientRect();
+    const anchor = {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width || 1,
+      height: rect.height || 1,
+    };
+
     updatePropertiesPanel({
       title: 'Conexão selecionada',
       fields: [
@@ -341,6 +349,7 @@ export class WiringManager {
           value: connection.color,
         },
       ],
+      anchor,
     });
   }
 

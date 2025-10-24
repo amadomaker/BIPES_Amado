@@ -1,10 +1,11 @@
 const toolbarElement = document.getElementById('toolbar');
-const propertiesContent = document.getElementById('properties-content');
 const alertContainer = document.getElementById('alert-container');
 const serialMonitorElement = document.getElementById('serial-monitor');
 const serialMonitorOutput = document.getElementById('serial-monitor-output');
 const serialMonitorClearButton = document.getElementById('serial-monitor-clear');
 const serialMonitorCloseButton = document.getElementById('serial-monitor-close');
+let propertiesPopover;
+let lastPropertiesAnchor = null;
 
 let playPauseButton;
 let clearButton;
@@ -79,7 +80,57 @@ function createToolbarButton(label, handler) {
 function ensureGlobalListeners() {
   document.addEventListener('click', () => hideContextMenu());
   window.addEventListener('blur', () => hideContextMenu());
-  window.addEventListener('resize', () => hideColorPicker());
+  window.addEventListener('resize', () => {
+    hideColorPicker();
+    if (propertiesPopover?.style.display === 'block') {
+      positionPropertiesPopover(lastPropertiesAnchor);
+    }
+  });
+}
+
+function ensurePropertiesPopover() {
+  if (propertiesPopover) return;
+  propertiesPopover = document.createElement('div');
+  propertiesPopover.className = 'properties-popover';
+  document.body.appendChild(propertiesPopover);
+}
+
+function positionPropertiesPopover(anchor) {
+  if (!propertiesPopover) return;
+
+  const margin = 12;
+  const { offsetWidth: width, offsetHeight: height } = propertiesPopover;
+  let left = window.innerWidth - width - margin;
+  let top = margin;
+
+  if (anchor && typeof anchor === 'object') {
+    const rect = {
+      left: Number(anchor.left) || 0,
+      top: Number(anchor.top) || 0,
+      width: Number(anchor.width) || 0,
+      height: Number(anchor.height) || 0,
+    };
+
+    left = rect.left + rect.width + margin;
+    top = rect.top;
+
+    if (left + width > window.innerWidth - margin) {
+      left = rect.left - width - margin;
+    }
+    if (left < margin) {
+      left = margin;
+    }
+
+    if (top + height > window.innerHeight - margin) {
+      top = window.innerHeight - height - margin;
+    }
+    if (top < margin) {
+      top = margin;
+    }
+  }
+
+  propertiesPopover.style.left = `${Math.round(left)}px`;
+  propertiesPopover.style.top = `${Math.round(top)}px`;
 }
 
 export function setPlayState(isRunning) {
@@ -87,54 +138,63 @@ export function setPlayState(isRunning) {
   playPauseButton.textContent = isRunning ? '⏸ Pause' : '▶ Play';
 }
 
-export function updatePropertiesPanel({ title, fields }) {
-  if (!propertiesContent) return;
+export function updatePropertiesPanel({ title, fields, anchor } = {}) {
   if (!title && (!fields || fields.length === 0)) {
-    propertiesContent.innerHTML = 'Selecione um componente ou fio para ver os detalhes.';
+    clearPropertiesPanel();
     return;
   }
+
+  ensurePropertiesPopover();
 
   const fragment = document.createDocumentFragment();
 
   if (title) {
     const titleElement = document.createElement('div');
-    titleElement.className = 'properties-title';
+    titleElement.className = 'properties-popover-title';
     titleElement.textContent = title;
     fragment.appendChild(titleElement);
   }
 
   if (fields && fields.length) {
+    const fieldsContainer = document.createElement('div');
+    fieldsContainer.className = 'properties-popover-fields';
+
     fields.forEach(({ label, value, control }) => {
       const field = document.createElement('div');
-      field.className = 'properties-field';
+      field.className = 'properties-popover-field';
 
       const labelSpan = document.createElement('span');
       labelSpan.textContent = label;
-
       field.append(labelSpan);
 
       if (control) {
-        field.classList.add('properties-field-control');
-        const controlElement = buildControl(control);
-        field.append(controlElement);
+        const controlWrapper = document.createElement('span');
+        controlWrapper.appendChild(buildControl(control));
+        field.append(controlWrapper);
       } else {
         const valueSpan = document.createElement('span');
         valueSpan.textContent = value;
         field.append(valueSpan);
       }
 
-      fragment.appendChild(field);
+      fieldsContainer.appendChild(field);
     });
+
+    fragment.appendChild(fieldsContainer);
   }
 
-  propertiesContent.innerHTML = '';
-  propertiesContent.appendChild(fragment);
+  propertiesPopover.innerHTML = '';
+  propertiesPopover.appendChild(fragment);
+  propertiesPopover.style.display = 'block';
+  lastPropertiesAnchor = anchor ?? null;
+  positionPropertiesPopover(anchor);
 }
 
 function buildControl(control) {
   switch (control.type) {
     case 'select': {
       const select = document.createElement('select');
+      select.className = 'properties-popover-input';
       control.options?.forEach(({ label, value }) => {
         const option = document.createElement('option');
         option.value = value;
@@ -153,6 +213,7 @@ function buildControl(control) {
     case 'text': {
       const input = document.createElement('input');
       input.type = control.type;
+      input.className = 'properties-popover-input';
       if (control.placeholder) {
         input.placeholder = control.placeholder;
       }
@@ -179,7 +240,10 @@ function buildControl(control) {
 }
 
 export function clearPropertiesPanel() {
-  updatePropertiesPanel({});
+  if (!propertiesPopover) return;
+  propertiesPopover.style.display = 'none';
+  propertiesPopover.innerHTML = '';
+  lastPropertiesAnchor = null;
 }
 
 export function showComponentContextMenu(x, y, { onDelete } = {}) {
