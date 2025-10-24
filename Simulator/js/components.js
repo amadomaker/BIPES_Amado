@@ -46,6 +46,25 @@ function createWokwiPreview(elementTag, props = {}) {
   return wrapper;
 }
 
+function formatResistanceValue(rawValue) {
+  if (rawValue === undefined || rawValue === null) {
+    return '';
+  }
+
+  const numericValue = Number(rawValue);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) {
+    return `${rawValue}Ω`;
+  }
+
+  if (numericValue >= 1_000_000) {
+    return `${(numericValue / 1_000_000).toFixed(numericValue % 1_000_000 === 0 ? 0 : 2)}MΩ`;
+  }
+  if (numericValue >= 1_000) {
+    return `${(numericValue / 1_000).toFixed(numericValue % 1_000 === 0 ? 0 : 2)}kΩ`;
+  }
+  return `${numericValue}Ω`;
+}
+
 function classifyPinType(name) {
   if (/GND/i.test(name)) return 'ground';
   if (/3V|VIN|5V/i.test(name)) return 'power';
@@ -238,6 +257,18 @@ export const availableComponents = [
     group: 'passives',
     defaultProps: { value: '220' },
     createPreview: () => createWokwiPreview('wokwi-resistor', { value: '220' }),
+    propertyControls: [
+      {
+        label: 'Resistência',
+        formatValue: (value) => formatResistanceValue(value),
+        control: {
+          type: 'number',
+          min: 1,
+          step: 1,
+          propKey: 'value',
+        },
+      },
+    ],
   },
   {
     id: 'pushbutton',

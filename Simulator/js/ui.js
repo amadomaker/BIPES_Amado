@@ -1,17 +1,23 @@
 const toolbarElement = document.getElementById('toolbar');
 const propertiesContent = document.getElementById('properties-content');
 const alertContainer = document.getElementById('alert-container');
+const serialMonitorElement = document.getElementById('serial-monitor');
+const serialMonitorOutput = document.getElementById('serial-monitor-output');
+const serialMonitorClearButton = document.getElementById('serial-monitor-clear');
+const serialMonitorCloseButton = document.getElementById('serial-monitor-close');
 
 let playPauseButton;
 let clearButton;
 let saveButton;
 let loadButton;
+let monitorButton;
 
 let currentToolbarHandlers = {
   onPlayPause: null,
   onClear: null,
   onSave: null,
   onLoad: null,
+  onToggleSerialMonitor: null,
 };
 
 let contextMenu;
@@ -25,6 +31,7 @@ export function initUI(handlers) {
   currentToolbarHandlers = { ...currentToolbarHandlers, ...handlers };
   renderToolbar();
   ensureGlobalListeners();
+  initSerialMonitorControls();
 }
 
 function renderToolbar() {
@@ -47,11 +54,17 @@ function renderToolbar() {
     currentToolbarHandlers.onLoad?.();
   });
 
+  monitorButton = createToolbarButton('🖥 Monitor Serial', () => {
+    currentToolbarHandlers.onToggleSerialMonitor?.();
+  });
+  monitorButton.setAttribute('aria-pressed', 'false');
+
   toolbarElement.append(
     playPauseButton,
     clearButton,
     saveButton,
     loadButton,
+    monitorButton,
   );
 }
 
@@ -136,6 +149,30 @@ function buildControl(control) {
       }
       return select;
     }
+    case 'number':
+    case 'text': {
+      const input = document.createElement('input');
+      input.type = control.type;
+      if (control.placeholder) {
+        input.placeholder = control.placeholder;
+      }
+      if (control.min !== undefined) {
+        input.min = String(control.min);
+      }
+      if (control.max !== undefined) {
+        input.max = String(control.max);
+      }
+      if (control.step !== undefined) {
+        input.step = String(control.step);
+      }
+      if (control.value !== undefined && control.value !== null) {
+        input.value = String(control.value);
+      }
+      if (control.onChange) {
+        input.addEventListener('change', (event) => control.onChange(event.target.value));
+      }
+      return input;
+    }
     default:
       return document.createTextNode(control.value ?? '');
   }
@@ -196,6 +233,144 @@ export function hideContextMenu() {
   }
   contextMenu = null;
   hideColorPicker();
+}
+
+function initSerialMonitorControls() {
+  if (!serialMonitorElement) return;
+  serialMonitorElement.setAttribute('aria-hidden', 'true');
+
+  serialMonitorClearButton?.addEventListener('click', () => {
+    clearSerialMonitor();
+  });
+
+  serialMonitorCloseButton?.addEventListener('click', () => {
+    toggleSerialMonitor(false);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      toggleSerialMonitor(false);
+    }
+  });
+}
+
+export function toggleSerialMonitor(force) {
+  if (!serialMonitorElement) return;
+  const isOpen = serialMonitorElement.classList.contains('serial-monitor-open');
+  const shouldOpen = typeof force === 'boolean' ? force : !isOpen;
+  if (shouldOpen === isOpen) return;
+
+  serialMonitorElement.classList.toggle('serial-monitor-open', shouldOpen);
+  serialMonitorElement.setAttribute('aria-hidden', String(!shouldOpen));
+  monitorButton?.classList.toggle('active', shouldOpen);
+  monitorButton?.setAttribute('aria-pressed', String(shouldOpen));
+
+  if (shouldOpen && serialMonitorOutput) {
+    window.requestAnimationFrame(() => {
+      serialMonitorOutput.scrollTo({
+        top: serialMonitorOutput.scrollHeight,
+        behavior: 'auto',
+      });
+    });
+  }
+}
+
+export function clearSerialMonitor() {
+  if (!serialMonitorOutput) return;
+  serialMonitorOutput.innerHTML = '';
+}
+
+export function appendSerialLog(entry) {
+  if (!serialMonitorOutput) return;
+
+  const { message, args, timestamp, level } = normalizeLogEntry(entry);
+  if (!message && !args.length) return;
+
+  const line = document.createElement('div');
+  line.className = 'serial-monitor-line';
+
+  const time = document.createElement('span');
+  time.className = 'serial-monitor-time';
+  time.textContent = formatTimestamp(timestamp);
+
+  const text = document.createElement('span');
+  text.className = 'serial-monitor-text';
+  text.textContent = [message, ...args].filter(Boolean).join(' ');
+  if (level === 'error') {
+    text.style.color = '#ff5252';
+  }
+
+  line.append(time, text);
+  serialMonitorOutput.appendChild(line);
+  serialMonitorOutput.scrollTop = serialMonitorOutput.scrollHeight;
+}
+
+function normalizeLogEntry(entry) {
+  if (typeof entry === 'string') {
+    return {
+      message: entry,
+      args: [],
+      timestamp: Date.now(),
+      level: 'info',
+    };
+  }
+
+  if (Array.isArray(entry)) {
+    return {
+      message: '',
+      args: entry.map(formatLogValue),
+      timestamp: Date.now(),
+      level: 'info',
+    };
+  }
+
+  if (entry && typeof entry === 'object') {
+    const arrArgs = Array.isArray(entry.args)
+      ? entry.args.map(formatLogValue)
+      : [];
+    return {
+      message: entry.message ? formatLogValue(entry.message) : '',
+      args: arrArgs,
+      timestamp: entry.timestamp ?? Date.now(),
+      level: entry.level ?? 'info',
+    };
+  }
+
+  return {
+    message: formatLogValue(entry),
+    args: [],
+    timestamp: Date.now(),
+    level: 'info',
+  };
+}
+
+function formatTimestamp(value) {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  return date.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
+
+function formatLogValue(value) {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' && !Number.isFinite(value)) {
+    return String(value);
+  }
+  if (typeof value === 'object') {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '[Objeto]';
+    }
+  }
+  return String(value);
 }
 
 export function showColorPicker(x, y, { initialColor = '#00ff00', onSelect } = {}) {

@@ -6,14 +6,23 @@ import {
   triggerDownload,
   promptFileSelection,
   showAlert,
+  toggleSerialMonitor,
+  appendSerialLog,
+  clearSerialMonitor,
 } from './ui.js';
 import { simulation } from './simulation.js';
 import { initBlocklyWorkspace, compileWorkspaceToProgram } from './blockly.js';
+
+const STORAGE_KEY = 'bipes-simulator-state';
+const SAVE_DEBOUNCE_MS = 400;
 
 let canvasManager;
 let simulationResetNotified = false;
 let componentSearchTerm = '';
 let blocklyWorkspace;
+let pendingSaveTimeoutId = null;
+let isRestoringState = false;
+let simulationInteractionBypass = false;
 
 window.addEventListener('DOMContentLoaded', () => {
   initUI({
@@ -21,23 +30,29 @@ window.addEventListener('DOMContentLoaded', () => {
     onClear: handleClearWorkspace,
     onSave: handleSaveWorkspace,
     onLoad: handleLoadWorkspace,
+    onToggleSerialMonitor: handleToggleSerialMonitor,
   });
 
   canvasManager = new CanvasManager({
     onInteraction: resetSimulationIfNecessary,
+    isInteractionLocked: () => simulation?.isRunning ?? false,
   });
 
   simulation.configure({
     onStateChange: setPlayState,
-    onError: showAlert,
+    onError: handleSimulationError,
+    onLog: handleSerialLog,
   });
 
   setupComponentSearch();
   renderComponentPalette();
   setupDropZone();
   setupKeyboardShortcuts();
+  attachSimulationInteractionBypass();
   blocklyWorkspace = initBlocklyWorkspace();
   setupBlocklyPanelControls();
+  attachBlocklyAutoSave();
+  restorePersistedState();
   setPlayState(false);
 });
 
@@ -45,7 +60,13 @@ function handlePlayPause() {
   if (!canvasManager) return;
   if (simulation.isRunning) {
     simulation.stop();
+    setPlayState(false);
     simulationResetNotified = false;
+    appendSerialLog({
+      message: 'Simulação pausada.',
+      timestamp: Date.now(),
+    });
+    scheduleAutoSave();
     return;
   }
 
@@ -54,27 +75,39 @@ function handlePlayPause() {
     return;
   }
 
-  const boardComponent = canvasManager.components.find(
-    (component) => component.type === 'amado-board' || component.type === 'esp32',
-  );
-
-  if (!boardComponent) {
-    showAlert('Adicione a placa Amado ESP32 ao workspace para executar o programa.');
-    return;
+  const topBlocks = blocklyWorkspace.getTopBlocks(false);
+  let programInfo = null;
+  if (topBlocks.length) {
+    programInfo = compileWorkspaceToProgram(blocklyWorkspace, { allowEmpty: true });
+    if (programInfo.error) {
+      showAlert(programInfo.error);
+      return;
+    }
   }
 
-  const { program, error } = compileWorkspaceToProgram(blocklyWorkspace);
-  if (error) {
-    showAlert(error);
+  const program = programInfo?.program ?? null;
+  const boardComponent =
+    program &&
+    canvasManager.components.find(
+      (component) => component.type === 'amado-board' || component.type === 'esp32',
+    );
+
+  if (program && !boardComponent) {
+    showAlert('Adicione a placa Amado ESP32 ao workspace para executar o programa.');
     return;
   }
 
   simulation.start(canvasManager, {
     program,
-    boardComponentId: boardComponent.id,
-    onProgramError: (message) => showAlert(message),
+    boardComponentId: boardComponent?.id ?? null,
+    onProgramError: handleSimulationError,
   });
   simulationResetNotified = false;
+  appendSerialLog({
+    message: program ? 'Simulação iniciada com programa Blockly.' : 'Simulação iniciada.',
+    timestamp: Date.now(),
+  });
+  scheduleAutoSave();
 }
 
 function handleClearWorkspace() {
@@ -82,6 +115,12 @@ function handleClearWorkspace() {
   simulation.stop();
   setPlayState(false);
   canvasManager.clearWorkspace();
+  if (blocklyWorkspace && typeof window !== 'undefined' && window.Blockly) {
+    blocklyWorkspace.clear();
+  }
+  clearSerialMonitor();
+  toggleSerialMonitor(false);
+  clearPersistedState();
   simulationResetNotified = false;
 }
 
@@ -100,8 +139,14 @@ function handleLoadWorkspace() {
         const data = JSON.parse(content);
         simulation.stop();
         setPlayState(false);
-        canvasManager.load(data);
-        simulationResetNotified = false;
+        Promise.resolve(canvasManager.load(data))
+          .then(() => {
+            simulationResetNotified = false;
+            scheduleAutoSave();
+          })
+          .catch(() => {
+            showAlert('Não foi possível carregar o circuito selecionado.');
+          });
       } catch (error) {
         showAlert('Arquivo inválido. Verifique o JSON e tente novamente.');
       }
@@ -129,16 +174,22 @@ function setupBlocklyPanelControls() {
 }
 
 function resetSimulationIfNecessary() {
-  if (simulation.isRunning) {
+  if (simulation.isRunning && !simulationInteractionBypass) {
     simulation.stop();
     setPlayState(false);
     if (!simulationResetNotified) {
       showAlert('Simulação reiniciada devido a alterações no circuito.');
+      appendSerialLog({
+        message: 'Simulação interrompida: circuito modificado.',
+        timestamp: Date.now(),
+      });
       simulationResetNotified = true;
     }
   } else {
     simulationResetNotified = false;
   }
+  scheduleAutoSave();
+  simulationInteractionBypass = false;
 }
 
 function setupComponentSearch() {
@@ -148,6 +199,167 @@ function setupComponentSearch() {
     componentSearchTerm = event.target.value;
     renderComponentPalette(componentSearchTerm);
   });
+}
+
+function attachSimulationInteractionBypass() {
+  window.addEventListener('simulator-pattern-interaction', () => {
+    simulationInteractionBypass = true;
+  });
+}
+
+function handleToggleSerialMonitor(force) {
+  toggleSerialMonitor(force);
+}
+
+function handleSerialLog(entry) {
+  appendSerialLog(entry);
+}
+
+function handleSimulationError(message) {
+  showAlert(message);
+  appendSerialLog({
+    message,
+    level: 'error',
+    timestamp: Date.now(),
+  });
+  toggleSerialMonitor(true);
+}
+
+function scheduleAutoSave() {
+  if (isRestoringState) return;
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  if (pendingSaveTimeoutId) {
+    window.clearTimeout(pendingSaveTimeoutId);
+  }
+  pendingSaveTimeoutId = window.setTimeout(() => {
+    pendingSaveTimeoutId = null;
+    persistAppState();
+  }, SAVE_DEBOUNCE_MS);
+}
+
+function persistAppState() {
+  if (!canvasManager) return;
+  if (typeof window === 'undefined' || !window.localStorage) return;
+
+  const payload = {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    circuit: canvasManager.serialize(),
+    blockly: captureBlocklyState(),
+  };
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch (error) {
+    // Falha silenciosa (ex.: storage cheio ou indisponível)
+  }
+}
+
+function captureBlocklyState() {
+  if (!blocklyWorkspace || typeof window === 'undefined' || !window.Blockly) {
+    return null;
+  }
+
+  if (window.Blockly.serialization?.workspaces?.save) {
+    try {
+      const state = window.Blockly.serialization.workspaces.save(blocklyWorkspace);
+      return { format: 'json', data: state };
+    } catch {
+      // fallback para XML
+    }
+  }
+
+  if (window.Blockly.Xml?.workspaceToDom) {
+    try {
+      const xml = window.Blockly.Xml.workspaceToDom(blocklyWorkspace, true);
+      return { format: 'xml', data: window.Blockly.Xml.domToText(xml) };
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+async function restorePersistedState() {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+
+  let parsed = null;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return;
+  }
+
+  if (!parsed || typeof parsed !== 'object') {
+    return;
+  }
+
+  isRestoringState = true;
+
+  try {
+    if (parsed.circuit && canvasManager) {
+      await canvasManager.load(parsed.circuit);
+    }
+
+    const blocklyData = parsed.blockly;
+    if (blocklyData && blocklyWorkspace && typeof window !== 'undefined' && window.Blockly) {
+      try {
+        if (
+          blocklyData.format === 'json' &&
+          window.Blockly.serialization?.workspaces?.load &&
+          blocklyData.data &&
+          typeof blocklyData.data !== 'string'
+        ) {
+          blocklyWorkspace.clear();
+          window.Blockly.serialization.workspaces.load(blocklyData.data, blocklyWorkspace);
+        } else {
+          const xmlString =
+            blocklyData.format === 'xml' && typeof blocklyData.data === 'string'
+              ? blocklyData.data
+              : typeof blocklyData === 'string'
+              ? blocklyData
+              : null;
+          if (xmlString && window.Blockly.Xml?.textToDom) {
+            const xml = window.Blockly.Xml.textToDom(xmlString);
+            blocklyWorkspace.clear();
+            window.Blockly.Xml.domToWorkspace(xml, blocklyWorkspace);
+          }
+        }
+      } catch {
+        // Ignora erros ao restaurar blocos corrompidos
+      }
+    }
+  } finally {
+    isRestoringState = false;
+    scheduleAutoSave();
+  }
+}
+
+function attachBlocklyAutoSave() {
+  if (!blocklyWorkspace || typeof window === 'undefined' || !window.Blockly) return;
+
+  blocklyWorkspace.addChangeListener((event) => {
+    if (isRestoringState) return;
+    if (!event || event.type === window.Blockly.Events.UI) return;
+    scheduleAutoSave();
+  });
+}
+
+function clearPersistedState() {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  if (pendingSaveTimeoutId) {
+    window.clearTimeout(pendingSaveTimeoutId);
+    pendingSaveTimeoutId = null;
+  }
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Ignora erros ao limpar o storage (quota, modo privado, etc.)
+  }
 }
 
 function renderComponentPalette(filterText = componentSearchTerm) {

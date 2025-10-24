@@ -27,11 +27,28 @@ const DEFAULT_TOOLBOX = {
     },
     {
       kind: 'category',
+      name: 'Temporização',
+      colour: '#4CAF50',
+      contents: [
+        { kind: 'block', type: 'amado_wait' },
+      ],
+    },
+    {
+      kind: 'category',
+      name: 'Leituras',
+      colour: '#00BFA6',
+      contents: [
+        { kind: 'block', type: 'amado_read_digital' },
+        { kind: 'block', type: 'amado_read_analog' },
+      ],
+    },
+    {
+      kind: 'category',
       name: 'Amado ESP32',
       colour: '#2BC3A3',
       contents: [
         { kind: 'block', type: 'amado_set_pin' },
-        { kind: 'block', type: 'amado_wait' },
+        { kind: 'block', type: 'amado_serial_log' },
       ],
     },
     {
@@ -242,13 +259,21 @@ export function disposeBlocklyWorkspace() {
   }
 }
 
-export function compileWorkspaceToProgram(targetWorkspace = workspace) {
+export function compileWorkspaceToProgram(targetWorkspace = workspace, { allowEmpty = false } = {}) {
   const BlocklyInstance = getBlockly();
   if (!BlocklyInstance) {
     return { error: 'Blockly não está disponível.' };
   }
   if (!targetWorkspace) {
     return { error: 'Nenhum workspace Blockly carregado.' };
+  }
+
+  const topBlocks = targetWorkspace.getTopBlocks(false);
+  if (!topBlocks.length) {
+    if (allowEmpty) {
+      return { program: null, code: '', isEmpty: true };
+    }
+    return { error: 'Adicione blocos ao editor Blockly para executar um programa.' };
   }
 
   const generator = BlocklyInstance.JavaScript ?? BlocklyInstance?.javascriptGenerator;
@@ -266,6 +291,9 @@ export function compileWorkspaceToProgram(targetWorkspace = workspace) {
   }
 
   if (!code || !code.trim()) {
+    if (allowEmpty) {
+      return { program: null, code: '', isEmpty: true };
+    }
     return {
       error: 'Adicione blocos ao editor Blockly para executar um programa.',
     };

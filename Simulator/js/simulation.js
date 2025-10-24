@@ -1,8 +1,12 @@
 class CircuitSnapshot {
-  constructor(canvasManager, boardPinStates = new Map()) {
+  constructor(canvasManager, boardPinStates = new Map(), options = {}) {
     this.canvasManager = canvasManager;
     this.boardPinStates = boardPinStates;
+    this.powerEnabled = options.powerEnabled ?? true;
     this.pinNodes = new Map();
+    this.pinNodesByComponentPin = new Map();
+    this.pinNodesByComponentIndex = new Map();
+    this.nodeVoltageCache = new Map();
     this.buildPinNodes();
     this.buildConnections();
   }
@@ -12,7 +16,7 @@ class CircuitSnapshot {
       const pins = this.canvasManager.wiringManager.getPinsForComponent(component.id);
       pins.forEach((pinElement) => {
         const key = this.getPinKey(pinElement);
-        this.pinNodes.set(key, {
+        const node = {
           id: key,
           pinElement,
           component,
@@ -23,7 +27,20 @@ class CircuitSnapshot {
           pinName: pinElement.dataset.pinName,
           voltageState: this.getBoardPinState(component.id, pinElement.dataset.pinName),
           connections: new Set(),
-        });
+        };
+        this.pinNodes.set(key, node);
+
+        const mapKey = this.getComponentPinKey(component.id, pinElement.dataset.pinName);
+        if (mapKey) {
+          this.pinNodesByComponentPin.set(mapKey, node);
+        }
+
+        let indexMap = this.pinNodesByComponentIndex.get(component.id);
+        if (!indexMap) {
+          indexMap = new Map();
+          this.pinNodesByComponentIndex.set(component.id, indexMap);
+        }
+        indexMap.set(node.pinIndex, node);
       });
     });
   }
@@ -37,10 +54,28 @@ class CircuitSnapshot {
         node2.connections.add(node1);
       }
     });
+    this.applyInternalComponentConnections();
   }
 
   getPinKey(pinElement) {
     return `${pinElement.dataset.componentId}:${pinElement.dataset.pinIndex}`;
+  }
+
+  getComponentPinKey(componentId, pinName) {
+    if (!componentId || !pinName) return null;
+    return `${componentId}:${pinName}`;
+  }
+
+  getNodeByComponentPin(componentId, pinName) {
+    const key = this.getComponentPinKey(componentId, pinName);
+    if (!key) return null;
+    return this.pinNodesByComponentPin.get(key) ?? null;
+  }
+
+  getNodeByComponentIndex(componentId, pinIndex) {
+    const indexMap = this.pinNodesByComponentIndex.get(componentId);
+    if (!indexMap) return null;
+    return indexMap.get(pinIndex) ?? null;
   }
 
   evaluateLEDs() {
@@ -70,10 +105,11 @@ class CircuitSnapshot {
           this.isGroundNode(node) && node.componentId !== component.id,
         );
 
-        const lightsUp =
-          powerPath.exists &&
-          groundPath.exists &&
-          (powerPath.resistorIncluded || groundPath.resistorIncluded);
+        const powerExists = powerPath.exists;
+        const groundExists = groundPath.exists;
+        const hasResistor = powerPath.resistorIncluded || groundPath.resistorIncluded;
+
+        const lightsUp = powerExists && groundExists;
 
         const reasons = [];
         if (!powerPath.exists) {
@@ -82,8 +118,8 @@ class CircuitSnapshot {
         if (!groundPath.exists) {
           reasons.push('Sem ligação de GND');
         }
-        if (powerPath.exists && groundPath.exists && !(powerPath.resistorIncluded || groundPath.resistorIncluded)) {
-          reasons.push('Falta resistor em série');
+        if (lightsUp && !hasResistor) {
+          reasons.push('Falta resistor em série (iluminação sem proteção)');
         }
 
         results.push({
@@ -144,11 +180,38 @@ class CircuitSnapshot {
     };
   }
 
+  hasPath(startNode, predicate) {
+    const queue = [startNode];
+    const visited = new Set([startNode.id]);
+
+    while (queue.length) {
+      const node = queue.shift();
+      if (node !== startNode && predicate(node)) {
+        return true;
+      }
+
+      node.connections.forEach((neighbor) => {
+        if (!visited.has(neighbor.id)) {
+          visited.add(neighbor.id);
+          queue.push(neighbor);
+        }
+      });
+    }
+
+    return false;
+  }
+
   isPowerNode(node) {
+    if (!this.powerEnabled) {
+      return node.voltageState === 'high';
+    }
     return node.pinType === 'power' || node.voltageState === 'high';
   }
 
   isGroundNode(node) {
+    if (!this.powerEnabled) {
+      return node.voltageState === 'low';
+    }
     return node.pinType === 'ground' || node.voltageState === 'low';
   }
 
@@ -156,6 +219,172 @@ class CircuitSnapshot {
     if (!componentId || !pinName) return 'floating';
     const key = `${componentId}:${pinName}`;
     return this.boardPinStates.get(key) ?? 'floating';
+  }
+
+  resolveVoltageForBoardPin(componentId, pinName) {
+    const node = this.getNodeByComponentPin(componentId, pinName);
+    if (!node) return 'floating';
+    return this.computeNodeVoltageState(node);
+  }
+
+  resolveVoltageForNode(node) {
+    if (!node) return 'floating';
+    if (node.voltageState === 'high' || node.voltageState === 'low') {
+      return node.voltageState;
+    }
+
+    if (this.nodeVoltageCache.has(node.id)) {
+      return this.nodeVoltageCache.get(node.id);
+    }
+
+    let resolved = 'floating';
+
+    const checkQueue = [node];
+    const visited = new Set([node.id]);
+    let encountersPower = false;
+    let encountersGround = false;
+
+    while (checkQueue.length) {
+      const current = checkQueue.shift();
+
+      if (current !== node) {
+        if (current.voltageState === 'high' || this.isPowerNode(current)) {
+          encountersPower = true;
+        }
+        if (current.voltageState === 'low' || this.isGroundNode(current)) {
+          encountersGround = true;
+        }
+        if (encountersPower && encountersGround) {
+          break;
+        }
+      }
+
+      current.connections.forEach((neighbor) => {
+        if (!visited.has(neighbor.id)) {
+          visited.add(neighbor.id);
+          checkQueue.push(neighbor);
+        }
+      });
+    }
+
+    if (encountersPower && !encountersGround) {
+      resolved = 'high';
+    } else if (!encountersPower && encountersGround) {
+      resolved = 'low';
+    } else if (encountersPower && encountersGround) {
+      resolved = 'error';
+    }
+
+    this.nodeVoltageCache.set(node.id, resolved);
+    return resolved;
+  }
+
+  computeNodeVoltageState(node) {
+    if (!node) return 'floating';
+
+    if (this.nodeVoltageCache.has(`computed:${node.id}`)) {
+      return this.nodeVoltageCache.get(`computed:${node.id}`);
+    }
+
+    const powerPath = this.findPath(node, (neighbor) =>
+      this.isPowerNode(neighbor) && neighbor.componentId !== node.componentId,
+    );
+    const groundPath = this.findPath(node, (neighbor) =>
+      this.isGroundNode(neighbor) && neighbor.componentId !== node.componentId,
+    );
+
+    const hasPower = powerPath.exists;
+    const hasGround = groundPath.exists;
+
+    if (hasPower && hasGround) {
+      const powerThroughResistor = powerPath.resistorIncluded;
+      const groundThroughResistor = groundPath.resistorIncluded;
+
+      let state;
+      if (powerThroughResistor && !groundThroughResistor) {
+        state = 'low';
+      } else if (!powerThroughResistor && groundThroughResistor) {
+        state = 'high';
+      } else if (powerThroughResistor && groundThroughResistor) {
+        state = 'floating';
+      } else {
+        state = 'error';
+      }
+      this.nodeVoltageCache.set(`computed:${node.id}`, state);
+      return state;
+    }
+
+    const state = hasPower ? 'high' : hasGround ? 'low' : 'floating';
+    this.nodeVoltageCache.set(`computed:${node.id}`, state);
+    return state;
+  }
+
+  applyInternalComponentConnections() {
+    this.canvasManager.components.forEach((component) => {
+      switch (component.type) {
+        case 'resistor':
+          this.connectNodesByIndex(component.id, 0, 1);
+          break;
+        case 'pushbutton':
+          this.applyPushbuttonConnections(component);
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
+  applyPushbuttonConnections(component) {
+    const componentId = component.id;
+    const element = component.element;
+    const storedState = component.state?.pressed;
+    const isPressed = storedState ?? this.isPushbuttonPressed(element);
+
+    const topLeft = this.getNodeByComponentIndex(componentId, 0);
+    const bottomLeft = this.getNodeByComponentIndex(componentId, 1);
+    const topRight = this.getNodeByComponentIndex(componentId, 2);
+    const bottomRight = this.getNodeByComponentIndex(componentId, 3);
+
+    this.connectNodes(topLeft, topRight);
+    this.connectNodes(bottomLeft, bottomRight);
+
+    if (isPressed) {
+      this.connectNodes(topLeft, bottomLeft);
+      this.connectNodes(topLeft, bottomRight);
+      this.connectNodes(topRight, bottomLeft);
+      this.connectNodes(topRight, bottomRight);
+    }
+  }
+
+  isPushbuttonPressed(element) {
+    if (!element) return false;
+    if (typeof element.value !== 'undefined') {
+      const value = element.value;
+      if (typeof value === 'number') return value !== 0;
+      if (typeof value === 'string') return value !== '' && value !== '0';
+      return Boolean(value);
+    }
+    if (typeof element.pressed !== 'undefined') {
+      return Boolean(element.pressed);
+    }
+    const attrValue = element.getAttribute?.('value');
+    if (attrValue !== null) {
+      return attrValue !== '0';
+    }
+    return element.hasAttribute?.('pressed');
+  }
+
+  connectNodes(nodeA, nodeB) {
+    if (!nodeA || !nodeB || nodeA === nodeB) return;
+    nodeA.connections.add(nodeB);
+    nodeB.connections.add(nodeA);
+  }
+
+  connectNodesByIndex(componentId, indexA, indexB) {
+    if (indexA === indexB) return;
+    const nodeA = this.getNodeByComponentIndex(componentId, indexA);
+    const nodeB = this.getNodeByComponentIndex(componentId, indexB);
+    this.connectNodes(nodeA, nodeB);
   }
 }
 
@@ -167,10 +396,12 @@ class Simulation {
     this.listeners = {
       onStateChange: () => {},
       onError: () => {},
+      onLog: () => {},
     };
     this.lastErrorSignature = '';
-     this.boardPinStates = new Map();
-     this.programState = null;
+    this.boardPinStates = new Map();
+    this.programState = null;
+    this.powerEnabled = false;
   }
 
   configure(listeners = {}) {
@@ -181,6 +412,7 @@ class Simulation {
     if (this.isRunning) return;
     this.canvasManager = canvasManager;
     this.isRunning = true;
+    this.powerEnabled = true;
     this.clearBoardStates();
     this.listeners.onStateChange?.(true);
     if (options.program) {
@@ -195,6 +427,7 @@ class Simulation {
   stop() {
     if (!this.isRunning) return;
     this.isRunning = false;
+    this.powerEnabled = false;
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -212,7 +445,9 @@ class Simulation {
   }
 
   evaluate() {
-    const snapshot = new CircuitSnapshot(this.canvasManager, this.boardPinStates);
+    const snapshot = new CircuitSnapshot(this.canvasManager, this.boardPinStates, {
+      powerEnabled: this.powerEnabled,
+    });
     const ledResults = snapshot.evaluateLEDs();
     const errorMessages = [];
 
@@ -235,8 +470,12 @@ class Simulation {
 
   setLedState(component, isOn) {
     const element = component.element;
-    element.value = Boolean(isOn);
-    element.setAttribute('value', isOn ? '1' : '0');
+    const booleanValue = Boolean(isOn);
+    element.value = booleanValue;
+    element.setAttribute('value', booleanValue ? '1' : '0');
+    if ('brightness' in element) {
+      element.brightness = isOn ? 1023 : 0;
+    }
   }
 
   resetOutputs() {
@@ -279,10 +518,12 @@ class Simulation {
     programState.abortError = abortError;
 
     const api = {
-      setPin: (pinName, level) => {
+      setPin: async (pinName, level) => {
         if (programState.aborted) return;
         try {
-          this.setBoardPinState(programState.boardComponentId, pinName, level);
+          const result = this.setBoardPinState(programState.boardComponentId, pinName, level);
+          await this.waitNextAnimationFrame();
+          return result;
         } catch (error) {
           const message = error?.message ?? String(error);
           programState.onProgramError?.(message);
@@ -320,8 +561,40 @@ class Simulation {
           programState.rejectors.add(rejector);
         });
       },
-      log: (...args) => {
+      readDigital: async (pinName) => {
+        if (programState.aborted) {
+          return Promise.reject(abortError);
+        }
+        try {
+          const state = this.getBoardPinVoltageState(programState.boardComponentId, pinName);
+          return state === 'high';
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      readAnalog: async (pinName) => {
+        if (programState.aborted) {
+          return Promise.reject(abortError);
+        }
+        try {
+          const state = this.getBoardPinVoltageState(programState.boardComponentId, pinName);
+          return this.convertVoltageStateToAnalogValue(state);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      log: async (...args) => {
         if (programState.aborted) return;
+        const [first, ...rest] = args;
+        const entry =
+          typeof first === 'string'
+            ? { message: first, args: rest, timestamp: Date.now(), level: 'info' }
+            : { message: '', args, timestamp: Date.now(), level: 'info' };
+        this.listeners.onLog?.(entry);
         console.log('[Blockly]', ...args);
       },
     };
@@ -330,6 +603,15 @@ class Simulation {
 
     programState.promise = Promise.resolve()
       .then(() => program(api))
+      .then(() => {
+        if (!programState.aborted) {
+          this.listeners.onLog?.({
+            message: 'Programa concluído.',
+            timestamp: Date.now(),
+            level: 'info',
+          });
+        }
+      })
       .catch((error) => {
         if (programState.aborted) return;
         const message =
@@ -337,7 +619,13 @@ class Simulation {
             ? null
             : error?.message ?? String(error);
         if (message) {
-          programState.onProgramError?.(`Erro no programa: ${message}`);
+          const formatted = `Erro no programa: ${message}`;
+          this.listeners.onLog?.({
+            message: formatted,
+            timestamp: Date.now(),
+            level: 'error',
+          });
+          programState.onProgramError?.(formatted);
           window.setTimeout(() => this.stop(), 0);
         }
       })
@@ -377,24 +665,7 @@ class Simulation {
       throw new Error('Simulação não inicializada.');
     }
 
-    const component = this.canvasManager.getComponentById(componentId);
-    if (!component) {
-      throw new Error('Placa alvo não encontrada no workspace.');
-    }
-
-    if (component.type !== 'amado-board' && component.type !== 'esp32') {
-      throw new Error('O programa só pode controlar placas compatíveis (Amado ESP32).');
-    }
-
-    const pins = this.canvasManager.wiringManager.getPinsForComponent(componentId) ?? [];
-    const pinElement = pins.find((pin) => pin.dataset.pinName === pinName);
-    if (!pinElement) {
-      throw new Error(`Pino "${pinName}" não foi encontrado na placa selecionada.`);
-    }
-
-    if (pinElement.dataset.pinType !== 'signal') {
-      throw new Error(`O pino "${pinName}" não é configurável (somente pinos do tipo sinal podem ser controlados).`);
-    }
+    this.requireSignalPinElement(componentId, pinName);
 
     const normalized = this.normalizePinLevel(level);
     const key = this.getBoardPinKey(componentId, pinName);
@@ -432,6 +703,81 @@ class Simulation {
 
   getBoardPinKey(componentId, pinName) {
     return `${componentId}:${pinName}`;
+  }
+
+  getBoardPinVoltageState(componentId, pinName) {
+    const pinElement = this.requireSignalPinElement(componentId, pinName);
+    if (!pinElement) {
+      return 'floating';
+    }
+    const snapshot = this.createSnapshot();
+    return snapshot.resolveVoltageForBoardPin(componentId, pinName);
+  }
+
+  convertVoltageStateToAnalogValue(state) {
+    switch (state) {
+      case 'high':
+        return 4095;
+      case 'low':
+        return 0;
+      default:
+        return 2048;
+    }
+  }
+
+  waitNextAnimationFrame() {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+        resolve();
+        return;
+      }
+      window.requestAnimationFrame(() => resolve());
+    });
+  }
+
+  createSnapshot() {
+    if (!this.canvasManager) {
+      throw new Error('Simulação não inicializada.');
+    }
+    return new CircuitSnapshot(this.canvasManager, this.boardPinStates, {
+      powerEnabled: this.powerEnabled,
+    });
+  }
+
+  requireBoardComponent(componentId) {
+    if (!this.canvasManager) {
+      throw new Error('Simulação não inicializada.');
+    }
+
+    const component = this.canvasManager.getComponentById(componentId);
+    if (!component) {
+      throw new Error('Placa alvo não encontrada no workspace.');
+    }
+
+    if (component.type !== 'amado-board' && component.type !== 'esp32') {
+      throw new Error('O programa só pode controlar placas compatíveis (Amado ESP32).');
+    }
+
+    return component;
+  }
+
+  requireSignalPinElement(componentId, pinName) {
+    const component = this.requireBoardComponent(componentId);
+    const pins = this.canvasManager.wiringManager.getPinsForComponent(componentId) ?? [];
+    const pinElement = pins.find((pin) => pin.dataset.pinName === pinName);
+
+    if (!pinElement) {
+      if (component.type === 'amado-board' || component.type === 'esp32') {
+        throw new Error(`Pino "${pinName}" não foi encontrado na placa selecionada.`);
+      }
+      return null;
+    }
+
+    if (pinElement.dataset.pinType !== 'signal') {
+      throw new Error('Somente pinos de sinal podem ser controlados ou lidos via Blockly.');
+    }
+
+    return pinElement;
   }
 }
 

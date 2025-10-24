@@ -14,6 +14,7 @@ export class CanvasManager {
     this.selectedComponentId = null;
     this.nextId = 1;
     this.onInteraction = options.onInteraction ?? (() => {});
+    this.isInteractionLocked = options.isInteractionLocked ?? (() => false);
 
     this.wiringManager = new WiringManager(this);
     this.setupWorkspaceListeners();
@@ -89,10 +90,12 @@ export class CanvasManager {
       label,
       props: appliedProps,
       applyProps,
+      state: {},
     };
 
     this.components.push(componentData);
     this.attachComponentInteractions(componentData);
+    this.attachComponentElementListeners(componentData);
     await this.wiringManager.addPinsToComponent(container, definition, componentId);
     this.selectComponent(componentId);
     this.notifyInteraction();
@@ -106,6 +109,9 @@ export class CanvasManager {
     container.addEventListener('pointerdown', (event) => {
       if (event.button !== 0) return;
       if (event.target.closest('.pin')) return;
+      if (this.isInteractionLocked?.()) {
+        return;
+      }
 
       container.setPointerCapture(event.pointerId);
       const initialX = event.clientX - container.offsetLeft;
@@ -146,17 +152,49 @@ export class CanvasManager {
 
     container.addEventListener('click', (event) => {
       if (event.target.closest('.pin')) return;
+      if (this.isInteractionLocked?.()) {
+        return;
+      }
       this.selectComponent(id);
     });
 
     container.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
+      if (this.isInteractionLocked?.()) {
+        return;
+      }
       this.selectComponent(id);
       showComponentContextMenu(event.clientX, event.clientY, {
         onDelete: () => this.removeComponent(id),
       });
     });
+  }
+
+  attachComponentElementListeners(component) {
+    const { element, type } = component;
+    if (!element) return;
+
+    switch (type) {
+      case 'pushbutton': {
+        const state = component.state ?? (component.state = {});
+        const updateState = (pressed) => {
+          state.pressed = pressed;
+          window.dispatchEvent(
+            new CustomEvent('simulator-pattern-interaction', {
+              detail: { source: 'component-element' },
+            }),
+          );
+        };
+        element.addEventListener('button-press', () => updateState(true));
+        element.addEventListener('button-release', () => updateState(false));
+        element.addEventListener('input', () => updateState(Boolean(element.value ?? element.pressed)));
+        state.pressed = Boolean(element.value ?? element.pressed);
+        break;
+      }
+      default:
+        break;
+    }
   }
 
   selectComponent(componentId) {

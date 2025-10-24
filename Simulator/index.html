@@ -48,6 +48,25 @@
     </aside>
   </div>
   <div id="alert-container"></div>
+  <section id="serial-monitor" class="serial-monitor" aria-hidden="true">
+    <header class="serial-monitor-header">
+      <h3>Monitor Serial</h3>
+      <div class="serial-monitor-actions">
+        <button type="button" id="serial-monitor-clear" class="serial-monitor-button">
+          Limpar
+        </button>
+        <button type="button" id="serial-monitor-close" class="serial-monitor-button">
+          Fechar
+        </button>
+      </div>
+    </header>
+    <div
+      id="serial-monitor-output"
+      class="serial-monitor-output"
+      role="log"
+      aria-live="polite"
+    ></div>
+  </section>
 
 
   <script type="module" src="js/main.js"></script>
