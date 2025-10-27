@@ -26,6 +26,18 @@ function createTextShadowBlock(Blockly) {
   return shadow;
 }
 
+function createPinSelectorShadow(Blockly) {
+  const shadow = Blockly.utils.xml.createElement('shadow');
+  shadow.setAttribute('type', 'amado_pin_selector');
+  return shadow;
+}
+
+function createLevelSelectorShadow(Blockly) {
+  const shadow = Blockly.utils.xml.createElement('shadow');
+  shadow.setAttribute('type', 'amado_pin_level');
+  return shadow;
+}
+
 function buildPinOptions() {
   const pins = new Set(
     amadoBoardPins
@@ -49,31 +61,6 @@ export function registerAmadoBlocks(Blockly) {
   const pinOptions = buildPinOptions();
 
   Blockly.defineBlocksWithJsonArray([
-    {
-      type: 'amado_set_pin',
-      message0: 'definir pino %1 como %2',
-      args0: [
-        {
-          type: 'field_dropdown',
-          name: 'PIN',
-          options: pinOptions,
-        },
-        {
-          type: 'field_dropdown',
-          name: 'LEVEL',
-          options: [
-            ['HIGH (3V3)', 'HIGH'],
-            ['LOW (GND)', 'LOW'],
-            ['Liberar (flutuante)', 'FLOATING'],
-          ],
-        },
-      ],
-      previousStatement: null,
-      nextStatement: null,
-      colour: 162,
-      tooltip: 'Configura o nível lógico de um pino digital da placa Amado ESP32.',
-      helpUrl: '',
-    },
     {
       type: 'amado_read_digital',
       message0: 'ler pino digital %1',
@@ -105,6 +92,25 @@ export function registerAmadoBlocks(Blockly) {
       helpUrl: '',
     },
   ]);
+
+  Blockly.Blocks.amado_set_pin = {
+    init() {
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .appendField('definir pino');
+      const levelInput = this.appendValueInput('LEVEL')
+        .setCheck('String')
+        .appendField('como');
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(162);
+      this.setTooltip('Configura o nível lógico de um pino digital da placa Amado ESP32.');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      levelInput?.connection?.setShadowDom(createLevelSelectorShadow(Blockly));
+    },
+  };
 
   Blockly.Blocks.amado_serial_log = {
     init() {
@@ -141,16 +147,50 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  Blockly.Blocks.amado_pin_selector = {
+    init() {
+      this.appendDummyInput().appendField(
+        new Blockly.FieldDropdown(pinOptions),
+        'PIN',
+      );
+      this.setOutput(true, 'String');
+      this.setColour(195);
+      this.setTooltip('Seleciona um pino digital da placa.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_pin_level = {
+    init() {
+      this.appendDummyInput().appendField(
+        new Blockly.FieldDropdown([
+          ['HIGH (3V3)', "'HIGH'"],
+          ['LOW (GND)', "'LOW'"],
+          ['Liberar (flutuante)', "'FLOATING'"],
+        ]),
+        'LEVEL',
+      );
+      this.setOutput(true, 'String');
+      this.setColour(195);
+      this.setTooltip('Seleciona o nível lógico (HIGH/LOW/flutuante).');
+      this.setHelpUrl('');
+    },
+  };
+
   const javascriptGenerator = Blockly.JavaScript ?? Blockly?.javascriptGenerator;
   if (!javascriptGenerator) return;
 
   const orderAwait =
     (javascriptGenerator.ORDER_AWAIT ?? javascriptGenerator.ORDER_NONE ?? 0);
+  const orderAtomic =
+    (javascriptGenerator.ORDER_ATOMIC ?? javascriptGenerator.ORDER_NONE ?? 0);
 
   javascriptGenerator.forBlock.amado_set_pin = function amadoSetPin(block) {
-    const pin = block.getFieldValue('PIN') ?? '';
-    const level = block.getFieldValue('LEVEL') ?? 'FLOATING';
-    return `await api.setPin('${pin}', '${level}');\n`;
+    const pinCode =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    const levelCode =
+      javascriptGenerator.valueToCode(block, 'LEVEL', javascriptGenerator.ORDER_NONE) || "'FLOATING'";
+    return `await api.setPin(${pinCode}, ${levelCode});\n`;
   };
 
   javascriptGenerator.forBlock.amado_wait = function amadoWait(block) {
@@ -176,5 +216,15 @@ export function registerAmadoBlocks(Blockly) {
     const value =
       javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_NONE) ?? "''";
     return `await api.log(${value});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_pin_selector = function amadoPinSelector(block) {
+    const pin = block.getFieldValue('PIN') ?? '';
+    return [`'${pin}'`, orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.amado_pin_level = function amadoPinLevel(block) {
+    const level = block.getFieldValue('LEVEL') ?? "'FLOATING'";
+    return [level, orderAtomic];
   };
 }

@@ -2,6 +2,7 @@ class CircuitSnapshot {
   constructor(canvasManager, boardPinStates = new Map(), options = {}) {
     this.canvasManager = canvasManager;
     this.boardPinStates = boardPinStates;
+    this.boardAnalogLevels = options.boardAnalogLevels ?? new Map();
     this.powerEnabled = options.powerEnabled ?? true;
     this.pinNodes = new Map();
     this.pinNodesByComponentPin = new Map();
@@ -26,6 +27,7 @@ class CircuitSnapshot {
           pinType: pinElement.dataset.pinType,
           pinName: pinElement.dataset.pinName,
           voltageState: this.getBoardPinState(component.id, pinElement.dataset.pinName),
+          analogLevel: this.getBoardPinAnalogLevel(component.id, pinElement.dataset.pinName),
           connections: new Set(),
         };
         this.pinNodes.set(key, node);
@@ -108,14 +110,28 @@ class CircuitSnapshot {
         const powerExists = powerPath.exists;
         const groundExists = groundPath.exists;
         const hasResistor = powerPath.resistorIncluded || groundPath.resistorIncluded;
+        const anodeConnectedToBoardSignal = this.hasConnectionToBoardSignal(anode);
+        const cathodeConnectedToBoardSignal = this.hasConnectionToBoardSignal(cathode);
 
-        const lightsUp = powerExists && groundExists;
+        const anodeLevel = this.resolveAnalogLevel(anode);
+        const cathodeLevel = this.resolveAnalogLevel(cathode);
+        const analogLevelsKnown = Number.isFinite(anodeLevel) && Number.isFinite(cathodeLevel);
+
+        let brightness = 0;
+        if (analogLevelsKnown) {
+        const delta = anodeLevel - cathodeLevel;
+        brightness = Math.max(0, Math.min(1, Math.abs(delta) / 4095));
+      } else if (powerExists && groundExists) {
+        brightness = 1;
+      }
+
+        const lightsUp = brightness > 0.01;
 
         const reasons = [];
-        if (!powerPath.exists) {
+        if (!powerPath.exists && !anodeConnectedToBoardSignal) {
           reasons.push('Sem ligação de VCC');
         }
-        if (!groundPath.exists) {
+        if (!groundPath.exists && !cathodeConnectedToBoardSignal) {
           reasons.push('Sem ligação de GND');
         }
         if (lightsUp && !hasResistor) {
@@ -125,6 +141,7 @@ class CircuitSnapshot {
         results.push({
           component,
           lightsUp,
+          brightness,
           reasons,
         });
       });
@@ -221,6 +238,13 @@ class CircuitSnapshot {
     return this.boardPinStates.get(key) ?? 'floating';
   }
 
+  getBoardPinAnalogLevel(componentId, pinName) {
+    if (!componentId || !pinName) return null;
+    const key = `${componentId}:${pinName}`;
+    const value = this.boardAnalogLevels.get(key);
+    return Number.isFinite(value) ? value : null;
+  }
+
   resolveVoltageForBoardPin(componentId, pinName) {
     const node = this.getNodeByComponentPin(componentId, pinName);
     if (!node) return 'floating';
@@ -277,6 +301,34 @@ class CircuitSnapshot {
 
     this.nodeVoltageCache.set(node.id, resolved);
     return resolved;
+  }
+
+  resolveAnalogLevel(node) {
+    if (!node) return null;
+    if (Number.isFinite(node.analogLevel)) {
+      return node.analogLevel;
+    }
+
+    const visited = new Set([node.id]);
+    const queue = [node];
+
+    while (queue.length) {
+      const current = queue.shift();
+      if (current !== node && Number.isFinite(current.analogLevel)) {
+        return current.analogLevel;
+      }
+      current.connections.forEach((neighbor) => {
+        if (!visited.has(neighbor.id)) {
+          visited.add(neighbor.id);
+          queue.push(neighbor);
+        }
+      });
+    }
+
+    const voltageState = this.computeNodeVoltageState(node);
+    if (voltageState === 'high') return 4095;
+    if (voltageState === 'low') return 0;
+    return null;
   }
 
   computeNodeVoltageState(node) {
@@ -382,6 +434,36 @@ class CircuitSnapshot {
     const nodeB = this.getNodeByComponentIndex(componentId, indexB);
     this.connectNodes(nodeA, nodeB);
   }
+
+  hasConnectionToBoardSignal(startNode) {
+    if (!startNode) return false;
+    const visited = new Set([startNode.id]);
+    const queue = [startNode];
+
+    while (queue.length) {
+      const node = queue.shift();
+      if (this.isBoardSignalNode(node)) {
+        return true;
+      }
+      node.connections.forEach((neighbor) => {
+        if (!visited.has(neighbor.id)) {
+          visited.add(neighbor.id);
+          queue.push(neighbor);
+        }
+      });
+    }
+
+    return false;
+  }
+
+  isBoardSignalNode(node) {
+    if (!node) return false;
+    const type = node.componentType;
+    if (type !== 'amado-board' && type !== 'esp32') {
+      return false;
+    }
+    return node.pinType === 'signal';
+  }
 }
 
 class Simulation {
@@ -396,6 +478,7 @@ class Simulation {
     };
     this.lastErrorSignature = '';
     this.boardPinStates = new Map();
+    this.boardAnalogLevels = new Map();
     this.programState = null;
     this.powerEnabled = false;
   }
@@ -443,12 +526,18 @@ class Simulation {
   evaluate() {
     const snapshot = new CircuitSnapshot(this.canvasManager, this.boardPinStates, {
       powerEnabled: this.powerEnabled,
+      boardAnalogLevels: this.boardAnalogLevels,
     });
     const ledResults = snapshot.evaluateLEDs();
     const errorMessages = [];
 
     ledResults.forEach((result) => {
-      this.setLedState(result.component, result.lightsUp);
+      const brightness = Number.isFinite(result.brightness)
+        ? result.brightness
+        : result.lightsUp
+          ? 1
+          : 0;
+      this.setLedState(result.component, brightness);
       if (!result.lightsUp && result.reasons.length) {
         errorMessages.push(`LED ${result.component.id}: ${result.reasons.join(', ')}`);
       }
@@ -464,13 +553,16 @@ class Simulation {
     }
   }
 
-  setLedState(component, isOn) {
+  setLedState(component, brightness) {
     const element = component.element;
-    const booleanValue = Boolean(isOn);
+    const level = Math.max(0, Math.min(1, Number(brightness) || 0));
+    const intensity = Math.round(level * 1023);
+    const booleanValue = intensity > 0;
     element.value = booleanValue;
     element.setAttribute('value', booleanValue ? '1' : '0');
+    element.setAttribute('brightness', String(level));
     if ('brightness' in element) {
-      element.brightness = isOn ? 1023 : 0;
+      element.brightness = level;
     }
   }
 
@@ -479,11 +571,12 @@ class Simulation {
     if (!this.canvasManager) return;
     this.canvasManager.components
       .filter((component) => component.type === 'led')
-      .forEach((component) => this.setLedState(component, false));
+      .forEach((component) => this.setLedState(component, 0));
   }
 
   clearBoardStates() {
     this.boardPinStates.clear();
+    this.boardAnalogLevels.clear();
   }
 
   startProgram(program, options = {}) {
@@ -575,7 +668,20 @@ class Simulation {
           return Promise.reject(abortError);
         }
         try {
-          const state = this.getBoardPinVoltageState(programState.boardComponentId, pinName);
+          this.requireSignalPinElement(programState.boardComponentId, pinName);
+          const snapshot = this.createSnapshot();
+          const analogValue = this.getBoardPinAnalogValue(
+            programState.boardComponentId,
+            pinName,
+            snapshot,
+          );
+          if (typeof analogValue === 'number') {
+            return analogValue;
+          }
+          const state = snapshot.resolveVoltageForBoardPin(
+            programState.boardComponentId,
+            pinName,
+          );
           return this.convertVoltageStateToAnalogValue(state);
         } catch (error) {
           const message = error?.message ?? String(error);
@@ -663,14 +769,22 @@ class Simulation {
 
     this.requireSignalPinElement(componentId, pinName);
 
+    const analogCandidate = this.tryParseAnalogLevel(level);
+    if (analogCandidate !== null) {
+      return this.setBoardPinAnalogLevel(componentId, pinName, analogCandidate);
+    }
+
     const normalized = this.normalizePinLevel(level);
     const key = this.getBoardPinKey(componentId, pinName);
 
     if (normalized === 'floating') {
       this.boardPinStates.delete(key);
-    } else {
-      this.boardPinStates.set(key, normalized);
+      this.boardAnalogLevels.delete(key);
+      return normalized;
     }
+
+    this.boardPinStates.set(key, normalized);
+    this.boardAnalogLevels.set(key, normalized === 'high' ? 4095 : 0);
 
     return normalized;
   }
@@ -678,9 +792,6 @@ class Simulation {
   normalizePinLevel(level) {
     if (typeof level === 'boolean') {
       return level ? 'high' : 'low';
-    }
-    if (typeof level === 'number') {
-      return level > 0 ? 'high' : 'low';
     }
     if (typeof level === 'string') {
       const value = level.trim().toLowerCase();
@@ -697,6 +808,39 @@ class Simulation {
     return 'floating';
   }
 
+  tryParseAnalogLevel(level) {
+    if (typeof level === 'number' && Number.isFinite(level)) {
+      return level;
+    }
+    if (typeof level === 'string') {
+      const value = level.trim();
+      if (!value) return null;
+      const normalized = value.replace(',', '.');
+      if (/^[-+]?\d+(\.\d+)?$/.test(normalized)) {
+        const numeric = Number(normalized);
+        return Number.isFinite(numeric) ? numeric : null;
+      }
+    }
+    return null;
+  }
+
+  setBoardPinAnalogLevel(componentId, pinName, level) {
+    const key = this.getBoardPinKey(componentId, pinName);
+    const analogLevel = this.normalizeAnalogLevel(level);
+    this.boardAnalogLevels.set(key, analogLevel);
+    const digitalState = analogLevel <= 0 ? 'low' : 'high';
+    this.boardPinStates.set(key, digitalState);
+    return analogLevel;
+  }
+
+  normalizeAnalogLevel(level) {
+    const numeric = Number(level);
+    if (!Number.isFinite(numeric)) {
+      throw new Error('Valor analógico inválido.');
+    }
+    return Math.max(0, Math.min(4095, Math.round(numeric)));
+  }
+
   getBoardPinKey(componentId, pinName) {
     return `${componentId}:${pinName}`;
   }
@@ -708,6 +852,118 @@ class Simulation {
     }
     const snapshot = this.createSnapshot();
     return snapshot.resolveVoltageForBoardPin(componentId, pinName);
+  }
+
+  getBoardPinAnalogValue(componentId, pinName, snapshot = null) {
+    if (!this.canvasManager) {
+      throw new Error('Simulação não inicializada.');
+    }
+
+    const circuitSnapshot = snapshot ?? this.createSnapshot();
+    const boardNode = circuitSnapshot.getNodeByComponentPin(componentId, pinName);
+    if (!boardNode) {
+      return null;
+    }
+
+    const visited = new Set([boardNode.id]);
+    const queue = [boardNode];
+
+    while (queue.length) {
+      const node = queue.shift();
+
+      if (Number.isFinite(node.analogLevel)) {
+        const clamped = Math.max(0, Math.min(4095, Math.round(node.analogLevel)));
+        return clamped;
+      }
+
+      if (this.isPotentiometerWiperNode(node)) {
+        const analogValue = this.computePotentiometerAnalogValue(circuitSnapshot, node);
+        if (Number.isFinite(analogValue)) {
+          const clamped = Math.max(0, Math.min(4095, Math.round(analogValue)));
+          return clamped;
+        }
+      }
+
+      node.connections.forEach((neighbor) => {
+        if (!visited.has(neighbor.id)) {
+          visited.add(neighbor.id);
+          queue.push(neighbor);
+        }
+      });
+    }
+
+    return null;
+  }
+
+  isPotentiometerWiperNode(node) {
+    if (!node || node.componentType !== 'potentiometer') {
+      return false;
+    }
+    const pinName = (node.pinName ?? '').toUpperCase();
+    if (pinName) {
+      return pinName === 'SIG' || pinName === 'WIPER' || pinName === 'OUT';
+    }
+    return node.pinIndex === 1;
+  }
+
+  computePotentiometerAnalogValue(snapshot, wiperNode) {
+    if (!snapshot || !wiperNode) {
+      return null;
+    }
+
+    const component = wiperNode.component;
+    if (!component) {
+      return null;
+    }
+
+    const rawValue = Number(component.state?.value);
+    const normalized = Number.isFinite(rawValue) ? Math.max(0, Math.min(100, rawValue)) : 50;
+    const ratio = normalized / 100;
+
+    const componentId = wiperNode.componentId;
+    const startNode =
+      snapshot.getNodeByComponentPin(componentId, 'GND') ??
+      snapshot.getNodeByComponentIndex(componentId, 0);
+    const endNode =
+      snapshot.getNodeByComponentPin(componentId, 'VCC') ??
+      snapshot.getNodeByComponentIndex(componentId, 2);
+
+    const startLevel = this.resolveNodeAnalogLevel(snapshot, startNode);
+    const endLevel = this.resolveNodeAnalogLevel(snapshot, endNode);
+
+    const hasStart = Number.isFinite(startLevel);
+    const hasEnd = Number.isFinite(endLevel);
+
+    if (hasStart && hasEnd) {
+      return startLevel + (endLevel - startLevel) * ratio;
+    }
+    if (hasStart) {
+      return startLevel;
+    }
+    if (hasEnd) {
+      return endLevel;
+    }
+    return null;
+  }
+
+  resolveNodeAnalogLevel(snapshot, node) {
+    if (!snapshot || !node) {
+      return null;
+    }
+    if (typeof snapshot.resolveAnalogLevel === 'function') {
+      const analogLevel = snapshot.resolveAnalogLevel(node);
+      if (Number.isFinite(analogLevel)) {
+        return analogLevel;
+      }
+    }
+    const state = snapshot.resolveVoltageForNode(node);
+    if (state === 'high') {
+      return 4095;
+    }
+    if (state === 'low') {
+      return 0;
+    }
+    return null;
   }
 
   convertVoltageStateToAnalogValue(state) {
@@ -737,6 +993,7 @@ class Simulation {
     }
     return new CircuitSnapshot(this.canvasManager, this.boardPinStates, {
       powerEnabled: this.powerEnabled,
+      boardAnalogLevels: this.boardAnalogLevels,
     });
   }
 

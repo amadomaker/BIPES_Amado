@@ -192,6 +192,33 @@ export class CanvasManager {
         state.pressed = Boolean(element.value ?? element.pressed);
         break;
       }
+      case 'potentiometer': {
+        const state = component.state ?? (component.state = {});
+        const normalize = (value) => {
+          const numeric = Number(value);
+          if (!Number.isFinite(numeric)) return 50;
+          return Math.max(0, Math.min(100, numeric));
+        };
+
+        const updateValue = (nextValue) => {
+          const normalized = normalize(nextValue);
+          if (state.value !== normalized) {
+            state.value = normalized;
+            window.dispatchEvent(
+              new CustomEvent('simulator-pattern-interaction', {
+                detail: { source: 'component-element' },
+              }),
+            );
+            this.notifyInteraction();
+          }
+        };
+
+        updateValue(element.value ?? 50);
+
+        element.addEventListener('input', (event) => updateValue(event.target.value));
+        element.addEventListener('change', (event) => updateValue(event.target.value));
+        break;
+      }
       default:
         break;
     }
