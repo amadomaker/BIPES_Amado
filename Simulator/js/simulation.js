@@ -286,12 +286,8 @@ class CircuitSnapshot {
       return this.nodeVoltageCache.get(`computed:${node.id}`);
     }
 
-    const powerPath = this.findPath(node, (neighbor) =>
-      this.isPowerNode(neighbor) && neighbor.componentId !== node.componentId,
-    );
-    const groundPath = this.findPath(node, (neighbor) =>
-      this.isGroundNode(neighbor) && neighbor.componentId !== node.componentId,
-    );
+    const powerPath = this.findPath(node, (neighbor) => this.isPowerNode(neighbor));
+    const groundPath = this.findPath(node, (neighbor) => this.isGroundNode(neighbor));
 
     const hasPower = powerPath.exists;
     const hasGround = groundPath.exists;
