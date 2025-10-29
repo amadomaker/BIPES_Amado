@@ -300,15 +300,31 @@ class CircuitSnapshot {
       node.connections.forEach((neighbor) => {
         const sameComponent = neighbor.componentId && neighbor.componentId === node.componentId;
         const neighborIsResistor = sameComponent && neighbor.componentType === 'resistor';
+        const neighborIsPotentiometer = sameComponent && neighbor.componentType === 'potentiometer';
         const neighborIsLed = sameComponent && neighbor.componentType === 'led';
-        const neighborResistorIncluded = resistorIncluded || neighborIsResistor;
+
+        const resistorEntry = neighborIsResistor && neighbor.component
+          ? this.createResistorEntry(neighbor.component)
+          : null;
+
+        const potentiometerEntry = neighborIsPotentiometer
+          ? this.createPotentiometerSegmentEntry(node, neighbor)
+          : null;
+
+        const neighborResistorIncluded =
+          resistorIncluded || Boolean(resistorEntry) || Boolean(potentiometerEntry);
+
         const stateKey = `${neighbor.id}:${neighborResistorIncluded ? 1 : 0}`;
         if (visited.has(stateKey)) return;
         visited.add(stateKey);
 
-        const nextResistors = neighborIsResistor && neighbor.component
-          ? [...resistors, neighbor.component]
-          : [...resistors];
+        const nextResistors = [...resistors];
+        if (resistorEntry) {
+          nextResistors.push(resistorEntry);
+        }
+        if (potentiometerEntry) {
+          nextResistors.push(potentiometerEntry);
+        }
 
         const supplyCandidate = this.getComponentSupplyCandidate(neighbor.component);
         const nextSources = supplyCandidate
@@ -338,25 +354,25 @@ class CircuitSnapshot {
     };
   }
 
-  computeSeriesResistance(resistorComponents = []) {
+  computeSeriesResistance(resistorEntries = []) {
     const unique = new Map();
-    resistorComponents.forEach((component) => {
-      if (!component || !component.id) return;
-      if (!unique.has(component.id)) {
-        unique.set(component.id, component);
+    resistorEntries.forEach((entry) => {
+      if (!entry) return;
+      const key = entry.id ?? entry.component?.id;
+      if (!key) return;
+      if (!unique.has(key)) {
+        unique.set(key, entry);
       }
     });
 
     let total = 0;
     const contributing = [];
 
-    unique.forEach((component) => {
-      const rawValue =
-        component.props?.value ?? component.props?.resistance ?? component.props?.ohms;
-      const ohms = this.parseResistanceValue(rawValue);
-      if (Number.isFinite(ohms) && ohms > 0) {
-        total += ohms;
-        contributing.push({ component, ohms });
+    unique.forEach((entry) => {
+      const { resistance, component } = this.resolveResistanceEntry(entry);
+      if (Number.isFinite(resistance) && resistance > 0) {
+        total += resistance;
+        contributing.push({ component, ohms: resistance, entry });
       }
     });
 
@@ -372,19 +388,19 @@ class CircuitSnapshot {
     let total = 0;
 
     const resistorUnique = new Map();
-    (pathResult.resistors ?? []).forEach((component) => {
-      if (!component || !component.id) return;
-      if (!resistorUnique.has(component.id)) {
-        resistorUnique.set(component.id, component);
+    (pathResult.resistors ?? []).forEach((entry) => {
+      if (!entry) return;
+      const key = entry.id ?? entry.component?.id;
+      if (!key) return;
+      if (!resistorUnique.has(key)) {
+        resistorUnique.set(key, entry);
       }
     });
 
-    resistorUnique.forEach((component) => {
-      const rawValue =
-        component?.props?.value ?? component?.props?.resistance ?? component?.props?.ohms;
-      const ohms = this.parseResistanceValue(rawValue);
-      if (Number.isFinite(ohms) && ohms > 0) {
-        total += ohms;
+    resistorUnique.forEach((entry) => {
+      const { resistance } = this.resolveResistanceEntry(entry);
+      if (Number.isFinite(resistance) && resistance > 0) {
+        total += resistance;
       }
     });
 
@@ -406,6 +422,119 @@ class CircuitSnapshot {
     }
 
     return total;
+  }
+
+  createResistorEntry(component) {
+    if (!component || !component.id) return null;
+    return {
+      id: `resistor:${component.id}`,
+      type: 'resistor',
+      component,
+    };
+  }
+
+  createPotentiometerSegmentEntry(nodeA, nodeB) {
+    if (!nodeA || !nodeB) return null;
+    const component = nodeA.component;
+    if (!component || component !== nodeB.component) return null;
+    if ((component.type ?? component.id) !== 'potentiometer') return null;
+
+    const fromIndex = Number(nodeA.pinIndex);
+    const toIndex = Number(nodeB.pinIndex);
+    if (!Number.isFinite(fromIndex) || !Number.isFinite(toIndex) || fromIndex === toIndex) {
+      return null;
+    }
+
+    const low = Math.min(fromIndex, toIndex);
+    const high = Math.max(fromIndex, toIndex);
+    const segmentKey = `${low}-${high}`;
+
+    return {
+      id: `pot:${component.id}:${segmentKey}`,
+      type: 'potentiometer-segment',
+      component,
+      fromIndex,
+      toIndex,
+    };
+  }
+
+  resolveResistanceEntry(entry) {
+    if (!entry) {
+      return { resistance: NaN, component: null };
+    }
+
+    if (entry.type === 'resistor') {
+      const component = entry.component;
+      if (!component) {
+        return { resistance: NaN, component: null };
+      }
+      const rawValue =
+        component.props?.value ?? component.props?.resistance ?? component.props?.ohms;
+      const ohms = this.parseResistanceValue(rawValue);
+      return { resistance: ohms, component };
+    }
+
+    if (entry.type === 'potentiometer-segment') {
+      const component = entry.component;
+      const ohms = this.getPotentiometerSegmentResistance(
+        component,
+        entry.fromIndex,
+        entry.toIndex,
+      );
+      return { resistance: ohms, component };
+    }
+
+    if (entry.component) {
+      const rawValue =
+        entry.component.props?.value ??
+        entry.component.props?.resistance ??
+        entry.component.props?.ohms;
+      const ohms = this.parseResistanceValue(rawValue);
+      return { resistance: ohms, component: entry.component };
+    }
+
+    return { resistance: NaN, component: null };
+  }
+
+  getPotentiometerSegmentResistance(component, fromIndex, toIndex) {
+    if (!component) return NaN;
+    const total = this.getPotentiometerTotalResistance(component);
+    if (!Number.isFinite(total)) return NaN;
+
+    const ratio = this.getPotentiometerRatio(component);
+
+    const pair = new Set([fromIndex, toIndex]);
+    if (pair.has(0) && pair.has(2)) {
+      return total;
+    }
+    if (pair.has(0) && pair.has(1)) {
+      return total * ratio;
+    }
+    if (pair.has(1) && pair.has(2)) {
+      return total * (1 - ratio);
+    }
+    return 0;
+  }
+
+  getPotentiometerTotalResistance(component) {
+    if (!component) return NaN;
+    const rawValue =
+      component.props?.resistance ?? component.props?.value ?? component.props?.ohms;
+    const parsed = this.parseResistanceValue(rawValue);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+    return 1_000; // fallback padrão
+  }
+
+  getPotentiometerRatio(component) {
+    if (!component) return 0.5;
+    const rawValue = Number(component.state?.value);
+    if (!Number.isFinite(rawValue)) {
+      return 0.5;
+    }
+    const normalized = Math.max(0, Math.min(100, rawValue));
+    return normalized / 100;
   }
 
   parseResistanceValue(raw) {
@@ -825,6 +954,9 @@ class CircuitSnapshot {
         case 'resistor':
           this.connectNodesByIndex(component.id, 0, 1);
           break;
+        case 'potentiometer':
+          this.applyPotentiometerConnections(component);
+          break;
         case 'led':
           this.applyLedConnections(component);
           break;
@@ -843,6 +975,12 @@ class CircuitSnapshot {
       return;
     }
     this.connectNodesByIndex(component.id, 0, 1);
+  }
+
+  applyPotentiometerConnections(component) {
+    if (!component) return;
+    this.connectNodesByIndex(component.id, 0, 1);
+    this.connectNodesByIndex(component.id, 1, 2);
   }
 
   applyPushbuttonConnections(component) {
