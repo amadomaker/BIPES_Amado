@@ -5,7 +5,7 @@ import {
   showComponentContextMenu,
   hideContextMenu,
 } from './ui.js';
-import { availableComponents } from './components.js';
+import { availableComponents, getLedColorInfo } from './components.js';
 
 export class CanvasManager {
   constructor(options = {}) {
@@ -22,6 +22,15 @@ export class CanvasManager {
 
   setupWorkspaceListeners() {
     this.workspace.addEventListener('click', (event) => {
+      if (this.wiringManager?.isWiring()) {
+        return;
+      }
+
+      if (this.wiringManager?.isEditingConnection()) {
+        this.clearSelections();
+        return;
+      }
+
       if (event.target === this.workspace || event.target === this.wiringManager.svgLayer) {
         this.clearSelections();
       }
@@ -365,16 +374,8 @@ export class CanvasManager {
     if (!definition) return;
 
     const rect = component.container.getBoundingClientRect();
-    const workspaceRect = this.workspace.getBoundingClientRect();
 
-    const x = Math.round(rect.left - workspaceRect.left);
-    const y = Math.round(rect.top - workspaceRect.top);
-
-    const fields = [
-      { label: 'ID', value: component.id },
-      { label: 'Tipo', value: component.name },
-      { label: 'Posição', value: `${x}px, ${y}px` },
-    ];
+    const fields = [];
 
     const controlledProps = new Set(
       (definition.propertyControls ?? [])
@@ -407,14 +408,14 @@ export class CanvasManager {
       });
     });
 
-    Object.entries(component.props).forEach(([key, value]) => {
-      if (controlledProps.has(key)) return;
-      fields.push({ label: key, value: String(value) });
-    });
-
-    const pins = this.wiringManager.getPinsForComponent(component.id);
-    if (pins.length) {
-      fields.push({ label: 'Pinos', value: pins.map((pin) => pin.dataset.pinName).join(', ') });
+    if (component.type === 'led') {
+      const colorInfo = getLedColorInfo(component.props.color);
+      if (colorInfo?.forwardVoltage) {
+        fields.push({ label: 'Tensão direta típica', value: colorInfo.forwardVoltage });
+      }
+      if (colorInfo?.maxCurrent) {
+        fields.push({ label: 'Corrente máxima recomendada', value: colorInfo.maxCurrent });
+      }
     }
 
     const anchor = {
@@ -424,8 +425,14 @@ export class CanvasManager {
       height: rect.height,
     };
 
+    const panelTitle =
+      component.label?.textContent?.trim() ||
+      definition.name ||
+      component.name ||
+      'Componente selecionado';
+
     updatePropertiesPanel({
-      title: 'Componente selecionado',
+      title: panelTitle,
       fields,
       anchor,
     });

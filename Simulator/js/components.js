@@ -46,6 +46,47 @@ function createWokwiPreview(elementTag, props = {}) {
   return wrapper;
 }
 
+function createMultimeterElement({ props } = {}) {
+  const shell = document.createElement('div');
+  shell.className = 'multimeter-shell';
+
+  const header = document.createElement('div');
+  header.className = 'multimeter-header';
+  header.textContent = 'Multímetro';
+
+  const display = document.createElement('div');
+  display.className = 'multimeter-display';
+  display.textContent = '---';
+
+  const modeLabel = document.createElement('div');
+  modeLabel.className = 'multimeter-mode';
+  modeLabel.textContent = (props?.mode ?? 'tensão').toUpperCase();
+
+  const probes = document.createElement('div');
+  probes.className = 'multimeter-probes';
+  const probePos = document.createElement('div');
+  probePos.className = 'multimeter-probe probe-positive';
+  const probeNeg = document.createElement('div');
+  probeNeg.className = 'multimeter-probe probe-negative';
+  probes.append(probePos, probeNeg);
+
+  shell.append(header, display, modeLabel, probes);
+  shell.__displayElement = display;
+  shell.__modeElement = modeLabel;
+
+  const applyProps = (nextProps = {}) => {
+    const mode = nextProps.mode ?? 'tensão';
+    modeLabel.textContent = mode.toUpperCase();
+  };
+
+  applyProps(props ?? {});
+
+  return {
+    element: shell,
+    applyProps,
+  };
+}
+
 function formatResistanceValue(rawValue) {
   if (rawValue === undefined || rawValue === null) {
     return '';
@@ -64,6 +105,46 @@ function formatResistanceValue(rawValue) {
   }
   return `${numericValue}Ω`;
 }
+
+const LED_COLOR_VARIANTS = {
+  red: {
+    label: 'Vermelho',
+    forwardVoltageMin: 1.8,
+    forwardVoltageMax: 2.2,
+    maxCurrent: 0.02,
+  },
+  green: {
+    label: 'Verde',
+    forwardVoltageMin: 2.0,
+    forwardVoltageMax: 3.0,
+    maxCurrent: 0.02,
+  },
+  blue: {
+    label: 'Azul',
+    forwardVoltageMin: 2.8,
+    forwardVoltageMax: 3.5,
+    maxCurrent: 0.02,
+  },
+  yellow: {
+    label: 'Amarelo',
+    forwardVoltageMin: 2.0,
+    forwardVoltageMax: 2.4,
+    maxCurrent: 0.02,
+  },
+  white: {
+    label: 'Branco',
+    forwardVoltageMin: 3.0,
+    forwardVoltageMax: 3.4,
+    maxCurrent: 0.02,
+  },
+};
+
+const LED_COLOR_SELECT_OPTIONS = Object.entries(LED_COLOR_VARIANTS).map(
+  ([value, info]) => ({
+    label: `${info.label} (${info.forwardVoltageMin.toFixed(1)}-${info.forwardVoltageMax.toFixed(1)} V · ${(info.maxCurrent * 1000).toFixed(0)} mA máx)`,
+    value,
+  }),
+);
 
 function classifyPinType(name) {
   if (/GND/i.test(name)) return 'ground';
@@ -179,6 +260,7 @@ export const componentGroups = [
   { id: 'passives', name: 'Passivos' },
   { id: 'active', name: 'Ativos' },
   { id: 'microcontroller', name: 'Microcontrolador' },
+  { id: 'tools', name: 'Instrumentos' },
 ];
 
 export const availableComponents = [
@@ -247,7 +329,46 @@ export const availableComponents = [
     description: 'Diodo emissor de luz com cores configuráveis.',
     group: 'active',
     defaultProps: { color: 'red' },
+    getLabel: (props = {}) => {
+      const info = getLedColorInfo(props.color);
+      return info ? `LED (${info.label})` : 'LED';
+    },
+    propertyControls: [
+      {
+        label: 'Cor',
+        formatValue: (value) => {
+          const info = getLedColorInfo(value);
+          if (!info) return String(value ?? '');
+          const voltageText = `${info.forwardVoltageMin.toFixed(1)}-${info.forwardVoltageMax.toFixed(1)} V`;
+          const currentText = `${(info.maxCurrent * 1000).toFixed(0)} mA máx`;
+          return `${info.label} (${voltageText} · ${currentText})`;
+        },
+        control: {
+          type: 'select',
+          options: LED_COLOR_SELECT_OPTIONS,
+          propKey: 'color',
+        },
+      },
+    ],
     createPreview: () => createWokwiPreview('wokwi-led', { color: 'red' }),
+  },
+  {
+    id: 'multimeter',
+    name: 'Multímetro',
+    element: null,
+    description: 'Instrumento para leitura de tensão entre dois pontos.',
+    group: 'tools',
+    defaultProps: { mode: 'tensão' },
+    pins: [
+      { name: 'V+', type: 'signal', position: { xPercent: 25, yPercent: 100 } },
+      { name: 'V-', type: 'signal', position: { xPercent: 75, yPercent: 100 } },
+    ],
+    createInstance: ({ props }) => createMultimeterElement({ props }),
+    createPreview: () => {
+      const preview = createMultimeterElement({ props: { mode: 'tensão' } });
+      preview.element.classList.add('multimeter-preview');
+      return preview.element;
+    },
   },
   {
     id: 'resistor',
@@ -285,7 +406,22 @@ export const availableComponents = [
     element: 'wokwi-potentiometer',
     description: 'Resistor variável de três terminais.',
     group: 'passives',
-    defaultProps: { value: '50' },
+    defaultProps: { value: '50', resistance: '10k' },
+    getLabel: (props = {}) => {
+      const resistance = props.resistance ? formatResistanceValue(props.resistance) : null;
+      return resistance ? `Potenciômetro (${resistance})` : 'Potenciômetro';
+    },
+    propertyControls: [
+      {
+        label: 'Resistência',
+        formatValue: (value) => formatResistanceValue(value),
+        control: {
+          type: 'text',
+          propKey: 'resistance',
+          placeholder: 'Ex.: 10k',
+        },
+      },
+    ],
     createPreview: () => createWokwiPreview('wokwi-potentiometer', { value: '50' }),
   },
   {
@@ -301,4 +437,15 @@ export const availableComponents = [
 
 export function getComponentById(id) {
   return availableComponents.find((component) => component.id === id) ?? null;
+}
+
+export function getLedColorInfo(color) {
+  if (!color) return null;
+  const info = LED_COLOR_VARIANTS[color];
+  if (!info) return null;
+  return {
+    ...info,
+    forwardVoltage: `${info.forwardVoltageMin.toFixed(1)}-${info.forwardVoltageMax.toFixed(1)} V`,
+    maxCurrentLabel: `${(info.maxCurrent * 1000).toFixed(0)} mA`,
+  };
 }

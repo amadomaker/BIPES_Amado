@@ -1,3 +1,13 @@
+import { getLedColorInfo } from './components.js';
+
+const ADC_MAX_VALUE = 4095;
+const DEFAULT_SUPPLY_VOLTAGE = 3.3;
+const LED_INTERNAL_RESISTANCE = 120; // Ohms – aproxima resistência interna / fios
+const CURRENT_WARNING_FACTOR = 1.3;
+const CURRENT_DANGER_FACTOR = 2.5;
+const VOLTAGE_WARNING_FACTOR = 1.15;
+const VOLTAGE_DANGER_FACTOR = 1.6;
+
 class CircuitSnapshot {
   constructor(canvasManager, boardPinStates = new Map(), options = {}) {
     this.canvasManager = canvasManager;
@@ -109,7 +119,15 @@ class CircuitSnapshot {
 
         const powerExists = powerPath.exists;
         const groundExists = groundPath.exists;
-        const hasResistor = powerPath.resistorIncluded || groundPath.resistorIncluded;
+        const directSupplyCandidate = this.getComponentSupplyCandidate(anode.component, component.id);
+        const supplyVoltage = Math.max(
+          directSupplyCandidate ? this.getComponentSupplyVoltage(directSupplyCandidate) : 0,
+          this.resolveSupplyVoltage(powerPath.sources),
+        );
+        const resistanceInfo = this.computeSeriesResistance(
+          [...(powerPath.resistors ?? []), ...(groundPath.resistors ?? [])],
+        );
+        const hasResistor = resistanceInfo.total > 0;
         const anodeConnectedToBoardSignal = this.hasConnectionToBoardSignal(anode);
         const cathodeConnectedToBoardSignal = this.hasConnectionToBoardSignal(cathode);
 
@@ -117,13 +135,85 @@ class CircuitSnapshot {
         const cathodeLevel = this.resolveAnalogLevel(cathode);
         const analogLevelsKnown = Number.isFinite(anodeLevel) && Number.isFinite(cathodeLevel);
 
+        const state = component.state ?? (component.state = {});
+        const colorInfo = getLedColorInfo(component.props?.color) ?? {
+          label: 'Padrão',
+          forwardVoltageMin: 1.8,
+          forwardVoltageMax: 2.2,
+          maxCurrent: 0.02,
+        };
+
+        const forwardVoltageMin = Math.max(colorInfo.forwardVoltageMin ?? 0, 0);
+        const forwardVoltageMax = Math.max(
+          colorInfo.forwardVoltageMax ?? forwardVoltageMin,
+          forwardVoltageMin,
+        );
+        const forwardVoltageNominal = (forwardVoltageMin + forwardVoltageMax) / 2;
+
+        const totalResistance = Math.max(resistanceInfo.total, 0);
+        const resistanceForCurrent =
+          totalResistance > 0 ? totalResistance : LED_INTERNAL_RESISTANCE;
+        const effectiveResistance = resistanceForCurrent;
+
+        const analogDelta = analogLevelsKnown ? Math.abs(anodeLevel - cathodeLevel) : null;
+        const driveRatio = analogLevelsKnown
+          ? Math.max(0, Math.min(1, analogDelta / ADC_MAX_VALUE))
+          : (powerExists || anodeConnectedToBoardSignal) && (groundExists || cathodeConnectedToBoardSignal)
+            ? 1
+            : 0;
+
+        const effectiveSupplyVoltage = supplyVoltage * driveRatio;
+
+        let currentEstimate = 0;
+        let voltageDrop = 0;
         let brightness = 0;
-        if (analogLevelsKnown) {
-        const delta = anodeLevel - cathodeLevel;
-        brightness = Math.max(0, Math.min(1, Math.abs(delta) / 4095));
-      } else if (powerExists && groundExists) {
-        brightness = 1;
-      }
+
+        const hasDrivePath =
+          (powerExists || anodeConnectedToBoardSignal) &&
+          (groundExists || cathodeConnectedToBoardSignal);
+
+        if (hasDrivePath && effectiveSupplyVoltage > 0) {
+          if (effectiveSupplyVoltage <= forwardVoltageMin) {
+            voltageDrop = effectiveSupplyVoltage;
+            brightness = 0;
+          } else {
+            const voltageAcrossResistors = Math.max(0, effectiveSupplyVoltage - forwardVoltageNominal);
+            currentEstimate = voltageAcrossResistors / resistanceForCurrent;
+            const dropAcrossResistors = currentEstimate * totalResistance;
+            const computedDrop = effectiveSupplyVoltage - dropAcrossResistors;
+            voltageDrop = Math.min(
+              effectiveSupplyVoltage,
+              Math.max(forwardVoltageMin, computedDrop),
+            );
+            brightness = Math.max(
+              0,
+              Math.min(1, currentEstimate / (colorInfo.maxCurrent || 0.02)),
+            );
+          }
+        }
+
+        const voltageWarning =
+          voltageDrop > colorInfo.forwardVoltageMax * VOLTAGE_WARNING_FACTOR;
+        const voltageDanger =
+          voltageDrop > colorInfo.forwardVoltageMax * VOLTAGE_DANGER_FACTOR;
+
+        const currentWarning =
+          currentEstimate > colorInfo.maxCurrent * CURRENT_WARNING_FACTOR;
+        const currentDanger =
+          currentEstimate > colorInfo.maxCurrent * CURRENT_DANGER_FACTOR;
+
+        let damageEvent = false;
+        if (!state.burned && voltageDrop > 0 && (voltageDanger || currentDanger)) {
+          state.burned = true;
+          state.burnedAt = Date.now();
+          state.burnReason = currentDanger ? 'sobrecorrente' : 'sobretensão';
+          damageEvent = true;
+        }
+
+        const isBurned = Boolean(state.burned);
+        if (isBurned) {
+          brightness = 0;
+        }
 
         const lightsUp = brightness > 0.01;
 
@@ -134,14 +224,39 @@ class CircuitSnapshot {
         if (!groundPath.exists && !cathodeConnectedToBoardSignal) {
           reasons.push('Sem ligação de GND');
         }
-        if (lightsUp && !hasResistor) {
+        if (!isBurned && lightsUp && !hasResistor) {
           reasons.push('Falta resistor em série (iluminação sem proteção)');
+        }
+        if (isBurned) {
+          const reasonLabel = state.burnReason === 'sobrecorrente' ? 'sobre-corrente' : 'sobre-tensão';
+          reasons.push(`LED danificado por ${reasonLabel}`);
+        } else {
+          if (voltageWarning) {
+            reasons.push(`Aviso: queda de tensão ${voltageDrop.toFixed(2)} V acima do ideal`);
+          }
+          if (currentWarning && Number.isFinite(currentEstimate)) {
+            reasons.push(`Aviso: corrente estimada ${(currentEstimate * 1000).toFixed(1)} mA acima do ideal`);
+          }
+        }
+        if (!lightsUp && hasDrivePath && effectiveSupplyVoltage > 0 && effectiveSupplyVoltage <= forwardVoltageMin) {
+          reasons.push('Tensão insuficiente para polarizar o LED');
         }
 
         results.push({
           component,
           lightsUp,
           brightness,
+          voltageDrop,
+          supplyVoltage,
+          seriesResistance: totalResistance,
+          effectiveResistance,
+          currentEstimate,
+          damageEvent,
+          damageReason: state.burnReason ?? null,
+          warnings: !isBurned ? {
+            voltage: voltageWarning,
+            current: currentWarning,
+          } : null,
           reasons,
         });
       });
@@ -157,44 +272,236 @@ class CircuitSnapshot {
 
   findPath(startNode, predicate) {
     const queue = [];
-    const visited = new Map();
+    const visited = new Set();
 
+    const startSupplyComponent = this.getComponentSupplyCandidate(startNode.component);
+    const startSources = startSupplyComponent ? [startSupplyComponent] : [];
     queue.push({
       node: startNode,
-      resistorIncluded: startNode.componentType === 'resistor',
+      resistorIncluded: false,
+      resistors: [],
+      sources: startSources,
+      leds: [],
     });
-    visited.set(startNode.id, new Set([Number(startNode.componentType === 'resistor')]));
+    visited.add(`${startNode.id}:0`);
 
     while (queue.length) {
-      const { node, resistorIncluded } = queue.shift();
+      const { node, resistorIncluded, resistors, sources, leds } = queue.shift();
       if (node !== startNode && predicate(node)) {
         return {
           exists: true,
           resistorIncluded,
+          resistors,
+          sources,
+          leds,
         };
       }
 
       node.connections.forEach((neighbor) => {
-        const neighborResistorIncluded =
-          resistorIncluded || neighbor.componentType === 'resistor';
-        const visitedStates = visited.get(neighbor.id) ?? new Set();
-        const stateKey = Number(neighborResistorIncluded);
+        const sameComponent = neighbor.componentId && neighbor.componentId === node.componentId;
+        const neighborIsResistor = sameComponent && neighbor.componentType === 'resistor';
+        const neighborIsLed = sameComponent && neighbor.componentType === 'led';
+        const neighborResistorIncluded = resistorIncluded || neighborIsResistor;
+        const stateKey = `${neighbor.id}:${neighborResistorIncluded ? 1 : 0}`;
+        if (visited.has(stateKey)) return;
+        visited.add(stateKey);
 
-        if (!visitedStates.has(stateKey)) {
-          visitedStates.add(stateKey);
-          visited.set(neighbor.id, visitedStates);
-          queue.push({
-            node: neighbor,
-            resistorIncluded: neighborResistorIncluded,
-          });
-        }
+        const nextResistors = neighborIsResistor && neighbor.component
+          ? [...resistors, neighbor.component]
+          : [...resistors];
+
+        const supplyCandidate = this.getComponentSupplyCandidate(neighbor.component);
+        const nextSources = supplyCandidate
+          ? [...sources, supplyCandidate]
+          : [...sources];
+
+        const nextLeds = neighborIsLed && neighbor.component
+          ? [...leds, neighbor.component]
+          : [...leds];
+
+        queue.push({
+          node: neighbor,
+          resistorIncluded: neighborResistorIncluded,
+          resistors: nextResistors,
+          sources: nextSources,
+          leds: nextLeds,
+        });
       });
     }
 
     return {
       exists: false,
       resistorIncluded: false,
+      resistors: [],
+      sources: [],
+      leds: [],
     };
+  }
+
+  computeSeriesResistance(resistorComponents = []) {
+    const unique = new Map();
+    resistorComponents.forEach((component) => {
+      if (!component || !component.id) return;
+      if (!unique.has(component.id)) {
+        unique.set(component.id, component);
+      }
+    });
+
+    let total = 0;
+    const contributing = [];
+
+    unique.forEach((component) => {
+      const rawValue =
+        component.props?.value ?? component.props?.resistance ?? component.props?.ohms;
+      const ohms = this.parseResistanceValue(rawValue);
+      if (Number.isFinite(ohms) && ohms > 0) {
+        total += ohms;
+        contributing.push({ component, ohms });
+      }
+    });
+
+    return {
+      total,
+      components: contributing,
+    };
+  }
+
+  computePathResistance(pathResult, options = {}) {
+    if (!pathResult) return 0;
+    const { includeLed = false } = options;
+    let total = 0;
+
+    const resistorUnique = new Map();
+    (pathResult.resistors ?? []).forEach((component) => {
+      if (!component || !component.id) return;
+      if (!resistorUnique.has(component.id)) {
+        resistorUnique.set(component.id, component);
+      }
+    });
+
+    resistorUnique.forEach((component) => {
+      const rawValue =
+        component?.props?.value ?? component?.props?.resistance ?? component?.props?.ohms;
+      const ohms = this.parseResistanceValue(rawValue);
+      if (Number.isFinite(ohms) && ohms > 0) {
+        total += ohms;
+      }
+    });
+
+    if (includeLed) {
+      const ledUnique = new Map();
+      (pathResult.leds ?? []).forEach((component) => {
+        if (!component || !component.id) return;
+        if (!ledUnique.has(component.id)) {
+          ledUnique.set(component.id, component);
+        }
+      });
+
+      ledUnique.forEach((component) => {
+        const ledResistance = this.estimateLedResistance(component);
+        if (Number.isFinite(ledResistance) && ledResistance > 0) {
+          total += ledResistance;
+        }
+      });
+    }
+
+    return total;
+  }
+
+  parseResistanceValue(raw) {
+    if (raw === null || typeof raw === 'undefined') return NaN;
+    if (typeof raw === 'number') return raw;
+    const normalized = String(raw).trim().toLowerCase();
+    if (!normalized) return NaN;
+
+    const match = normalized.match(/^([\d.,]+)\s*([a-zµΩ]*)$/i);
+    if (!match) return NaN;
+
+    const numericPart = Number.parseFloat(match[1].replace(',', '.'));
+    if (!Number.isFinite(numericPart)) return NaN;
+
+    const unit = match[2] ?? '';
+    if (!unit) return numericPart;
+
+    if (/(k|kω|kohm|kΩ)/i.test(unit)) {
+      return numericPart * 1_000;
+    }
+    if (/(m|meg|mega|mω|mΩ)/i.test(unit)) {
+      return numericPart * 1_000_000;
+    }
+    if (/(g|gω|gΩ)/i.test(unit)) {
+      return numericPart * 1_000_000_000;
+    }
+    if (/(µ|u)/i.test(unit)) {
+      return numericPart / 1_000_000;
+    }
+    return numericPart;
+  }
+
+  resolveSupplyVoltage(sources = []) {
+    let supply = 0;
+    sources.forEach((component) => {
+      if (!component) return;
+      const candidateVoltage = this.getComponentSupplyVoltage(component);
+      if (candidateVoltage > supply) {
+        supply = candidateVoltage;
+      }
+    });
+    return supply > 0 ? supply : DEFAULT_SUPPLY_VOLTAGE;
+  }
+
+  parseVoltageValue(raw) {
+    if (raw === null || typeof raw === 'undefined') return NaN;
+    if (typeof raw === 'number') return raw;
+    const normalized = String(raw).trim().toLowerCase();
+    if (!normalized) return NaN;
+    const match = normalized.match(/^([\d.,]+)\s*([a-zv]*)$/);
+    if (!match) return NaN;
+    const numericPart = Number.parseFloat(match[1].replace(',', '.'));
+    if (!Number.isFinite(numericPart)) return NaN;
+    const unit = match[2] ?? '';
+    if (!unit || unit === 'v' || unit === 'volt' || unit === 'volts') return numericPart;
+    if (unit === 'mv') return numericPart / 1000;
+    if (unit === 'kv') return numericPart * 1000;
+    return numericPart;
+  }
+
+  estimateLedResistance(component) {
+    if (!component) return LED_INTERNAL_RESISTANCE;
+    const info = getLedColorInfo(component.props?.color);
+    if (!info) return LED_INTERNAL_RESISTANCE;
+    const vf = (info.forwardVoltageMin + info.forwardVoltageMax) / 2;
+    const current = info.maxCurrent || 0.02;
+    if (!Number.isFinite(vf) || !Number.isFinite(current) || current <= 0) {
+      return LED_INTERNAL_RESISTANCE;
+    }
+    const ohms = vf / current;
+    return Number.isFinite(ohms) && ohms > 0 ? ohms : LED_INTERNAL_RESISTANCE;
+  }
+
+  resolveSupplyVoltageForNode(node, excludeComponentId) {
+    if (!node) return DEFAULT_SUPPLY_VOLTAGE;
+
+    const component = node.component;
+    if (component?.type === 'battery') {
+      const parsed = this.parseVoltageValue(component.props?.voltage ?? component.props?.value);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+
+    let directSupply = 0;
+    const directCandidate = this.getComponentSupplyCandidate(component, excludeComponentId);
+    if (directCandidate) {
+      directSupply = this.getComponentSupplyVoltage(directCandidate);
+    }
+
+    const path = this.findPath(node, (neighbor) =>
+      neighbor.componentId !== excludeComponentId && this.isPowerReferenceNode(neighbor),
+    );
+    const pathSupply = this.resolveSupplyVoltage(path.sources);
+    const supply = Math.max(directSupply, pathSupply);
+    return supply > 0 ? supply : DEFAULT_SUPPLY_VOLTAGE;
   }
 
   hasPath(startNode, predicate) {
@@ -223,6 +530,70 @@ class CircuitSnapshot {
       return node.voltageState === 'high';
     }
     return node.pinType === 'power' || node.voltageState === 'high';
+  }
+
+  isPowerSourceNode(node) {
+    const component = node?.component;
+    if (!component) return false;
+    const type = component.type ?? component.id;
+    return type === 'battery' || type === 'amado-board' || type === 'esp32';
+  }
+
+  isPowerReferenceNode(node) {
+    if (!node) return false;
+    const componentType = node.component?.type ?? node.componentId;
+    const pinType = node.pinType ?? 'signal';
+
+    if (componentType === 'battery') {
+      return pinType === 'power';
+    }
+
+    if (componentType === 'amado-board' || componentType === 'esp32') {
+      if (pinType === 'power') return true;
+      if (pinType === 'signal' && node.voltageState === 'high') return true;
+    }
+
+    return false;
+  }
+
+  isGroundReferenceNode(node) {
+    if (!node) return false;
+    const componentType = node.component?.type ?? node.componentId;
+    const pinType = node.pinType ?? 'signal';
+
+    if (componentType === 'battery') {
+      return pinType === 'ground';
+    }
+
+    if (componentType === 'amado-board' || componentType === 'esp32') {
+      if (pinType === 'ground') return true;
+      if (pinType === 'signal' && node.voltageState === 'low') return true;
+    }
+
+    return false;
+  }
+
+  getComponentSupplyCandidate(component, excludeComponentId) {
+    if (!component) return null;
+    if (excludeComponentId && component.id === excludeComponentId) return null;
+    const type = component.type ?? component.id;
+    if (type === 'battery' || type === 'amado-board' || type === 'esp32') {
+      return component;
+    }
+    return null;
+  }
+
+  getComponentSupplyVoltage(component) {
+    if (!component) return 0;
+    const type = component.type ?? component.id;
+    if (type === 'battery') {
+      const parsed = this.parseVoltageValue(component.props?.voltage ?? component.props?.value);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_SUPPLY_VOLTAGE;
+    }
+    if (type === 'amado-board' || type === 'esp32') {
+      return DEFAULT_SUPPLY_VOLTAGE;
+    }
+    return 0;
   }
 
   isGroundNode(node) {
@@ -331,6 +702,87 @@ class CircuitSnapshot {
     return null;
   }
 
+  estimateNodeVoltage(node, excludeComponentId) {
+    if (!node) return 0;
+
+    const startIsPower = this.isPowerReferenceNode(node);
+    const startIsGround = this.isGroundReferenceNode(node);
+    const directSupplyComponent = this.getComponentSupplyCandidate(node.component, excludeComponentId);
+
+    const supplyPath = startIsPower
+      ? {
+          exists: true,
+          resistorIncluded: false,
+          resistors: [],
+          sources: directSupplyComponent ? [directSupplyComponent] : [],
+          leds: [],
+        }
+      : this.findPath(node, (neighbor) =>
+          neighbor.componentId !== excludeComponentId && this.isPowerReferenceNode(neighbor),
+        );
+
+    const groundPath = startIsGround
+      ? {
+          exists: true,
+          resistorIncluded: false,
+          resistors: [],
+          sources: [],
+          leds: [],
+        }
+      : this.findPath(node, (neighbor) =>
+          neighbor.componentId !== excludeComponentId && this.isGroundReferenceNode(neighbor),
+        );
+
+    let supplyVoltage = 0;
+    if (supplyPath.exists && Array.isArray(supplyPath.sources) && supplyPath.sources.length) {
+      supplyVoltage = this.resolveSupplyVoltage(supplyPath.sources);
+    } else if (directSupplyComponent) {
+      supplyVoltage = this.getComponentSupplyVoltage(directSupplyComponent);
+    }
+
+    if ((!Number.isFinite(supplyVoltage) || supplyVoltage <= 0) && !startIsPower) {
+      const fallbackSupply = this.resolveSupplyVoltageForNode(node, excludeComponentId);
+      if (Number.isFinite(fallbackSupply) && fallbackSupply > supplyVoltage) {
+        supplyVoltage = fallbackSupply;
+      }
+    }
+
+    if (!Number.isFinite(supplyVoltage) || supplyVoltage <= 0) {
+      supplyVoltage = DEFAULT_SUPPLY_VOLTAGE;
+    }
+
+    const supplyResistance = startIsPower
+      ? 0
+      : this.computePathResistance(supplyPath, { includeLed: true });
+    const groundResistance = startIsGround
+      ? 0
+      : this.computePathResistance(groundPath, { includeLed: true });
+
+    const hasGroundReference = startIsGround || groundPath.exists;
+    if (!hasGroundReference) {
+      return supplyVoltage;
+    }
+
+    if (groundResistance === 0 && supplyResistance === 0) {
+      return supplyVoltage;
+    }
+
+    if (groundResistance === 0) {
+      return 0;
+    }
+
+    if (supplyResistance === 0) {
+      return supplyVoltage;
+    }
+
+    const totalResistance = supplyResistance + groundResistance;
+    if (totalResistance <= 0) {
+      return supplyVoltage;
+    }
+
+    return supplyVoltage * (groundResistance / totalResistance);
+  }
+
   computeNodeVoltageState(node) {
     if (!node) return 'floating';
 
@@ -373,6 +825,9 @@ class CircuitSnapshot {
         case 'resistor':
           this.connectNodesByIndex(component.id, 0, 1);
           break;
+        case 'led':
+          this.applyLedConnections(component);
+          break;
         case 'pushbutton':
           this.applyPushbuttonConnections(component);
           break;
@@ -380,6 +835,14 @@ class CircuitSnapshot {
           break;
       }
     });
+  }
+
+  applyLedConnections(component) {
+    if (!component) return;
+    if (component.state?.burned) {
+      return;
+    }
+    this.connectNodesByIndex(component.id, 0, 1);
   }
 
   applyPushbuttonConnections(component) {
@@ -541,7 +1004,18 @@ class Simulation {
       if (!result.lightsUp && result.reasons.length) {
         errorMessages.push(`LED ${result.component.id}: ${result.reasons.join(', ')}`);
       }
+      if (result.damageEvent) {
+        const reasonLabel = result.damageReason === 'sobrecorrente' ? 'sobre-corrente' : 'sobre-tensão';
+        const message = `LED ${result.component.id}: danificado por ${reasonLabel}`;
+        this.listeners.onLog?.({
+          message,
+          level: 'error',
+          timestamp: Date.now(),
+        });
+      }
     });
+
+    this.updateMultimeters(snapshot);
 
     const signature = errorMessages.sort().join('|');
     if (errorMessages.length && signature !== this.lastErrorSignature) {
@@ -558,20 +1032,92 @@ class Simulation {
     const level = Math.max(0, Math.min(1, Number(brightness) || 0));
     const intensity = Math.round(level * 1023);
     const booleanValue = intensity > 0;
+    const isDamaged = Boolean(component.state?.burned);
+
+    if (component.container) {
+      component.container.classList.toggle('led-damaged', isDamaged);
+    }
+
+    if (isDamaged) {
+      element.value = false;
+      element.setAttribute('value', '0');
+      element.setAttribute('brightness', '0');
+      if ('brightness' in element) {
+        element.brightness = 0;
+      }
+      element.setAttribute('data-led-damaged', '1');
+      element.style.filter = 'saturate(0%) contrast(120%)';
+      return;
+    }
+
     element.value = booleanValue;
     element.setAttribute('value', booleanValue ? '1' : '0');
     element.setAttribute('brightness', String(level));
     if ('brightness' in element) {
-      element.brightness = level;
+        element.brightness = level;
+    }
+    element.removeAttribute('data-led-damaged');
+    element.style.filter = '';
+  }
+
+  updateMultimeters(snapshot) {
+    if (!this.canvasManager) return;
+    this.canvasManager.components
+      .filter((component) => component.type === 'multimeter')
+      .forEach((component) => this.updateMultimeter(component, snapshot));
+  }
+
+  updateMultimeter(component, snapshot) {
+    const displayElement = component.element?.__displayElement;
+    if (!displayElement) return;
+
+    const positiveNode = snapshot.getNodeByComponentPin(component.id, 'V+');
+    const negativeNode = snapshot.getNodeByComponentPin(component.id, 'V-');
+
+    if (!positiveNode || !negativeNode) {
+      displayElement.textContent = '---';
+      return;
+    }
+
+    const voltagePlus = snapshot.estimateNodeVoltage(positiveNode, component.id);
+    const voltageMinus = snapshot.estimateNodeVoltage(negativeNode, component.id);
+    const voltage = voltagePlus - voltageMinus;
+
+    if (!Number.isFinite(voltage)) {
+      displayElement.textContent = '---';
+      return;
+    }
+
+    displayElement.textContent = `${voltage.toFixed(2)} V`;
+    component.state = component.state ?? {};
+    component.state.lastVoltage = voltage;
+  }
+
+  resetMultimeter(component) {
+    const displayElement = component.element?.__displayElement;
+    if (displayElement) {
+      displayElement.textContent = '---';
+    }
+    if (component.state) {
+      delete component.state.lastVoltage;
     }
   }
 
   resetOutputs() {
     this.clearBoardStates();
     if (!this.canvasManager) return;
-    this.canvasManager.components
-      .filter((component) => component.type === 'led')
-      .forEach((component) => this.setLedState(component, 0));
+    this.canvasManager.components.forEach((component) => {
+      if (component.type === 'led') {
+        if (component.state) {
+          delete component.state.burned;
+          delete component.state.burnReason;
+          delete component.state.burnedAt;
+        }
+        this.setLedState(component, 0);
+      } else if (component.type === 'multimeter') {
+        this.resetMultimeter(component);
+      }
+    });
   }
 
   clearBoardStates() {

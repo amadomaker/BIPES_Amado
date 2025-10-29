@@ -511,6 +511,141 @@ body {
   animation: pulse-wire 1.5s infinite;
 }
 
+.wire-editing {
+  stroke-dasharray: 8 4;
+}
+
+.canvas-component.led-damaged {
+  filter: grayscale(60%) contrast(110%);
+}
+
+.canvas-component.led-damaged::after {
+  content: '';
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background:
+    linear-gradient(45deg, rgba(255, 56, 0, 0.9) 0%, rgba(255, 56, 0, 0.9) 20%, rgba(255, 255, 255, 0) 20%),
+    linear-gradient(-45deg, rgba(255, 154, 0, 0.85) 0%, rgba(255, 154, 0, 0.85) 20%, rgba(255, 255, 255, 0) 20%),
+    radial-gradient(circle at center, rgba(255, 225, 0, 0.85) 0%, rgba(255, 132, 0, 0.6) 45%, rgba(255, 0, 0, 0.0) 70%);
+  z-index: 6;
+}
+
+.canvas-component.led-damaged::before {
+  content: '';
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  left: 50%;
+  top: 43%;
+  transform: translate(-50%, -50%) rotate(15deg);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0%, rgba(255, 126, 67, 0.0) 65%);
+  mix-blend-mode: screen;
+  opacity: 0.7;
+  z-index: 6;
+}
+
+.canvas-component.led-damaged .component-label {
+  opacity: 0.55;
+}
+
+.multimeter-shell {
+  width: 110px;
+  padding: 10px 12px 18px;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #2f3640 0%, #3d4752 100%);
+  color: #ecf0f1;
+  font-family: 'Roboto Mono', monospace;
+  position: relative;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+.multimeter-header {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.multimeter-display {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: radial-gradient(circle at 20% 20%, rgba(74, 189, 172, 0.45), rgba(52, 152, 219, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 18px;
+  text-align: right;
+}
+
+.multimeter-mode {
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-align: right;
+  opacity: 0.65;
+}
+
+.multimeter-probes {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -16px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 18px;
+}
+
+.multimeter-probe {
+  width: 12px;
+  height: 24px;
+  border-radius: 6px;
+  background: #7f8fa6;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.probe-positive {
+  background: #e74c3c;
+}
+
+.probe-negative {
+  background: #16a085;
+}
+
+.multimeter-preview {
+  transform: scale(0.75);
+}
+
+.wire-guide {
+  pointer-events: none;
+  stroke: #7f8c8d;
+  stroke-width: 1.5;
+  opacity: 0.35;
+  transition: stroke 0.12s ease, stroke-width 0.12s ease, opacity 0.12s ease;
+}
+
+.wire-guide-active {
+  stroke: #f1c40f;
+  stroke-width: 2.5;
+  opacity: 1;
+}
+
+.wire-anchor-handle {
+  fill: #1abc9c;
+  stroke: #0b5d4c;
+  stroke-width: 2;
+  cursor: move;
+  pointer-events: auto;
+}
+
+.wire-anchor-handle:hover {
+  fill: #48c9b0;
+}
+
 @keyframes pulse-wire {
   0%, 100% {
     filter: drop-shadow(0 0 3px rgba(0, 123, 255, 0.7));
@@ -526,6 +661,10 @@ body {
 }
 
 #wire-layer .wire {
+  pointer-events: auto;
+}
+
+#wire-layer .wire-anchor-handle {
   pointer-events: auto;
 }
 

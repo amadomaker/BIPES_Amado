@@ -6,6 +6,9 @@ import {
   clearPropertiesPanel,
 } from './ui.js';
 
+const SNAP_THRESHOLD = 8;
+const GUIDE_ACTIVE_THRESHOLD = 4;
+
 export class WiringManager {
   constructor(canvasManager) {
     this.canvasManager = canvasManager;
@@ -15,16 +18,69 @@ export class WiringManager {
     this.selectedPin = null;
     this.selectedWire = null;
     this.nextWireId = 1;
+    this.tempWireAnchors = [];
+    this.tempWireCursor = null;
+    this.editingConnection = null;
+    this.anchorHandles = [];
+    this.activeAnchorHandle = null;
+    this.connectionDragState = null;
 
     this.createSVGLayer();
     this.createTempWire();
+    this.createGuideLines();
     this.registerWorkspaceEvents();
+
+    this.handleAnchorPointerMove = this.handleAnchorPointerMove.bind(this);
+    this.handleAnchorPointerUp = this.handleAnchorPointerUp.bind(this);
+    this.handleConnectionDragMove = this.handleConnectionDragMove.bind(this);
+    this.handleConnectionDragEnd = this.handleConnectionDragEnd.bind(this);
   }
 
   registerWorkspaceEvents() {
     this.workspace.addEventListener('mousemove', (event) => {
-      if (this.selectedPin) {
+      if (this.isWiring()) {
         this.updateTempWire(event);
+      }
+    });
+
+    this.workspace.addEventListener('click', (event) => {
+      if (typeof event.button === 'number' && event.button !== 0) return;
+
+      if (this.isWiring()) {
+        if (event.target.closest?.('.pin')) return;
+        const point = this.getWorkspaceCoordinates(event);
+        this.addAnchorPoint(point);
+        event.stopPropagation();
+        return;
+      }
+
+      if (this.isEditingConnection()) {
+        if (
+          event.target.closest?.('.pin') ||
+          event.target.closest?.('.wire-anchor-handle') ||
+          event.target.closest?.('.wire') ||
+          event.target.closest?.('.wire-guide')
+        ) {
+          return;
+        }
+        this.deselectWire();
+      }
+    });
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        if (this.isWiring()) {
+          event.preventDefault();
+          this.cancelWiring();
+        } else if (this.isEditingConnection()) {
+          event.preventDefault();
+          this.deselectWire();
+        }
+      } else if (event.key === 'Enter') {
+        if (this.isEditingConnection()) {
+          event.preventDefault();
+          this.deselectWire();
+        }
       }
     });
   }
@@ -196,6 +252,7 @@ export class WiringManager {
   }
 
   handlePinClick(pinElement) {
+    this.stopEditingConnection();
     if (!this.selectedPin) {
       this.selectedPin = pinElement;
       pinElement.classList.add('pin-selected');
@@ -208,49 +265,93 @@ export class WiringManager {
       return;
     }
 
-    this.createConnection(this.selectedPin, pinElement);
+    const anchors = this.tempWireAnchors.map((point) => ({ ...point }));
+    this.createConnection(this.selectedPin, pinElement, {
+      anchors,
+      autoSelect: false,
+    });
     this.cancelWiring();
     this.canvasManager.notifyInteraction();
   }
 
   startTempWire(pin) {
     const position = this.getPinPosition(pin);
-    this.tempWire.setAttribute('x1', position.x);
-    this.tempWire.setAttribute('y1', position.y);
-    this.tempWire.setAttribute('x2', position.x);
-    this.tempWire.setAttribute('y2', position.y);
+    this.tempWireAnchors = [];
+    this.tempWireCursor = { ...position };
     this.tempWire.style.display = 'block';
     this.workspace.style.cursor = 'crosshair';
+    this.renderTempWire();
+    this.toggleGuideLines(true);
   }
 
   createConnection(pin1, pin2, options = {}) {
     const wireId = `wire-${this.nextWireId++}`;
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.id = wireId;
-    line.classList.add('wire');
-    line.dataset.pin1 = `${pin1.dataset.componentId}-${pin1.dataset.pinIndex}`;
-    line.dataset.pin2 = `${pin2.dataset.componentId}-${pin2.dataset.pinIndex}`;
+    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    polyline.id = wireId;
+    polyline.classList.add('wire');
+    polyline.dataset.pin1 = `${pin1.dataset.componentId}-${pin1.dataset.pinIndex}`;
+    polyline.dataset.pin2 = `${pin2.dataset.componentId}-${pin2.dataset.pinIndex}`;
 
     const color = this.getWireColor(pin1.dataset.pinType, pin2.dataset.pinType);
-    line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '3');
+    polyline.setAttribute('stroke', color);
+    polyline.setAttribute('stroke-width', '3');
+    polyline.setAttribute('fill', 'none');
+    polyline.setAttribute('stroke-linecap', 'round');
+    polyline.setAttribute('stroke-linejoin', 'round');
 
-    this.updateWirePosition(line, pin1, pin2);
+    const {
+      anchors: rawAnchors = [],
+      silent = false,
+      autoSelect = true,
+    } = options;
+
+    const anchors = Array.isArray(rawAnchors)
+      ? rawAnchors
+          .map((point) => ({
+            x: Number(point.x),
+            y: Number(point.y),
+          }))
+          .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+      : [];
 
     const connection = {
       id: wireId,
       pin1,
       pin2,
-      line,
+      line: polyline,
       color,
+      anchors,
     };
 
-    line.addEventListener('click', (event) => {
+    this.updateWirePath(connection);
+
+    polyline.addEventListener('click', (event) => {
       event.stopPropagation();
       this.selectWire(connection);
     });
 
-    line.addEventListener('contextmenu', (event) => {
+    polyline.addEventListener('pointerdown', (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      if (!this.isEditingConnection() || this.editingConnection.id !== connection.id) return;
+      if (event.target.classList.contains('wire-anchor-handle')) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.startConnectionDrag(connection, event);
+    });
+
+    polyline.addEventListener('dblclick', (event) => {
+      if (!this.isEditingConnection() || this.editingConnection.id !== connection.id) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.cancelConnectionDrag(false);
+      const pointer = this.getWorkspaceCoordinates(event);
+      const placement = this.computeAnchorPlacement(connection, pointer);
+      this.addAnchorToEditingConnection(placement.point, {
+        insertIndex: placement.insertIndex,
+      });
+    });
+
+    polyline.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
       this.selectWire(connection);
@@ -271,10 +372,10 @@ export class WiringManager {
       });
     });
 
-    this.svgLayer.appendChild(line);
+    this.svgLayer.appendChild(polyline);
     this.connections.push(connection);
 
-    if (!options.silent) {
+    if (!silent && autoSelect) {
       this.selectWire(connection);
     }
 
@@ -287,9 +388,11 @@ export class WiringManager {
     this.selectedWire = connection;
     connection.line.classList.add('wire-selected');
     this.displayWireProperties(connection);
+    this.startEditingConnection(connection);
   }
 
   deselectWire() {
+    this.stopEditingConnection();
     if (!this.selectedWire) return;
     this.selectedWire.line.classList.remove('wire-selected');
     this.selectedWire = null;
@@ -308,6 +411,9 @@ export class WiringManager {
     if (index === -1) return;
 
     const [connection] = this.connections.splice(index, 1);
+    if (this.editingConnection?.id === connection.id) {
+      this.stopEditingConnection();
+    }
     connection.line.remove();
     if (this.selectedWire?.id === wireId) {
       this.selectedWire = null;
@@ -353,6 +459,131 @@ export class WiringManager {
     });
   }
 
+  startEditingConnection(connection) {
+    if (this.editingConnection?.id === connection.id) return;
+    if (this.editingConnection) {
+      this.stopEditingConnection();
+    }
+    this.editingConnection = connection;
+    connection.line.classList.add('wire-editing');
+    this.toggleGuideLines(false);
+
+    if (!Array.isArray(connection.anchors)) {
+      connection.anchors = [];
+    }
+
+    if (connection.anchors.length === 0) {
+      const start = this.getPinPosition(connection.pin1);
+      const end = this.getPinPosition(connection.pin2);
+      const mid = {
+        x: (start.x + end.x) / 2,
+        y: (start.y + end.y) / 2,
+      };
+      connection.anchors.push(mid);
+      this.updateWirePath(connection);
+    }
+
+    this.createAnchorHandles(connection);
+  }
+
+  stopEditingConnection() {
+    this.cancelConnectionDrag(true);
+    if (!this.editingConnection) return;
+
+    const connection = this.editingConnection;
+    this.removeAnchorHandles();
+    connection.line.classList.remove('wire-editing');
+    if (this.activeAnchorHandle) {
+      window.removeEventListener('pointermove', this.handleAnchorPointerMove);
+      window.removeEventListener('pointerup', this.handleAnchorPointerUp);
+      window.removeEventListener('pointercancel', this.handleAnchorPointerUp);
+      this.activeAnchorHandle = null;
+    }
+    this.toggleGuideLines(false);
+    this.editingConnection = null;
+  }
+
+  createAnchorHandles(connection) {
+    this.removeAnchorHandles();
+    this.activeAnchorHandle = null;
+    connection.anchors.forEach((anchor, index) => {
+      const handle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      handle.classList.add('wire-anchor-handle');
+      handle.setAttribute('r', '6');
+      handle.dataset.anchorIndex = String(index);
+      this.svgLayer.appendChild(handle);
+      this.anchorHandles.push(handle);
+      this.positionAnchorHandle(handle, anchor);
+
+      handle.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        handle.setPointerCapture(event.pointerId);
+        this.activeAnchorHandle = {
+          pointerId: event.pointerId,
+          index,
+          handle,
+        };
+        window.addEventListener('pointermove', this.handleAnchorPointerMove);
+        window.addEventListener('pointerup', this.handleAnchorPointerUp);
+        window.addEventListener('pointercancel', this.handleAnchorPointerUp);
+      });
+    });
+  }
+
+  removeAnchorHandles() {
+    this.anchorHandles.forEach((handle) => handle.remove());
+    this.anchorHandles = [];
+  }
+
+  positionAnchorHandle(handle, anchor) {
+    handle.setAttribute('cx', anchor.x);
+    handle.setAttribute('cy', anchor.y);
+  }
+
+  updateAnchorHandlePositions(connection) {
+    if (!this.editingConnection || this.editingConnection.id !== connection.id) return;
+    connection.anchors.forEach((anchor, index) => {
+      const handle = this.anchorHandles[index];
+      if (!handle) return;
+      this.positionAnchorHandle(handle, anchor);
+    });
+  }
+
+  handleAnchorPointerMove(event) {
+    if (!this.activeAnchorHandle || !this.editingConnection) return;
+    const { pointerId, index } = this.activeAnchorHandle;
+    if (event.pointerId !== pointerId) return;
+    event.preventDefault();
+    const pointer = this.getWorkspaceCoordinates(event);
+    const connection = this.editingConnection;
+    if (!connection.anchors[index]) return;
+    const prev = connection.anchors[index - 1] ?? this.getPinPosition(connection.pin1);
+    const next = connection.anchors[index + 1] ?? this.getPinPosition(connection.pin2);
+    const snapResult = this.applyAxisSnap(pointer, [prev, next]);
+    const coords = snapResult.point;
+    connection.anchors[index] = coords;
+    this.positionAnchorHandle(this.anchorHandles[index], coords);
+    this.updateWirePath(connection);
+    const origin = snapResult.reference ?? prev ?? next ?? coords;
+    this.toggleGuideLines(true);
+    this.updateGuideLines(origin, coords);
+  }
+
+  handleAnchorPointerUp(event) {
+    if (!this.activeAnchorHandle || event.pointerId !== this.activeAnchorHandle.pointerId) return;
+    if (this.editingConnection) {
+      this.updateWirePath(this.editingConnection);
+      this.updateAnchorHandlePositions(this.editingConnection);
+      this.canvasManager.notifyInteraction();
+    }
+    this.activeAnchorHandle = null;
+    window.removeEventListener('pointermove', this.handleAnchorPointerMove);
+    window.removeEventListener('pointerup', this.handleAnchorPointerUp);
+    window.removeEventListener('pointercancel', this.handleAnchorPointerUp);
+    this.toggleGuideLines(false);
+  }
+
   removePinsForComponent(componentId) {
     const pins = this.pinRegistry.get(componentId);
     if (pins) {
@@ -379,7 +610,16 @@ export class WiringManager {
       const pin2 = this.getPinElement(wire.to.componentId, wire.to.pinIndex);
       if (!pin1 || !pin2) continue;
 
-      const connection = this.createConnection(pin1, pin2, { silent: true });
+      const anchors = Array.isArray(wire.anchors)
+        ? wire.anchors
+            .map((point) => ({ x: Number(point.x), y: Number(point.y) }))
+            .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+        : [];
+
+      const connection = this.createConnection(pin1, pin2, {
+        silent: true,
+        anchors,
+      });
       if (!connection) continue;
 
       if (wire.id) {
@@ -413,6 +653,7 @@ export class WiringManager {
         componentId: connection.pin2.dataset.componentId,
         pinIndex: Number(connection.pin2.dataset.pinIndex),
       },
+      anchors: connection.anchors.map((point) => ({ x: point.x, y: point.y })),
     }));
   }
 
@@ -439,13 +680,31 @@ export class WiringManager {
   }
 
   createTempWire() {
-    this.tempWire = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    this.tempWire = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     this.tempWire.id = 'temp-wire';
     this.tempWire.setAttribute('stroke', '#007acc');
     this.tempWire.setAttribute('stroke-width', '3');
     this.tempWire.setAttribute('stroke-dasharray', '6 4');
+    this.tempWire.setAttribute('fill', 'none');
+    this.tempWire.setAttribute('stroke-linejoin', 'round');
+    this.tempWire.setAttribute('stroke-linecap', 'round');
     this.tempWire.style.display = 'none';
     this.svgLayer.appendChild(this.tempWire);
+  }
+
+  createGuideLines() {
+    this.guideHorizontal = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    this.guideVertical = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+    [this.guideHorizontal, this.guideVertical].forEach((line) => {
+      line.classList.add('wire-guide');
+      line.setAttribute('stroke', '#7f8c8d');
+      line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('stroke-dasharray', '4 4');
+      line.setAttribute('stroke-linecap', 'round');
+      line.style.display = 'none';
+      this.svgLayer.appendChild(line);
+    });
   }
 
   cancelWiring() {
@@ -453,30 +712,324 @@ export class WiringManager {
       this.selectedPin.classList.remove('pin-selected');
       this.selectedPin = null;
     }
+    this.tempWireAnchors = [];
+    this.tempWireCursor = null;
     this.tempWire.style.display = 'none';
+    this.tempWire.removeAttribute('points');
     this.workspace.style.cursor = 'default';
+    this.toggleGuideLines(false);
     hideContextMenu();
   }
 
   updateTempWire(event) {
-    const workspaceRect = this.workspace.getBoundingClientRect();
-    this.tempWire.setAttribute('x2', event.clientX - workspaceRect.left);
-    this.tempWire.setAttribute('y2', event.clientY - workspaceRect.top);
+    this.tempWireCursor = this.getWorkspaceCoordinates(event);
+    this.renderTempWire();
   }
 
-  updateWirePosition(line, pin1, pin2) {
-    const position1 = this.getPinPosition(pin1);
-    const position2 = this.getPinPosition(pin2);
+  renderTempWire() {
+    if (!this.isWiring()) return;
+    const start = this.getPinPosition(this.selectedPin);
+    const points = [start, ...this.tempWireAnchors.map((point) => ({ ...point }))];
+    if (this.tempWireCursor) {
+      points.push({ ...this.tempWireCursor });
+    } else {
+      points.push({ ...start });
+    }
+    this.tempWire.setAttribute('points', this.pointsToAttribute(points));
+    this.updateGuideLines(start, this.tempWireCursor ?? start);
+  }
 
-    line.setAttribute('x1', position1.x);
-    line.setAttribute('y1', position1.y);
-    line.setAttribute('x2', position2.x);
-    line.setAttribute('y2', position2.y);
+  updateGuideLines(originPoint, targetPoint) {
+    if (!this.guideHorizontal || !this.guideVertical) return;
+    if (!(this.isWiring() || this.isEditingConnection())) {
+      this.toggleGuideLines(false);
+      return;
+    }
+
+    let origin = originPoint;
+    let target = targetPoint;
+
+    if (this.isWiring()) {
+      origin = this.tempWireAnchors[this.tempWireAnchors.length - 1] ?? originPoint;
+      target = targetPoint;
+    } else if ((!origin || !target) && this.isEditingConnection()) {
+      const fallback = this.getEditingGuideData();
+      origin = fallback?.origin ?? origin;
+      target = fallback?.target ?? target;
+    }
+
+    if (!origin || !target) {
+      this.toggleGuideLines(false);
+      return;
+    }
+    const showHorizontal = Math.abs(origin.x - target.x) > 0.5;
+    const showVertical = Math.abs(origin.y - target.y) > 0.5;
+
+    const horizontalAligned = Math.abs(origin.y - target.y) <= GUIDE_ACTIVE_THRESHOLD;
+    const verticalAligned = Math.abs(origin.x - target.x) <= GUIDE_ACTIVE_THRESHOLD;
+
+    const showHorizontalLine = showHorizontal || horizontalAligned;
+    const showVerticalLine = showVertical || verticalAligned;
+
+    if (showHorizontalLine) {
+      this.guideHorizontal.setAttribute('x1', origin.x);
+      this.guideHorizontal.setAttribute('y1', origin.y);
+      this.guideHorizontal.setAttribute('x2', target.x);
+      this.guideHorizontal.setAttribute('y2', origin.y);
+      this.guideHorizontal.style.display = 'block';
+    } else {
+      this.guideHorizontal.style.display = 'none';
+    }
+    this.guideHorizontal?.classList.toggle('wire-guide-active', horizontalAligned);
+
+    if (showVerticalLine) {
+      this.guideVertical.setAttribute('x1', target.x);
+      this.guideVertical.setAttribute('y1', origin.y);
+      this.guideVertical.setAttribute('x2', target.x);
+      this.guideVertical.setAttribute('y2', target.y);
+      this.guideVertical.style.display = 'block';
+    } else {
+      this.guideVertical.style.display = 'none';
+    }
+    this.guideVertical?.classList.toggle('wire-guide-active', verticalAligned);
+  }
+
+  toggleGuideLines(visible) {
+    [this.guideHorizontal, this.guideVertical].forEach((line) => {
+      if (!line) return;
+      if (visible) {
+        line.style.display = 'block';
+      } else {
+        line.style.display = 'none';
+        line.classList.remove('wire-guide-active');
+      }
+    });
+  }
+
+  getEditingGuideData() {
+    if (!this.isEditingConnection() || !this.activeAnchorHandle) return null;
+    const index = this.activeAnchorHandle.index;
+    const connection = this.editingConnection;
+    const current = connection.anchors[index];
+    if (!current) return null;
+
+    const prev = connection.anchors[index - 1] ?? this.getPinPosition(connection.pin1);
+    return {
+      origin: prev,
+      target: current,
+    };
+  }
+
+  addAnchorPoint(point) {
+    if (!this.isWiring()) return;
+    const lastAnchor = this.tempWireAnchors[this.tempWireAnchors.length - 1];
+    if (lastAnchor && this.pointsAreEqual(lastAnchor, point)) {
+      return;
+    }
+    this.tempWireAnchors.push({ ...point });
+    this.tempWireCursor = { ...point };
+    this.renderTempWire();
+  }
+
+  startConnectionDrag(connection, event) {
+    this.cancelConnectionDrag(false);
+    const pointer = this.getWorkspaceCoordinates(event);
+    this.connectionDragState = {
+      connection,
+      pointerId: event.pointerId,
+      start: pointer,
+      anchorsSnapshot: connection.anchors.map((anchor) => ({ ...anchor })),
+      originSnapshot: {
+        start: this.getPinPosition(connection.pin1),
+        end: this.getPinPosition(connection.pin2),
+      },
+      axis: null,
+    };
+    connection.line.setPointerCapture?.(event.pointerId);
+    window.addEventListener('pointermove', this.handleConnectionDragMove);
+    window.addEventListener('pointerup', this.handleConnectionDragEnd);
+    window.addEventListener('pointercancel', this.handleConnectionDragEnd);
+    this.toggleGuideLines(true);
+  }
+
+  handleConnectionDragMove(event) {
+    if (!this.connectionDragState || event.pointerId !== this.connectionDragState.pointerId) {
+      return;
+    }
+
+    const state = this.connectionDragState;
+    const pointer = this.getWorkspaceCoordinates(event);
+    let dx = pointer.x - state.start.x;
+    let dy = pointer.y - state.start.y;
+
+    if (!state.axis) {
+      state.axis = Math.abs(dx) >= Math.abs(dy) ? 'horizontal' : 'vertical';
+    }
+
+    if (state.axis === 'horizontal') {
+      dy = 0;
+    } else {
+      dx = 0;
+    }
+
+    const snappedVector = this.applyAxisSnap(
+      { x: state.start.x + dx, y: state.start.y + dy },
+      [state.start],
+    );
+    dx = snappedVector.point.x - state.start.x;
+    dy = snappedVector.point.y - state.start.y;
+
+    state.connection.anchors = state.anchorsSnapshot.map((anchor) => ({
+      x: anchor.x + dx,
+      y: anchor.y + dy,
+    }));
+
+    this.updateWirePath(state.connection);
+    this.updateAnchorHandlePositions(state.connection);
+    this.updateGuideLines(state.start, { x: state.start.x + dx, y: state.start.y + dy });
+  }
+
+  handleConnectionDragEnd(event) {
+    if (!this.connectionDragState || event.pointerId !== this.connectionDragState.pointerId) {
+      return;
+    }
+    this.connectionDragState.connection.line.releasePointerCapture?.(event.pointerId);
+    this.canvasManager.notifyInteraction();
+    this.cancelConnectionDrag(true);
+  }
+
+  cancelConnectionDrag(resetGuides) {
+    if (!this.connectionDragState) return;
+    this.connectionDragState.connection.line.releasePointerCapture?.(
+      this.connectionDragState.pointerId,
+    );
+    window.removeEventListener('pointermove', this.handleConnectionDragMove);
+    window.removeEventListener('pointerup', this.handleConnectionDragEnd);
+    window.removeEventListener('pointercancel', this.handleConnectionDragEnd);
+    if (resetGuides) {
+      this.toggleGuideLines(false);
+    }
+    this.connectionDragState = null;
+  }
+
+  addAnchorToEditingConnection(point, options = {}) {
+    if (!this.isEditingConnection()) return null;
+    const connection = this.editingConnection;
+
+    let insertIndex = options.insertIndex;
+    let newPoint = point;
+
+    if (insertIndex === undefined) {
+      const placement = this.computeAnchorPlacement(connection, point);
+      insertIndex = placement.insertIndex;
+      newPoint = placement.point;
+    }
+
+    connection.anchors.splice(insertIndex, 0, { ...newPoint });
+    this.updateWirePath(connection);
+    this.createAnchorHandles(connection);
+    this.updateAnchorHandlePositions(connection);
+
+    const handle = this.anchorHandles[insertIndex] ?? null;
+    const beginPointerId = options.beginDragPointerId;
+
+    if (beginPointerId != null && handle) {
+      this.activeAnchorHandle = {
+        pointerId: beginPointerId,
+        index: insertIndex,
+        handle,
+      };
+      const origin =
+        connection.anchors[insertIndex - 1] ?? this.getPinPosition(connection.pin1);
+      this.toggleGuideLines(true);
+      this.updateGuideLines(origin, connection.anchors[insertIndex]);
+      window.addEventListener('pointermove', this.handleAnchorPointerMove);
+      window.addEventListener('pointerup', this.handleAnchorPointerUp);
+      window.addEventListener('pointercancel', this.handleAnchorPointerUp);
+    } else {
+      this.activeAnchorHandle = null;
+      this.toggleGuideLines(false);
+    }
+
+    this.canvasManager.notifyInteraction();
+    return handle;
+  }
+
+  isWiring() {
+    return Boolean(this.selectedPin);
+  }
+
+  isEditingConnection() {
+    return Boolean(this.editingConnection);
+  }
+
+  getWorkspaceCoordinates(event) {
+    const workspaceRect = this.workspace.getBoundingClientRect();
+    return {
+      x: event.clientX - workspaceRect.left,
+      y: event.clientY - workspaceRect.top,
+    };
+  }
+
+  updateWirePath(connection) {
+    const points = this.getConnectionPoints(connection);
+    connection.line.setAttribute('points', this.pointsToAttribute(points));
+  }
+
+  getConnectionPoints(connection) {
+    const start = this.getPinPosition(connection.pin1);
+    const end = this.getPinPosition(connection.pin2);
+    return [start, ...connection.anchors.map((point) => ({ ...point })), end];
+  }
+
+  pointsToAttribute(points) {
+    return points.map((point) => `${point.x},${point.y}`).join(' ');
+  }
+
+  pointsAreEqual(pointA, pointB) {
+    const epsilon = 0.5;
+    return (
+      Math.abs(pointA.x - pointB.x) <= epsilon &&
+      Math.abs(pointA.y - pointB.y) <= epsilon
+    );
+  }
+
+  applyAxisSnap(point, references = []) {
+    let bestReference = null;
+    let bestAxis = null;
+    let bestDelta = SNAP_THRESHOLD + 1;
+
+    references.filter(Boolean).forEach((ref) => {
+      const deltaX = Math.abs(ref.x - point.x);
+      if (deltaX < bestDelta) {
+        bestDelta = deltaX;
+        bestAxis = 'vertical';
+        bestReference = ref;
+      }
+      const deltaY = Math.abs(ref.y - point.y);
+      if (deltaY < bestDelta) {
+        bestDelta = deltaY;
+        bestAxis = 'horizontal';
+        bestReference = ref;
+      }
+    });
+
+    const snapped = { ...point };
+    if (bestReference && bestDelta <= SNAP_THRESHOLD) {
+      if (bestAxis === 'horizontal') {
+        snapped.y = bestReference.y;
+      } else {
+        snapped.x = bestReference.x;
+      }
+    }
+
+    return { point: snapped, reference: bestReference, axis: bestAxis };
   }
 
   updateAllConnections() {
     this.connections.forEach((connection) => {
-      this.updateWirePosition(connection.line, connection.pin1, connection.pin2);
+      this.updateWirePath(connection);
+      this.updateAnchorHandlePositions(connection);
     });
   }
 
@@ -493,5 +1046,48 @@ export class WiringManager {
     if (type1 === 'ground' || type2 === 'ground') return '#000000';
     if (type1 === 'power' || type2 === 'power') return '#ff3b30';
     return '#00ff95';
+  }
+
+  computeAnchorPlacement(connection, point) {
+    const pathPoints = [
+      this.getPinPosition(connection.pin1),
+      ...connection.anchors.map((anchor) => ({ ...anchor })),
+      this.getPinPosition(connection.pin2),
+    ];
+
+    let closestIndex = 0;
+    let closestPoint = this.projectPointOnSegment(point, pathPoints[0], pathPoints[1]);
+    let minDistanceSq = this.distanceSquared(point, closestPoint);
+
+    for (let i = 0; i < pathPoints.length - 1; i += 1) {
+      const projection = this.projectPointOnSegment(point, pathPoints[i], pathPoints[i + 1]);
+      const distanceSq = this.distanceSquared(point, projection);
+      if (distanceSq < minDistanceSq) {
+        minDistanceSq = distanceSq;
+        closestIndex = i;
+        closestPoint = projection;
+      }
+    }
+
+    const insertIndex = Math.min(Math.max(closestIndex, 0), connection.anchors.length);
+    return { insertIndex, point: closestPoint };
+  }
+
+  projectPointOnSegment(point, start, end) {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const lengthSq = dx * dx + dy * dy || 1;
+    let t = ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSq;
+    t = Math.max(0, Math.min(1, t));
+    return {
+      x: start.x + t * dx,
+      y: start.y + t * dy,
+    };
+  }
+
+  distanceSquared(a, b) {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return dx * dx + dy * dy;
   }
 }

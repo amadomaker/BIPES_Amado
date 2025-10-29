@@ -100,36 +100,21 @@ function positionPropertiesPopover(anchor) {
 
   const margin = 12;
   const { offsetWidth: width, offsetHeight: height } = propertiesPopover;
-  let left = window.innerWidth - width - margin;
+  const viewportHeight = window.innerHeight;
   let top = margin;
 
   if (anchor && typeof anchor === 'object') {
-    const rect = {
-      left: Number(anchor.left) || 0,
-      top: Number(anchor.top) || 0,
-      width: Number(anchor.width) || 0,
-      height: Number(anchor.height) || 0,
-    };
-
-    left = rect.left + rect.width + margin;
-    top = rect.top;
-
-    if (left + width > window.innerWidth - margin) {
-      left = rect.left - width - margin;
-    }
-    if (left < margin) {
-      left = margin;
-    }
-
-    if (top + height > window.innerHeight - margin) {
-      top = window.innerHeight - height - margin;
-    }
-    if (top < margin) {
-      top = margin;
+    const rectTop = Number(anchor.top) || 0;
+    const rectHeight = Number(anchor.height) || 0;
+    const desiredTop = rectTop + rectHeight / 2 - height / 2;
+    if (!Number.isNaN(desiredTop)) {
+      top = Math.max(margin, Math.min(desiredTop, viewportHeight - height - margin));
     }
   }
 
-  propertiesPopover.style.left = `${Math.round(left)}px`;
+  const left = window.innerWidth - width - margin;
+
+  propertiesPopover.style.left = `${Math.round(Math.max(margin, left))}px`;
   propertiesPopover.style.top = `${Math.round(top)}px`;
 }
 
@@ -253,10 +238,14 @@ export function showComponentContextMenu(x, y, { onDelete } = {}) {
 }
 
 export function showWireContextMenu(x, y, { onDelete, onChangeColor } = {}) {
-  displayContextMenu(x, y, [
-    { label: 'Mudar cor', action: onChangeColor },
-    { label: 'Excluir conexão', action: onDelete },
-  ]);
+  const items = [];
+  if (onChangeColor) {
+    items.push({ label: 'Mudar cor', action: onChangeColor });
+  }
+  if (onDelete) {
+    items.push({ label: 'Excluir conexão', action: onDelete });
+  }
+  displayContextMenu(x, y, items);
 }
 
 function displayContextMenu(x, y, items) {
