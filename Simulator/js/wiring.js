@@ -1114,9 +1114,9 @@ export class WiringManager {
   }
 
   getWireColor(type1, type2) {
-    if (type1 === 'ground' || type2 === 'ground') return '#000000';
-    if (type1 === 'power' || type2 === 'power') return '#ff3b30';
-    return '#00ff95';
+    if (type1 === 'ground' || type2 === 'ground') return '#1f2937';
+    if (type1 === 'power' || type2 === 'power') return '#ef4444';
+    return '#0ea5e9';
   }
 
   computeAnchorPlacement(connection, point) {
