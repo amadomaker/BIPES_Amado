@@ -119,6 +119,7 @@ export class CanvasManager {
     this.attachComponentInteractions(componentData);
     this.attachComponentElementListeners(componentData);
     await this.wiringManager.addPinsToComponent(visualWrapper, definition, componentId);
+    this.syncComponentRuntimeState(componentData);
     this.applyComponentTransform(componentData);
     this.selectComponent(componentId);
     this.notifyInteraction();
@@ -242,6 +243,51 @@ export class CanvasManager {
         element.addEventListener('change', (event) => updateValue(event.target.value));
         break;
       }
+      case 'switch': {
+        const state = component.state ?? (component.state = {});
+        const readValue = () => {
+          if (typeof element.value === 'number') {
+            return Number(element.value) > 0;
+          }
+          if (typeof element.value === 'string') {
+            const trimmed = element.value.trim().toLowerCase();
+            return trimmed === '1' || trimmed === 'on' || trimmed === 'true';
+          }
+          const attr = element.getAttribute?.('value');
+          if (attr !== null) {
+            const trimmed = attr.trim().toLowerCase();
+            return trimmed === '1' || trimmed === 'on' || trimmed === 'true';
+          }
+          return Boolean(element.hasAttribute?.('checked'));
+        };
+
+        const updateState = () => {
+          const isOn = Boolean(readValue());
+          if (state.on !== isOn) {
+            state.on = isOn;
+            window.dispatchEvent(
+              new CustomEvent('simulator-pattern-interaction', {
+                detail: { source: 'component-element' },
+              }),
+            );
+            this.notifyInteraction();
+          }
+        };
+
+        if (typeof component.props?.initialState !== 'undefined') {
+          const initial = String(component.props.initialState).toLowerCase();
+          const value = initial === 'on' ? 1 : 0;
+          element.setAttribute?.('value', String(value));
+          if (typeof element.value !== 'undefined') {
+            element.value = value;
+          }
+        }
+
+        updateState();
+        element.addEventListener('input', updateState);
+        element.addEventListener('change', updateState);
+        break;
+      }
       default:
         break;
     }
@@ -357,6 +403,7 @@ export class CanvasManager {
 
     component.props = { ...component.props, ...newProps };
     component.applyProps?.(component.props);
+    this.syncComponentRuntimeState(component);
 
     const definition = this.resolveComponentDefinition(component.type);
     if (definition?.getLabel) {
@@ -424,6 +471,46 @@ export class CanvasManager {
   getSelectedComponent() {
     if (!this.selectedComponentId) return null;
     return this.getComponentById(this.selectedComponentId);
+  }
+
+  syncComponentRuntimeState(component) {
+    if (!component) return;
+    const state = component.state ?? (component.state = {});
+    switch (component.type) {
+      case 'switch': {
+        const isOn = String(component.props?.initialState ?? 'off').toLowerCase() === 'on';
+        state.on = isOn;
+        if (component.element) {
+          const value = isOn ? 1 : 0;
+          component.element.setAttribute?.('value', String(value));
+          if (typeof component.element.value !== 'undefined') {
+            component.element.value = value;
+          }
+        }
+        break;
+      }
+      case 'ir-receiver': {
+        state.state = String(component.props?.state ?? state.state ?? 'low').toLowerCase();
+        if (component.element) {
+          component.element.setAttribute?.('state', state.state);
+          if (typeof component.element.state !== 'undefined') {
+            component.element.state = state.state;
+          }
+        }
+        break;
+      }
+      case 'photoresistor': {
+        const raw =
+          component.props?.resistance ??
+          component.props?.value ??
+          component.props?.ohms ??
+          state.resistance;
+        state.resistance = raw;
+        break;
+      }
+      default:
+        break;
+    }
   }
 
   canRotateComponent(component) {

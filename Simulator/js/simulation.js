@@ -40,6 +40,10 @@ class CircuitSnapshot {
           analogLevel: this.getBoardPinAnalogLevel(component.id, pinElement.dataset.pinName),
           connections: new Set(),
         };
+        const overrideState = this.getComponentPinVoltageOverride(component, node.pinName);
+        if (overrideState) {
+          node.voltageState = overrideState;
+        }
         this.pinNodes.set(key, node);
 
         const mapKey = this.getComponentPinKey(component.id, pinElement.dataset.pinName);
@@ -299,7 +303,8 @@ class CircuitSnapshot {
 
       node.connections.forEach((neighbor) => {
         const sameComponent = neighbor.componentId && neighbor.componentId === node.componentId;
-        const neighborIsResistor = sameComponent && neighbor.componentType === 'resistor';
+        const neighborType = neighbor.componentType;
+        const neighborIsResistor = sameComponent && (neighborType === 'resistor' || neighborType === 'photoresistor');
         const neighborIsPotentiometer = sameComponent && neighbor.componentType === 'potentiometer';
         const neighborIsLed = sameComponent && neighbor.componentType === 'led';
 
@@ -426,9 +431,13 @@ class CircuitSnapshot {
 
   createResistorEntry(component) {
     if (!component || !component.id) return null;
+    const type = component.type ?? component.id;
+    if (type !== 'resistor' && type !== 'photoresistor') {
+      return null;
+    }
     return {
-      id: `resistor:${component.id}`,
-      type: 'resistor',
+      id: `${type}:${component.id}`,
+      type,
       component,
     };
   }
@@ -463,13 +472,16 @@ class CircuitSnapshot {
       return { resistance: NaN, component: null };
     }
 
-    if (entry.type === 'resistor') {
+    if (entry.type === 'resistor' || entry.type === 'photoresistor') {
       const component = entry.component;
       if (!component) {
         return { resistance: NaN, component: null };
       }
       const rawValue =
-        component.props?.value ?? component.props?.resistance ?? component.props?.ohms;
+        component.props?.resistance ??
+        component.props?.value ??
+        component.props?.ohms ??
+        component.state?.resistance;
       const ohms = this.parseResistanceValue(rawValue);
       return { resistance: ohms, component };
     }
@@ -725,6 +737,24 @@ class CircuitSnapshot {
     return 0;
   }
 
+  getComponentPinVoltageOverride(component, pinName) {
+    if (!component || !pinName) return null;
+    const type = component.type ?? component.id;
+    if (type === 'ir-receiver') {
+      if (pinName && pinName.toUpperCase() === 'OUT') {
+        const rawState = component.state?.state ?? component.props?.state ?? 'low';
+        const normalised = String(rawState).toLowerCase();
+        if (normalised === 'high' || normalised === '1' || normalised === 'on') {
+          return 'high';
+        }
+        if (normalised === 'low' || normalised === '0' || normalised === 'off') {
+          return 'low';
+        }
+      }
+    }
+    return null;
+  }
+
   isGroundNode(node) {
     if (!this.powerEnabled) {
       return node.voltageState === 'low';
@@ -960,6 +990,9 @@ class CircuitSnapshot {
         case 'led':
           this.applyLedConnections(component);
           break;
+        case 'switch':
+          this.applySwitchConnections(component);
+          break;
         case 'pushbutton':
           this.applyPushbuttonConnections(component);
           break;
@@ -981,6 +1014,13 @@ class CircuitSnapshot {
     if (!component) return;
     this.connectNodesByIndex(component.id, 0, 1);
     this.connectNodesByIndex(component.id, 1, 2);
+  }
+
+  applySwitchConnections(component) {
+    if (!component) return;
+    if (this.isSwitchOn(component)) {
+      this.connectNodesByIndex(component.id, 0, 1);
+    }
   }
 
   applyPushbuttonConnections(component) {
@@ -1021,6 +1061,28 @@ class CircuitSnapshot {
       return attrValue !== '0';
     }
     return element.hasAttribute?.('pressed');
+  }
+
+  isSwitchOn(component) {
+    if (!component) return false;
+    if (typeof component.state?.on === 'boolean') {
+      return component.state.on;
+    }
+    const elementValue = component.element?.value;
+    if (typeof elementValue === 'number') {
+      return elementValue > 0;
+    }
+    if (typeof elementValue === 'string') {
+      const trimmed = elementValue.trim().toLowerCase();
+      if (trimmed === '1' || trimmed === 'on' || trimmed === 'true') {
+        return true;
+      }
+      if (trimmed === '0' || trimmed === 'off' || trimmed === 'false') {
+        return false;
+      }
+    }
+    const initial = String(component.props?.initialState ?? 'off').toLowerCase();
+    return initial === 'on';
   }
 
   connectNodes(nodeA, nodeB) {

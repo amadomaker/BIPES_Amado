@@ -258,6 +258,9 @@ function createAmadoBoardElement({ preview = false } = {}) {
 export const componentGroups = [
   { id: 'sources', name: 'Fontes' },
   { id: 'passives', name: 'Passivos' },
+  { id: 'controls', name: 'Controles' },
+  { id: 'sensors', name: 'Sensores' },
+  { id: 'outputs', name: 'Saídas' },
   { id: 'active', name: 'Ativos' },
   { id: 'microcontroller', name: 'Microcontrolador' },
   { id: 'tools', name: 'Instrumentos' },
@@ -387,6 +390,99 @@ export const availableComponents = [
           min: 1,
           step: 1,
           propKey: 'value',
+        },
+      },
+    ],
+  },
+  {
+    id: 'switch',
+    name: 'Chave ON/OFF',
+    element: 'wokwi-slide-switch',
+    description: 'Interruptor simples de dois terminais.',
+    group: 'controls',
+    defaultProps: { initialState: 'off' },
+    createInstance: ({ props }) => {
+      const element = document.createElement('wokwi-slide-switch');
+      const applyProps = (nextProps = {}) => {
+        const state = String(nextProps.initialState ?? 'off').toLowerCase();
+        if (state === 'on') {
+          element.setAttribute('checked', '');
+          if ('checked' in element) {
+            element.checked = true;
+          }
+        } else {
+          element.removeAttribute('checked');
+          if ('checked' in element) {
+            element.checked = false;
+          }
+        }
+      };
+      applyProps(props);
+      return { element, applyProps };
+    },
+    createPreview: () => createWokwiPreview('wokwi-slide-switch', {}),
+    propertyControls: [
+      {
+        label: 'Estado inicial',
+        formatValue: (value) => (String(value).toLowerCase() === 'on' ? 'Ligado' : 'Desligado'),
+        control: {
+          type: 'select',
+          propKey: 'initialState',
+          options: [
+            { label: 'Desligado', value: 'off' },
+            { label: 'Ligado', value: 'on' },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    id: 'photoresistor',
+    name: 'Sensor LDR',
+    element: 'wokwi-photoresistor-sensor',
+    description: 'Resistor dependente de luz.',
+    group: 'sensors',
+    defaultProps: { resistance: '10k' },
+    createPreview: () => createWokwiPreview('wokwi-photoresistor-sensor', {}),
+    propertyControls: [
+      {
+        label: 'Resistência',
+        formatValue: (value) => formatResistanceValue(value),
+        control: {
+          type: 'text',
+          propKey: 'resistance',
+        },
+      },
+    ],
+  },
+  {
+    id: 'buzzer',
+    name: 'Buzzer',
+    element: 'wokwi-buzzer',
+    description: 'Transdutor piezoelétrico para alertas sonoros.',
+    group: 'outputs',
+    defaultProps: {},
+    createPreview: () => createWokwiPreview('wokwi-buzzer', {}),
+  },
+  {
+    id: 'ir-receiver',
+    name: 'Sensor IR',
+    element: 'wokwi-ir-receiver',
+    description: 'Receptor infravermelho com saída digital.',
+    group: 'sensors',
+    defaultProps: { state: 'low' },
+    createPreview: () => createWokwiPreview('wokwi-ir-receiver', {}),
+    propertyControls: [
+      {
+        label: 'Saída',
+        formatValue: (value) => (String(value).toLowerCase() === 'high' ? 'Alto (1)' : 'Baixo (0)'),
+        control: {
+          type: 'select',
+          propKey: 'state',
+          options: [
+            { label: 'Baixo (0)', value: 'low' },
+            { label: 'Alto (1)', value: 'high' },
+          ],
         },
       },
     ],

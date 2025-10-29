@@ -194,6 +194,46 @@ export class WiringManager {
         const types = ['ground', 'signal', 'power'];
         return { label: labels[index] ?? `Pino ${index + 1}`, type: types[index] ?? 'signal' };
       }
+      case 'switch':
+        return { label: info.name ?? `Terminal ${index + 1}`, type: 'signal' };
+      case 'photoresistor':
+        if (!info?.name) {
+          return { label: `Terminal ${index + 1}`, type: 'signal' };
+        }
+        switch (info.name.toUpperCase()) {
+          case 'VCC':
+            return { label: 'VCC', type: 'power' };
+          case 'GND':
+            return { label: 'GND', type: 'ground' };
+          case 'AO':
+            return { label: 'AO', type: 'signal' };
+          case 'DO':
+            return { label: 'DO', type: 'signal' };
+          default:
+            return { label: info.name, type: 'signal' };
+        }
+      case 'buzzer':
+        if (!info?.name) {
+          return index === 0
+            ? { label: '+', type: 'power' }
+            : { label: '-', type: 'ground' };
+        }
+        if (info.name.toUpperCase() === 'VCC' || info.name === '+') {
+          return { label: info.name, type: 'power' };
+        }
+        if (info.name.toUpperCase() === 'GND' || info.name === '-') {
+          return { label: info.name, type: 'ground' };
+        }
+        return { label: info.name, type: 'signal' };
+      case 'ir-receiver': {
+        const name = info?.name?.toUpperCase();
+        if (name === 'VCC') return { label: 'VCC', type: 'power' };
+        if (name === 'GND') return { label: 'GND', type: 'ground' };
+        if (name === 'OUT' || name === 'S' || name === 'SIGNAL' || name === 'DAT' || name === 'DATA') {
+          return { label: info.name ?? 'OUT', type: 'signal' };
+        }
+        return { label: info?.name ?? `Pino ${index + 1}`, type: 'signal' };
+      }
       case 'battery':
         return index === 0
           ? { label: 'VCC (+)', type: 'power' }
