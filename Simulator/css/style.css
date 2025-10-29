@@ -402,11 +402,11 @@ body {
 
 /* Estilos dos componentes no canvas */
 .canvas-component {
-  padding: 10px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
   transition: all 0.2s;
 }
 

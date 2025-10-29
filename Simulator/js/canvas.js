@@ -93,7 +93,7 @@ export class CanvasManager {
     visualWrapper.appendChild(element);
 
     container.appendChild(visualWrapper);
-    container.appendChild(label);
+    // container.appendChild(label);
     this.workspace.appendChild(container);
 
     const transformState = {
