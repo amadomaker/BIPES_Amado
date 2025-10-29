@@ -311,7 +311,6 @@ function handleSimulationError(message) {
     level: 'error',
     timestamp: Date.now(),
   });
-  toggleSerialMonitor(true);
 }
 
 function scheduleAutoSave() {

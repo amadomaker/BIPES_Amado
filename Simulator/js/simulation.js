@@ -268,6 +268,68 @@ class CircuitSnapshot {
     return results;
   }
 
+  evaluateBuzzers(snapshot) {
+    const results = [];
+
+    this.canvasManager.components
+      .filter((component) => component.type === 'buzzer')
+      .forEach((component) => {
+        const pins = snapshot.getPinsForComponent(component.id);
+        if (pins.length < 2) {
+          results.push({ component, active: false, reasons: ['Buzzer sem conexões suficientes'] });
+          return;
+        }
+
+        // Buzzer pinInfo order: according to Wokwi, name '1' (blue) = negative, '2' (red) = positive
+        const positive = pins.find((pin) => /2|vcc|\+/i.test(pin.pinName)) ?? pins[1];
+        const negative = pins.find((pin) => /1|gnd|\-/i.test(pin.pinName)) ?? pins[0];
+
+        const powerPath = snapshot.findPath(
+          positive,
+          (node) => snapshot.isPowerNode(node) && node.componentId !== component.id,
+        );
+        const groundPath = snapshot.findPath(
+          negative,
+          (node) => snapshot.isGroundNode(node) && node.componentId !== component.id,
+        );
+
+        const supplyVoltage = powerPath.exists
+          ? snapshot.resolveSupplyVoltage(powerPath.sources)
+          : 0;
+
+        let voltageDrop = 0;
+        if (powerPath.exists && groundPath.exists) {
+          const vPlus = snapshot.estimateNodeVoltage(positive, component.id);
+          const vMinus = snapshot.estimateNodeVoltage(negative, component.id);
+          voltageDrop = Math.max(0, vPlus - vMinus);
+        }
+        const effectiveDrop = voltageDrop > 0.05 ? voltageDrop : supplyVoltage;
+
+        const powered = powerPath.exists && groundPath.exists && effectiveDrop > 0.1;
+
+        const reasons = [];
+        if (!powerPath.exists) {
+          reasons.push('Sem alimentação (VCC)');
+        }
+        if (!groundPath.exists) {
+          reasons.push('Sem retorno de GND');
+        }
+        if (powerPath.exists && groundPath.exists && effectiveDrop <= 0.1) {
+          reasons.push('Buzzer sem alimentação suficiente');
+        }
+
+        results.push({
+          component,
+          active: powered,
+          voltageDrop: effectiveDrop,
+          supplyVoltage,
+          reasons: powered ? [] : reasons,
+        });
+      });
+
+    return results;
+  }
+
   getPinsForComponent(componentId) {
     return Array.from(this.pinNodes.values())
       .filter((node) => node.componentId === componentId)
@@ -1144,6 +1206,8 @@ class Simulation {
     this.boardAnalogLevels = new Map();
     this.programState = null;
     this.powerEnabled = false;
+    this.audioContext = null;
+    this.buzzerAudioNodes = new Map();
   }
 
   configure(listeners = {}) {
@@ -1178,6 +1242,7 @@ class Simulation {
     this.resetOutputs();
     this.listeners.onStateChange?.(false);
     this.lastErrorSignature = '';
+    this.stopAllBuzzerAudio();
   }
 
   loop() {
@@ -1192,6 +1257,7 @@ class Simulation {
       boardAnalogLevels: this.boardAnalogLevels,
     });
     const ledResults = snapshot.evaluateLEDs();
+    const buzzerResults = snapshot.evaluateBuzzers(snapshot);
     const errorMessages = [];
 
     ledResults.forEach((result) => {
@@ -1212,6 +1278,20 @@ class Simulation {
           level: 'error',
           timestamp: Date.now(),
         });
+      }
+    });
+
+    buzzerResults.forEach((result) => {
+      this.setBuzzerState(result.component, result.active);
+      if (!result.active) {
+        const reasons = result.reasons?.filter((reason) => reason && !/Sem alimentação suficiente/i.test(reason));
+        if (reasons && reasons.length) {
+          this.listeners.onLog?.({
+            message: `Buzzer ${result.component.id}: ${reasons.join(', ')}`,
+            level: 'warn',
+            timestamp: Date.now(),
+          });
+        }
       }
     });
 
@@ -1258,6 +1338,94 @@ class Simulation {
     }
     element.removeAttribute('data-led-damaged');
     element.style.filter = '';
+  }
+
+  setBuzzerState(component, active) {
+    const element = component.element;
+    if (!element) return;
+    if (active) {
+      element.setAttribute('has-signal', 'true');
+      if ('hasSignal' in element) {
+        element.hasSignal = true;
+      }
+      this.startBuzzerAudio(component.id);
+    } else {
+      element.removeAttribute('has-signal');
+      if ('hasSignal' in element) {
+        element.hasSignal = false;
+      }
+      this.stopBuzzerAudio(component.id);
+    }
+  }
+
+  ensureAudioContext() {
+    if (typeof window === 'undefined') return null;
+    if (!('AudioContext' in window || 'webkitAudioContext' in window)) {
+      return null;
+    }
+    if (!this.audioContext) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      try {
+        this.audioContext = new Ctx();
+      } catch {
+        this.audioContext = null;
+      }
+    }
+    if (this.audioContext?.state === 'suspended') {
+      try {
+        this.audioContext.resume();
+      } catch {}
+    }
+    return this.audioContext;
+  }
+
+  startBuzzerAudio(componentId) {
+    if (!this.isRunning || !this.powerEnabled) return;
+    if (this.buzzerAudioNodes.has(componentId)) {
+      const node = this.buzzerAudioNodes.get(componentId);
+      if (node?.gain && node.ctx) {
+        node.gain.gain.cancelScheduledValues(node.ctx.currentTime);
+        node.gain.gain.setTargetAtTime(0.05, node.ctx.currentTime, 0.02);
+      }
+      return;
+    }
+
+    const ctx = this.ensureAudioContext();
+    if (!ctx) return;
+
+    const oscillator = ctx.createOscillator();
+    oscillator.type = 'square';
+    oscillator.frequency.value = 1000;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    oscillator.connect(gain).connect(ctx.destination);
+    oscillator.start();
+    gain.gain.setTargetAtTime(0.05, ctx.currentTime, 0.02);
+
+    this.buzzerAudioNodes.set(componentId, { ctx, oscillator, gain });
+  }
+
+  stopBuzzerAudio(componentId) {
+    const entry = this.buzzerAudioNodes.get(componentId);
+    if (!entry) return;
+    try {
+      entry.gain?.gain.cancelScheduledValues(entry.ctx.currentTime);
+      entry.gain?.gain.setTargetAtTime(0, entry.ctx.currentTime, 0.02);
+      const stopTime = entry.ctx.currentTime + 0.1;
+      entry.oscillator?.stop(stopTime);
+      window.setTimeout(() => {
+        try {
+          entry.oscillator?.disconnect();
+          entry.gain?.disconnect();
+        } catch {}
+      }, 200);
+    } catch {}
+    this.buzzerAudioNodes.delete(componentId);
+  }
+
+  stopAllBuzzerAudio() {
+    this.buzzerAudioNodes.forEach((_, id) => this.stopBuzzerAudio(id));
+    this.buzzerAudioNodes.clear();
   }
 
   updateMultimeters(snapshot) {
@@ -1314,6 +1482,8 @@ class Simulation {
           delete component.state.burnedAt;
         }
         this.setLedState(component, 0);
+      } else if (component.type === 'buzzer') {
+        this.setBuzzerState(component, false);
       } else if (component.type === 'multimeter') {
         this.resetMultimeter(component);
       }
