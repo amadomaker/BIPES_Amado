@@ -286,18 +286,19 @@ export class WiringManager {
 
   createConnection(pin1, pin2, options = {}) {
     const wireId = `wire-${this.nextWireId++}`;
-    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-    polyline.id = wireId;
-    polyline.classList.add('wire');
-    polyline.dataset.pin1 = `${pin1.dataset.componentId}-${pin1.dataset.pinIndex}`;
-    polyline.dataset.pin2 = `${pin2.dataset.componentId}-${pin2.dataset.pinIndex}`;
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.id = wireId;
+    path.classList.add('wire');
+    path.dataset.pin1 = `${pin1.dataset.componentId}-${pin1.dataset.pinIndex}`;
+    path.dataset.pin2 = `${pin2.dataset.componentId}-${pin2.dataset.pinIndex}`;
 
     const color = this.getWireColor(pin1.dataset.pinType, pin2.dataset.pinType);
-    polyline.setAttribute('stroke', color);
-    polyline.setAttribute('stroke-width', '3');
-    polyline.setAttribute('fill', 'none');
-    polyline.setAttribute('stroke-linecap', 'round');
-    polyline.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', '3');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    path.style.pointerEvents = 'visibleStroke';
 
     const {
       anchors: rawAnchors = [],
@@ -318,19 +319,19 @@ export class WiringManager {
       id: wireId,
       pin1,
       pin2,
-      line: polyline,
+      line: path,
       color,
       anchors,
     };
 
     this.updateWirePath(connection);
 
-    polyline.addEventListener('click', (event) => {
+    path.addEventListener('click', (event) => {
       event.stopPropagation();
       this.selectWire(connection);
     });
 
-    polyline.addEventListener('pointerdown', (event) => {
+    path.addEventListener('pointerdown', (event) => {
       if (event.button !== undefined && event.button !== 0) return;
       if (!this.isEditingConnection() || this.editingConnection.id !== connection.id) return;
       if (event.target.classList.contains('wire-anchor-handle')) return;
@@ -339,7 +340,7 @@ export class WiringManager {
       this.startConnectionDrag(connection, event);
     });
 
-    polyline.addEventListener('dblclick', (event) => {
+    path.addEventListener('dblclick', (event) => {
       if (!this.isEditingConnection() || this.editingConnection.id !== connection.id) return;
       event.preventDefault();
       event.stopPropagation();
@@ -351,7 +352,7 @@ export class WiringManager {
       });
     });
 
-    polyline.addEventListener('contextmenu', (event) => {
+    path.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
       this.selectWire(connection);
@@ -372,7 +373,7 @@ export class WiringManager {
       });
     });
 
-    this.svgLayer.appendChild(polyline);
+    this.svgLayer.appendChild(path);
     this.connections.push(connection);
 
     if (!silent && autoSelect) {
@@ -680,7 +681,7 @@ export class WiringManager {
   }
 
   createTempWire() {
-    this.tempWire = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    this.tempWire = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     this.tempWire.id = 'temp-wire';
     this.tempWire.setAttribute('stroke', '#007acc');
     this.tempWire.setAttribute('stroke-width', '3');
@@ -689,6 +690,7 @@ export class WiringManager {
     this.tempWire.setAttribute('stroke-linejoin', 'round');
     this.tempWire.setAttribute('stroke-linecap', 'round');
     this.tempWire.style.display = 'none';
+    this.tempWire.style.pointerEvents = 'none';
     this.svgLayer.appendChild(this.tempWire);
   }
 
@@ -715,7 +717,7 @@ export class WiringManager {
     this.tempWireAnchors = [];
     this.tempWireCursor = null;
     this.tempWire.style.display = 'none';
-    this.tempWire.removeAttribute('points');
+    this.tempWire.removeAttribute('d');
     this.workspace.style.cursor = 'default';
     this.toggleGuideLines(false);
     hideContextMenu();
@@ -735,7 +737,7 @@ export class WiringManager {
     } else {
       points.push({ ...start });
     }
-    this.tempWire.setAttribute('points', this.pointsToAttribute(points));
+    this.tempWire.setAttribute('d', this.buildRoundedPath(points, 10));
     this.updateGuideLines(start, this.tempWireCursor ?? start);
   }
 
@@ -973,7 +975,7 @@ export class WiringManager {
 
   updateWirePath(connection) {
     const points = this.getConnectionPoints(connection);
-    connection.line.setAttribute('points', this.pointsToAttribute(points));
+    connection.line.setAttribute('d', this.buildRoundedPath(points));
   }
 
   getConnectionPoints(connection) {
@@ -982,8 +984,77 @@ export class WiringManager {
     return [start, ...connection.anchors.map((point) => ({ ...point })), end];
   }
 
-  pointsToAttribute(points) {
-    return points.map((point) => `${point.x},${point.y}`).join(' ');
+  buildRoundedPath(points, radius = 12) {
+    if (!Array.isArray(points) || points.length === 0) {
+      return '';
+    }
+
+    const cleaned = points.filter((point, index) => {
+      if (index === 0) return true;
+      const previous = points[index - 1];
+      return !this.pointsAreEqual(point, previous);
+    });
+
+    if (!cleaned.length) {
+      return '';
+    }
+
+    if (cleaned.length === 1) {
+      const { x, y } = cleaned[0];
+      return `M ${x} ${y}`;
+    }
+
+    let path = `M ${cleaned[0].x} ${cleaned[0].y}`;
+
+    if (cleaned.length === 2) {
+      const { x, y } = cleaned[1];
+      return `${path} L ${x} ${y}`;
+    }
+
+    for (let i = 1; i < cleaned.length - 1; i += 1) {
+      const prev = cleaned[i - 1];
+      const current = cleaned[i];
+      const next = cleaned[i + 1];
+
+      const v1 = { x: current.x - prev.x, y: current.y - prev.y };
+      const v2 = { x: next.x - current.x, y: next.y - current.y };
+      const len1 = Math.hypot(v1.x, v1.y);
+      const len2 = Math.hypot(v2.x, v2.y);
+
+      if (len1 === 0 || len2 === 0) {
+        path += ` L ${current.x} ${current.y}`;
+        continue;
+      }
+
+      const unit1 = { x: v1.x / len1, y: v1.y / len1 };
+      const unit2 = { x: v2.x / len2, y: v2.y / len2 };
+
+      const dot = unit1.x * unit2.x + unit1.y * unit2.y;
+      const cross = unit1.x * unit2.y - unit1.y * unit2.x;
+
+      if (Math.abs(cross) < 1e-5 && dot > 0.999) {
+        path += ` L ${current.x} ${current.y}`;
+        continue;
+      }
+
+      const cornerRadius = Math.min(radius, len1 / 2, len2 / 2);
+      if (cornerRadius <= 0) {
+        path += ` L ${current.x} ${current.y}`;
+        continue;
+      }
+
+      const startX = current.x - unit1.x * cornerRadius;
+      const startY = current.y - unit1.y * cornerRadius;
+      const endX = current.x + unit2.x * cornerRadius;
+      const endY = current.y + unit2.y * cornerRadius;
+
+      path += ` L ${startX} ${startY}`;
+      path += ` Q ${current.x} ${current.y} ${endX} ${endY}`;
+    }
+
+    const lastPoint = cleaned[cleaned.length - 1];
+    path += ` L ${lastPoint.x} ${lastPoint.y}`;
+    return path;
   }
 
   pointsAreEqual(pointA, pointB) {
