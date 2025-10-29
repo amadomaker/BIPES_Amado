@@ -9,6 +9,7 @@ import {
   toggleSerialMonitor,
   appendSerialLog,
   clearSerialMonitor,
+  setTransformControlsState,
 } from './ui.js';
 import { simulation } from './simulation.js';
 import { initBlocklyWorkspace, compileWorkspaceToProgram } from './blockly.js';
@@ -36,6 +37,8 @@ window.addEventListener('DOMContentLoaded', () => {
     onLoad: handleLoadWorkspace,
     onToggleSerialMonitor: handleToggleSerialMonitor,
     onOpenBlockly: handleOpenBlockly,
+    onRotateComponent: handleRotateSelectedComponent,
+    onFlipComponent: handleFlipSelectedComponent,
   });
 
   canvasManager = new CanvasManager({
@@ -110,10 +113,6 @@ function handlePlayPause() {
     onProgramError: handleSimulationError,
   });
   simulationResetNotified = false;
-  appendSerialLog({
-    message: program ? 'Simulação iniciada com programa Blockly.' : 'Simulação iniciada.',
-    timestamp: Date.now(),
-  });
   scheduleAutoSave();
 }
 
@@ -285,9 +284,25 @@ function handleOpenBlockly() {
   openBlocklyPanel?.();
 }
 
+function handleRotateSelectedComponent() {
+  canvasManager?.rotateSelectedComponent?.();
+}
+
+function handleFlipSelectedComponent() {
+  canvasManager?.flipSelectedComponent?.();
+}
+
 function handleSerialLog(entry) {
   appendSerialLog(entry);
 }
+
+window.addEventListener('simulator-selection-change', (event) => {
+  const detail = event.detail ?? {};
+  setTransformControlsState({
+    canRotate: Boolean(detail.canRotate),
+    canFlip: Boolean(detail.canFlip),
+  });
+});
 
 function handleSimulationError(message) {
   showAlert(message);

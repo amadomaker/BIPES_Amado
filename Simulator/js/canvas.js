@@ -7,6 +7,8 @@ import {
 } from './ui.js';
 import { availableComponents, getLedColorInfo } from './components.js';
 
+const FLIPPABLE_COMPONENT_TYPES = new Set(['led']);
+
 export class CanvasManager {
   constructor(options = {}) {
     this.workspace = document.getElementById('workspace');
@@ -86,9 +88,18 @@ export class CanvasManager {
       ? definition.getLabel(appliedProps)
       : definition.name;
 
-    container.appendChild(element);
+    const visualWrapper = document.createElement('div');
+    visualWrapper.className = 'component-visual';
+    visualWrapper.appendChild(element);
+
+    container.appendChild(visualWrapper);
     container.appendChild(label);
     this.workspace.appendChild(container);
+
+    const transformState = {
+      rotation: this.normaliseRotation(options.transform?.rotation ?? 0),
+      flipped: Boolean(options.transform?.flipped),
+    };
 
     const componentData = {
       id: componentId,
@@ -96,16 +107,19 @@ export class CanvasManager {
       name: definition.name,
       element,
       container,
+      visualWrapper,
       label,
       props: appliedProps,
       applyProps,
-      state: {},
+      state: { ...(options.state ?? {}) },
+      transform: transformState,
     };
 
     this.components.push(componentData);
     this.attachComponentInteractions(componentData);
     this.attachComponentElementListeners(componentData);
-    await this.wiringManager.addPinsToComponent(container, definition, componentId);
+    await this.wiringManager.addPinsToComponent(visualWrapper, definition, componentId);
+    this.applyComponentTransform(componentData);
     this.selectComponent(componentId);
     this.notifyInteraction();
 
@@ -245,6 +259,7 @@ export class CanvasManager {
 
     this.renderPropertiesForComponent(component);
     this.wiringManager.deselectWire();
+    this.emitSelectionChange(component);
   }
 
   clearComponentSelection() {
@@ -255,6 +270,7 @@ export class CanvasManager {
     }
     this.selectedComponentId = null;
     clearPropertiesPanel();
+    this.emitSelectionChange(null);
   }
 
   deleteSelectedComponent() {
@@ -275,6 +291,7 @@ export class CanvasManager {
     if (this.selectedComponentId === componentId) {
       this.selectedComponentId = null;
       clearPropertiesPanel();
+      this.emitSelectionChange(null);
     }
 
     this.notifyInteraction();
@@ -296,6 +313,10 @@ export class CanvasManager {
         x: parseFloat(component.container.style.left) || 0,
         y: parseFloat(component.container.style.top) || 0,
         props: component.props,
+        transform: {
+          rotation: component.transform?.rotation ?? 0,
+          flipped: Boolean(component.transform?.flipped),
+        },
       })),
       wires: this.wiringManager.serialize(),
     };
@@ -314,6 +335,7 @@ export class CanvasManager {
       await this.addComponent(definition, componentData.x, componentData.y, {
         id: componentData.id,
         props: componentData.props,
+        transform: componentData.transform,
       });
 
       const numericSuffix = Number(componentData.id?.split('-')[1]);
@@ -363,6 +385,112 @@ export class CanvasManager {
       return availableComponents.find((item) => item.id === componentType) ?? null;
     }
     return componentType;
+  }
+
+  normaliseRotation(value) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 0;
+    let normalised = numeric % 360;
+    if (normalised < 0) {
+      normalised += 360;
+    }
+    return normalised;
+  }
+
+  applyComponentTransform(component) {
+    if (!component) return;
+    if (!component.transform) {
+      component.transform = { rotation: 0, flipped: false };
+    }
+    const rotation = this.normaliseRotation(component.transform?.rotation ?? 0);
+    const flipped = Boolean(component.transform?.flipped);
+    const target = component.visualWrapper ?? component.container;
+    if (!target) return;
+
+    const transforms = [];
+    if (rotation !== 0) {
+      transforms.push(`rotate(${rotation}deg)`);
+    }
+    if (flipped) {
+      transforms.push('scaleX(-1)');
+    }
+
+    target.style.transformOrigin = 'center';
+    target.style.transform = transforms.length ? transforms.join(' ') : 'none';
+
+    this.wiringManager.updateAllConnections();
+  }
+
+  getSelectedComponent() {
+    if (!this.selectedComponentId) return null;
+    return this.getComponentById(this.selectedComponentId);
+  }
+
+  canRotateComponent(component) {
+    return Boolean(component);
+  }
+
+  canFlipComponent(component) {
+    if (!component) return false;
+    return FLIPPABLE_COMPONENT_TYPES.has(component.type);
+  }
+
+  emitSelectionChange(component) {
+    if (component && !component.transform) {
+      component.transform = { rotation: 0, flipped: false };
+    }
+    const detail = component
+      ? {
+          componentId: component.id,
+          componentType: component.type,
+          canRotate: this.canRotateComponent(component),
+          canFlip: this.canFlipComponent(component),
+          transform: {
+            rotation: component.transform?.rotation ?? 0,
+            flipped: Boolean(component.transform?.flipped),
+          },
+        }
+      : {
+          componentId: null,
+          componentType: null,
+          canRotate: false,
+          canFlip: false,
+          transform: { rotation: 0, flipped: false },
+        };
+
+    window.dispatchEvent(
+      new CustomEvent('simulator-selection-change', {
+        detail,
+      }),
+    );
+  }
+
+  rotateSelectedComponent(step = 90) {
+    const component = this.getSelectedComponent();
+    if (!component || !this.canRotateComponent(component)) return;
+    if (this.isInteractionLocked?.()) return;
+    const nextRotation = this.normaliseRotation((component.transform?.rotation ?? 0) + step);
+    component.transform = {
+      rotation: nextRotation,
+      flipped: Boolean(component.transform?.flipped),
+    };
+    this.applyComponentTransform(component);
+    this.notifyInteraction();
+    this.emitSelectionChange(component);
+  }
+
+  flipSelectedComponent() {
+    const component = this.getSelectedComponent();
+    if (!component || !this.canFlipComponent(component)) return;
+    if (this.isInteractionLocked?.()) return;
+    const nextFlipped = !Boolean(component.transform?.flipped);
+    component.transform = {
+      rotation: this.normaliseRotation(component.transform?.rotation ?? 0),
+      flipped: nextFlipped,
+    };
+    this.applyComponentTransform(component);
+    this.notifyInteraction();
+    this.emitSelectionChange(component);
   }
 
   notifyInteraction() {

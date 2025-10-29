@@ -158,6 +158,12 @@ body {
   transform: translateY(1px);
 }
 
+#toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #555;
+}
+
 #workspace {
   background-color: #2d2d30;
   min-height: 400px;
@@ -416,6 +422,15 @@ body {
   margin-top: 6px;
   color: #ccc;
   user-select: none;
+}
+
+.component-visual {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  transform-origin: center;
+  transition: transform 0.2s ease-out;
 }
 
 .amado-board {

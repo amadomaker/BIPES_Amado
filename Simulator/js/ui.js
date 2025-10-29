@@ -12,6 +12,8 @@ let clearButton;
 let saveButton;
 let loadButton;
 let monitorButton;
+let rotateButton;
+let flipButton;
 
 let currentToolbarHandlers = {
   onPlayPause: null,
@@ -19,6 +21,8 @@ let currentToolbarHandlers = {
   onSave: null,
   onLoad: null,
   onToggleSerialMonitor: null,
+  onRotateComponent: null,
+  onFlipComponent: null,
 };
 
 let contextMenu;
@@ -60,13 +64,29 @@ function renderToolbar() {
   });
   monitorButton.setAttribute('aria-pressed', 'false');
 
+  rotateButton = createToolbarButton('⟳ Rotacionar', () => {
+    currentToolbarHandlers.onRotateComponent?.();
+  });
+  rotateButton.disabled = true;
+  rotateButton.title = 'Rotacionar componente selecionado';
+
+  flipButton = createToolbarButton('⇆ Inverter', () => {
+    currentToolbarHandlers.onFlipComponent?.();
+  });
+  flipButton.disabled = true;
+  flipButton.title = 'Inverter componente selecionado';
+
   toolbarElement.append(
     playPauseButton,
     clearButton,
     saveButton,
     loadButton,
     monitorButton,
+    rotateButton,
+    flipButton,
   );
+
+  setTransformControlsState({ canRotate: false, canFlip: false });
 }
 
 function createToolbarButton(label, handler) {
@@ -356,6 +376,17 @@ export function appendSerialLog(entry) {
   line.append(time, text);
   serialMonitorOutput.appendChild(line);
   serialMonitorOutput.scrollTop = serialMonitorOutput.scrollHeight;
+}
+
+export function setTransformControlsState(state = {}) {
+  const canRotate = Boolean(state.canRotate);
+  const canFlip = Boolean(state.canFlip);
+  if (rotateButton) {
+    rotateButton.disabled = !canRotate;
+  }
+  if (flipButton) {
+    flipButton.disabled = !canFlip;
+  }
 }
 
 function normalizeLogEntry(entry) {
