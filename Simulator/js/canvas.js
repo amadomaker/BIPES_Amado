@@ -136,6 +136,7 @@ export class CanvasManager {
       if (event.button !== 0) return;
       if (event.target.closest('.pin')) return;
       if (this.isInteractionLocked?.()) {
+        this.selectComponent(id);
         return;
       }
 
@@ -178,9 +179,6 @@ export class CanvasManager {
 
     container.addEventListener('click', (event) => {
       if (event.target.closest('.pin')) return;
-      if (this.isInteractionLocked?.()) {
-        return;
-      }
       this.selectComponent(id);
     });
 
@@ -570,6 +568,14 @@ export class CanvasManager {
             component.element.state = state.state;
           }
         }
+        {
+          const isActive = state.state === 'high';
+          component.container.classList.toggle('ir-receiver-active', isActive);
+          component.visualWrapper?.classList.toggle('ir-receiver-active', isActive);
+          if (component.container?.dataset) {
+            component.container.dataset.irState = state.state;
+          }
+        }
         break;
       }
       case 'photoresistor': {
@@ -678,6 +684,10 @@ export class CanvasManager {
         controlConfig?.control?.options?.[0]?.value ??
         '';
 
+      const shouldDispatchInteraction = Boolean(controlConfig?.control?.dispatchInteractionEvent);
+      const interactionDetail =
+        controlConfig?.control?.interactionEventDetail ?? { source: 'component-property' };
+
       fields.push({
         label: controlConfig.label,
         value: controlConfig.formatValue
@@ -688,6 +698,13 @@ export class CanvasManager {
           options: controlConfig.control?.options,
           value: rawValue,
           onChange: (value) => {
+            if (shouldDispatchInteraction) {
+              window.dispatchEvent(
+                new CustomEvent('simulator-pattern-interaction', {
+                  detail: interactionDetail,
+                }),
+              );
+            }
             if (propKey) {
               this.updateComponentProps(component.id, { [propKey]: value });
             }

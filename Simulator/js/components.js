@@ -483,6 +483,8 @@ export const availableComponents = [
             { label: 'Baixo (0)', value: 'low' },
             { label: 'Alto (1)', value: 'high' },
           ],
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
         },
       },
     ],
