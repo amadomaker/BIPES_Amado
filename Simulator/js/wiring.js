@@ -24,6 +24,7 @@ export class WiringManager {
     this.anchorHandles = [];
     this.activeAnchorHandle = null;
     this.connectionDragState = null;
+    this.connectionRefreshHandle = null;
 
     this.createSVGLayer();
     this.createTempWire();
@@ -273,13 +274,28 @@ export class WiringManager {
   }
 
   computePinPosition(wokwiElement, container, pinInfo) {
+    void wokwiElement.offsetWidth;
     const elementRect = wokwiElement.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
+    const containerRect = container ? container.getBoundingClientRect() : null;
 
-    const x = elementRect.left - containerRect.left + pinInfo.x;
-    const y = elementRect.top - containerRect.top + pinInfo.y;
+    if (containerRect) {
+      const x = elementRect.left - containerRect.left + pinInfo.x;
+      const y = elementRect.top - containerRect.top + pinInfo.y;
+      return { x, y };
+    }
 
-    return { x, y };
+    const componentId = container?.dataset?.componentId;
+    if (componentId && this.canvasManager?.getComponentVisualWrapper) {
+      const wrapper = this.canvasManager.getComponentVisualWrapper(componentId);
+      if (wrapper) {
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const x = elementRect.left - wrapperRect.left + pinInfo.x;
+        const y = elementRect.top - wrapperRect.top + pinInfo.y;
+        return { x, y };
+      }
+    }
+
+    return { x: pinInfo.x, y: pinInfo.y };
   }
 
   getRelativeCenter(element, container) {
@@ -415,6 +431,12 @@ export class WiringManager {
 
     this.svgLayer.appendChild(path);
     this.connections.push(connection);
+    this.scheduleConnectionRefresh({
+      immediate: false,
+      minFrames: 2,
+      durationMs: 120,
+      maxDurationMs: 300,
+    });
 
     if (!silent && autoSelect) {
       this.selectWire(connection);
@@ -673,6 +695,13 @@ export class WiringManager {
       connection.line.setAttribute('stroke', connection.color);
     }
     this.deselectWire();
+
+    this.scheduleConnectionRefresh({
+      immediate: true,
+      minFrames: 4,
+      durationMs: 160,
+      maxDurationMs: 360,
+    });
   }
 
   updateNextWireId(wireId) {
@@ -1144,7 +1173,134 @@ export class WiringManager {
     });
   }
 
+  cancelScheduledConnectionRefresh() {
+    const handle = this.connectionRefreshHandle;
+    if (!handle) return;
+    if (typeof handle.cancel === 'function') {
+      handle.cancel();
+      return;
+    }
+    handle.active = false;
+    if (typeof window !== 'undefined') {
+      if (typeof window.cancelAnimationFrame === 'function' && handle.rafId != null) {
+        window.cancelAnimationFrame(handle.rafId);
+      }
+      if (typeof window.clearTimeout === 'function' && handle.timeoutId != null) {
+        window.clearTimeout(handle.timeoutId);
+      }
+    }
+    if (this.connectionRefreshHandle === handle) {
+      this.connectionRefreshHandle = null;
+    }
+  }
+
+  scheduleConnectionRefresh(options = {}) {
+    const {
+      immediate = true,
+      minFrames = 3,
+      durationMs = 180,
+      maxDurationMs = 420,
+    } = options ?? {};
+
+    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+      if (immediate) {
+        this.updateAllConnections();
+      }
+      return;
+    }
+
+    this.cancelScheduledConnectionRefresh();
+
+    const safeMinFrames = Math.max(1, Number(minFrames) || 0);
+    const minimumDuration = Math.max(0, Number(durationMs) || 0);
+    const capDuration = Math.max(minimumDuration, Number(maxDurationMs) || minimumDuration);
+
+    const handle = {
+      active: true,
+      rafId: null,
+      timeoutId: null,
+      frames: 0,
+      start: window.performance?.now?.() ?? Date.now(),
+    };
+    this.connectionRefreshHandle = handle;
+
+    const cancel = () => {
+      if (!handle.active) {
+        return;
+      }
+      handle.active = false;
+      if (handle.rafId != null && typeof window.cancelAnimationFrame === 'function') {
+        window.cancelAnimationFrame(handle.rafId);
+      }
+      if (handle.timeoutId != null && typeof window.clearTimeout === 'function') {
+        window.clearTimeout(handle.timeoutId);
+      }
+      if (this.connectionRefreshHandle === handle) {
+        this.connectionRefreshHandle = null;
+      }
+    };
+
+    handle.cancel = cancel;
+
+    const updateConnections = () => {
+      if (!handle.active) {
+        return;
+      }
+      this.updateAllConnections();
+    };
+
+    if (immediate) {
+      updateConnections();
+    }
+
+    const tick = () => {
+      if (!handle.active) {
+        return;
+      }
+
+      updateConnections();
+      handle.frames += 1;
+
+      if (!handle.active) {
+        return;
+      }
+
+      const now = window.performance?.now?.() ?? Date.now();
+      const elapsed = now - handle.start;
+
+      if (handle.frames < safeMinFrames || elapsed < minimumDuration) {
+        handle.rafId = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      cancel();
+    };
+
+    handle.rafId = window.requestAnimationFrame(tick);
+
+    const finalTimeout = Math.min(capDuration + 120, 1000);
+    handle.timeoutId = window.setTimeout(() => {
+      if (!handle.active) {
+        return;
+      }
+      updateConnections();
+      cancel();
+    }, finalTimeout);
+  }
+
+  resetAnchorsForComponent(componentId) {
+    this.connections.forEach((connection) => {
+      const pin1Component = connection.pin1?.dataset?.componentId;
+      const pin2Component = connection.pin2?.dataset?.componentId;
+      if (pin1Component === componentId || pin2Component === componentId) {
+        connection.anchors = [];
+      }
+    });
+  }
+
   getPinPosition(pin) {
+    // Force layout update to ensure transforms are applied before measuring
+    void pin.offsetWidth;
     const rect = pin.getBoundingClientRect();
     const workspaceRect = this.workspace.getBoundingClientRect();
     return {

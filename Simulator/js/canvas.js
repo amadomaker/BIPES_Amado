@@ -90,6 +90,7 @@ export class CanvasManager {
 
     const visualWrapper = document.createElement('div');
     visualWrapper.className = 'component-visual';
+    visualWrapper.dataset.componentId = componentId;
     visualWrapper.appendChild(element);
 
     container.appendChild(visualWrapper);
@@ -121,6 +122,7 @@ export class CanvasManager {
     await this.wiringManager.addPinsToComponent(visualWrapper, definition, componentId);
     this.syncComponentRuntimeState(componentData);
     this.applyComponentTransform(componentData);
+    this.wiringManager.updateAllConnections();
     this.selectComponent(componentId);
     this.notifyInteraction();
 
@@ -444,6 +446,65 @@ export class CanvasManager {
     return normalised;
   }
 
+  parseTimeToMilliseconds(value) {
+    if (typeof value !== 'string') return 0;
+    const trimmed = value.trim();
+    if (!trimmed) return 0;
+    const numeric = Number.parseFloat(trimmed);
+    if (!Number.isFinite(numeric)) return 0;
+    if (trimmed.toLowerCase().endsWith('ms')) {
+      return numeric;
+    }
+    return numeric * 1000;
+  }
+
+  getTransitionDurationMs(element, targetProperty = 'all') {
+    if (!element || typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') {
+      return 0;
+    }
+
+    const computed = window.getComputedStyle(element);
+    if (!computed) return 0;
+
+    const properties = (computed.transitionProperty || '')
+      .split(',')
+      .map((prop) => prop.trim())
+      .filter(Boolean);
+    if (!properties.length) return 0;
+
+    const durations = (computed.transitionDuration || '')
+      .split(',')
+      .map((value) => this.parseTimeToMilliseconds(value));
+    const delays = (computed.transitionDelay || '')
+      .split(',')
+      .map((value) => this.parseTimeToMilliseconds(value));
+
+    const targets = Array.isArray(targetProperty)
+      ? targetProperty.filter(Boolean)
+      : [targetProperty].filter(Boolean);
+
+    let maxDuration = 0;
+
+    properties.forEach((property, index) => {
+      if (property === 'none') {
+        return;
+      }
+
+      const duration = durations[index] ?? durations[durations.length - 1] ?? 0;
+      const delay = delays[index] ?? delays[delays.length - 1] ?? 0;
+      const appliesToProperty =
+        property === 'all' ||
+        targets.length === 0 ||
+        targets.includes(property);
+
+      if (appliesToProperty) {
+        maxDuration = Math.max(maxDuration, duration + delay);
+      }
+    });
+
+    return maxDuration;
+  }
+
   applyComponentTransform(component) {
     if (!component) return;
     if (!component.transform) {
@@ -465,7 +526,19 @@ export class CanvasManager {
     target.style.transformOrigin = 'center';
     target.style.transform = transforms.length ? transforms.join(' ') : 'none';
 
-    this.wiringManager.updateAllConnections();
+    this.wiringManager.resetAnchorsForComponent(component.id);
+    const transitionDuration = this.getTransitionDurationMs(target, 'transform');
+    this.wiringManager.scheduleConnectionRefresh({
+      immediate: true,
+      minFrames: 4,
+      durationMs: transitionDuration + 80,
+      maxDurationMs: transitionDuration + 240,
+    });
+  }
+
+  getComponentVisualWrapper(componentId) {
+    const component = this.getComponentById(componentId);
+    return component?.visualWrapper ?? null;
   }
 
   getSelectedComponent() {
