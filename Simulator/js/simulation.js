@@ -803,8 +803,14 @@ class CircuitSnapshot {
     if (!component || !pinName) return null;
     const type = component.type ?? component.id;
     if (type === 'ir-receiver') {
-      if (pinName && pinName.toUpperCase() === 'OUT') {
-        const rawState = component.state?.state ?? component.props?.state ?? 'low';
+      const pin = String(pinName).toUpperCase();
+      if (pin === 'OUT' || pin === 'DAT' || pin === 'DATA') {
+        const rawState =
+          (component.state && Object.prototype.hasOwnProperty.call(component.state, 'state')
+            ? component.state.state
+            : undefined) ??
+          component.props?.state ??
+          'low';
         const normalised = String(rawState).toLowerCase();
         if (normalised === 'high' || normalised === '1' || normalised === 'on') {
           return 'high';
