@@ -127,6 +127,86 @@ export class CanvasManager {
     };
   }
 
+  resetViewport() {
+    this.viewportState.scale = 1;
+    this.viewportState.panX = 0;
+    this.viewportState.panY = 0;
+    this.applyViewportTransform();
+  }
+
+  focusViewportOnContent({ components = this.components, padding = 96 } = {}) {
+    const items = Array.isArray(components) ? components : [];
+    if (!items.length) {
+      this.resetViewport();
+      return;
+    }
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    items.forEach((component) => {
+      if (!component?.container) return;
+      const left = component.container.offsetLeft ?? 0;
+      const top = component.container.offsetTop ?? 0;
+      const width =
+        component.container.offsetWidth ??
+        component.visualWrapper?.offsetWidth ??
+        component.element?.offsetWidth ??
+        0;
+      const height =
+        component.container.offsetHeight ??
+        component.visualWrapper?.offsetHeight ??
+        component.element?.offsetHeight ??
+        0;
+
+      if (!Number.isFinite(left) || !Number.isFinite(top)) {
+        return;
+      }
+
+      minX = Math.min(minX, left);
+      minY = Math.min(minY, top);
+      maxX = Math.max(maxX, left + width);
+      maxY = Math.max(maxY, top + height);
+    });
+
+    if (!Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)) {
+      this.resetViewport();
+      return;
+    }
+
+    const paddingValue = Math.max(0, Number(padding) || 0);
+    const contentWidth = Math.max(maxX - minX, 40);
+    const contentHeight = Math.max(maxY - minY, 40);
+    const workspaceRect = this.workspace.getBoundingClientRect();
+    const viewportWidth = workspaceRect.width || this.workspace.clientWidth || 1;
+    const viewportHeight = workspaceRect.height || this.workspace.clientHeight || 1;
+
+    const availableWidth = Math.max(viewportWidth - paddingValue * 2, 40);
+    const availableHeight = Math.max(viewportHeight - paddingValue * 2, 40);
+
+    const scaleX = availableWidth / contentWidth;
+    const scaleY = availableHeight / contentHeight;
+    const fitScale = Math.min(scaleX, scaleY);
+
+    this.viewportState.scale = this.clampValue(
+      fitScale,
+      this.viewportState.minScale,
+      this.viewportState.maxScale,
+    );
+
+    const contentCenterX = minX + contentWidth / 2;
+    const contentCenterY = minY + contentHeight / 2;
+    const viewportCenterX = viewportWidth / 2;
+    const viewportCenterY = viewportHeight / 2;
+
+    this.viewportState.panX = viewportCenterX - contentCenterX * this.viewportState.scale;
+    this.viewportState.panY = viewportCenterY - contentCenterY * this.viewportState.scale;
+
+    this.applyViewportTransform();
+  }
+
   handleWheel(event) {
     if (!event || !this.workspace) return;
     event.preventDefault();
@@ -635,6 +715,7 @@ export class CanvasManager {
     this.components = [];
     this.nextId = 1;
     clearPropertiesPanel();
+    this.resetViewport();
   }
 
   serialize() {
@@ -681,6 +762,7 @@ export class CanvasManager {
     }
 
     this.clearSelections();
+    this.focusViewportOnContent();
   }
 
   updateComponentProps(componentId, newProps = {}) {
