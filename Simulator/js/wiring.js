@@ -13,6 +13,7 @@ export class WiringManager {
   constructor(canvasManager) {
     this.canvasManager = canvasManager;
     this.workspace = canvasManager.workspace;
+    this.viewport = canvasManager.viewportElement ?? this.workspace;
     this.connections = [];
     this.pinRegistry = new Map();
     this.selectedPin = null;
@@ -746,7 +747,9 @@ export class WiringManager {
     this.svgLayer.style.height = '100%';
     this.svgLayer.style.pointerEvents = 'none';
     this.svgLayer.style.zIndex = '5';
-    this.workspace.appendChild(this.svgLayer);
+    this.svgLayer.style.overflow = 'visible';
+    this.svgLayer.setAttribute('overflow', 'visible');
+    (this.viewport ?? this.workspace).appendChild(this.svgLayer);
   }
 
   createTempWire() {
@@ -1035,10 +1038,12 @@ export class WiringManager {
   }
 
   getWorkspaceCoordinates(event) {
-    const workspaceRect = this.workspace.getBoundingClientRect();
-    return {
-      x: event.clientX - workspaceRect.left,
-      y: event.clientY - workspaceRect.top,
+    if (!event) {
+      return { x: 0, y: 0 };
+    }
+    return this.canvasManager?.clientToWorkspace(event.clientX, event.clientY) ?? {
+      x: event.clientX,
+      y: event.clientY,
     };
   }
 
@@ -1300,13 +1305,20 @@ export class WiringManager {
 
   getPinPosition(pin) {
     // Force layout update to ensure transforms are applied before measuring
-    void pin.offsetWidth;
+    void pin?.offsetWidth;
+    if (!pin) {
+      return { x: 0, y: 0 };
+    }
     const rect = pin.getBoundingClientRect();
-    const workspaceRect = this.workspace.getBoundingClientRect();
-    return {
-      x: rect.left + rect.width / 2 - workspaceRect.left,
-      y: rect.top + rect.height / 2 - workspaceRect.top,
-    };
+    return (
+      this.canvasManager?.clientToWorkspace(
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2,
+      ) ?? {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      }
+    );
   }
 
   getWireColor(type1, type2) {

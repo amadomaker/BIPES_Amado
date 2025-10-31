@@ -635,11 +635,8 @@ function setupDropZone() {
     const component = getComponentById(componentId);
     if (!component || !canvasManager) return;
 
-    const rect = workspace.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    canvasManager.addComponent(component, x, y);
+    const point = canvasManager.clientToWorkspace(event.clientX, event.clientY);
+    canvasManager.addComponent(component, point.x, point.y);
   });
 }
 

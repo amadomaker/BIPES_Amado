@@ -14,18 +14,63 @@ const PHOTORESISTOR_MAX_OHMS = 1_000_000;
 export class CanvasManager {
   constructor(options = {}) {
     this.workspace = document.getElementById('workspace');
+    if (!this.workspace) {
+      throw new Error('Simulator workspace element not found.');
+    }
+
+    this.viewportElement = document.createElement('div');
+    this.viewportElement.id = 'workspace-content';
+    this.viewportElement.style.position = 'absolute';
+    this.viewportElement.style.inset = '0';
+    this.viewportElement.style.transformOrigin = '0 0';
+    while (this.workspace.firstChild) {
+      this.viewportElement.appendChild(this.workspace.firstChild);
+    }
+    this.workspace.appendChild(this.viewportElement);
+
     this.components = [];
     this.selectedComponentId = null;
     this.nextId = 1;
     this.onInteraction = options.onInteraction ?? (() => {});
     this.isInteractionLocked = options.isInteractionLocked ?? (() => false);
 
+    this.viewportState = {
+      scale: 1,
+      panX: 0,
+      panY: 0,
+      minScale: 0.35,
+      maxScale: 3,
+    };
+    this.isPanning = false;
+    this.panPointerId = null;
+    this.panStart = null;
+    this.panOrigin = null;
+    this.panCaptureElement = null;
+    this.panMoved = false;
+    this.ignoreNextWorkspaceClick = false;
+
+    this.handleWheel = this.handleWheel.bind(this);
+    this.handlePanPointerDown = this.handlePanPointerDown.bind(this);
+    this.handlePanPointerMove = this.handlePanPointerMove.bind(this);
+    this.handlePanPointerUp = this.handlePanPointerUp.bind(this);
+
     this.wiringManager = new WiringManager(this);
+
+    this.applyViewportTransform();
+    this.workspace.classList.add('allow-pan');
+    this.workspace.addEventListener('pointerdown', this.handlePanPointerDown);
+    this.workspace.addEventListener('wheel', this.handleWheel, { passive: false });
+
     this.setupWorkspaceListeners();
   }
 
   setupWorkspaceListeners() {
     this.workspace.addEventListener('click', (event) => {
+      if (this.ignoreNextWorkspaceClick) {
+        this.ignoreNextWorkspaceClick = false;
+        return;
+      }
+
       if (this.wiringManager?.isWiring()) {
         return;
       }
@@ -35,10 +80,152 @@ export class CanvasManager {
         return;
       }
 
-      if (event.target === this.workspace || event.target === this.wiringManager.svgLayer) {
+      if (
+        event.target === this.workspace ||
+        event.target === this.viewportElement ||
+        event.target === this.wiringManager?.svgLayer
+      ) {
         this.clearSelections();
       }
     });
+  }
+
+  applyViewportTransform() {
+    if (!this.viewportElement) return;
+    const { scale, panX, panY } = this.viewportState;
+    this.viewportElement.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+    this.refreshOverlayPositions();
+  }
+
+  refreshOverlayPositions() {
+    this.components.forEach((component) => {
+      if (component.type !== 'photoresistor') return;
+      const controls = component.element?.__controls;
+      if (!controls) return;
+      if (controls.style.display === 'none') return;
+      this.positionPhotoresistorControls(component);
+    });
+  }
+
+  clientToWorkspace(clientX, clientY) {
+    if (!this.workspace) {
+      return { x: clientX, y: clientY };
+    }
+    const rect = this.workspace.getBoundingClientRect();
+    const { scale, panX, panY } = this.viewportState;
+    return {
+      x: (clientX - rect.left - panX) / scale,
+      y: (clientY - rect.top - panY) / scale,
+    };
+  }
+
+  workspaceToViewport(x, y) {
+    const { scale, panX, panY } = this.viewportState;
+    return {
+      x: x * scale + panX,
+      y: y * scale + panY,
+    };
+  }
+
+  handleWheel(event) {
+    if (!event || !this.workspace) return;
+    event.preventDefault();
+    const zoomIntensity = 0.0015;
+    const scaleFactor = Math.exp(-event.deltaY * zoomIntensity);
+    this.zoomAt(scaleFactor, event.clientX, event.clientY);
+  }
+
+  zoomAt(scaleFactor, clientX, clientY) {
+    if (!Number.isFinite(scaleFactor) || scaleFactor === 0) {
+      return;
+    }
+    const { scale, minScale, maxScale, panX, panY } = this.viewportState;
+    let nextScale = this.clampValue(scale * scaleFactor, minScale, maxScale);
+    if (Math.abs(nextScale - scale) < 1e-4) {
+      return;
+    }
+
+    const rect = this.workspace.getBoundingClientRect();
+    const pointerX = clientX - rect.left;
+    const pointerY = clientY - rect.top;
+
+    const preZoomX = (pointerX - panX) / scale;
+    const preZoomY = (pointerY - panY) / scale;
+
+    this.viewportState.scale = nextScale;
+    this.viewportState.panX = pointerX - preZoomX * nextScale;
+    this.viewportState.panY = pointerY - preZoomY * nextScale;
+
+    this.applyViewportTransform();
+  }
+
+  shouldStartPan(event) {
+    if (this.wiringManager?.isWiring() || this.wiringManager?.isEditingConnection()) {
+      return false;
+    }
+    if (!event || event.button !== 0) return false;
+    const target = event.target;
+    if (!target) return true;
+    if (target.closest('.canvas-component')) return false;
+    if (target.closest('.pin')) return false;
+    if (target.closest('.wire')) return false;
+    if (target.closest('.wire-anchor-handle')) return false;
+    if (target.closest('.component-embedded-control')) return false;
+    if (target.closest('.photoresistor-controls')) return false;
+    if (target.closest('.context-menu')) return false;
+    return true;
+  }
+
+  handlePanPointerDown(event) {
+    if (event.button === 1 || (event.button === 0 && this.shouldStartPan(event))) {
+      if (event.button === 0 && (this.wiringManager?.isWiring() || this.wiringManager?.isEditingConnection())) {
+        return;
+      }
+      event.preventDefault();
+      hideContextMenu();
+      this.isPanning = true;
+      this.panPointerId = event.pointerId;
+      this.panStart = { x: event.clientX, y: event.clientY };
+      this.panOrigin = { x: this.viewportState.panX, y: this.viewportState.panY };
+      this.panCaptureElement = event.target;
+      this.panMoved = false;
+      this.workspace.classList.add('is-panning');
+      this.panCaptureElement?.setPointerCapture?.(event.pointerId);
+      window.addEventListener('pointermove', this.handlePanPointerMove);
+      window.addEventListener('pointerup', this.handlePanPointerUp);
+      window.addEventListener('pointercancel', this.handlePanPointerUp);
+    }
+  }
+
+  handlePanPointerMove(event) {
+    if (!this.isPanning || event.pointerId !== this.panPointerId) return;
+    event.preventDefault();
+    const dx = event.clientX - this.panStart.x;
+    const dy = event.clientY - this.panStart.y;
+    this.viewportState.panX = this.panOrigin.x + dx;
+    this.viewportState.panY = this.panOrigin.y + dy;
+    if (!this.panMoved && (Math.abs(dx) > 1 || Math.abs(dy) > 1)) {
+      this.panMoved = true;
+    }
+    this.applyViewportTransform();
+  }
+
+  handlePanPointerUp(event) {
+    if (!this.isPanning || event.pointerId !== this.panPointerId) return;
+    this.panCaptureElement?.releasePointerCapture?.(event.pointerId);
+    window.removeEventListener('pointermove', this.handlePanPointerMove);
+    window.removeEventListener('pointerup', this.handlePanPointerUp);
+    window.removeEventListener('pointercancel', this.handlePanPointerUp);
+    this.workspace.classList.remove('is-panning');
+    this.isPanning = false;
+    if (this.panMoved) {
+      this.ignoreNextWorkspaceClick = true;
+    }
+    this.panPointerId = null;
+    this.panCaptureElement = null;
+    this.panStart = null;
+    this.panOrigin = null;
+    this.panMoved = false;
   }
 
   clearSelections() {
@@ -97,7 +284,7 @@ export class CanvasManager {
 
     container.appendChild(visualWrapper);
     // container.appendChild(label);
-    this.workspace.appendChild(container);
+    this.viewportElement.appendChild(container);
 
     const transformState = {
       rotation: this.normaliseRotation(options.transform?.rotation ?? 0),
@@ -151,16 +338,19 @@ export class CanvasManager {
       }
 
       container.setPointerCapture(event.pointerId);
-      const initialX = event.clientX - container.offsetLeft;
-      const initialY = event.clientY - container.offsetTop;
+      const startPoint = this.clientToWorkspace(event.clientX, event.clientY);
+      const offsetX = startPoint.x - container.offsetLeft;
+      const offsetY = startPoint.y - container.offsetTop;
       let moved = false;
 
       const handlePointerMove = (moveEvent) => {
         if (moveEvent.pointerId !== event.pointerId) return;
+        moveEvent.preventDefault();
         moved = true;
 
-        const newX = moveEvent.clientX - initialX;
-        const newY = moveEvent.clientY - initialY;
+        const currentPoint = this.clientToWorkspace(moveEvent.clientX, moveEvent.clientY);
+        const newX = currentPoint.x - offsetX;
+        const newY = currentPoint.y - offsetY;
 
         container.style.left = `${newX}px`;
         container.style.top = `${newY}px`;
@@ -180,6 +370,9 @@ export class CanvasManager {
 
         if (moved) {
           this.notifyInteraction();
+          if (component.type === 'photoresistor') {
+            this.positionPhotoresistorControls(component);
+          }
         } else {
           this.selectComponent(id);
         }
@@ -633,15 +826,14 @@ export class CanvasManager {
     const controlsRect = controls.getBoundingClientRect();
 
     const sensorCenterX = sensorRect.left + sensorRect.width / 2;
-    const sensorTop = sensorRect.top;
-    const offsetY = (controlsRect.height || 28) + 12;
+    const controlHeight = controlsRect.height || 28;
+    const offsetY = controlHeight + 12;
 
-    const containerRect = component.container.getBoundingClientRect();
-    const centerX = sensorCenterX - containerRect.left + component.container.offsetLeft;
-    const top = sensorTop - containerRect.top + component.container.offsetTop - offsetY;
+    const overlayLeft = sensorCenterX - workspaceRect.left;
+    const overlayTop = sensorRect.top - workspaceRect.top - offsetY;
 
-    controls.style.setProperty('--overlay-left', `${centerX}px`);
-    controls.style.setProperty('--overlay-top', `${top}px`);
+    controls.style.setProperty('--overlay-left', `${overlayLeft}px`);
+    controls.style.setProperty('--overlay-top', `${overlayTop}px`);
   }
 
   ensurePhotoresistorControls(component) {
