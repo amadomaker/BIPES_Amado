@@ -46,6 +46,159 @@ function createWokwiPreview(elementTag, props = {}) {
   return wrapper;
 }
 
+function parseResistanceValue(raw) {
+  if (raw === null || typeof raw === 'undefined') return NaN;
+  if (typeof raw === 'number') return raw;
+  const normalized = String(raw).trim().toLowerCase();
+  if (!normalized) return NaN;
+
+  const match = normalized.match(/^([\d.,]+)\s*([a-zµΩ]*)$/i);
+  if (!match) {
+    const fallback = Number(normalized.replace(',', '.'));
+    return Number.isFinite(fallback) ? fallback : NaN;
+  }
+
+  const magnitude = Number.parseFloat(match[1].replace(',', '.'));
+  if (!Number.isFinite(magnitude)) return NaN;
+
+  const unitRaw = match[2] ?? '';
+  const cleanedUnit = unitRaw
+    .toLowerCase()
+    .replace(/ω|Ω/g, 'ohm')
+    .replace(/⁻/g, '-')
+    .trim();
+
+  const MULTIPLIERS = new Map([
+    ['', 1],
+    ['ohm', 1],
+    ['ohms', 1],
+    ['kohm', 1_000],
+    ['k', 1_000],
+    ['kiloohm', 1_000],
+    ['kilo', 1_000],
+    ['mohm', 1_000_000],
+    ['megaohm', 1_000_000],
+    ['meg', 1_000_000],
+    ['m', 1_000_000],
+    ['gohm', 1_000_000_000],
+    ['g', 1_000_000_000],
+    ['µohm', 1e-6],
+    ['microohm', 1e-6],
+    ['µ', 1e-6],
+    ['u', 1e-6],
+  ]);
+
+  const multiplier = MULTIPLIERS.get(cleanedUnit) ?? 1;
+  return magnitude * multiplier;
+}
+
+const PHOTORESISTOR_MIN_OHMS = 500;
+const PHOTORESISTOR_MAX_OHMS = 1_000_000;
+
+function photoresistorLevelToOhms(level) {
+  const numeric = Math.max(0, Math.min(100, Number(level) || 0));
+  const span = PHOTORESISTOR_MAX_OHMS - PHOTORESISTOR_MIN_OHMS;
+  const ohms = PHOTORESISTOR_MAX_OHMS - (span * numeric) / 100;
+  return Math.round(ohms);
+}
+
+function photoresistorOhmsToLevel(ohms) {
+  const numeric = parseResistanceValue(ohms);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return 50;
+  }
+  const clamped = Math.min(Math.max(numeric, PHOTORESISTOR_MIN_OHMS), PHOTORESISTOR_MAX_OHMS);
+  const span = PHOTORESISTOR_MAX_OHMS - PHOTORESISTOR_MIN_OHMS;
+  if (span === 0) return 50;
+  const ratio = (PHOTORESISTOR_MAX_OHMS - clamped) / span;
+  return Math.round(ratio * 100);
+}
+
+function createPhotoresistorInstance({ props } = {}) {
+  const sensor = document.createElement('wokwi-photoresistor-sensor');
+
+  const controls = document.createElement('div');
+  controls.className = 'photoresistor-controls component-embedded-control';
+  controls.style.position = 'absolute';
+  controls.style.display = 'none';
+
+  const slider = document.createElement('input');
+  slider.type = 'range';
+  slider.min = '0';
+  slider.max = '100';
+  slider.step = '1';
+  slider.className = 'photoresistor-slider';
+
+  const valueLabel = document.createElement('span');
+  valueLabel.className = 'photoresistor-value';
+
+  controls.append(slider, valueLabel);
+  sensor.__controls = controls;
+  sensor.__sensorElement = sensor;
+
+  let currentLevel = 50;
+  let currentOhms = photoresistorLevelToOhms(currentLevel);
+
+  const updateDisplay = () => {
+    slider.value = String(currentLevel);
+    valueLabel.textContent = `${currentLevel}%`;
+    sensor.setAttribute('resistance', String(currentOhms));
+    sensor.setAttribute('ohms', String(currentOhms));
+    sensor.resistance = currentOhms;
+    if ('value' in sensor) {
+      sensor.value = currentOhms;
+    }
+  };
+
+  sensor.__setBrightness = (level, { silent = false } = {}) => {
+    const numeric = Math.max(0, Math.min(100, Math.round(Number(level) || 0)));
+    currentLevel = numeric;
+    currentOhms = photoresistorLevelToOhms(numeric);
+    updateDisplay();
+    if (!silent) {
+      sensor.__onBrightnessChange?.(currentLevel, {
+        source: 'external',
+        ohms: currentOhms,
+      });
+    }
+  };
+
+  slider.addEventListener('input', () => {
+    const level = Math.max(0, Math.min(100, Math.round(Number(slider.value) || 0)));
+    currentLevel = level;
+    currentOhms = photoresistorLevelToOhms(level);
+    updateDisplay();
+    sensor.__onBrightnessChange?.(currentLevel, {
+      source: 'slider',
+      ohms: currentOhms,
+    });
+  });
+
+  sensor.__onBrightnessChange = null;
+
+  const initialOhms =
+    props?.resistance ??
+    props?.value ??
+    props?.ohms ??
+    photoresistorLevelToOhms(currentLevel);
+  const initialLevel = photoresistorOhmsToLevel(initialOhms);
+  currentLevel = initialLevel;
+  currentOhms = photoresistorLevelToOhms(initialLevel);
+  updateDisplay();
+
+  return {
+    element: sensor,
+    applyProps: (nextProps = {}) => {
+      const nextOhms =
+        nextProps?.resistance ??
+        nextProps?.value ??
+        nextProps?.ohms;
+      const level = photoresistorOhmsToLevel(nextOhms);
+      sensor.__setBrightness?.(level, { silent: true });
+    },
+  };
+}
+
 function createMultimeterElement({ props } = {}) {
   const shell = document.createElement('div');
   shell.className = 'multimeter-shell';
@@ -439,21 +592,12 @@ export const availableComponents = [
   {
     id: 'photoresistor',
     name: 'Sensor LDR',
-    element: 'wokwi-photoresistor-sensor',
+    element: null,
     description: 'Resistor dependente de luz.',
     group: 'sensors',
     defaultProps: { resistance: '10k' },
+    createInstance: ({ props }) => createPhotoresistorInstance({ props }),
     createPreview: () => createWokwiPreview('wokwi-photoresistor-sensor', {}),
-    propertyControls: [
-      {
-        label: 'Resistência',
-        formatValue: (value) => formatResistanceValue(value),
-        control: {
-          type: 'text',
-          propKey: 'resistance',
-        },
-      },
-    ],
   },
   {
     id: 'buzzer',

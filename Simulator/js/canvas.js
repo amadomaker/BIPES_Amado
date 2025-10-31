@@ -8,6 +8,8 @@ import {
 import { availableComponents, getLedColorInfo } from './components.js';
 
 const FLIPPABLE_COMPONENT_TYPES = new Set(['led']);
+const PHOTORESISTOR_MIN_OHMS = 500;
+const PHOTORESISTOR_MAX_OHMS = 1_000_000;
 
 export class CanvasManager {
   constructor(options = {}) {
@@ -122,9 +124,13 @@ export class CanvasManager {
     await this.wiringManager.addPinsToComponent(visualWrapper, definition, componentId);
     this.syncComponentRuntimeState(componentData);
     this.applyComponentTransform(componentData);
+    this.positionPhotoresistorControls(componentData);
+    window.requestAnimationFrame(() => this.positionPhotoresistorControls(componentData));
     this.wiringManager.updateAllConnections();
     this.selectComponent(componentId);
     this.notifyInteraction();
+    this.ensurePhotoresistorControls(componentData);
+    this.updatePhotoresistorControlsVisibility();
 
     return componentId;
   }
@@ -135,6 +141,10 @@ export class CanvasManager {
     container.addEventListener('pointerdown', (event) => {
       if (event.button !== 0) return;
       if (event.target.closest('.pin')) return;
+      if (event.target.closest('.component-embedded-control')) {
+        this.selectComponent(id);
+        return;
+      }
       if (this.isInteractionLocked?.()) {
         this.selectComponent(id);
         return;
@@ -155,6 +165,9 @@ export class CanvasManager {
         container.style.left = `${newX}px`;
         container.style.top = `${newY}px`;
         this.wiringManager.updateAllConnections();
+        if (component.type === 'photoresistor') {
+          this.positionPhotoresistorControls(component);
+        }
       };
 
       const handlePointerUp = (upEvent) => {
@@ -288,6 +301,73 @@ export class CanvasManager {
         element.addEventListener('change', updateState);
         break;
       }
+      case 'photoresistor': {
+        const state = component.state ?? (component.state = {});
+        const sensor = element.querySelector?.('wokwi-photoresistor-sensor') ?? element;
+
+        const applyLevel = (level, { silent = false } = {}) => {
+          const numericLevel = Math.round(this.clampValue(level, 0, 100));
+          const resistance = this.photoresistorLevelToResistance(numericLevel);
+          const previousLevel = state.lightLevel;
+          const previousResistance = state.resistance;
+          state.lightLevel = numericLevel;
+          state.resistance = resistance;
+          component.props.resistance = String(resistance);
+          component.props.value = String(resistance);
+          component.props.ohms = String(resistance);
+          if (sensor) {
+            sensor.setAttribute('resistance', String(resistance));
+            sensor.setAttribute('ohms', String(resistance));
+            sensor.resistance = resistance;
+            if ('value' in sensor) {
+              sensor.value = resistance;
+            }
+          }
+          if (element.__setBrightness) {
+            element.__setBrightness(numericLevel, { silent: true });
+          }
+          if (!silent && (previousLevel !== numericLevel || previousResistance !== resistance)) {
+            window.dispatchEvent(
+              new CustomEvent('simulator-pattern-interaction', {
+                detail: { source: 'component-element' },
+              }),
+            );
+            this.notifyInteraction();
+          }
+          this.positionPhotoresistorControls(component);
+          this.wiringManager.scheduleConnectionRefresh({
+            immediate: true,
+            minFrames: 4,
+            durationMs: 160,
+            maxDurationMs: 360,
+          });
+          window.setTimeout(() => this.wiringManager.updateAllConnections(), 200);
+        };
+
+        element.__onBrightnessChange = (level, options = {}) => {
+          applyLevel(level, { silent: Boolean(options?.silent) });
+        };
+
+        const initialRaw =
+          component.props?.resistance ??
+          component.props?.value ??
+          component.props?.ohms ??
+          state.resistance ??
+          '10k';
+        const initialLevel = this.photoresistorResistanceToLevel(initialRaw);
+        applyLevel(initialLevel, { silent: true });
+        window.requestAnimationFrame(() => {
+          this.positionPhotoresistorControls(component);
+          this.wiringManager.scheduleConnectionRefresh({
+            immediate: true,
+            minFrames: 4,
+            durationMs: 160,
+            maxDurationMs: 360,
+          });
+          window.setTimeout(() => this.wiringManager.updateAllConnections(), 200);
+        });
+        break;
+      }
       default:
         break;
     }
@@ -306,6 +386,11 @@ export class CanvasManager {
     this.renderPropertiesForComponent(component);
     this.wiringManager.deselectWire();
     this.emitSelectionChange(component);
+    if (component.type === 'photoresistor') {
+      this.positionPhotoresistorControls(component);
+      window.requestAnimationFrame(() => this.positionPhotoresistorControls(component));
+    }
+    this.updatePhotoresistorControlsVisibility();
   }
 
   clearComponentSelection() {
@@ -317,6 +402,7 @@ export class CanvasManager {
     this.selectedComponentId = null;
     clearPropertiesPanel();
     this.emitSelectionChange(null);
+    this.updatePhotoresistorControlsVisibility();
   }
 
   deleteSelectedComponent() {
@@ -332,6 +418,10 @@ export class CanvasManager {
     const [component] = this.components.splice(index, 1);
     this.wiringManager.removeConnectionsForComponent(componentId);
     this.wiringManager.removePinsForComponent(componentId);
+    const controls = component.element?.__controls;
+    if (controls?.parentElement) {
+      controls.parentElement.removeChild(controls);
+    }
 
     component.container.remove();
     if (this.selectedComponentId === componentId) {
@@ -341,6 +431,7 @@ export class CanvasManager {
     }
 
     this.notifyInteraction();
+    this.updatePhotoresistorControlsVisibility();
   }
 
   clearWorkspace() {
@@ -456,6 +547,135 @@ export class CanvasManager {
     return numeric * 1000;
   }
 
+  clampValue(value, min, max) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return min;
+    if (numeric < min) return min;
+    if (numeric > max) return max;
+    return numeric;
+  }
+
+  parseResistanceInput(value) {
+    if (value === null || typeof value === 'undefined') return NaN;
+    if (typeof value === 'number') return value;
+    const normalized = String(value).trim().toLowerCase();
+    if (!normalized) return NaN;
+
+    const match = normalized.match(/^([\d.,]+)\s*([a-zµΩ]*)$/i);
+    if (!match) {
+      const fallback = Number(normalized.replace(',', '.'));
+      return Number.isFinite(fallback) ? fallback : NaN;
+    }
+
+    const magnitude = Number.parseFloat(match[1].replace(',', '.'));
+    if (!Number.isFinite(magnitude)) return NaN;
+
+    const unitRaw = match[2] ?? '';
+    const cleanedUnit = unitRaw
+      .toLowerCase()
+      .replace(/ω|Ω/g, 'ohm')
+      .replace(/⁻/g, '-')
+      .trim();
+
+    const multipliers = new Map([
+      ['', 1],
+      ['ohm', 1],
+      ['ohms', 1],
+      ['kohm', 1_000],
+      ['k', 1_000],
+      ['kiloohm', 1_000],
+      ['kilo', 1_000],
+      ['mohm', 1_000_000],
+      ['megaohm', 1_000_000],
+      ['meg', 1_000_000],
+      ['m', 1_000_000],
+      ['gohm', 1_000_000_000],
+      ['g', 1_000_000_000],
+      ['µohm', 1e-6],
+      ['microohm', 1e-6],
+      ['µ', 1e-6],
+      ['u', 1e-6],
+    ]);
+
+    const multiplier = multipliers.get(cleanedUnit) ?? 1;
+    return magnitude * multiplier;
+  }
+
+  photoresistorLevelToResistance(level) {
+    const numeric = this.clampValue(level, 0, 100);
+    const span = PHOTORESISTOR_MAX_OHMS - PHOTORESISTOR_MIN_OHMS;
+    const ohms = PHOTORESISTOR_MAX_OHMS - (span * numeric) / 100;
+    return Math.round(ohms);
+  }
+
+  photoresistorResistanceToLevel(value) {
+    const ohms = this.parseResistanceInput(value);
+    if (!Number.isFinite(ohms) || ohms <= 0) {
+      return 50;
+    }
+    const clamped = this.clampValue(ohms, PHOTORESISTOR_MIN_OHMS, PHOTORESISTOR_MAX_OHMS);
+    const span = PHOTORESISTOR_MAX_OHMS - PHOTORESISTOR_MIN_OHMS;
+    if (span === 0) return 50;
+    const ratio = (PHOTORESISTOR_MAX_OHMS - clamped) / span;
+    return Math.round(ratio * 100);
+  }
+
+  positionPhotoresistorControls(component) {
+    if (!component || component.type !== 'photoresistor') return;
+    const controls = component.element?.__controls ?? component.element?.querySelector('.photoresistor-controls');
+    const sensor = component.element?.__sensorElement ?? component.element?.querySelector('wokwi-photoresistor-sensor');
+    if (!controls || !sensor) return;
+
+    const workspaceRect = this.workspace.getBoundingClientRect();
+    const sensorRect = sensor.getBoundingClientRect();
+    const controlsRect = controls.getBoundingClientRect();
+
+    const sensorCenterX = sensorRect.left + sensorRect.width / 2;
+    const sensorTop = sensorRect.top;
+    const offsetY = (controlsRect.height || 28) + 12;
+
+    const containerRect = component.container.getBoundingClientRect();
+    const centerX = sensorCenterX - containerRect.left + component.container.offsetLeft;
+    const top = sensorTop - containerRect.top + component.container.offsetTop - offsetY;
+
+    controls.style.setProperty('--overlay-left', `${centerX}px`);
+    controls.style.setProperty('--overlay-top', `${top}px`);
+  }
+
+  ensurePhotoresistorControls(component) {
+    if (!component || component.type !== 'photoresistor') return;
+    const controls = component.element?.__controls;
+    if (!controls) return;
+    if (!controls.__managedByCanvas) {
+      controls.__managedByCanvas = true;
+      controls.addEventListener('pointerdown', (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        this.selectComponent(component.id);
+      });
+    }
+    if (!controls.parentElement) {
+      this.workspace.appendChild(controls);
+    }
+    controls.dataset.componentId = component.id;
+  }
+
+  updatePhotoresistorControlsVisibility() {
+    this.components.forEach((comp) => {
+      if (comp.type !== 'photoresistor') return;
+      const controls = comp.element?.__controls;
+      if (!controls) return;
+      this.ensurePhotoresistorControls(comp);
+      if (comp.id === this.selectedComponentId) {
+        controls.style.display = 'flex';
+        this.positionPhotoresistorControls(comp);
+        window.requestAnimationFrame(() => this.positionPhotoresistorControls(comp));
+      } else {
+        controls.style.display = 'none';
+      }
+    });
+  }
+
   getTransitionDurationMs(element, targetProperty = 'all') {
     if (!element || typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') {
       return 0;
@@ -523,6 +743,8 @@ export class CanvasManager {
 
     target.style.transformOrigin = 'center';
     target.style.transform = transforms.length ? transforms.join(' ') : 'none';
+    target.style.setProperty('--component-rotation', `${rotation}deg`);
+    target.style.setProperty('--component-flip-compensation', flipped ? '-1' : '1');
 
     this.wiringManager.resetAnchorsForComponent(component.id);
     const transitionDuration = this.getTransitionDurationMs(target, 'transform');
@@ -532,6 +754,9 @@ export class CanvasManager {
       durationMs: transitionDuration + 80,
       maxDurationMs: transitionDuration + 240,
     });
+
+    this.positionPhotoresistorControls(component);
+    window.requestAnimationFrame(() => this.positionPhotoresistorControls(component));
   }
 
   getComponentVisualWrapper(componentId) {
@@ -584,7 +809,17 @@ export class CanvasManager {
           component.props?.value ??
           component.props?.ohms ??
           state.resistance;
-        state.resistance = raw;
+        const level = this.photoresistorResistanceToLevel(raw);
+        const resistance = this.photoresistorLevelToResistance(level);
+        state.lightLevel = level;
+        state.resistance = resistance;
+        if (component.element?.__setBrightness) {
+          component.element.__setBrightness(level, { silent: true });
+        }
+        const sensor = component.element?.querySelector?.('wokwi-photoresistor-sensor');
+        if (sensor) {
+          sensor.setAttribute('resistance', String(resistance));
+        }
         break;
       }
       default:
@@ -735,6 +970,11 @@ export class CanvasManager {
       definition.name ||
       component.name ||
       'Componente selecionado';
+
+    if (component.type === 'photoresistor' && fields.length === 0) {
+      clearPropertiesPanel();
+      return;
+    }
 
     updatePropertiesPanel({
       title: panelTitle,

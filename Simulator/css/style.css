@@ -485,6 +485,54 @@ body {
   position: absolute;
 }
 
+.photoresistor-controls {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  top: var(--overlay-top, -40px);
+  left: var(--overlay-left, 50%);
+  transform: translate(-50%, 0);
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 9999px;
+  padding: 6px 12px;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(6px);
+  z-index: 15;
+  pointer-events: auto;
+}
+
+.photoresistor-controls::before {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: inherit;
+  border-left: inherit;
+  border-bottom: inherit;
+  transform: translate(-50%, 0) rotate(45deg);
+  pointer-events: none;
+}
+
+.photoresistor-slider {
+  width: 140px;
+}
+
+.photoresistor-value {
+  font-size: 12px;
+  color: #f8fafc;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.canvas-component.component-selected .photoresistor-controls {
+  display: flex;
+}
+
 /* Feedback visual durante drag */
 #workspace.drag-over {
   background-color: #3d3d40 !important;

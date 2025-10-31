@@ -7,6 +7,8 @@ const CURRENT_WARNING_FACTOR = 1.3;
 const CURRENT_DANGER_FACTOR = 2.5;
 const VOLTAGE_WARNING_FACTOR = 1.15;
 const VOLTAGE_DANGER_FACTOR = 1.6;
+const PHOTORESISTOR_MIN_OHMS = 500;
+const PHOTORESISTOR_MAX_OHMS = 1_000_000;
 
 class CircuitSnapshot {
   constructor(canvasManager, boardPinStates = new Map(), options = {}) {
@@ -818,6 +820,23 @@ class CircuitSnapshot {
         if (normalised === 'low' || normalised === '0' || normalised === 'off') {
           return 'low';
         }
+      }
+    }
+    if (type === 'photoresistor') {
+      const pin = String(pinName).toUpperCase();
+      if (pin === 'DO' || pin === 'DIGITAL' || pin === 'OUT') {
+        const level = Number(component.state?.lightLevel);
+        if (Number.isFinite(level)) {
+          return level >= 50 ? 'high' : 'low';
+        }
+        const rawState = component.props?.resistance ?? component.props?.value ?? null;
+        const resistance = this.parseResistanceValue(rawState);
+        if (Number.isFinite(resistance) && resistance > 0) {
+          const ratio = (PHOTORESISTOR_MAX_OHMS - Math.min(Math.max(resistance, PHOTORESISTOR_MIN_OHMS), PHOTORESISTOR_MAX_OHMS)) /
+            (PHOTORESISTOR_MAX_OHMS - PHOTORESISTOR_MIN_OHMS);
+          return ratio >= 0.5 ? 'high' : 'low';
+        }
+        return 'low';
       }
     }
     return null;
