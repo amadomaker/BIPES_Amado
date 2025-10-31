@@ -132,29 +132,55 @@ function handleClearWorkspace() {
 
 function handleSaveWorkspace() {
   if (!canvasManager) return;
-  const data = canvasManager.serialize();
-  const json = JSON.stringify(data, null, 2);
+  const payload = {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    circuit: canvasManager.serialize(),
+    blockly: captureBlocklyState(),
+  };
+
+  if (!payload.blockly) {
+    delete payload.blockly;
+  }
+
+  const json = JSON.stringify(payload, null, 2);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   triggerDownload(`simulador-${timestamp}.json`, json);
 }
 
 function handleLoadWorkspace() {
   promptFileSelection({
-    onLoad: (content) => {
+    onLoad: async (content) => {
+      let snapshot = null;
+      let loadedSuccessfully = false;
+
       try {
         const data = JSON.parse(content);
+        snapshot = normalizeWorkspaceSnapshot(data);
+        if (!snapshot.circuit || !Array.isArray(snapshot.circuit.components)) {
+          throw new Error('Invalid circuit data');
+        }
+
         simulation.stop();
         setPlayState(false);
-        Promise.resolve(canvasManager.load(data))
-          .then(() => {
-            simulationResetNotified = false;
-            scheduleAutoSave();
-          })
-          .catch(() => {
-            showAlert('Não foi possível carregar o circuito selecionado.');
-          });
+        isRestoringState = true;
+
+        await canvasManager.load(snapshot.circuit);
+
+        if (snapshot.hasBlockly) {
+          restoreBlocklyState(snapshot.blockly ?? null, { clearWhenMissing: true });
+        }
+
+        simulationResetNotified = false;
+        loadedSuccessfully = true;
       } catch (error) {
         showAlert('Arquivo inválido. Verifique o JSON e tente novamente.');
+        return;
+      } finally {
+        isRestoringState = false;
+        if (loadedSuccessfully) {
+          scheduleAutoSave();
+        }
       }
     },
   });
@@ -369,6 +395,77 @@ function captureBlocklyState() {
   return null;
 }
 
+function restoreBlocklyState(blocklyData, { clearWhenMissing = false } = {}) {
+  if (!blocklyWorkspace || typeof window === 'undefined' || !window.Blockly) return;
+
+  if (!blocklyData) {
+    if (clearWhenMissing) {
+      blocklyWorkspace.clear();
+    }
+    return;
+  }
+
+  try {
+    if (
+      blocklyData.format === 'json' &&
+      window.Blockly.serialization?.workspaces?.load &&
+      blocklyData.data &&
+      typeof blocklyData.data !== 'string'
+    ) {
+      blocklyWorkspace.clear();
+      window.Blockly.serialization.workspaces.load(blocklyData.data, blocklyWorkspace);
+      return;
+    }
+
+    const xmlString =
+      blocklyData.format === 'xml' && typeof blocklyData.data === 'string'
+        ? blocklyData.data
+        : typeof blocklyData === 'string'
+          ? blocklyData
+          : null;
+
+    if (xmlString && window.Blockly.Xml?.textToDom) {
+      const xml = window.Blockly.Xml.textToDom(xmlString);
+      blocklyWorkspace.clear();
+      window.Blockly.Xml.domToWorkspace(xml, blocklyWorkspace);
+      return;
+    }
+  } catch {
+    // Ignora falhas de restauração específicas
+  }
+
+  if (clearWhenMissing) {
+    blocklyWorkspace.clear();
+  }
+}
+
+function normalizeWorkspaceSnapshot(raw) {
+  if (!raw || typeof raw !== 'object') {
+    return {
+      circuit: null,
+      blockly: null,
+      hasBlockly: false,
+    };
+  }
+
+  if (Array.isArray(raw.components)) {
+    return {
+      circuit: raw,
+      blockly: null,
+      hasBlockly: false,
+    };
+  }
+
+  const hasBlockly = Object.prototype.hasOwnProperty.call(raw, 'blockly');
+  const circuit = raw.circuit && typeof raw.circuit === 'object' ? raw.circuit : null;
+
+  return {
+    circuit: circuit ?? (Array.isArray(raw.components) ? raw : null),
+    blockly: hasBlockly ? raw.blockly ?? null : null,
+    hasBlockly,
+  };
+}
+
 async function restorePersistedState() {
   if (typeof window === 'undefined' || !window.localStorage) return;
 
@@ -393,34 +490,7 @@ async function restorePersistedState() {
       await canvasManager.load(parsed.circuit);
     }
 
-    const blocklyData = parsed.blockly;
-    if (blocklyData && blocklyWorkspace && typeof window !== 'undefined' && window.Blockly) {
-      try {
-        if (
-          blocklyData.format === 'json' &&
-          window.Blockly.serialization?.workspaces?.load &&
-          blocklyData.data &&
-          typeof blocklyData.data !== 'string'
-        ) {
-          blocklyWorkspace.clear();
-          window.Blockly.serialization.workspaces.load(blocklyData.data, blocklyWorkspace);
-        } else {
-          const xmlString =
-            blocklyData.format === 'xml' && typeof blocklyData.data === 'string'
-              ? blocklyData.data
-              : typeof blocklyData === 'string'
-              ? blocklyData
-              : null;
-          if (xmlString && window.Blockly.Xml?.textToDom) {
-            const xml = window.Blockly.Xml.textToDom(xmlString);
-            blocklyWorkspace.clear();
-            window.Blockly.Xml.domToWorkspace(xml, blocklyWorkspace);
-          }
-        }
-      } catch {
-        // Ignora erros ao restaurar blocos corrompidos
-      }
-    }
+    restoreBlocklyState(parsed.blockly ?? null);
   } finally {
     isRestoringState = false;
     scheduleAutoSave();
