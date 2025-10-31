@@ -785,16 +785,75 @@ body {
   background-color: #ffffff;
   border: 1px solid #d7dbe9;
   border-radius: 6px;
-  padding: 8px 12px;
+  padding: 12px 14px;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  min-width: 190px;
   box-shadow: 0 18px 32px rgba(15, 23, 42, 0.18);
 }
 
-.color-picker-popover label {
+.color-picker-title {
   font-size: 14px;
   color: #1f2937;
+  font-weight: 600;
+}
+
+.color-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(28px, 1fr));
+  gap: 10px;
+}
+
+.color-picker-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(15, 23, 42, 0.25);
+  background-color: var(--swatch-color, #6b7280);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.color-picker-swatch:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.15);
+}
+
+.color-picker-swatch.is-selected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+
+.color-picker-swatch.is-light {
+  border-color: rgba(148, 163, 184, 0.8);
+}
+
+.color-picker-swatch:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.color-picker-custom {
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #cbd5f5;
+  background-color: #eef3ff;
+  color: #1f2937;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.color-picker-custom:hover {
+  background-color: #dce8ff;
+  border-color: #9cb4ff;
+}
+
+.color-picker-native-input {
+  display: none;
 }
 
 #alert-container {

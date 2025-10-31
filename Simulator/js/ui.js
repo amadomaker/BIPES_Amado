@@ -30,6 +30,23 @@ let colorPickerPopover;
 let fileInput;
 
 const alertTimers = new Map();
+const WIRE_COLOR_PRESETS = [
+  '#1f2937', // grafite
+  '#000000', // preto
+  '#6b7280', // cinza
+  '#ef4444', // vermelho
+  '#f97316', // laranja
+  '#facc15', // amarelo
+  '#22c55e', // verde
+  '#0ea5e9', // ciano
+  '#3b82f6', // azul
+  '#6366f1', // azul violeta
+  '#a855f7', // roxo
+  '#ec4899', // rosa
+  '#ffffff', // branco
+  '#d1d5db', // cinza claro
+  '#b45309', // marrom
+];
 
 export function initUI(handlers) {
   if (!toolbarElement) return;
@@ -457,36 +474,121 @@ function formatLogValue(value) {
   return String(value);
 }
 
+const normalizeHex = (value) => {
+  if (typeof value !== 'string') return '';
+  const hex = value.trim().toLowerCase();
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/.test(hex)) {
+    if (hex.length === 4) {
+      return (
+        '#' +
+        hex
+          .slice(1)
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      );
+    }
+    return hex;
+  }
+  return '';
+};
+
+const isLightColor = (hexColor) => {
+  const hex = normalizeHex(hexColor).replace('#', '');
+  if (hex.length !== 6) return false;
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance > 200;
+};
+
 export function showColorPicker(x, y, { initialColor = '#00ff00', onSelect } = {}) {
   hideColorPicker();
 
   colorPickerPopover = document.createElement('div');
   colorPickerPopover.className = 'color-picker-popover';
+  colorPickerPopover.setAttribute('role', 'dialog');
+  colorPickerPopover.setAttribute('aria-label', 'Selecionar cor do fio');
 
-  const label = document.createElement('label');
-  label.textContent = 'Cor do fio';
+  const title = document.createElement('span');
+  title.className = 'color-picker-title';
+  title.textContent = 'Cor do fio';
 
-  const input = document.createElement('input');
-  input.type = 'color';
-  input.value = initialColor;
+  const grid = document.createElement('div');
+  grid.className = 'color-picker-grid';
 
-  input.addEventListener('input', () => {
-    onSelect?.(input.value);
+  const normalizedInitial = normalizeHex(initialColor) || '#00ff00';
+  let initialHandled = false;
+
+  const createSwatch = (color, { highlight = false, labelText = null } = {}) => {
+    const swatch = document.createElement('button');
+    swatch.type = 'button';
+    swatch.className = 'color-picker-swatch';
+    swatch.style.setProperty('--swatch-color', color);
+    swatch.title = labelText ? `${labelText} (${color.toUpperCase()})` : color.toUpperCase();
+    swatch.setAttribute('aria-label', labelText ? `${labelText} ${color}` : `Cor ${color}`);
+    if (highlight) {
+      swatch.classList.add('is-selected');
+    }
+    if (isLightColor(color)) {
+      swatch.classList.add('is-light');
+    }
+    swatch.addEventListener('click', () => {
+      onSelect?.(color);
+      hideColorPicker();
+    });
+    return swatch;
+  };
+
+  WIRE_COLOR_PRESETS.forEach((presetColor) => {
+    const normalized = normalizeHex(presetColor);
+    const isActive = normalized === normalizedInitial;
+    if (isActive) {
+      initialHandled = true;
+    }
+    grid.appendChild(createSwatch(normalized, { highlight: isActive }));
+  });
+
+  if (!initialHandled && normalizedInitial) {
+    grid.appendChild(createSwatch(normalizedInitial, { highlight: true, labelText: 'Cor atual' }));
+  }
+
+  const customInput = document.createElement('input');
+  customInput.type = 'color';
+  customInput.value = normalizedInitial;
+  customInput.className = 'color-picker-native-input';
+  customInput.addEventListener('input', () => {
+    onSelect?.(normalizeHex(customInput.value));
+    hideColorPicker();
+  });
+
+  const customButton = document.createElement('button');
+  customButton.type = 'button';
+  customButton.className = 'color-picker-custom';
+  customButton.textContent = 'Mais cores...';
+  customButton.addEventListener('click', () => {
+    customInput.click();
   });
 
   colorPickerPopover.addEventListener('click', (event) => event.stopPropagation());
 
-  const rect = document.body.getBoundingClientRect();
-  const width = 220;
-  const height = 60;
-  const posX = Math.min(x, rect.right - width - 10);
-  const posY = Math.min(y, rect.bottom - height - 10);
+  colorPickerPopover.style.left = '-9999px';
+  colorPickerPopover.style.top = '-9999px';
 
-  colorPickerPopover.style.left = `${posX}px`;
-  colorPickerPopover.style.top = `${posY}px`;
-
-  colorPickerPopover.append(label, input);
+  colorPickerPopover.append(title, grid, customButton, customInput);
   document.body.appendChild(colorPickerPopover);
+
+  window.requestAnimationFrame(() => {
+    const rect = document.body.getBoundingClientRect();
+    const pickerRect = colorPickerPopover.getBoundingClientRect();
+    const posX = Math.min(x, rect.right - pickerRect.width - 10);
+    const posY = Math.min(y, rect.bottom - pickerRect.height - 10);
+    const finalX = Math.max(rect.left + 10, posX);
+    const finalY = Math.max(rect.top + 10, posY);
+    colorPickerPopover.style.left = `${finalX}px`;
+    colorPickerPopover.style.top = `${finalY}px`;
+  });
 }
 
 export function hideColorPicker() {
