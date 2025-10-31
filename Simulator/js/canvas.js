@@ -313,14 +313,16 @@ export class CanvasManager {
           state.lightLevel = numericLevel;
           state.resistance = resistance;
           component.props.resistance = String(resistance);
-          component.props.value = String(resistance);
           component.props.ohms = String(resistance);
+          const analogScale = Math.round((numericLevel / 100) * 4095);
+          component.props.value = String(analogScale);
           if (sensor) {
             sensor.setAttribute('resistance', String(resistance));
             sensor.setAttribute('ohms', String(resistance));
             sensor.resistance = resistance;
+            sensor.setAttribute('value', String(analogScale));
             if ('value' in sensor) {
-              sensor.value = resistance;
+              sensor.value = analogScale;
             }
           }
           if (element.__setBrightness) {
@@ -650,7 +652,6 @@ export class CanvasManager {
       controls.__managedByCanvas = true;
       controls.addEventListener('pointerdown', (event) => {
         event.stopPropagation();
-        event.preventDefault();
         this.selectComponent(component.id);
       });
     }

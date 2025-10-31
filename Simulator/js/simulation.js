@@ -99,6 +99,64 @@ class CircuitSnapshot {
   evaluateLEDs() {
     const results = [];
 
+    const boardSignalStateCache = new Map();
+    const getConnectedBoardSignalState = (startNode) => {
+      if (!startNode) return null;
+      if (boardSignalStateCache.has(startNode.id)) {
+        return boardSignalStateCache.get(startNode.id);
+      }
+
+      const visited = new Set([startNode.id]);
+      const queue = [startNode];
+      let foundHigh = false;
+      let foundLow = false;
+
+      const startComponentId = startNode.componentId;
+      const startComponentType = startNode.componentType;
+
+      while (queue.length) {
+        const current = queue.shift();
+        if (!current) continue;
+
+        const componentType = current.componentType ?? current.component?.type ?? current.componentId;
+        if ((componentType === 'amado-board' || componentType === 'esp32') && current.pinType === 'signal') {
+          const key = this.getComponentPinKey(current.componentId, current.pinName);
+          if (key) {
+            const state = this.boardPinStates.get(key);
+            if (state === 'high' || state === 'low') {
+              if (state === 'high') {
+                foundHigh = true;
+              } else if (state === 'low') {
+                foundLow = true;
+              }
+            }
+          }
+        }
+
+        current.connections.forEach((neighbor) => {
+          if (neighbor && !visited.has(neighbor.id)) {
+            if (
+              startComponentType === 'led' &&
+              neighbor.componentId === startComponentId
+            ) {
+              return;
+            }
+            visited.add(neighbor.id);
+            queue.push(neighbor);
+          }
+        });
+      }
+
+      let result = null;
+      if (foundHigh) {
+        result = 'high';
+      } else if (foundLow) {
+        result = 'low';
+      }
+      boardSignalStateCache.set(startNode.id, result);
+      return result;
+    };
+
     this.canvasManager.components
       .filter((component) => component.type === 'led')
       .forEach((component) => {
@@ -136,6 +194,13 @@ class CircuitSnapshot {
         const hasResistor = resistanceInfo.total > 0;
         const anodeConnectedToBoardSignal = this.hasConnectionToBoardSignal(anode);
         const cathodeConnectedToBoardSignal = this.hasConnectionToBoardSignal(cathode);
+        const hasExplicitSupplySource = Array.isArray(powerPath.sources)
+          ? powerPath.sources.some((source) => {
+              if (!source) return false;
+              const sourceType = source.type ?? source.id ?? null;
+              return sourceType === 'battery';
+            })
+          : false;
 
         const anodeLevel = this.resolveAnalogLevel(anode);
         const cathodeLevel = this.resolveAnalogLevel(cathode);
@@ -162,21 +227,38 @@ class CircuitSnapshot {
         const effectiveResistance = resistanceForCurrent;
 
         const analogDelta = analogLevelsKnown ? Math.abs(anodeLevel - cathodeLevel) : null;
-        const driveRatio = analogLevelsKnown
+        const hasDrivePath =
+          (powerExists || anodeConnectedToBoardSignal) &&
+          (groundExists || cathodeConnectedToBoardSignal);
+
+        let driveRatio = analogLevelsKnown
           ? Math.max(0, Math.min(1, analogDelta / ADC_MAX_VALUE))
-          : (powerExists || anodeConnectedToBoardSignal) && (groundExists || cathodeConnectedToBoardSignal)
-            ? 1
-            : 0;
+          : 0;
+
+        if (hasDrivePath && (!analogLevelsKnown || driveRatio <= 0)) {
+          const anodeSignalState = getConnectedBoardSignalState(anode);
+          const cathodeSignalState = getConnectedBoardSignalState(cathode);
+
+          if (anodeSignalState === 'high' && cathodeSignalState !== 'high') {
+            driveRatio = 1;
+          } else if (anodeSignalState === 'low' || cathodeSignalState === 'high') {
+            driveRatio = 0;
+          } else if (anodeSignalState === null && cathodeSignalState === null) {
+            driveRatio = hasExplicitSupplySource ? 1 : 0;
+          } else {
+            driveRatio = 0;
+          }
+        }
+
+        if (!hasDrivePath) {
+          driveRatio = 0;
+        }
 
         const effectiveSupplyVoltage = supplyVoltage * driveRatio;
 
         let currentEstimate = 0;
         let voltageDrop = 0;
         let brightness = 0;
-
-        const hasDrivePath =
-          (powerExists || anodeConnectedToBoardSignal) &&
-          (groundExists || cathodeConnectedToBoardSignal);
 
         if (hasDrivePath && effectiveSupplyVoltage > 0) {
           if (effectiveSupplyVoltage <= forwardVoltageMin) {
@@ -858,8 +940,39 @@ class CircuitSnapshot {
   getBoardPinAnalogLevel(componentId, pinName) {
     if (!componentId || !pinName) return null;
     const key = `${componentId}:${pinName}`;
-    const value = this.boardAnalogLevels.get(key);
-    return Number.isFinite(value) ? value : null;
+    const component = this.canvasManager?.getComponentById(componentId);
+    if (!component) {
+      const storedFallback = this.boardAnalogLevels.get(key);
+      return Number.isFinite(storedFallback) ? storedFallback : null;
+    }
+    const normalizedPin = String(pinName).toUpperCase();
+    if (component.type === 'photoresistor' && normalizedPin === 'AO') {
+      const level = Number(component.state?.lightLevel);
+      if (Number.isFinite(level)) {
+        const analog = Math.round((Math.max(0, Math.min(100, level)) / 100) * ADC_MAX_VALUE);
+        this.boardAnalogLevels.set(key, analog);
+        this.boardPinStates.set(key, analog <= 0 ? 'low' : 'high');
+        return analog;
+      }
+      const rawResistance =
+        component.props?.resistance ??
+        component.props?.ohms ??
+        component.state?.resistance ??
+        component.props?.value;
+      const resistance = this.parseResistanceValue(rawResistance);
+      if (Number.isFinite(resistance) && resistance > 0) {
+        const clamped = Math.min(Math.max(resistance, PHOTORESISTOR_MIN_OHMS), PHOTORESISTOR_MAX_OHMS);
+        const ratio = (PHOTORESISTOR_MAX_OHMS - clamped) /
+          (PHOTORESISTOR_MAX_OHMS - PHOTORESISTOR_MIN_OHMS);
+        const analog = Math.round(Math.max(0, Math.min(1, ratio)) * ADC_MAX_VALUE);
+        this.boardAnalogLevels.set(key, analog);
+        this.boardPinStates.set(key, analog <= 0 ? 'low' : 'high');
+        return analog;
+      }
+    }
+
+    const stored = this.boardAnalogLevels.get(key);
+    return Number.isFinite(stored) ? stored : null;
   }
 
   resolveVoltageForBoardPin(componentId, pinName) {

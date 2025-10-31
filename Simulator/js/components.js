@@ -145,8 +145,11 @@ function createPhotoresistorInstance({ props } = {}) {
     sensor.setAttribute('resistance', String(currentOhms));
     sensor.setAttribute('ohms', String(currentOhms));
     sensor.resistance = currentOhms;
+
+    const wokwiValue = Math.round((currentLevel / 100) * 4095);
+    sensor.setAttribute('value', String(wokwiValue));
     if ('value' in sensor) {
-      sensor.value = currentOhms;
+      sensor.value = wokwiValue;
     }
   };
 
@@ -189,10 +192,17 @@ function createPhotoresistorInstance({ props } = {}) {
   return {
     element: sensor,
     applyProps: (nextProps = {}) => {
+      let inferredLevel = currentLevel;
+      if (typeof nextProps?.value !== 'undefined') {
+        const numericValue = Number(nextProps.value);
+        if (Number.isFinite(numericValue)) {
+          inferredLevel = Math.max(0, Math.min(100, Math.round((numericValue / 4095) * 100)));
+        }
+      }
       const nextOhms =
         nextProps?.resistance ??
-        nextProps?.value ??
-        nextProps?.ohms;
+        nextProps?.ohms ??
+        photoresistorLevelToOhms(inferredLevel);
       const level = photoresistorOhmsToLevel(nextOhms);
       sensor.__setBrightness?.(level, { silent: true });
     },
