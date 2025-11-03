@@ -16,6 +16,7 @@ import { initBlocklyWorkspace, compileWorkspaceToProgram } from './blockly.js';
 
 const STORAGE_KEY = 'bipes-simulator-state';
 const SAVE_DEBOUNCE_MS = 400;
+const HISTORY_LIMIT = 50;
 
 let canvasManager;
 let simulationResetNotified = false;
@@ -28,6 +29,12 @@ let isRestoringState = false;
 let simulationInteractionBypass = false;
 let openBlocklyPanel = () => {};
 let closeBlocklyPanel = () => {};
+let undoStack = [];
+let redoStack = [];
+let lastSnapshot = null;
+let lastSnapshotHash = null;
+let isApplyingHistory = false;
+let historySuspended = false;
 
 window.addEventListener('DOMContentLoaded', () => {
   initUI({
@@ -42,7 +49,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   canvasManager = new CanvasManager({
-    onInteraction: resetSimulationIfNecessary,
+    onInteraction: handleCanvasInteraction,
     isInteractionLocked: () => simulation?.isRunning ?? false,
   });
 
@@ -62,7 +69,10 @@ window.addEventListener('DOMContentLoaded', () => {
   blocklyWorkspace = initBlocklyWorkspace();
   setupBlocklyPanelControls();
   attachBlocklyAutoSave();
-  restorePersistedState();
+  initializeHistoryBaseline();
+  restorePersistedState().finally(() => {
+    initializeHistoryBaseline();
+  });
   setPlayState(false);
 });
 
@@ -118,16 +128,21 @@ function handlePlayPause() {
 
 function handleClearWorkspace() {
   if (!canvasManager) return;
-  simulation.stop();
-  setPlayState(false);
-  canvasManager.clearWorkspace();
-  if (blocklyWorkspace && typeof window !== 'undefined' && window.Blockly) {
-    blocklyWorkspace.clear();
-  }
-  clearSerialMonitor();
-  toggleSerialMonitor(false);
-  clearPersistedState();
+  prepareHistoryForExternalChange();
+  runWithHistorySuspended(() => {
+    simulation.stop();
+    setPlayState(false);
+    canvasManager.clearWorkspace();
+    if (blocklyWorkspace && typeof window !== 'undefined' && window.Blockly) {
+      blocklyWorkspace.clear();
+    }
+    clearSerialMonitor();
+    toggleSerialMonitor(false);
+    clearPersistedState();
+  });
   simulationResetNotified = false;
+  refreshHistoryBaseline();
+  scheduleAutoSave();
 }
 
 function handleSaveWorkspace() {
@@ -161,15 +176,32 @@ function handleLoadWorkspace() {
           throw new Error('Invalid circuit data');
         }
 
+        const previousEntry =
+          lastSnapshot && lastSnapshotHash
+            ? { snapshot: lastSnapshot, hash: lastSnapshotHash }
+            : null;
         simulation.stop();
         setPlayState(false);
         isRestoringState = true;
 
-        await canvasManager.load(snapshot.circuit);
+        await runWithHistorySuspended(async () => {
+          await canvasManager.load(snapshot.circuit);
 
-        if (snapshot.hasBlockly) {
-          restoreBlocklyState(snapshot.blockly ?? null, { clearWhenMissing: true });
+          if (snapshot.hasBlockly) {
+            restoreBlocklyState(snapshot.blockly ?? null, { clearWhenMissing: true });
+          }
+
+          canvasManager.focusViewportOnContent();
+        });
+
+        if (previousEntry) {
+          undoStack.push(previousEntry);
+          if (undoStack.length > HISTORY_LIMIT) {
+            undoStack.shift();
+          }
         }
+        redoStack = [];
+        refreshHistoryBaseline();
 
         simulationResetNotified = false;
         loadedSuccessfully = true;
@@ -237,6 +269,163 @@ function resetSimulationIfNecessary() {
   }
   scheduleAutoSave();
   simulationInteractionBypass = false;
+}
+
+function handleCanvasInteraction() {
+  resetSimulationIfNecessary();
+  recordHistorySnapshot();
+}
+
+function hashSnapshot(snapshot) {
+  try {
+    return JSON.stringify(snapshot);
+  } catch {
+    return null;
+  }
+}
+
+function getCurrentWorkspaceSnapshot() {
+  if (!canvasManager) {
+    return { circuit: null, blockly: null };
+  }
+  return {
+    circuit: canvasManager.serialize(),
+    blockly: captureBlocklyState(),
+  };
+}
+
+function initializeHistoryBaseline() {
+  if (!canvasManager) return;
+  lastSnapshot = getCurrentWorkspaceSnapshot();
+  lastSnapshotHash = hashSnapshot(lastSnapshot);
+  undoStack = [];
+  redoStack = [];
+}
+
+function refreshHistoryBaseline() {
+  if (!canvasManager) return;
+  lastSnapshot = getCurrentWorkspaceSnapshot();
+  lastSnapshotHash = hashSnapshot(lastSnapshot);
+}
+
+function recordHistorySnapshot() {
+  if (
+    !canvasManager ||
+    isRestoringState ||
+    isApplyingHistory ||
+    historySuspended
+  ) {
+    return;
+  }
+  if (!lastSnapshot) {
+    initializeHistoryBaseline();
+    return;
+  }
+  const currentSnapshot = getCurrentWorkspaceSnapshot();
+  const currentHash = hashSnapshot(currentSnapshot);
+  if (currentHash === lastSnapshotHash) {
+    return;
+  }
+  undoStack.push({ snapshot: lastSnapshot, hash: lastSnapshotHash });
+  if (undoStack.length > HISTORY_LIMIT) {
+    undoStack.shift();
+  }
+  redoStack = [];
+  lastSnapshot = currentSnapshot;
+  lastSnapshotHash = currentHash;
+}
+
+function prepareHistoryForExternalChange() {
+  if (!canvasManager || isRestoringState || isApplyingHistory) {
+    return;
+  }
+  if (!lastSnapshot) {
+    initializeHistoryBaseline();
+    return;
+  }
+  undoStack.push({ snapshot: lastSnapshot, hash: lastSnapshotHash });
+  if (undoStack.length > HISTORY_LIMIT) {
+    undoStack.shift();
+  }
+  redoStack = [];
+}
+
+function runWithHistorySuspended(callback) {
+  const previousValue = historySuspended;
+  historySuspended = true;
+  try {
+    const result = callback();
+    if (result && typeof result.then === 'function') {
+      return result.finally(() => {
+        historySuspended = previousValue;
+      });
+    }
+    historySuspended = previousValue;
+    return result;
+  } catch (error) {
+    historySuspended = previousValue;
+    throw error;
+  }
+}
+
+async function applyHistorySnapshot(entry) {
+  if (!entry || !canvasManager) return;
+  const targetSnapshot = entry.snapshot ?? entry;
+  isApplyingHistory = true;
+  try {
+    await runWithHistorySuspended(async () => {
+      simulation.stop();
+      setPlayState(false);
+      await canvasManager.load(targetSnapshot.circuit ?? { components: [], wires: [] });
+      restoreBlocklyState(targetSnapshot.blockly ?? null, { clearWhenMissing: true });
+      simulationResetNotified = false;
+      canvasManager.focusViewportOnContent();
+    });
+    refreshHistoryBaseline();
+    scheduleAutoSave();
+  } finally {
+    isApplyingHistory = false;
+  }
+}
+
+async function performUndo() {
+  if (!undoStack.length || !canvasManager || isApplyingHistory || isRestoringState) {
+    return;
+  }
+  const entry = undoStack.pop();
+  const currentSnapshot = getCurrentWorkspaceSnapshot();
+  const currentHash = hashSnapshot(currentSnapshot);
+  redoStack.push({ snapshot: currentSnapshot, hash: currentHash });
+  if (redoStack.length > HISTORY_LIMIT) {
+    redoStack.shift();
+  }
+  try {
+    await applyHistorySnapshot(entry);
+  } catch (error) {
+    undoStack.push(entry);
+    redoStack.pop();
+    throw error;
+  }
+}
+
+async function performRedo() {
+  if (!redoStack.length || !canvasManager || isApplyingHistory || isRestoringState) {
+    return;
+  }
+  const entry = redoStack.pop();
+  const currentSnapshot = getCurrentWorkspaceSnapshot();
+  const currentHash = hashSnapshot(currentSnapshot);
+  undoStack.push({ snapshot: currentSnapshot, hash: currentHash });
+  if (undoStack.length > HISTORY_LIMIT) {
+    undoStack.shift();
+  }
+  try {
+    await applyHistorySnapshot(entry);
+  } catch (error) {
+    redoStack.push(entry);
+    undoStack.pop();
+    throw error;
+  }
 }
 
 function setupComponentSearch() {
@@ -501,9 +690,10 @@ function attachBlocklyAutoSave() {
   if (!blocklyWorkspace || typeof window === 'undefined' || !window.Blockly) return;
 
   blocklyWorkspace.addChangeListener((event) => {
-    if (isRestoringState) return;
+    if (isRestoringState || isApplyingHistory || historySuspended) return;
     if (!event || event.type === window.Blockly.Events.UI) return;
     scheduleAutoSave();
+    recordHistorySnapshot();
   });
 }
 
@@ -645,6 +835,23 @@ function setupKeyboardShortcuts() {
     if (event.key === 'Delete' && canvasManager) {
       if (canvasManager.deleteSelectedComponent()) return;
       canvasManager.wiringManager.deleteSelectedWire();
+      return;
+    }
+
+    const modifier = event.ctrlKey || event.metaKey;
+    if (!modifier || event.altKey) return;
+
+    const key = event.key.toLowerCase();
+    if (key === 'z') {
+      event.preventDefault();
+      const action = event.shiftKey ? performRedo : performUndo;
+      Promise.resolve(action()).catch(() => {});
+      return;
+    }
+
+    if (key === 'y') {
+      event.preventDefault();
+      Promise.resolve(performRedo()).catch(() => {});
     }
   });
 }
