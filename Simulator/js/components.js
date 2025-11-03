@@ -46,6 +46,42 @@ function createWokwiPreview(elementTag, props = {}) {
   return wrapper;
 }
 
+function createDcMotorElement({ props } = {}) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'dc-motor-shell';
+
+  const image = document.createElement('img');
+  image.src = 'css/components/motor_dc_reducao.svg';
+  image.alt = props?.label ?? 'Motor DC com redução';
+  image.draggable = false;
+  image.className = 'dc-motor-image';
+
+  const rotor = document.createElement('div');
+  rotor.className = 'dc-motor-rotor';
+  const spinner = document.createElement('div');
+  spinner.className = 'dc-motor-spinner';
+  rotor.appendChild(spinner);
+
+  const speedLabel = document.createElement('span');
+  speedLabel.className = 'dc-motor-speed';
+  speedLabel.textContent = '0 RPM';
+
+  wrapper.append(image, rotor, speedLabel);
+  wrapper.__motorVisual = { rotor, spinner, speedLabel };
+
+  const applyProps = (nextProps = {}) => {
+    image.alt = nextProps.label ?? 'Motor DC com redução';
+    wrapper.title = image.alt;
+  };
+
+  applyProps(props ?? {});
+
+  return {
+    element: wrapper,
+    applyProps,
+  };
+}
+
 function parseResistanceValue(raw) {
   if (raw === null || typeof raw === 'undefined') return NaN;
   if (typeof raw === 'number') return raw;
@@ -423,6 +459,7 @@ export const componentGroups = [
   { id: 'passives', name: 'Passivos' },
   { id: 'controls', name: 'Controles' },
   { id: 'sensors', name: 'Sensores' },
+  { id: 'actuators', name: 'Atuadores' },
   { id: 'outputs', name: 'Saídas' },
   { id: 'active', name: 'Ativos' },
   { id: 'microcontroller', name: 'Microcontrolador' },
@@ -553,6 +590,42 @@ export const availableComponents = [
           min: 1,
           step: 1,
           propKey: 'value',
+        },
+      },
+    ],
+  },
+  {
+    id: 'dc-motor',
+    name: 'Motor DC',
+    element: null,
+    description: 'Motor DC com dois terminais de alimentação.',
+    group: 'actuators',
+    defaultProps: {
+      resistance: '30',
+      label: 'Motor DC 3-6V',
+    },
+    pins: [
+      { name: 'V+', type: 'power', position: { xPercent: 9, yPercent: 32 } },
+      { name: 'V-', type: 'ground', position: { xPercent: 9, yPercent: 68 } },
+    ],
+    createInstance: ({ props }) => createDcMotorElement({ props }),
+    createPreview: () => createDcMotorElement({ props: { label: 'Motor DC' } }).element,
+    propertyControls: [
+      {
+        label: 'Resistência interna',
+        formatValue: (value) => formatResistanceValue(value),
+        control: {
+          type: 'text',
+          propKey: 'resistance',
+          placeholder: '30Ω',
+        },
+      },
+      {
+        label: 'Rótulo',
+        control: {
+          type: 'text',
+          propKey: 'label',
+          placeholder: 'Motor DC',
         },
       },
     ],

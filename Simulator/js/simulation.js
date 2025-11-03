@@ -3,6 +3,11 @@ import { getLedColorInfo } from './components.js';
 const ADC_MAX_VALUE = 4095;
 const DEFAULT_SUPPLY_VOLTAGE = 3.3;
 const LED_INTERNAL_RESISTANCE = 120; // Ohms – aproxima resistência interna / fios
+const DC_MOTOR_DEFAULT_RESISTANCE = 30; // Ohms
+const DC_MOTOR_KV = 0.03; // Volts por RPM (aprox)
+const DC_MOTOR_MAX_RPM = 600;
+const DC_MOTOR_MIN_DRIVE_VOLTAGE = 0.2;
+const DC_MOTOR_MIN_DRIVE_CURRENT = 0.005;
 const CURRENT_WARNING_FACTOR = 1.3;
 const CURRENT_DANGER_FACTOR = 2.5;
 const VOLTAGE_WARNING_FACTOR = 1.15;
@@ -423,6 +428,155 @@ class CircuitSnapshot {
     return results;
   }
 
+  evaluateDcMotors() {
+    const results = [];
+
+    this.canvasManager.components
+      .filter((component) => component.type === 'dc-motor')
+      .forEach((component) => {
+        const pins = this.getPinsForComponent(component.id);
+        if (pins.length < 2) {
+          results.push({
+            component,
+            active: false,
+            direction: 0,
+            rpm: 0,
+            current: 0,
+            voltage: 0,
+            supplyVoltage: 0,
+            reasons: ['Motor sem conexões suficientes'],
+          });
+          return;
+        }
+
+        const positive = pins.find((pin) => pin.pinType === 'power') ?? pins[0];
+        const negative = pins.find((pin) => pin.pinType === 'ground') ?? pins[1];
+
+        const forwardPowerPath = this.findPath(
+          positive,
+          (node) => node.componentId !== component.id && this.isPowerNode(node),
+        );
+        const forwardGroundPath = this.findPath(
+          negative,
+          (node) => node.componentId !== component.id && this.isGroundNode(node),
+        );
+        const reversePowerPath = this.findPath(
+          negative,
+          (node) => node.componentId !== component.id && this.isPowerNode(node),
+        );
+        const reverseGroundPath = this.findPath(
+          positive,
+          (node) => node.componentId !== component.id && this.isGroundNode(node),
+        );
+
+        const posHasPower = forwardPowerPath.exists;
+        const posHasGround = reverseGroundPath.exists;
+        const negHasPower = reversePowerPath.exists;
+        const negHasGround = forwardGroundPath.exists;
+
+        const positiveVoltage = this.estimateNodeVoltage(positive, component.id);
+        const negativeVoltage = this.estimateNodeVoltage(negative, component.id);
+        const voltageDiff = positiveVoltage - negativeVoltage;
+        const absVoltage = Math.abs(voltageDiff);
+        const direction = absVoltage > 0.05 ? (voltageDiff > 0 ? 1 : -1) : 0;
+
+        const hasDrivePath = direction > 0
+          ? posHasPower && negHasGround
+          : direction < 0
+            ? negHasPower && posHasGround
+            : (posHasPower && negHasGround) || (negHasPower && posHasGround);
+
+        const supplyVoltage = absVoltage;
+
+        const pathResistorsForward = [
+          ...(forwardPowerPath.resistors ?? []),
+          ...(forwardGroundPath.resistors ?? []),
+        ];
+        const pathResistorsReverse = [
+          ...(reversePowerPath.resistors ?? []),
+          ...(reverseGroundPath.resistors ?? []),
+        ];
+
+        const pathResistors = direction >= 0 ? pathResistorsForward : pathResistorsReverse;
+        const resistanceInfo = this.computeSeriesResistance(pathResistors);
+
+        let motorResistance = this.parseResistanceValue(
+          component.props?.resistance ?? component.props?.value ?? component.props?.ohms,
+        );
+        if (!Number.isFinite(motorResistance) || motorResistance <= 0) {
+          motorResistance = DC_MOTOR_DEFAULT_RESISTANCE;
+        }
+
+        let otherResistance = Math.max(resistanceInfo.total - motorResistance, 0);
+        const motorIncluded = resistanceInfo.components
+          ? resistanceInfo.components.some((entry) => entry.component?.id === component.id)
+          : false;
+        if (!motorIncluded) {
+          otherResistance = resistanceInfo.total;
+        }
+
+        const loopResistance = Math.max(motorResistance + otherResistance, 0.001);
+
+        let current = 0;
+        let voltageAcrossMotor = 0;
+        let rpm = 0;
+        let active = false;
+
+        if (hasDrivePath && direction !== 0 && supplyVoltage > 0) {
+          current = supplyVoltage / loopResistance;
+          voltageAcrossMotor = current * motorResistance;
+          if (
+            voltageAcrossMotor >= DC_MOTOR_MIN_DRIVE_VOLTAGE &&
+            current >= DC_MOTOR_MIN_DRIVE_CURRENT
+          ) {
+            rpm = Math.min(
+              DC_MOTOR_MAX_RPM,
+              Math.max(0, voltageAcrossMotor / DC_MOTOR_KV),
+            );
+            active = rpm > 1;
+          }
+        }
+
+        if (!active) {
+          rpm = 0;
+          current = 0;
+          voltageAcrossMotor = 0;
+        }
+
+        if (!component.state) {
+          component.state = {};
+        }
+        component.state.motor = {
+          rpm,
+          direction,
+          current,
+          voltage: voltageAcrossMotor,
+        };
+
+        const reasons = [];
+        if (!hasDrivePath) {
+          reasons.push('Sem alimentação aplicada ao motor');
+        } else if (direction === 0) {
+          reasons.push('Diferença de tensão insuficiente');
+        } else if (!active) {
+          reasons.push('Tensão/corrente insuficiente para girar');
+        }
+
+        results.push({
+          component,
+          active,
+          direction,
+          rpm,
+          current,
+          voltage: voltageAcrossMotor,
+          supplyVoltage,
+          reasons,
+        });
+      });
+
+    return results;
+  }
+
   getPinsForComponent(componentId) {
     return Array.from(this.pinNodes.values())
       .filter((node) => node.componentId === componentId)
@@ -460,10 +614,11 @@ class CircuitSnapshot {
         const sameComponent = neighbor.componentId && neighbor.componentId === node.componentId;
         const neighborType = neighbor.componentType;
         const neighborIsResistor = sameComponent && (neighborType === 'resistor' || neighborType === 'photoresistor');
+        const neighborIsMotor = sameComponent && neighbor.componentType === 'dc-motor';
         const neighborIsPotentiometer = sameComponent && neighbor.componentType === 'potentiometer';
         const neighborIsLed = sameComponent && neighbor.componentType === 'led';
 
-        const resistorEntry = neighborIsResistor && neighbor.component
+        const resistorEntry = (neighborIsResistor || neighborIsMotor) && neighbor.component
           ? this.createResistorEntry(neighbor.component)
           : null;
 
@@ -587,7 +742,7 @@ class CircuitSnapshot {
   createResistorEntry(component) {
     if (!component || !component.id) return null;
     const type = component.type ?? component.id;
-    if (type !== 'resistor' && type !== 'photoresistor') {
+    if (type !== 'resistor' && type !== 'photoresistor' && type !== 'dc-motor') {
       return null;
     }
     return {
@@ -627,7 +782,7 @@ class CircuitSnapshot {
       return { resistance: NaN, component: null };
     }
 
-    if (entry.type === 'resistor' || entry.type === 'photoresistor') {
+    if (entry.type === 'resistor' || entry.type === 'photoresistor' || entry.type === 'dc-motor') {
       const component = entry.component;
       if (!component) {
         return { resistance: NaN, component: null };
@@ -1199,6 +1354,9 @@ class CircuitSnapshot {
         case 'led':
           this.applyLedConnections(component);
           break;
+        case 'dc-motor':
+          this.connectNodesByIndex(component.id, 0, 1);
+          break;
         case 'switch':
           this.applySwitchConnections(component);
           break;
@@ -1405,6 +1563,7 @@ class Simulation {
     });
     const ledResults = snapshot.evaluateLEDs();
     const buzzerResults = snapshot.evaluateBuzzers(snapshot);
+    const motorResults = snapshot.evaluateDcMotors();
     const errorMessages = [];
 
     ledResults.forEach((result) => {
@@ -1439,6 +1598,13 @@ class Simulation {
             timestamp: Date.now(),
           });
         }
+      }
+    });
+
+    motorResults.forEach((result) => {
+      this.setMotorState(result.component, result);
+      if (!result.active && result.reasons?.length) {
+        errorMessages.push(`Motor ${result.component.id}: ${result.reasons.join(', ')}`);
       }
     });
 
@@ -1502,6 +1668,37 @@ class Simulation {
         element.hasSignal = false;
       }
       this.stopBuzzerAudio(component.id);
+    }
+  }
+
+  setMotorState(component, state = {}) {
+    const element = component.element;
+    if (!element || !element.__motorVisual) return;
+    const { rotor, spinner, speedLabel } = element.__motorVisual;
+    const rpm = Math.max(0, Number(state.rpm) || 0);
+    const direction = Math.sign(Number(state.direction) || 0);
+    const active = Boolean(state.active) && rpm > 1;
+
+    if (!component.state) component.state = {};
+    component.state.motor = {
+      rpm,
+      direction,
+      current: Number(state.current) || 0,
+      voltage: Number(state.voltage) || 0,
+    };
+
+    if (active) {
+      rotor.classList.add('active');
+      rotor.classList.toggle('reverse', direction < 0);
+      const duration = Math.max(0.12, 60 / Math.max(rpm, 1));
+      rotor.style.setProperty('--motor-spin-duration', `${duration}s`);
+      speedLabel.textContent = `${Math.round(rpm)} RPM`;
+      speedLabel.classList.add('visible');
+    } else {
+      rotor.classList.remove('active', 'reverse');
+      rotor.style.removeProperty('--motor-spin-duration');
+      speedLabel.textContent = '0 RPM';
+      speedLabel.classList.remove('visible');
     }
   }
 
@@ -1631,6 +1828,11 @@ class Simulation {
         this.setLedState(component, 0);
       } else if (component.type === 'buzzer') {
         this.setBuzzerState(component, false);
+      } else if (component.type === 'dc-motor') {
+        if (component.state) {
+          delete component.state.motor;
+        }
+        this.setMotorState(component, { active: false, rpm: 0, direction: 0 });
       } else if (component.type === 'multimeter') {
         this.resetMultimeter(component);
       }
