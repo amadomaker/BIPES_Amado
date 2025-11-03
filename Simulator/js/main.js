@@ -372,6 +372,13 @@ async function applyHistorySnapshot(entry) {
   if (!entry || !canvasManager) return;
   const targetSnapshot = entry.snapshot ?? entry;
   isApplyingHistory = true;
+  const previousViewport = canvasManager?.viewportState
+    ? {
+        scale: canvasManager.viewportState.scale,
+        panX: canvasManager.viewportState.panX,
+        panY: canvasManager.viewportState.panY,
+      }
+    : null;
   try {
     await runWithHistorySuspended(async () => {
       simulation.stop();
@@ -379,8 +386,11 @@ async function applyHistorySnapshot(entry) {
       await canvasManager.load(targetSnapshot.circuit ?? { components: [], wires: [] });
       restoreBlocklyState(targetSnapshot.blockly ?? null, { clearWhenMissing: true });
       simulationResetNotified = false;
-      canvasManager.focusViewportOnContent();
     });
+    if (previousViewport) {
+      Object.assign(canvasManager.viewportState, previousViewport);
+      canvasManager.applyViewportTransform();
+    }
     refreshHistoryBaseline();
     scheduleAutoSave();
   } finally {
