@@ -112,8 +112,11 @@ export class WiringManager {
             return;
           }
           const position = this.getRelativeCenter(target, container);
-          pinElement.style.left = `${position.x}px`;
-          pinElement.style.top = `${position.y}px`;
+          const scale = this.canvasManager?.viewportState?.scale ?? 1;
+          const adjustedX = scale ? position.x / scale : position.x;
+          const adjustedY = scale ? position.y / scale : position.y;
+          pinElement.style.left = `${adjustedX}px`;
+          pinElement.style.top = `${adjustedY}px`;
           pinElement.style.transform = 'translate(-50%, -50%)';
         } else {
           return;
