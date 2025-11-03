@@ -30,6 +30,46 @@ let colorPickerPopover;
 let fileInput;
 
 const alertTimers = new Map();
+const TOOLBAR_ICON_LABELS = {
+  undo: 'Desfazer',
+  redo: 'Refazer',
+  delete: 'Excluir',
+  rotate: 'Rotacionar',
+  flip: 'Inverter',
+};
+
+const TOOLBAR_ICON_SVGS = {
+  undo: `
+    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#1f2937">
+      <path fill-rule="evenodd" d="M9.53 2.47a.75.75 0 0 1 0 1.06L6.31 6.75H14a7.75 7.75 0 1 1 0 15.5h-2a.75.75 0 0 1 0-1.5h2a6.25 6.25 0 1 0 0-12.5H6.31l3.22 3.22a.75.75 0 1 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/>
+    </svg>
+  `,
+  redo: `
+    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#1f2937">
+      <path fill-rule="evenodd" d="M14.47 2.47a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H10a6.25 6.25 0 1 0 0 12.5h2a.75.75 0 0 1 0 1.5h-2a7.75 7.75 0 1 1 0-15.5h7.69l-3.22-3.22a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+    </svg>
+  `,
+  delete: `
+    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 6h16" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+      <path d="M9 11v6" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+      <path d="M15 11v6" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+      <path d="M10 6V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+      <path d="M6 6h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" fill="#f8fafc" stroke="#1f2937" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+  `,
+  rotate: `
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+
+  `,
+  flip: `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16 16V12L21 17L16 22V18H4V16H16ZM8 2V5.999L20 6V8H8V12L3 7L8 2Z"></path>
+    </svg>
+  `,
+};
 const WIRE_COLOR_PRESETS = [
   '#1f2937', // grafite
   '#000000', // preto
@@ -81,17 +121,32 @@ function renderToolbar() {
   });
   monitorButton.setAttribute('aria-pressed', 'false');
 
-  rotateButton = createToolbarButton('⟳ Rotacionar', () => {
+  rotateButton = createToolbarIconButton('rotate', () => {
     currentToolbarHandlers.onRotateComponent?.();
   });
   rotateButton.disabled = true;
   rotateButton.title = 'Rotacionar componente selecionado';
 
-  flipButton = createToolbarButton('⇆ Inverter', () => {
+  flipButton = createToolbarIconButton('flip', () => {
     currentToolbarHandlers.onFlipComponent?.();
   });
   flipButton.disabled = true;
   flipButton.title = 'Inverter componente selecionado';
+
+  const undoButton = createToolbarIconButton('undo', () => {
+    currentToolbarHandlers.onUndo?.();
+  });
+  undoButton.title = 'Desfazer (Ctrl+Z)';
+
+  const redoButton = createToolbarIconButton('redo', () => {
+    currentToolbarHandlers.onRedo?.();
+  });
+  redoButton.title = 'Refazer (Ctrl+Shift+Z)';
+
+  const deleteButton = createToolbarIconButton('delete', () => {
+    currentToolbarHandlers.onDelete?.();
+  });
+  deleteButton.title = 'Excluir seleção (Delete)';
 
   toolbarElement.append(
     playPauseButton,
@@ -99,6 +154,9 @@ function renderToolbar() {
     saveButton,
     loadButton,
     monitorButton,
+    undoButton,
+    redoButton,
+    deleteButton,
     rotateButton,
     flipButton,
   );
@@ -111,6 +169,22 @@ function createToolbarButton(label, handler) {
   button.type = 'button';
   button.textContent = label;
   button.addEventListener('click', handler);
+  return button;
+}
+
+function createToolbarIconButton(iconName, handler) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.classList.add('toolbar-icon');
+  button.addEventListener('click', handler);
+  if (TOOLBAR_ICON_LABELS[iconName]) {
+    button.setAttribute('aria-label', TOOLBAR_ICON_LABELS[iconName]);
+  }
+
+  if (TOOLBAR_ICON_SVGS[iconName]) {
+    button.innerHTML = TOOLBAR_ICON_SVGS[iconName];
+  }
+
   return button;
 }
 

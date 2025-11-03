@@ -469,8 +469,9 @@ export class WiringManager {
   }
 
   deleteSelectedWire() {
-    if (!this.selectedWire) return;
+    if (!this.selectedWire) return false;
     this.removeConnection(this.selectedWire.id);
+    return true;
   }
 
   removeConnection(wireId) {

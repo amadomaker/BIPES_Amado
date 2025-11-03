@@ -149,6 +149,24 @@ body {
   transition: background-color 0.2s, border-color 0.2s;
 }
 
+#toolbar button.toolbar-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+#toolbar button.toolbar-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+#toolbar button.toolbar-icon:disabled svg {
+  opacity: 0.45;
+}
+
 #toolbar button:hover {
   background-color: #d5e3ff;
   border-color: #2563eb;

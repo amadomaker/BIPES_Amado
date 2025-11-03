@@ -46,6 +46,13 @@ window.addEventListener('DOMContentLoaded', () => {
     onOpenBlockly: handleOpenBlockly,
     onRotateComponent: handleRotateSelectedComponent,
     onFlipComponent: handleFlipSelectedComponent,
+    onUndo: () => {
+      Promise.resolve(performUndo()).catch(() => {});
+    },
+    onRedo: () => {
+      Promise.resolve(performRedo()).catch(() => {});
+    },
+    onDelete: handleDeleteSelection,
   });
 
   canvasManager = new CanvasManager({
@@ -843,8 +850,7 @@ function setupDropZone() {
 function setupKeyboardShortcuts() {
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Delete' && canvasManager) {
-      if (canvasManager.deleteSelectedComponent()) return;
-      canvasManager.wiringManager.deleteSelectedWire();
+      if (handleDeleteSelection()) return;
       return;
     }
 
@@ -864,4 +870,17 @@ function setupKeyboardShortcuts() {
       Promise.resolve(performRedo()).catch(() => {});
     }
   });
+}
+
+function handleDeleteSelection() {
+  if (!canvasManager) return false;
+  if (canvasManager.deleteSelectedComponent()) {
+    recordHistorySnapshot();
+    return true;
+  }
+  if (canvasManager.wiringManager.deleteSelectedWire()) {
+    recordHistorySnapshot();
+    return true;
+  }
+  return false;
 }
