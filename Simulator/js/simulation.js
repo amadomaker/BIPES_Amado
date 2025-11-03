@@ -188,6 +188,7 @@ class CircuitSnapshot {
           directSupplyCandidate ? this.getComponentSupplyVoltage(directSupplyCandidate) : 0,
           this.resolveSupplyVoltage(powerPath.sources),
         );
+        const fallbackSupply = this.resolveSupplyVoltageForNode(anode, component.id);
         const resistanceInfo = this.computeSeriesResistance(
           [...(powerPath.resistors ?? []), ...(groundPath.resistors ?? [])],
         );
@@ -201,6 +202,10 @@ class CircuitSnapshot {
               return sourceType === 'battery';
             })
           : false;
+        const hasDirectSupplySource = this.hasPath(
+          anode,
+          (node) => node.componentId !== component.id && this.isPowerSourceNode(node),
+        );
 
         const anodeLevel = this.resolveAnalogLevel(anode);
         const cathodeLevel = this.resolveAnalogLevel(cathode);
@@ -254,7 +259,11 @@ class CircuitSnapshot {
           driveRatio = 0;
         }
 
-        const effectiveSupplyVoltage = supplyVoltage * driveRatio;
+        if (hasDrivePath && driveRatio <= 0 && hasDirectSupplySource) {
+          driveRatio = 1;
+        }
+
+        const effectiveSupplyVoltage = Math.max(supplyVoltage, fallbackSupply) * driveRatio;
 
         let currentEstimate = 0;
         let voltageDrop = 0;
