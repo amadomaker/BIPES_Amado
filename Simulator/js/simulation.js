@@ -4,8 +4,8 @@ const ADC_MAX_VALUE = 4095;
 const DEFAULT_SUPPLY_VOLTAGE = 3.3;
 const LED_INTERNAL_RESISTANCE = 120; // Ohms – aproxima resistência interna / fios
 const DC_MOTOR_DEFAULT_RESISTANCE = 30; // Ohms
-const DC_MOTOR_KV = 0.03; // Volts por RPM (aprox)
-const DC_MOTOR_MAX_RPM = 600;
+const DC_MOTOR_KV = 9 / 269; // ≈0.0335 V por RPM => 9 V ≈ 269 RPM
+const DC_MOTOR_MAX_RPM = 400;
 const DC_MOTOR_MIN_DRIVE_VOLTAGE = 0.2;
 const DC_MOTOR_MIN_DRIVE_CURRENT = 0.005;
 const CURRENT_WARNING_FACTOR = 1.3;

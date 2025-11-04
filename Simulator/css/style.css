@@ -1212,6 +1212,7 @@ body {
   transform: translateY(-50%);
   opacity: 0.4;
   pointer-events: none;
+  display: none;
 }
 
 .dc-motor-spinner {
@@ -1237,6 +1238,7 @@ body {
 
 .dc-motor-rotor.active {
   opacity: 1;
+  display: block;
 }
 
 .dc-motor-rotor.active .dc-motor-spinner {
