@@ -679,66 +679,71 @@ body {
 }
 
 .multimeter-shell {
-  width: 132px;
-  padding: 10px 12px 18px;
-  border-radius: 8px;
-  background: linear-gradient(160deg, #2f3640 0%, #3d4752 100%);
-  color: #ecf0f1;
+  width: 148px;
+  padding: 14px 18px 24px;
+  border-radius: 10px;
+  background: #f4a024;
+  color: #2c3e50;
   font-family: 'Roboto Mono', monospace;
   position: relative;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+  border: 2px solid #cc841a;
 }
 
 .multimeter-header {
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  opacity: 0.8;
+  opacity: 0.9;
+  color: #4a3214;
 }
 
 .multimeter-display {
-  margin-top: 6px;
-  padding: 6px 8px;
+  margin-top: 8px;
+  padding: 8px 10px;
   border-radius: 6px;
-  background: radial-gradient(circle at 20% 20%, rgba(74, 189, 172, 0.45), rgba(52, 152, 219, 0.2));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 17px;
+  background: #c8d0d6;
+  border: 2px solid #3f4a52;
+  font-size: 18px;
   text-align: right;
   white-space: nowrap;
+  color: #1d252b;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .multimeter-mode {
-  margin-top: 4px;
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  margin-top: 6px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-align: right;
-  opacity: 0.65;
+  opacity: 0.7;
+  color: #4a3214;
 }
 
 .multimeter-probes {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -16px;
+  bottom: -18px;
   display: flex;
   justify-content: space-between;
-  padding: 0 18px;
+  padding: 0 26px;
 }
 
 .multimeter-probe {
-  width: 12px;
-  height: 24px;
-  border-radius: 6px;
-  background: #7f8fa6;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  width: 14px;
+  height: 28px;
+  border-radius: 7px;
+  background: #3f4a52;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15);
 }
 
 .probe-positive {
-  background: #e74c3c;
+  background: #d43f3f;
 }
 
 .probe-negative {
-  background: #16a085;
+  background: #1e7e55;
 }
 
 .multimeter-preview {
