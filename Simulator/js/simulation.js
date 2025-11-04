@@ -15,23 +15,47 @@ const VOLTAGE_DANGER_FACTOR = 1.6;
 const PHOTORESISTOR_MIN_OHMS = 500;
 const PHOTORESISTOR_MAX_OHMS = 1_000_000;
 
+const MIN_RESISTANCE = 1e-3;
+const BUZZER_DEFAULT_RESISTANCE = 100;
+const BATTERY_INTERNAL_RESISTANCE = 0.5; // Ohms – mantém fontes estáveis em paralelo
+const SOLVER_EPSILON = 1e-9;
+
 class CircuitSnapshot {
   constructor(canvasManager, boardPinStates = new Map(), options = {}) {
     this.canvasManager = canvasManager;
     this.boardPinStates = boardPinStates;
     this.boardAnalogLevels = options.boardAnalogLevels ?? new Map();
     this.powerEnabled = options.powerEnabled ?? true;
+
     this.pinNodes = new Map();
     this.pinNodesByComponentPin = new Map();
     this.pinNodesByComponentIndex = new Map();
     this.nodeVoltageCache = new Map();
+
+    this.nodeIdToNetId = new Map();
+    this.nets = [];
+    this.fixedNetVoltages = new Map();
+    this.resistiveElements = [];
+    this.voltageSources = [];
+    this.netVoltages = new Map();
+    this.elementCurrents = new Map();
+    this.voltageSourceCurrents = new Map();
+    this.voltageSourceDescriptors = [];
+    this.virtualNetCounter = 0;
+    this.solverWarnings = [];
+    this.highestVoltageMagnitude = DEFAULT_SUPPLY_VOLTAGE;
+
     this.buildPinNodes();
     this.buildConnections();
+    this.buildNets();
+    this.buildElementModels();
+    this.determineFixedNetVoltages();
+    this.solveCircuit();
   }
 
   buildPinNodes() {
     this.canvasManager.components.forEach((component) => {
-      const pins = this.canvasManager.wiringManager.getPinsForComponent(component.id);
+      const pins = this.canvasManager.wiringManager.getPinsForComponent(component.id) ?? [];
       pins.forEach((pinElement) => {
         const key = this.getPinKey(pinElement);
         const node = {
@@ -46,6 +70,7 @@ class CircuitSnapshot {
           voltageState: this.getBoardPinState(component.id, pinElement.dataset.pinName),
           analogLevel: this.getBoardPinAnalogLevel(component.id, pinElement.dataset.pinName),
           connections: new Set(),
+          netId: null,
         };
         const overrideState = this.getComponentPinVoltageOverride(component, node.pinName);
         if (overrideState) {
@@ -53,7 +78,7 @@ class CircuitSnapshot {
         }
         this.pinNodes.set(key, node);
 
-        const mapKey = this.getComponentPinKey(component.id, pinElement.dataset.pinName);
+        const mapKey = this.getComponentPinKey(component.id, node.pinName);
         if (mapKey) {
           this.pinNodesByComponentPin.set(mapKey, node);
         }
@@ -80,87 +105,444 @@ class CircuitSnapshot {
     this.applyInternalComponentConnections();
   }
 
-  getPinKey(pinElement) {
-    return `${pinElement.dataset.componentId}:${pinElement.dataset.pinIndex}`;
-  }
-
-  getComponentPinKey(componentId, pinName) {
-    if (!componentId || !pinName) return null;
-    return `${componentId}:${pinName}`;
-  }
-
-  getNodeByComponentPin(componentId, pinName) {
-    const key = this.getComponentPinKey(componentId, pinName);
-    if (!key) return null;
-    return this.pinNodesByComponentPin.get(key) ?? null;
-  }
-
-  getNodeByComponentIndex(componentId, pinIndex) {
-    const indexMap = this.pinNodesByComponentIndex.get(componentId);
-    if (!indexMap) return null;
-    return indexMap.get(pinIndex) ?? null;
-  }
-
-  evaluateLEDs() {
-    const results = [];
-
-    const boardSignalStateCache = new Map();
-    const getConnectedBoardSignalState = (startNode) => {
-      if (!startNode) return null;
-      if (boardSignalStateCache.has(startNode.id)) {
-        return boardSignalStateCache.get(startNode.id);
+  buildNets() {
+    const visited = new Set();
+    let counter = 0;
+    this.pinNodes.forEach((node) => {
+      if (visited.has(node.id)) {
+        return;
       }
-
-      const visited = new Set([startNode.id]);
-      const queue = [startNode];
-      let foundHigh = false;
-      let foundLow = false;
-
-      const startComponentId = startNode.componentId;
-      const startComponentType = startNode.componentType;
-
+      const queue = [node];
+      const members = [];
+      visited.add(node.id);
       while (queue.length) {
         const current = queue.shift();
-        if (!current) continue;
-
-        const componentType = current.componentType ?? current.component?.type ?? current.componentId;
-        if ((componentType === 'amado-board' || componentType === 'esp32') && current.pinType === 'signal') {
-          const key = this.getComponentPinKey(current.componentId, current.pinName);
-          if (key) {
-            const state = this.boardPinStates.get(key);
-            if (state === 'high' || state === 'low') {
-              if (state === 'high') {
-                foundHigh = true;
-              } else if (state === 'low') {
-                foundLow = true;
-              }
-            }
-          }
-        }
-
+        members.push(current);
         current.connections.forEach((neighbor) => {
-          if (neighbor && !visited.has(neighbor.id)) {
-            if (
-              startComponentType === 'led' &&
-              neighbor.componentId === startComponentId
-            ) {
-              return;
-            }
+          if (!visited.has(neighbor.id)) {
             visited.add(neighbor.id);
             queue.push(neighbor);
           }
         });
       }
+      const netId = `N${counter}`;
+      counter += 1;
+      members.forEach((member) => {
+        member.netId = netId;
+        this.nodeIdToNetId.set(member.id, netId);
+      });
+      this.nets.push({ id: netId, nodes: members });
+    });
+  }
 
-      let result = null;
-      if (foundHigh) {
-        result = 'high';
-      } else if (foundLow) {
-        result = 'low';
+  createVirtualNet() {
+    const netId = `VN${this.virtualNetCounter++}`;
+    this.nets.push({ id: netId, nodes: [] });
+    return netId;
+  }
+
+  buildNetComponents() {
+    const adjacency = new Map();
+    const ensureNet = (netId) => {
+      if (!netId) return;
+      if (!adjacency.has(netId)) {
+        adjacency.set(netId, new Set());
       }
-      boardSignalStateCache.set(startNode.id, result);
-      return result;
     };
+
+    this.nets.forEach((net) => ensureNet(net.id));
+
+    this.resistiveElements.forEach((element) => {
+      const { netA, netB } = element;
+      if (!netA || !netB || netA === netB) return;
+      ensureNet(netA);
+      ensureNet(netB);
+      adjacency.get(netA).add(netB);
+      adjacency.get(netB).add(netA);
+    });
+
+    this.voltageSources.forEach((source) => {
+      const { positiveNet, negativeNet } = source;
+      if (!positiveNet || !negativeNet || positiveNet === negativeNet) return;
+      ensureNet(positiveNet);
+      ensureNet(negativeNet);
+      adjacency.get(positiveNet).add(negativeNet);
+      adjacency.get(negativeNet).add(positiveNet);
+    });
+
+    const visited = new Set();
+    const components = [];
+
+    this.nets.forEach((net) => {
+      if (visited.has(net.id)) return;
+      const queue = [net.id];
+      visited.add(net.id);
+      const nets = [];
+      while (queue.length) {
+        const current = queue.shift();
+        nets.push(current);
+        const neighbors = adjacency.get(current);
+        if (!neighbors) continue;
+        neighbors.forEach((neighbor) => {
+          if (!visited.has(neighbor)) {
+            visited.add(neighbor);
+            queue.push(neighbor);
+          }
+        });
+      }
+      components.push({ nets });
+    });
+
+    return components;
+  }
+
+  getGroundReferencePriority(net) {
+    let priority = Infinity;
+    net.nodes.forEach((node) => {
+      const componentType = node.component?.type ?? node.componentId;
+      if (componentType === 'amado-board' || componentType === 'esp32') {
+        if (node.pinType === 'ground') {
+          priority = Math.min(priority, 0);
+        } else if (node.pinType === 'signal' && node.voltageState === 'low') {
+          priority = Math.min(priority, 1);
+        }
+      } else if (componentType === 'battery') {
+        if (node.pinType === 'ground') {
+          priority = Math.min(priority, 2);
+        }
+      } else if (node.voltageState === 'low') {
+        priority = Math.min(priority, 3);
+      }
+    });
+    return Number.isFinite(priority) ? priority : null;
+  }
+
+  determineFixedNetVoltages() {
+    this.fixedNetVoltages = new Map();
+    const groundCandidates = new Map();
+
+    this.nets.forEach((net) => {
+      let forcedVoltage = null;
+      let forcedFound = false;
+      net.nodes.forEach((node) => {
+        const candidate = this.getNodeForcedVoltage(node);
+        if (candidate === null) return;
+        if (!forcedFound || Math.abs(candidate - forcedVoltage) <= 0.5) {
+          forcedVoltage = candidate;
+        } else {
+          forcedVoltage = candidate;
+        }
+        forcedFound = true;
+      });
+      if (forcedFound && forcedVoltage !== null) {
+        this.fixedNetVoltages.set(net.id, forcedVoltage);
+      }
+
+      const priority = this.getGroundReferencePriority(net);
+      if (priority !== null) {
+        groundCandidates.set(net.id, priority);
+      }
+    });
+
+    const components = this.buildNetComponents();
+    components.forEach((component) => {
+      const alreadyFixed = component.nets.some((netId) => this.fixedNetVoltages.has(netId));
+      if (alreadyFixed) return;
+
+      let chosenNet = null;
+      let bestPriority = Infinity;
+      component.nets.forEach((netId) => {
+        const priority = groundCandidates.get(netId);
+        if (priority !== undefined && priority < bestPriority) {
+          bestPriority = priority;
+          chosenNet = netId;
+        }
+      });
+
+      if (!chosenNet) {
+        chosenNet = component.nets[0];
+      }
+
+      if (!this.fixedNetVoltages.has(chosenNet)) {
+        this.fixedNetVoltages.set(chosenNet, 0);
+      }
+    });
+  }
+
+  buildElementModels() {
+    this.resistiveElements = [];
+    this.voltageSources = [];
+
+    this.canvasManager.components.forEach((component) => {
+      switch (component.type) {
+        case 'resistor':
+          this.addResistiveTwoTerminal(component, {
+            resistance: this.parseResistanceValue(
+              component.props?.resistance ?? component.props?.value ?? component.props?.ohms,
+            ),
+            type: 'resistor',
+          });
+          break;
+        case 'photoresistor':
+          this.addResistiveTwoTerminal(component, {
+            resistance: this.parseResistanceValue(
+              component.state?.resistance ??
+                component.props?.resistance ??
+                component.props?.value ??
+                component.props?.ohms,
+            ),
+            type: 'photoresistor',
+          });
+          break;
+        case 'potentiometer':
+          this.addPotentiometerElements(component);
+          break;
+        case 'dc-motor':
+          this.addResistiveTwoTerminal(component, {
+            resistance:
+              this.parseResistanceValue(
+                component.props?.resistance ?? component.props?.value ?? component.props?.ohms,
+              ) ?? DC_MOTOR_DEFAULT_RESISTANCE,
+            type: 'dc-motor',
+          });
+          break;
+        case 'buzzer':
+          this.addResistiveTwoTerminal(component, {
+            resistance: this.parseResistanceValue(component.props?.resistance) ?? BUZZER_DEFAULT_RESISTANCE,
+            type: 'buzzer',
+          });
+          break;
+        case 'led':
+          this.addLedElement(component);
+          break;
+        case 'battery':
+          this.addBatteryElement(component);
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
+  solveCircuit() {
+    const fixed = new Map(this.fixedNetVoltages);
+    const candidateUnknowns = this.nets
+      .map((net) => net.id)
+      .filter((netId) => !fixed.has(netId));
+
+    const connectedCandidates = new Set();
+    this.resistiveElements.forEach((element) => {
+      if (!fixed.has(element.netA)) connectedCandidates.add(element.netA);
+      if (!fixed.has(element.netB)) connectedCandidates.add(element.netB);
+    });
+    this.voltageSources.forEach((source) => {
+      if (!fixed.has(source.positiveNet)) connectedCandidates.add(source.positiveNet);
+      if (!fixed.has(source.negativeNet)) connectedCandidates.add(source.negativeNet);
+    });
+    candidateUnknowns
+      .filter((netId) => !connectedCandidates.has(netId))
+      .forEach((netId) => fixed.set(netId, 0));
+
+    const unknownNetIds = this.nets
+      .map((net) => net.id)
+      .filter((netId) => !fixed.has(netId));
+    const netIndex = new Map();
+    unknownNetIds.forEach((netId, idx) => netIndex.set(netId, idx));
+
+    const activeVoltageSources = [];
+    this.voltageSources.forEach((source) => {
+      const posKnown = fixed.has(source.positiveNet);
+      const negKnown = fixed.has(source.negativeNet);
+      if (posKnown && negKnown) {
+        const expected = (fixed.get(source.positiveNet) ?? 0) - (fixed.get(source.negativeNet) ?? 0);
+        if (Math.abs(expected - source.voltage) > 1e-3) {
+          this.registerSolverWarning(
+            `Fonte ${source.component?.id ?? source.meta?.type ?? 'desconhecida'} possui tensão conflitante.`,
+          );
+        }
+        return;
+      }
+      activeVoltageSources.push(source);
+      this.highestVoltageMagnitude = Math.max(
+        this.highestVoltageMagnitude,
+        Math.abs(source.voltage),
+      );
+    });
+
+    const variableCount = unknownNetIds.length + activeVoltageSources.length;
+    if (variableCount === 0) {
+      this.nets.forEach((net) => {
+        const value = fixed.get(net.id) ?? 0;
+        this.netVoltages.set(net.id, value);
+      });
+      return;
+    }
+
+    const matrix = Array.from({ length: variableCount }, () => Array(variableCount).fill(0));
+    const rhs = new Array(variableCount).fill(0);
+
+    this.resistiveElements.forEach((element) => {
+      const { netA, netB, resistance } = element;
+      if (!netA || !netB) return;
+      const conductance = resistance > 0 ? 1 / resistance : 0;
+      if (!Number.isFinite(conductance) || conductance <= 0) return;
+      const idxA = netIndex.get(netA);
+      const idxB = netIndex.get(netB);
+      const hasA = idxA !== undefined;
+      const hasB = idxB !== undefined;
+      const voltageA = fixed.get(netA);
+      const voltageB = fixed.get(netB);
+
+      if (hasA && hasB) {
+        matrix[idxA][idxA] += conductance;
+        matrix[idxB][idxB] += conductance;
+        matrix[idxA][idxB] -= conductance;
+        matrix[idxB][idxA] -= conductance;
+      } else if (hasA && voltageB !== undefined) {
+        matrix[idxA][idxA] += conductance;
+        rhs[idxA] += conductance * voltageB;
+      } else if (hasB && voltageA !== undefined) {
+        matrix[idxB][idxB] += conductance;
+        rhs[idxB] += conductance * voltageA;
+      }
+    });
+
+    activeVoltageSources.forEach((source, sourceIndex) => {
+      const row = unknownNetIds.length + sourceIndex;
+      rhs[row] = source.voltage;
+
+      const posIdx = netIndex.get(source.positiveNet);
+      const negIdx = netIndex.get(source.negativeNet);
+      const posKnown = fixed.get(source.positiveNet);
+      const negKnown = fixed.get(source.negativeNet);
+
+      if (posIdx !== undefined) {
+        matrix[posIdx][row] += 1;
+        matrix[row][posIdx] += 1;
+      } else if (posKnown !== undefined) {
+        rhs[row] -= posKnown;
+      }
+
+      if (negIdx !== undefined) {
+        matrix[negIdx][row] -= 1;
+        matrix[row][negIdx] -= 1;
+      } else if (negKnown !== undefined) {
+        rhs[row] += negKnown;
+      }
+    });
+
+    const solution = this.solveLinearSystem(matrix, rhs);
+    if (!solution) {
+      this.nets.forEach((net) => {
+        const fallback = fixed.get(net.id) ?? 0;
+        this.netVoltages.set(net.id, fallback);
+      });
+      return;
+    }
+
+    unknownNetIds.forEach((netId, idx) => {
+      this.netVoltages.set(netId, solution[idx]);
+    });
+    fixed.forEach((value, netId) => {
+      this.netVoltages.set(netId, value);
+    });
+    this.nets.forEach((net) => {
+      if (!this.netVoltages.has(net.id)) {
+        this.netVoltages.set(net.id, 0);
+      }
+    });
+
+    this.elementCurrents = new Map();
+    this.resistiveElements.forEach((element) => {
+      const voltageA = this.netVoltages.get(element.netA) ?? 0;
+      const voltageB = this.netVoltages.get(element.netB) ?? 0;
+      const current = element.resistance > 0 ? (voltageA - voltageB) / element.resistance : 0;
+      if (element.component?.id) {
+        const entry = this.elementCurrents.get(element.component.id);
+        if (!entry) {
+          this.elementCurrents.set(element.component.id, [{ current, voltage: voltageA - voltageB }]);
+        } else {
+          entry.push({ current, voltage: voltageA - voltageB });
+        }
+      }
+    });
+
+    this.voltageSourceCurrents = new Map();
+    this.voltageSourceDescriptors.forEach((descriptor) => {
+      const externalVoltage = this.netVoltages.get(descriptor.externalPositiveNet) ?? 0;
+      const internalVoltage = this.netVoltages.get(descriptor.internalNet) ?? 0;
+      const resistance = this.sanitizeResistance(descriptor.internalResistance);
+      const current = (internalVoltage - externalVoltage) / resistance;
+      if (descriptor.component?.id) {
+        this.voltageSourceCurrents.set(descriptor.component.id, current);
+      }
+    });
+
+    const parallelGroups = new Map();
+    parallelGroups.forEach((entries) => {
+      if (entries.length <= 1) return;
+      entries.forEach((entry) => {
+        if (entry.component?.id) {
+          const voltage = this.netVoltages.get(entry.internalNet) ?? 0;
+          this.nodeVoltageCache.set(`battery:${entry.component.id}:virtual`, voltage);
+        }
+      });
+    });
+  }
+
+  solveLinearSystem(matrix, rhs) {
+    const size = matrix.length;
+    if (!size) return [];
+    const A = matrix.map((row) => row.slice());
+    const b = rhs.slice();
+
+    for (let pivot = 0; pivot < size; pivot += 1) {
+      let maxRow = pivot;
+      let maxValue = Math.abs(A[pivot][pivot]);
+      for (let row = pivot + 1; row < size; row += 1) {
+        const value = Math.abs(A[row][pivot]);
+        if (value > maxValue) {
+          maxValue = value;
+          maxRow = row;
+        }
+      }
+
+      if (maxValue < SOLVER_EPSILON) {
+        return null;
+      }
+
+      if (maxRow !== pivot) {
+        const tempRow = A[pivot];
+        A[pivot] = A[maxRow];
+        A[maxRow] = tempRow;
+        const tempValue = b[pivot];
+        b[pivot] = b[maxRow];
+        b[maxRow] = tempValue;
+      }
+
+      for (let row = pivot + 1; row < size; row += 1) {
+        const factor = A[row][pivot] / A[pivot][pivot];
+        if (Math.abs(factor) < SOLVER_EPSILON) continue;
+        for (let col = pivot; col < size; col += 1) {
+          A[row][col] -= factor * A[pivot][col];
+        }
+        b[row] -= factor * b[pivot];
+      }
+    }
+
+    const solution = new Array(size).fill(0);
+    for (let row = size - 1; row >= 0; row -= 1) {
+      let sum = b[row];
+      for (let col = row + 1; col < size; col += 1) {
+        sum -= A[row][col] * solution[col];
+      }
+      solution[row] = sum / A[row][row];
+    }
+    return solution;
+  }
+
+  evaluateLEDs() {
+    const results = [];
 
     this.canvasManager.components
       .filter((component) => component.type === 'led')
@@ -170,6 +552,15 @@ class CircuitSnapshot {
           results.push({
             component,
             lightsUp: false,
+            brightness: 0,
+            voltageDrop: 0,
+            supplyVoltage: 0,
+            seriesResistance: null,
+            effectiveResistance: null,
+            currentEstimate: 0,
+            damageEvent: false,
+            damageReason: null,
+            warnings: null,
             reasons: ['LED sem conexões suficientes'],
           });
           return;
@@ -177,44 +568,9 @@ class CircuitSnapshot {
 
         const anode = pins.find((pin) => pin.pinType === 'power') ?? pins[0];
         const cathode = pins.find((pin) => pin.pinType === 'ground') ?? pins[1];
-
-        const powerPath = this.findPath(anode, (node) =>
-          this.isPowerNode(node) && node.componentId !== component.id,
-        );
-
-        const groundPath = this.findPath(cathode, (node) =>
-          this.isGroundNode(node) && node.componentId !== component.id,
-        );
-
-        const powerExists = powerPath.exists;
-        const groundExists = groundPath.exists;
-        const directSupplyCandidate = this.getComponentSupplyCandidate(anode.component, component.id);
-        const supplyVoltage = Math.max(
-          directSupplyCandidate ? this.getComponentSupplyVoltage(directSupplyCandidate) : 0,
-          this.resolveSupplyVoltage(powerPath.sources),
-        );
-        const fallbackSupply = this.resolveSupplyVoltageForNode(anode, component.id);
-        const resistanceInfo = this.computeSeriesResistance(
-          [...(powerPath.resistors ?? []), ...(groundPath.resistors ?? [])],
-        );
-        const hasResistor = resistanceInfo.total > 0;
-        const anodeConnectedToBoardSignal = this.hasConnectionToBoardSignal(anode);
-        const cathodeConnectedToBoardSignal = this.hasConnectionToBoardSignal(cathode);
-        const hasExplicitSupplySource = Array.isArray(powerPath.sources)
-          ? powerPath.sources.some((source) => {
-              if (!source) return false;
-              const sourceType = source.type ?? source.id ?? null;
-              return sourceType === 'battery';
-            })
-          : false;
-        const hasDirectSupplySource = this.hasPath(
-          anode,
-          (node) => node.componentId !== component.id && this.isPowerSourceNode(node),
-        );
-
-        const anodeLevel = this.resolveAnalogLevel(anode);
-        const cathodeLevel = this.resolveAnalogLevel(cathode);
-        const analogLevelsKnown = Number.isFinite(anodeLevel) && Number.isFinite(cathodeLevel);
+        const voltageAnode = this.getNodeVoltage(anode);
+        const voltageCathode = this.getNodeVoltage(cathode);
+        const voltageDrop = voltageAnode - voltageCathode;
 
         const state = component.state ?? (component.state = {});
         const colorInfo = getLedColorInfo(component.props?.color) ?? {
@@ -229,83 +585,31 @@ class CircuitSnapshot {
           colorInfo.forwardVoltageMax ?? forwardVoltageMin,
           forwardVoltageMin,
         );
-        const forwardVoltageNominal = (forwardVoltageMin + forwardVoltageMax) / 2;
-
-        const totalResistance = Math.max(resistanceInfo.total, 0);
-        const resistanceForCurrent =
-          totalResistance > 0 ? totalResistance : LED_INTERNAL_RESISTANCE;
-        const effectiveResistance = resistanceForCurrent;
-
-        const analogDelta = analogLevelsKnown ? Math.abs(anodeLevel - cathodeLevel) : null;
-        const hasDrivePath =
-          (powerExists || anodeConnectedToBoardSignal) &&
-          (groundExists || cathodeConnectedToBoardSignal);
-
-        let driveRatio = analogLevelsKnown
-          ? Math.max(0, Math.min(1, analogDelta / ADC_MAX_VALUE))
-          : 0;
-
-        if (hasDrivePath && (!analogLevelsKnown || driveRatio <= 0)) {
-          const anodeSignalState = getConnectedBoardSignalState(anode);
-          const cathodeSignalState = getConnectedBoardSignalState(cathode);
-
-          if (anodeSignalState === 'high' && cathodeSignalState !== 'high') {
-            driveRatio = 1;
-          } else if (anodeSignalState === 'low' || cathodeSignalState === 'high') {
-            driveRatio = 0;
-          } else if (anodeSignalState === null && cathodeSignalState === null) {
-            driveRatio = hasExplicitSupplySource ? 1 : 0;
-          } else {
-            driveRatio = 0;
-          }
-        }
-
-        if (!hasDrivePath) {
-          driveRatio = 0;
-        }
-
-        if (hasDrivePath && driveRatio <= 0 && hasDirectSupplySource) {
-          driveRatio = 1;
-        }
-
-        const effectiveSupplyVoltage = Math.max(supplyVoltage, fallbackSupply) * driveRatio;
+        const effectiveResistance = this.estimateLedResistance(component);
 
         let currentEstimate = 0;
-        let voltageDrop = 0;
-        let brightness = 0;
+        if (effectiveResistance > 0 && !state.burned) {
+          currentEstimate = voltageDrop / effectiveResistance;
+        }
+        const currentAbs = Math.max(0, currentEstimate);
 
-        if (hasDrivePath && effectiveSupplyVoltage > 0) {
-          if (effectiveSupplyVoltage <= forwardVoltageMin) {
-            voltageDrop = effectiveSupplyVoltage;
-            brightness = 0;
-          } else {
-            const voltageAcrossResistors = Math.max(0, effectiveSupplyVoltage - forwardVoltageNominal);
-            currentEstimate = voltageAcrossResistors / resistanceForCurrent;
-            const dropAcrossResistors = currentEstimate * totalResistance;
-            const computedDrop = effectiveSupplyVoltage - dropAcrossResistors;
-            voltageDrop = Math.min(
-              effectiveSupplyVoltage,
-              Math.max(forwardVoltageMin, computedDrop),
-            );
-            brightness = Math.max(
-              0,
-              Math.min(1, currentEstimate / (colorInfo.maxCurrent || 0.02)),
-            );
-          }
+        const maxCurrent = colorInfo.maxCurrent || 0.02;
+        let brightness = 0;
+        if (!state.burned) {
+          brightness = Math.max(0, Math.min(1, maxCurrent > 0 ? currentAbs / maxCurrent : 0));
         }
 
         const voltageWarning =
-          voltageDrop > colorInfo.forwardVoltageMax * VOLTAGE_WARNING_FACTOR;
+          voltageDrop > forwardVoltageMax * VOLTAGE_WARNING_FACTOR;
         const voltageDanger =
-          voltageDrop > colorInfo.forwardVoltageMax * VOLTAGE_DANGER_FACTOR;
-
+          voltageDrop > forwardVoltageMax * VOLTAGE_DANGER_FACTOR;
         const currentWarning =
-          currentEstimate > colorInfo.maxCurrent * CURRENT_WARNING_FACTOR;
+          currentAbs > (colorInfo.maxCurrent || 0.02) * CURRENT_WARNING_FACTOR;
         const currentDanger =
-          currentEstimate > colorInfo.maxCurrent * CURRENT_DANGER_FACTOR;
+          currentAbs > (colorInfo.maxCurrent || 0.02) * CURRENT_DANGER_FACTOR;
 
         let damageEvent = false;
-        if (!state.burned && voltageDrop > 0 && (voltageDanger || currentDanger)) {
+        if (!state.burned && (voltageDanger || currentDanger)) {
           state.burned = true;
           state.burnedAt = Date.now();
           state.burnReason = currentDanger ? 'sobrecorrente' : 'sobretensão';
@@ -316,18 +620,27 @@ class CircuitSnapshot {
         if (isBurned) {
           brightness = 0;
         }
-
         const lightsUp = brightness > 0.01;
 
         const reasons = [];
-        if (!powerPath.exists && !anodeConnectedToBoardSignal) {
-          reasons.push('Sem ligação de VCC');
+        if (!Number.isFinite(voltageDrop) || Math.abs(voltageDrop) < 1e-3) {
+          reasons.push('Sem diferença de potencial');
         }
-        if (!groundPath.exists && !cathodeConnectedToBoardSignal) {
-          reasons.push('Sem ligação de GND');
+        if (voltageDrop < 0 && !isBurned) {
+          reasons.push('LED polarizado inversamente');
         }
-        if (!isBurned && lightsUp && !hasResistor) {
-          reasons.push('Falta resistor em série (iluminação sem proteção)');
+        if (!lightsUp && voltageDrop >= 0 && voltageDrop < forwardVoltageMin) {
+          reasons.push('Tensão insuficiente para polarizar o LED');
+        }
+        if (lightsUp && voltageDrop < forwardVoltageMin) {
+          reasons.push('Queda de tensão abaixo do ideal para o LED');
+        }
+        if (
+          !isBurned &&
+          lightsUp &&
+          !this.hasSeriesProtectionResistor(component, anode.netId, cathode.netId)
+        ) {
+          reasons.push('Falta resistor em série (corrente limitada apenas pelo LED)');
         }
         if (isBurned) {
           const reasonLabel = state.burnReason === 'sobrecorrente' ? 'sobre-corrente' : 'sobre-tensão';
@@ -336,29 +649,28 @@ class CircuitSnapshot {
           if (voltageWarning) {
             reasons.push(`Aviso: queda de tensão ${voltageDrop.toFixed(2)} V acima do ideal`);
           }
-          if (currentWarning && Number.isFinite(currentEstimate)) {
-            reasons.push(`Aviso: corrente estimada ${(currentEstimate * 1000).toFixed(1)} mA acima do ideal`);
+          if (currentWarning && Number.isFinite(currentAbs) && currentAbs > 0) {
+            reasons.push(`Aviso: corrente ${(currentAbs * 1000).toFixed(1)} mA acima do ideal`);
           }
-        }
-        if (!lightsUp && hasDrivePath && effectiveSupplyVoltage > 0 && effectiveSupplyVoltage <= forwardVoltageMin) {
-          reasons.push('Tensão insuficiente para polarizar o LED');
         }
 
         results.push({
           component,
           lightsUp,
           brightness,
-          voltageDrop,
-          supplyVoltage,
-          seriesResistance: totalResistance,
+          voltageDrop: Math.max(0, voltageDrop),
+          supplyVoltage: Math.max(0, voltageDrop),
+          seriesResistance: null,
           effectiveResistance,
-          currentEstimate,
+          currentEstimate: currentAbs,
           damageEvent,
           damageReason: state.burnReason ?? null,
-          warnings: !isBurned ? {
-            voltage: voltageWarning,
-            current: currentWarning,
-          } : null,
+          warnings: !isBurned
+            ? {
+                voltage: voltageWarning,
+                current: currentWarning,
+              }
+            : null,
           reasons,
         });
       });
@@ -366,62 +678,47 @@ class CircuitSnapshot {
     return results;
   }
 
-  evaluateBuzzers(snapshot) {
+  evaluateBuzzers() {
     const results = [];
 
     this.canvasManager.components
       .filter((component) => component.type === 'buzzer')
       .forEach((component) => {
-        const pins = snapshot.getPinsForComponent(component.id);
+        const pins = this.getPinsForComponent(component.id);
         if (pins.length < 2) {
-          results.push({ component, active: false, reasons: ['Buzzer sem conexões suficientes'] });
+          results.push({
+            component,
+            active: false,
+            voltageDrop: 0,
+            supplyVoltage: 0,
+            reasons: ['Buzzer sem conexões suficientes'],
+          });
           return;
         }
 
-        // Buzzer pinInfo order: according to Wokwi, name '1' (blue) = negative, '2' (red) = positive
-        const positive = pins.find((pin) => /2|vcc|\+/i.test(pin.pinName)) ?? pins[1];
-        const negative = pins.find((pin) => /1|gnd|\-/i.test(pin.pinName)) ?? pins[0];
-
-        const powerPath = snapshot.findPath(
-          positive,
-          (node) => snapshot.isPowerNode(node) && node.componentId !== component.id,
-        );
-        const groundPath = snapshot.findPath(
-          negative,
-          (node) => snapshot.isGroundNode(node) && node.componentId !== component.id,
-        );
-
-        const supplyVoltage = powerPath.exists
-          ? snapshot.resolveSupplyVoltage(powerPath.sources)
-          : 0;
-
-        let voltageDrop = 0;
-        if (powerPath.exists && groundPath.exists) {
-          const vPlus = snapshot.estimateNodeVoltage(positive, component.id);
-          const vMinus = snapshot.estimateNodeVoltage(negative, component.id);
-          voltageDrop = Math.max(0, vPlus - vMinus);
-        }
-        const effectiveDrop = voltageDrop > 0.05 ? voltageDrop : supplyVoltage;
-
-        const powered = powerPath.exists && groundPath.exists && effectiveDrop > 0.1;
+        const positive = pins.find((pin) => /vcc|\+|2/i.test(pin.pinName)) ?? pins[1];
+        const negative = pins.find((pin) => /gnd|\-|1/i.test(pin.pinName)) ?? pins[0];
+        const voltage = this.getNodeVoltage(positive) - this.getNodeVoltage(negative);
+        const absVoltage = Math.abs(voltage);
+        const resistance = this.parseResistanceValue(component.props?.resistance) ?? BUZZER_DEFAULT_RESISTANCE;
+        const current = resistance > 0 ? absVoltage / resistance : 0;
+        const active = absVoltage >= 0.7;
 
         const reasons = [];
-        if (!powerPath.exists) {
-          reasons.push('Sem alimentação (VCC)');
-        }
-        if (!groundPath.exists) {
-          reasons.push('Sem retorno de GND');
-        }
-        if (powerPath.exists && groundPath.exists && effectiveDrop <= 0.1) {
-          reasons.push('Buzzer sem alimentação suficiente');
+        if (!active) {
+          if (absVoltage < 0.1) {
+            reasons.push('Buzzer sem alimentação');
+          } else {
+            reasons.push('Tensão insuficiente para acionar o buzzer');
+          }
         }
 
         results.push({
           component,
-          active: powered,
-          voltageDrop: effectiveDrop,
-          supplyVoltage,
-          reasons: powered ? [] : reasons,
+          active,
+          voltageDrop: absVoltage,
+          supplyVoltage: absVoltage,
+          reasons,
         });
       });
 
@@ -451,54 +748,8 @@ class CircuitSnapshot {
 
         const positive = pins.find((pin) => pin.pinType === 'power') ?? pins[0];
         const negative = pins.find((pin) => pin.pinType === 'ground') ?? pins[1];
-
-        const forwardPowerPath = this.findPath(
-          positive,
-          (node) => node.componentId !== component.id && this.isPowerNode(node),
-        );
-        const forwardGroundPath = this.findPath(
-          negative,
-          (node) => node.componentId !== component.id && this.isGroundNode(node),
-        );
-        const reversePowerPath = this.findPath(
-          negative,
-          (node) => node.componentId !== component.id && this.isPowerNode(node),
-        );
-        const reverseGroundPath = this.findPath(
-          positive,
-          (node) => node.componentId !== component.id && this.isGroundNode(node),
-        );
-
-        const posHasPower = forwardPowerPath.exists;
-        const posHasGround = reverseGroundPath.exists;
-        const negHasPower = reversePowerPath.exists;
-        const negHasGround = forwardGroundPath.exists;
-
-        const positiveVoltage = this.estimateNodeVoltage(positive, component.id);
-        const negativeVoltage = this.estimateNodeVoltage(negative, component.id);
-        const voltageDiff = positiveVoltage - negativeVoltage;
+        const voltageDiff = this.getNodeVoltage(positive) - this.getNodeVoltage(negative);
         const absVoltage = Math.abs(voltageDiff);
-        const direction = absVoltage > 0.05 ? (voltageDiff > 0 ? 1 : -1) : 0;
-
-        const hasDrivePath = direction > 0
-          ? posHasPower && negHasGround
-          : direction < 0
-            ? negHasPower && posHasGround
-            : (posHasPower && negHasGround) || (negHasPower && posHasGround);
-
-        const supplyVoltage = absVoltage;
-
-        const pathResistorsForward = [
-          ...(forwardPowerPath.resistors ?? []),
-          ...(forwardGroundPath.resistors ?? []),
-        ];
-        const pathResistorsReverse = [
-          ...(reversePowerPath.resistors ?? []),
-          ...(reverseGroundPath.resistors ?? []),
-        ];
-
-        const pathResistors = direction >= 0 ? pathResistorsForward : pathResistorsReverse;
-        const resistanceInfo = this.computeSeriesResistance(pathResistors);
 
         let motorResistance = this.parseResistanceValue(
           component.props?.resistance ?? component.props?.value ?? component.props?.ohms,
@@ -507,59 +758,37 @@ class CircuitSnapshot {
           motorResistance = DC_MOTOR_DEFAULT_RESISTANCE;
         }
 
-        let otherResistance = Math.max(resistanceInfo.total - motorResistance, 0);
-        const motorIncluded = resistanceInfo.components
-          ? resistanceInfo.components.some((entry) => entry.component?.id === component.id)
-          : false;
-        if (!motorIncluded) {
-          otherResistance = resistanceInfo.total;
-        }
+        const current = motorResistance > 0 ? voltageDiff / motorResistance : 0;
+        const absCurrent = Math.abs(current);
+        const direction = absVoltage > 0.05 ? (current >= 0 ? 1 : -1) : 0;
 
-        const loopResistance = Math.max(motorResistance + otherResistance, 0.001);
-
-        let current = 0;
-        let voltageAcrossMotor = 0;
         let rpm = 0;
         let active = false;
-
-        if (hasDrivePath && direction !== 0 && supplyVoltage > 0) {
-          current = supplyVoltage / loopResistance;
-          voltageAcrossMotor = current * motorResistance;
-          if (
-            voltageAcrossMotor >= DC_MOTOR_MIN_DRIVE_VOLTAGE &&
-            current >= DC_MOTOR_MIN_DRIVE_CURRENT
-          ) {
-            rpm = Math.min(
-              DC_MOTOR_MAX_RPM,
-              Math.max(0, voltageAcrossMotor / DC_MOTOR_KV),
-            );
-            active = rpm > 1;
-          }
+        if (
+          absVoltage >= DC_MOTOR_MIN_DRIVE_VOLTAGE &&
+          absCurrent >= DC_MOTOR_MIN_DRIVE_CURRENT
+        ) {
+          rpm = Math.min(DC_MOTOR_MAX_RPM, Math.max(0, absVoltage / DC_MOTOR_KV));
+          active = rpm > 1;
         }
 
-        if (!active) {
-          rpm = 0;
-          current = 0;
-          voltageAcrossMotor = 0;
-        }
-
-        if (!component.state) {
-          component.state = {};
-        }
+        if (!component.state) component.state = {};
         component.state.motor = {
           rpm,
           direction,
-          current,
-          voltage: voltageAcrossMotor,
+          current: absCurrent,
+          voltage: absVoltage,
         };
 
         const reasons = [];
-        if (!hasDrivePath) {
-          reasons.push('Sem alimentação aplicada ao motor');
-        } else if (direction === 0) {
-          reasons.push('Diferença de tensão insuficiente');
-        } else if (!active) {
-          reasons.push('Tensão/corrente insuficiente para girar');
+        if (!active) {
+          if (absVoltage < DC_MOTOR_MIN_DRIVE_VOLTAGE) {
+            reasons.push('Diferença de tensão insuficiente');
+          } else if (absCurrent < DC_MOTOR_MIN_DRIVE_CURRENT) {
+            reasons.push('Corrente insuficiente para girar o motor');
+          } else {
+            reasons.push('Sem alimentação aplicada ao motor');
+          }
         }
 
         results.push({
@@ -567,9 +796,9 @@ class CircuitSnapshot {
           active,
           direction,
           rpm,
-          current,
-          voltage: voltageAcrossMotor,
-          supplyVoltage,
+          current: absCurrent,
+          voltage: absVoltage,
+          supplyVoltage: absVoltage,
           reasons,
         });
       });
@@ -583,516 +812,364 @@ class CircuitSnapshot {
       .sort((a, b) => a.pinIndex - b.pinIndex);
   }
 
-  findPath(startNode, predicate) {
-    const queue = [];
-    const visited = new Set();
-
-    const startSupplyComponent = this.getComponentSupplyCandidate(startNode.component);
-    const startSources = startSupplyComponent ? [startSupplyComponent] : [];
-    queue.push({
-      node: startNode,
-      resistorIncluded: false,
-      resistors: [],
-      sources: startSources,
-      leds: [],
-    });
-    visited.add(`${startNode.id}:0`);
-
-    while (queue.length) {
-      const { node, resistorIncluded, resistors, sources, leds } = queue.shift();
-      if (node !== startNode && predicate(node)) {
-        return {
-          exists: true,
-          resistorIncluded,
-          resistors,
-          sources,
-          leds,
-        };
-      }
-
-      node.connections.forEach((neighbor) => {
-        const sameComponent = neighbor.componentId && neighbor.componentId === node.componentId;
-        const neighborType = neighbor.componentType;
-        const neighborIsResistor = sameComponent && (neighborType === 'resistor' || neighborType === 'photoresistor');
-        const neighborIsMotor = sameComponent && neighbor.componentType === 'dc-motor';
-        const neighborIsPotentiometer = sameComponent && neighbor.componentType === 'potentiometer';
-        const neighborIsLed = sameComponent && neighbor.componentType === 'led';
-
-        const resistorEntry = (neighborIsResistor || neighborIsMotor) && neighbor.component
-          ? this.createResistorEntry(neighbor.component)
-          : null;
-
-        const potentiometerEntry = neighborIsPotentiometer
-          ? this.createPotentiometerSegmentEntry(node, neighbor)
-          : null;
-
-        const neighborResistorIncluded =
-          resistorIncluded || Boolean(resistorEntry) || Boolean(potentiometerEntry);
-
-        const stateKey = `${neighbor.id}:${neighborResistorIncluded ? 1 : 0}`;
-        if (visited.has(stateKey)) return;
-        visited.add(stateKey);
-
-        const nextResistors = [...resistors];
-        if (resistorEntry) {
-          nextResistors.push(resistorEntry);
-        }
-        if (potentiometerEntry) {
-          nextResistors.push(potentiometerEntry);
-        }
-
-        const supplyCandidate = this.getComponentSupplyCandidate(neighbor.component);
-        const nextSources = supplyCandidate
-          ? [...sources, supplyCandidate]
-          : [...sources];
-
-        const nextLeds = neighborIsLed && neighbor.component
-          ? [...leds, neighbor.component]
-          : [...leds];
-
-        queue.push({
-          node: neighbor,
-          resistorIncluded: neighborResistorIncluded,
-          resistors: nextResistors,
-          sources: nextSources,
-          leds: nextLeds,
-        });
-      });
-    }
-
-    return {
-      exists: false,
-      resistorIncluded: false,
-      resistors: [],
-      sources: [],
-      leds: [],
-    };
+  getPinKey(pinElement) {
+    return `${pinElement.dataset.componentId}:${pinElement.dataset.pinIndex}`;
   }
 
-  computeSeriesResistance(resistorEntries = []) {
-    const unique = new Map();
-    resistorEntries.forEach((entry) => {
-      if (!entry) return;
-      const key = entry.id ?? entry.component?.id;
-      if (!key) return;
-      if (!unique.has(key)) {
-        unique.set(key, entry);
-      }
-    });
-
-    let total = 0;
-    const contributing = [];
-
-    unique.forEach((entry) => {
-      const { resistance, component } = this.resolveResistanceEntry(entry);
-      if (Number.isFinite(resistance) && resistance > 0) {
-        total += resistance;
-        contributing.push({ component, ohms: resistance, entry });
-      }
-    });
-
-    return {
-      total,
-      components: contributing,
-    };
+  getComponentPinKey(componentId, pinName) {
+    if (!componentId || !pinName) return null;
+    return `${componentId}:${pinName}`;
   }
 
-  computePathResistance(pathResult, options = {}) {
-    if (!pathResult) return 0;
-    const { includeLed = false } = options;
-    let total = 0;
-
-    const resistorUnique = new Map();
-    (pathResult.resistors ?? []).forEach((entry) => {
-      if (!entry) return;
-      const key = entry.id ?? entry.component?.id;
-      if (!key) return;
-      if (!resistorUnique.has(key)) {
-        resistorUnique.set(key, entry);
-      }
-    });
-
-    resistorUnique.forEach((entry) => {
-      const { resistance } = this.resolveResistanceEntry(entry);
-      if (Number.isFinite(resistance) && resistance > 0) {
-        total += resistance;
-      }
-    });
-
-    if (includeLed) {
-      const ledUnique = new Map();
-      (pathResult.leds ?? []).forEach((component) => {
-        if (!component || !component.id) return;
-        if (!ledUnique.has(component.id)) {
-          ledUnique.set(component.id, component);
-        }
-      });
-
-      ledUnique.forEach((component) => {
-        const ledResistance = this.estimateLedResistance(component);
-        if (Number.isFinite(ledResistance) && ledResistance > 0) {
-          total += ledResistance;
-        }
-      });
-    }
-
-    return total;
+  getNodeByComponentPin(componentId, pinName) {
+    const key = this.getComponentPinKey(componentId, pinName);
+    if (!key) return null;
+    return this.pinNodesByComponentPin.get(key) ?? null;
   }
 
-  createResistorEntry(component) {
-    if (!component || !component.id) return null;
-    const type = component.type ?? component.id;
-    if (type !== 'resistor' && type !== 'photoresistor' && type !== 'dc-motor') {
-      return null;
-    }
-    return {
-      id: `${type}:${component.id}`,
-      type,
-      component,
-    };
+  getNodeByComponentIndex(componentId, pinIndex) {
+    const indexMap = this.pinNodesByComponentIndex.get(componentId);
+    if (!indexMap) return null;
+    return indexMap.get(pinIndex) ?? null;
   }
 
-  createPotentiometerSegmentEntry(nodeA, nodeB) {
-    if (!nodeA || !nodeB) return null;
-    const component = nodeA.component;
-    if (!component || component !== nodeB.component) return null;
-    if ((component.type ?? component.id) !== 'potentiometer') return null;
-
-    const fromIndex = Number(nodeA.pinIndex);
-    const toIndex = Number(nodeB.pinIndex);
-    if (!Number.isFinite(fromIndex) || !Number.isFinite(toIndex) || fromIndex === toIndex) {
-      return null;
-    }
-
-    const low = Math.min(fromIndex, toIndex);
-    const high = Math.max(fromIndex, toIndex);
-    const segmentKey = `${low}-${high}`;
-
-    return {
-      id: `pot:${component.id}:${segmentKey}`,
-      type: 'potentiometer-segment',
-      component,
-      fromIndex,
-      toIndex,
-    };
+  getNodeVoltage(node) {
+    if (!node || !node.netId) return 0;
+    return this.netVoltages.get(node.netId) ?? 0;
   }
 
-  resolveResistanceEntry(entry) {
-    if (!entry) {
-      return { resistance: NaN, component: null };
-    }
-
-    if (entry.type === 'resistor' || entry.type === 'photoresistor' || entry.type === 'dc-motor') {
-      const component = entry.component;
-      if (!component) {
-        return { resistance: NaN, component: null };
-      }
-      const rawValue =
-        component.props?.resistance ??
-        component.props?.value ??
-        component.props?.ohms ??
-        component.state?.resistance;
-      const ohms = this.parseResistanceValue(rawValue);
-      return { resistance: ohms, component };
-    }
-
-    if (entry.type === 'potentiometer-segment') {
-      const component = entry.component;
-      const ohms = this.getPotentiometerSegmentResistance(
-        component,
-        entry.fromIndex,
-        entry.toIndex,
-      );
-      return { resistance: ohms, component };
-    }
-
-    if (entry.component) {
-      const rawValue =
-        entry.component.props?.value ??
-        entry.component.props?.resistance ??
-        entry.component.props?.ohms;
-      const ohms = this.parseResistanceValue(rawValue);
-      return { resistance: ohms, component: entry.component };
-    }
-
-    return { resistance: NaN, component: null };
+  estimateNodeVoltage(node) {
+    if (!node) return 0;
+    return this.getNodeVoltage(node);
   }
 
-  getPotentiometerSegmentResistance(component, fromIndex, toIndex) {
-    if (!component) return NaN;
-    const total = this.getPotentiometerTotalResistance(component);
-    if (!Number.isFinite(total)) return NaN;
+  resolveVoltageForNode(node) {
+    if (!node) return 'floating';
+    if (node.voltageState === 'high') return 'high';
+    if (node.voltageState === 'low') return 'low';
 
-    const ratio = this.getPotentiometerRatio(component);
-
-    const pair = new Set([fromIndex, toIndex]);
-    if (pair.has(0) && pair.has(2)) {
-      return total;
-    }
-    if (pair.has(0) && pair.has(1)) {
-      return total * ratio;
-    }
-    if (pair.has(1) && pair.has(2)) {
-      return total * (1 - ratio);
-    }
-    return 0;
+    const voltage = this.getNodeVoltage(node);
+    if (!Number.isFinite(voltage)) return 'floating';
+    if (Math.abs(voltage) <= 0.05) return 'low';
+    const threshold = this.getHighLevelVoltage() * 0.7;
+    if (voltage >= threshold) return 'high';
+    if (voltage <= -threshold) return 'error';
+    return 'floating';
   }
 
-  getPotentiometerTotalResistance(component) {
-    if (!component) return NaN;
-    const rawValue =
-      component.props?.resistance ?? component.props?.value ?? component.props?.ohms;
-    const parsed = this.parseResistanceValue(rawValue);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return parsed;
-    }
-    return 1_000; // fallback padrão
+  resolveVoltageForBoardPin(componentId, pinName) {
+    const node = this.getNodeByComponentPin(componentId, pinName);
+    return this.resolveVoltageForNode(node);
   }
 
-  getPotentiometerRatio(component) {
-    if (!component) return 0.5;
-    const rawValue = Number(component.state?.value);
-    if (!Number.isFinite(rawValue)) {
-      return 0.5;
+  resolveAnalogLevel(node) {
+    if (!node) return null;
+    if (Number.isFinite(node.analogLevel)) {
+      return node.analogLevel;
     }
-    const normalized = Math.max(0, Math.min(100, rawValue));
-    return normalized / 100;
+    const voltage = this.getNodeVoltage(node);
+    if (!Number.isFinite(voltage)) return null;
+    const clamped = Math.max(0, Math.min(DEFAULT_SUPPLY_VOLTAGE, voltage));
+    return Math.round((clamped / DEFAULT_SUPPLY_VOLTAGE) * ADC_MAX_VALUE);
   }
 
-  parseResistanceValue(raw) {
-    if (raw === null || typeof raw === 'undefined') return NaN;
-    if (typeof raw === 'number') return raw;
-    const normalized = String(raw).trim().toLowerCase();
-    if (!normalized) return NaN;
-
-    const match = normalized.match(/^([\d.,]+)\s*([a-zµΩ]*)$/i);
-    if (!match) return NaN;
-
-    const numericPart = Number.parseFloat(match[1].replace(',', '.'));
-    if (!Number.isFinite(numericPart)) return NaN;
-
-    const unit = match[2] ?? '';
-    if (!unit) return numericPart;
-
-    if (/(k|kω|kohm|kΩ)/i.test(unit)) {
-      return numericPart * 1_000;
-    }
-    if (/(m|meg|mega|mω|mΩ)/i.test(unit)) {
-      return numericPart * 1_000_000;
-    }
-    if (/(g|gω|gΩ)/i.test(unit)) {
-      return numericPart * 1_000_000_000;
-    }
-    if (/(µ|u)/i.test(unit)) {
-      return numericPart / 1_000_000;
-    }
-    return numericPart;
-  }
-
-  resolveSupplyVoltage(sources = []) {
-    let supply = 0;
-    sources.forEach((component) => {
-      if (!component) return;
-      const candidateVoltage = this.getComponentSupplyVoltage(component);
-      if (candidateVoltage > supply) {
-        supply = candidateVoltage;
-      }
-    });
-    return supply > 0 ? supply : DEFAULT_SUPPLY_VOLTAGE;
-  }
-
-  parseVoltageValue(raw) {
-    if (raw === null || typeof raw === 'undefined') return NaN;
-    if (typeof raw === 'number') return raw;
-    const normalized = String(raw).trim().toLowerCase();
-    if (!normalized) return NaN;
-    const match = normalized.match(/^([\d.,]+)\s*([a-zv]*)$/);
-    if (!match) return NaN;
-    const numericPart = Number.parseFloat(match[1].replace(',', '.'));
-    if (!Number.isFinite(numericPart)) return NaN;
-    const unit = match[2] ?? '';
-    if (!unit || unit === 'v' || unit === 'volt' || unit === 'volts') return numericPart;
-    if (unit === 'mv') return numericPart / 1000;
-    if (unit === 'kv') return numericPart * 1000;
-    return numericPart;
-  }
-
-  estimateLedResistance(component) {
-    if (!component) return LED_INTERNAL_RESISTANCE;
-    const info = getLedColorInfo(component.props?.color);
-    if (!info) return LED_INTERNAL_RESISTANCE;
-    const vf = (info.forwardVoltageMin + info.forwardVoltageMax) / 2;
-    const current = info.maxCurrent || 0.02;
-    if (!Number.isFinite(vf) || !Number.isFinite(current) || current <= 0) {
-      return LED_INTERNAL_RESISTANCE;
-    }
-    const ohms = vf / current;
-    return Number.isFinite(ohms) && ohms > 0 ? ohms : LED_INTERNAL_RESISTANCE;
-  }
-
-  resolveSupplyVoltageForNode(node, excludeComponentId) {
-    if (!node) return DEFAULT_SUPPLY_VOLTAGE;
-
-    const component = node.component;
-    if (component?.type === 'battery') {
-      const parsed = this.parseVoltageValue(component.props?.voltage ?? component.props?.value);
-      if (Number.isFinite(parsed) && parsed > 0) {
-        return parsed;
-      }
-    }
-
-    let directSupply = 0;
-    const directCandidate = this.getComponentSupplyCandidate(component, excludeComponentId);
-    if (directCandidate) {
-      directSupply = this.getComponentSupplyVoltage(directCandidate);
-    }
-
-    const path = this.findPath(node, (neighbor) =>
-      neighbor.componentId !== excludeComponentId && this.isPowerReferenceNode(neighbor),
-    );
-    const pathSupply = this.resolveSupplyVoltage(path.sources);
-    const supply = Math.max(directSupply, pathSupply);
-    return supply > 0 ? supply : DEFAULT_SUPPLY_VOLTAGE;
-  }
-
-  hasPath(startNode, predicate) {
-    const queue = [startNode];
-    const visited = new Set([startNode.id]);
-
-    while (queue.length) {
-      const node = queue.shift();
-      if (node !== startNode && predicate(node)) {
-        return true;
-      }
-
-      node.connections.forEach((neighbor) => {
-        if (!visited.has(neighbor.id)) {
-          visited.add(neighbor.id);
-          queue.push(neighbor);
-        }
-      });
-    }
-
-    return false;
-  }
-
-  isPowerNode(node) {
-    if (!this.powerEnabled) {
-      return node.voltageState === 'high';
-    }
-    return node.pinType === 'power' || node.voltageState === 'high';
-  }
-
-  isPowerSourceNode(node) {
-    const component = node?.component;
-    if (!component) return false;
-    const type = component.type ?? component.id;
-    return type === 'battery' || type === 'amado-board' || type === 'esp32';
-  }
-
-  isPowerReferenceNode(node) {
-    if (!node) return false;
+  getNodeForcedVoltage(node) {
+    if (!node) return null;
     const componentType = node.component?.type ?? node.componentId;
-    const pinType = node.pinType ?? 'signal';
+    if (componentType === 'battery') return null;
 
-    if (componentType === 'battery') {
-      return pinType === 'power';
-    }
+    const boardSupply = this.getBoardSupplyVoltage(node);
 
     if (componentType === 'amado-board' || componentType === 'esp32') {
-      if (pinType === 'power') return true;
-      if (pinType === 'signal' && node.voltageState === 'high') return true;
+      if (node.pinType === 'ground') return 0;
+      if (!this.powerEnabled) return 0;
+      if (node.pinType === 'power') return boardSupply;
+      const key = this.getComponentPinKey(node.componentId, node.pinName);
+      const state = key ? this.boardPinStates.get(key) : null;
+      if (state === 'high') return boardSupply;
+      if (state === 'low') return 0;
     }
 
-    return false;
+    if (node.voltageState === 'high') {
+      return this.powerEnabled ? boardSupply : 0;
+    }
+    if (node.voltageState === 'low') {
+      return 0;
+    }
+    return null;
   }
 
   isGroundReferenceNode(node) {
     if (!node) return false;
     const componentType = node.component?.type ?? node.componentId;
-    const pinType = node.pinType ?? 'signal';
-
     if (componentType === 'battery') {
-      return pinType === 'ground';
+      return node.pinType === 'ground';
     }
-
     if (componentType === 'amado-board' || componentType === 'esp32') {
-      if (pinType === 'ground') return true;
-      if (pinType === 'signal' && node.voltageState === 'low') return true;
+      if (node.pinType === 'ground') return true;
+      if (node.pinType === 'signal' && node.voltageState === 'low') return true;
     }
-
     return false;
   }
 
-  getComponentSupplyCandidate(component, excludeComponentId) {
-    if (!component) return null;
-    if (excludeComponentId && component.id === excludeComponentId) return null;
-    const type = component.type ?? component.id;
-    if (type === 'battery' || type === 'amado-board' || type === 'esp32') {
-      return component;
-    }
-    return null;
+  isGroundPin(node) {
+    if (!node) return false;
+    if (node.pinType === 'ground') return true;
+    if (node.voltageState === 'low') return true;
+    return false;
   }
 
-  getComponentSupplyVoltage(component) {
-    if (!component) return 0;
-    const type = component.type ?? component.id;
-    if (type === 'battery') {
-      const parsed = this.parseVoltageValue(component.props?.voltage ?? component.props?.value);
-      return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_SUPPLY_VOLTAGE;
-    }
-    if (type === 'amado-board' || type === 'esp32') {
-      return DEFAULT_SUPPLY_VOLTAGE;
-    }
-    return 0;
+  hasSeriesProtectionResistor(component, netA, netB) {
+    if (!netA || !netB) return false;
+    return this.resistiveElements.some((element) => {
+      if (!element.component || element.component.id === component.id) return false;
+      if (!this.isProtectionResistorType(element.type)) return false;
+      return (
+        element.netA === netA ||
+        element.netB === netA ||
+        element.netA === netB ||
+        element.netB === netB
+      );
+    });
   }
 
-  getComponentPinVoltageOverride(component, pinName) {
-    if (!component || !pinName) return null;
-    const type = component.type ?? component.id;
-    if (type === 'ir-receiver') {
-      const pin = String(pinName).toUpperCase();
-      if (pin === 'OUT' || pin === 'DAT' || pin === 'DATA') {
-        const rawState =
-          (component.state && Object.prototype.hasOwnProperty.call(component.state, 'state')
-            ? component.state.state
-            : undefined) ??
-          component.props?.state ??
-          'low';
-        const normalised = String(rawState).toLowerCase();
-        if (normalised === 'high' || normalised === '1' || normalised === 'on') {
-          return 'high';
-        }
-        if (normalised === 'low' || normalised === '0' || normalised === 'off') {
-          return 'low';
-        }
+  isProtectionResistorType(type) {
+    return type === 'resistor' || type === 'photoresistor' || type === 'potentiometer-segment' || type === 'potentiometer';
+  }
+
+  addResistiveTwoTerminal(component, options = {}) {
+    if (!component) return;
+    const nodeA = this.getNodeByComponentIndex(component.id, 0);
+    const nodeB = this.getNodeByComponentIndex(component.id, 1);
+    if (!nodeA || !nodeB) return;
+    const netA = nodeA.netId;
+    const netB = nodeB.netId;
+    if (!netA || !netB || netA === netB) return;
+
+    this.resistiveElements.push({
+      component,
+      type: options.type ?? component.type,
+      netA,
+      netB,
+      resistance: this.sanitizeResistance(options.resistance),
+    });
+  }
+
+  addPotentiometerElements(component) {
+    const node0 = this.getNodeByComponentIndex(component.id, 0);
+    const node1 = this.getNodeByComponentIndex(component.id, 1);
+    const node2 = this.getNodeByComponentIndex(component.id, 2);
+    if (!node0 || !node1 || !node2) return;
+
+    const total = this.getPotentiometerTotalResistance(component);
+    const ratio = Math.max(0, Math.min(1, this.getPotentiometerRatio(component)));
+    const resistance01 = total * ratio;
+    const resistance12 = total * (1 - ratio);
+
+    if (node0.netId && node1.netId && node0.netId !== node1.netId) {
+      this.resistiveElements.push({
+        component,
+        type: 'potentiometer-segment',
+        netA: node0.netId,
+        netB: node1.netId,
+        resistance: this.sanitizeResistance(resistance01),
+      });
+    }
+    if (node1.netId && node2.netId && node1.netId !== node2.netId) {
+      this.resistiveElements.push({
+        component,
+        type: 'potentiometer-segment',
+        netA: node1.netId,
+        netB: node2.netId,
+        resistance: this.sanitizeResistance(resistance12),
+      });
+    }
+  }
+
+  addLedElement(component) {
+    if (!component || component.state?.burned) return;
+    const pins = this.getPinsForComponent(component.id);
+    if (pins.length < 2) return;
+    const anode = pins.find((pin) => pin.pinType === 'power') ?? pins[0];
+    const cathode = pins.find((pin) => pin.pinType === 'ground') ?? pins[1];
+    if (!anode || !cathode) return;
+    const netA = anode.netId;
+    const netB = cathode.netId;
+    if (!netA || !netB || netA === netB) return;
+
+    this.resistiveElements.push({
+      component,
+      type: 'led',
+      netA,
+      netB,
+      resistance: this.sanitizeResistance(this.estimateLedResistance(component)),
+    });
+  }
+
+  addBatteryElement(component) {
+    if (!component) return;
+    const pins = this.getPinsForComponent(component.id);
+    if (pins.length < 2) return;
+    const positive = pins.find((pin) => pin.pinType === 'power') ?? pins[0];
+    const negative = pins.find((pin) => pin.pinType === 'ground') ?? pins[1];
+    if (!positive || !negative) return;
+    const netPos = positive.netId;
+    const netNeg = negative.netId;
+    if (!netPos || !netNeg || netPos === netNeg) return;
+
+    const voltage = this.parseVoltageValue(component.props?.voltage ?? component.props?.value);
+    if (!Number.isFinite(voltage) || voltage === 0) return;
+
+    const internalResistance = this.parseResistanceValue(
+      component.props?.internalResistance ??
+        component.props?.internalOhms ??
+        component.props?.seriesResistance,
+    );
+    const sanitizedResistance = this.sanitizeResistance(
+      Number.isFinite(internalResistance) && internalResistance > 0
+        ? internalResistance
+        : BATTERY_INTERNAL_RESISTANCE,
+    );
+
+    const internalNet = this.createVirtualNet();
+
+    this.resistiveElements.push({
+      component,
+      type: 'battery-internal-resistance',
+      netA: netPos,
+      netB: internalNet,
+      resistance: sanitizedResistance,
+    });
+
+    this.voltageSources.push({
+      component,
+      type: 'battery',
+      positiveNet: internalNet,
+      negativeNet: netNeg,
+      voltage,
+      meta: {
+        type: 'battery',
+        externalPositiveNet: netPos,
+        internalNet,
+      },
+    });
+
+    this.voltageSourceDescriptors.push({
+      component,
+      externalPositiveNet: netPos,
+      internalNet,
+      negativeNet: netNeg,
+      voltage,
+      internalResistance: sanitizedResistance,
+    });
+
+    this.highestVoltageMagnitude = Math.max(this.highestVoltageMagnitude, Math.abs(voltage));
+  }
+
+  registerSolverWarning(message) {
+    if (!message) return;
+    this.solverWarnings.push(message);
+  }
+
+  sanitizeResistance(value) {
+    if (!Number.isFinite(value) || value <= 0) return MIN_RESISTANCE;
+    return Math.max(value, MIN_RESISTANCE);
+  }
+
+  getHighLevelVoltage() {
+    return Math.max(DEFAULT_SUPPLY_VOLTAGE, Math.min(this.highestVoltageMagnitude, 12));
+  }
+
+  getBoardSupplyVoltage(node) {
+    if (!node) return DEFAULT_SUPPLY_VOLTAGE;
+    const pin = String(node.pinName ?? '').toUpperCase();
+    if (/VIN|5V|5\.0/.test(pin)) return 5;
+    return DEFAULT_SUPPLY_VOLTAGE;
+  }
+
+  applyInternalComponentConnections() {
+    this.canvasManager.components.forEach((component) => {
+      switch (component.type) {
+        case 'switch':
+          this.applySwitchConnections(component);
+          break;
+        case 'pushbutton':
+          this.applyPushbuttonConnections(component);
+          break;
+        default:
+          break;
       }
-    }
-    if (type === 'photoresistor') {
-      const pin = String(pinName).toUpperCase();
-      if (pin === 'DO' || pin === 'DIGITAL' || pin === 'OUT') {
-        const level = Number(component.state?.lightLevel);
-        if (Number.isFinite(level)) {
-          return level >= 50 ? 'high' : 'low';
-        }
-        const rawState = component.props?.resistance ?? component.props?.value ?? null;
-        const resistance = this.parseResistanceValue(rawState);
-        if (Number.isFinite(resistance) && resistance > 0) {
-          const ratio = (PHOTORESISTOR_MAX_OHMS - Math.min(Math.max(resistance, PHOTORESISTOR_MIN_OHMS), PHOTORESISTOR_MAX_OHMS)) /
-            (PHOTORESISTOR_MAX_OHMS - PHOTORESISTOR_MIN_OHMS);
-          return ratio >= 0.5 ? 'high' : 'low';
-        }
-        return 'low';
-      }
-    }
-    return null;
+    });
   }
 
-  isGroundNode(node) {
-    if (!this.powerEnabled) {
-      return node.voltageState === 'low';
+  applySwitchConnections(component) {
+    if (!component) return;
+    if (this.isSwitchOn(component)) {
+      this.connectNodesByIndex(component.id, 0, 1);
     }
-    return node.pinType === 'ground' || node.voltageState === 'low';
+  }
+
+  applyPushbuttonConnections(component) {
+    const componentId = component.id;
+    const element = component.element;
+    const storedState = component.state?.pressed;
+    const isPressed = storedState ?? this.isPushbuttonPressed(element);
+
+    const topLeft = this.getNodeByComponentIndex(componentId, 0);
+    const bottomLeft = this.getNodeByComponentIndex(componentId, 1);
+    const topRight = this.getNodeByComponentIndex(componentId, 2);
+    const bottomRight = this.getNodeByComponentIndex(componentId, 3);
+
+    this.connectNodes(topLeft, topRight);
+    this.connectNodes(bottomLeft, bottomRight);
+
+    if (isPressed) {
+      this.connectNodes(topLeft, bottomLeft);
+      this.connectNodes(topLeft, bottomRight);
+      this.connectNodes(topRight, bottomLeft);
+      this.connectNodes(topRight, bottomRight);
+    }
+  }
+
+  connectNodes(nodeA, nodeB) {
+    if (!nodeA || !nodeB || nodeA === nodeB) return;
+    nodeA.connections.add(nodeB);
+    nodeB.connections.add(nodeA);
+  }
+
+  connectNodesByIndex(componentId, indexA, indexB) {
+    if (indexA === indexB) return;
+    const nodeA = this.getNodeByComponentIndex(componentId, indexA);
+    const nodeB = this.getNodeByComponentIndex(componentId, indexB);
+    this.connectNodes(nodeA, nodeB);
+  }
+
+  isSwitchOn(component) {
+    if (!component) return false;
+    if (typeof component.state?.on === 'boolean') return component.state.on;
+    const elementValue = component.element?.value;
+    if (typeof elementValue === 'number') return elementValue > 0;
+    if (typeof elementValue === 'string') {
+      const trimmed = elementValue.trim().toLowerCase();
+      if (trimmed === '1' || trimmed === 'on' || trimmed === 'true') return true;
+      if (trimmed === '0' || trimmed === 'off' || trimmed === 'false') return false;
+    }
+    const initial = String(component.props?.initialState ?? 'off').toLowerCase();
+    return initial === 'on';
+  }
+
+  isPushbuttonPressed(element) {
+    if (!element) return false;
+    if (typeof element.value !== 'undefined') {
+      const value = element.value;
+      if (typeof value === 'number') return value !== 0;
+      if (typeof value === 'string') return value !== '' && value !== '0';
+      return Boolean(value);
+    }
+    if (typeof element.pressed !== 'undefined') return Boolean(element.pressed);
+    const attrValue = element.getAttribute?.('value');
+    if (attrValue !== null) return attrValue !== '0';
+    return element.hasAttribute?.('pressed');
   }
 
   getBoardPinState(componentId, pinName) {
@@ -1125,8 +1202,12 @@ class CircuitSnapshot {
         component.props?.value;
       const resistance = this.parseResistanceValue(rawResistance);
       if (Number.isFinite(resistance) && resistance > 0) {
-        const clamped = Math.min(Math.max(resistance, PHOTORESISTOR_MIN_OHMS), PHOTORESISTOR_MAX_OHMS);
-        const ratio = (PHOTORESISTOR_MAX_OHMS - clamped) /
+        const clamped = Math.min(
+          Math.max(resistance, PHOTORESISTOR_MIN_OHMS),
+          PHOTORESISTOR_MAX_OHMS,
+        );
+        const ratio =
+          (PHOTORESISTOR_MAX_OHMS - clamped) /
           (PHOTORESISTOR_MAX_OHMS - PHOTORESISTOR_MIN_OHMS);
         const analog = Math.round(Math.max(0, Math.min(1, ratio)) * ADC_MAX_VALUE);
         this.boardAnalogLevels.set(key, analog);
@@ -1139,362 +1220,114 @@ class CircuitSnapshot {
     return Number.isFinite(stored) ? stored : null;
   }
 
-  resolveVoltageForBoardPin(componentId, pinName) {
-    const node = this.getNodeByComponentPin(componentId, pinName);
-    if (!node) return 'floating';
-    return this.computeNodeVoltageState(node);
-  }
-
-  resolveVoltageForNode(node) {
-    if (!node) return 'floating';
-    if (node.voltageState === 'high' || node.voltageState === 'low') {
-      return node.voltageState;
-    }
-
-    if (this.nodeVoltageCache.has(node.id)) {
-      return this.nodeVoltageCache.get(node.id);
-    }
-
-    let resolved = 'floating';
-
-    const checkQueue = [node];
-    const visited = new Set([node.id]);
-    let encountersPower = false;
-    let encountersGround = false;
-
-    while (checkQueue.length) {
-      const current = checkQueue.shift();
-
-      if (current !== node) {
-        if (current.voltageState === 'high' || this.isPowerNode(current)) {
-          encountersPower = true;
-        }
-        if (current.voltageState === 'low' || this.isGroundNode(current)) {
-          encountersGround = true;
-        }
-        if (encountersPower && encountersGround) {
-          break;
-        }
+  getComponentPinVoltageOverride(component, pinName) {
+    if (!component || !pinName) return null;
+    const type = component.type ?? component.id;
+    if (type === 'ir-receiver') {
+      const pin = String(pinName).toUpperCase();
+      if (pin === 'OUT' || pin === 'DAT' || pin === 'DATA') {
+        const rawState =
+          (component.state && Object.prototype.hasOwnProperty.call(component.state, 'state')
+            ? component.state.state
+            : undefined) ??
+          component.props?.state ??
+          'low';
+        const normalised = String(rawState).toLowerCase();
+        if (normalised === 'high' || normalised === '1' || normalised === 'on') return 'high';
+        if (normalised === 'low' || normalised === '0' || normalised === 'off') return 'low';
       }
-
-      current.connections.forEach((neighbor) => {
-        if (!visited.has(neighbor.id)) {
-          visited.add(neighbor.id);
-          checkQueue.push(neighbor);
+    }
+    if (type === 'photoresistor') {
+      const pin = String(pinName).toUpperCase();
+      if (pin === 'DO' || pin === 'DIGITAL' || pin === 'OUT') {
+        const level = Number(component.state?.lightLevel);
+        if (Number.isFinite(level)) {
+          return level >= 50 ? 'high' : 'low';
         }
-      });
-    }
-
-    if (encountersPower && !encountersGround) {
-      resolved = 'high';
-    } else if (!encountersPower && encountersGround) {
-      resolved = 'low';
-    } else if (encountersPower && encountersGround) {
-      resolved = 'error';
-    }
-
-    this.nodeVoltageCache.set(node.id, resolved);
-    return resolved;
-  }
-
-  resolveAnalogLevel(node) {
-    if (!node) return null;
-    if (Number.isFinite(node.analogLevel)) {
-      return node.analogLevel;
-    }
-
-    const visited = new Set([node.id]);
-    const queue = [node];
-
-    while (queue.length) {
-      const current = queue.shift();
-      if (current !== node && Number.isFinite(current.analogLevel)) {
-        return current.analogLevel;
+        const rawState = component.props?.resistance ?? component.props?.value ?? null;
+        const resistance = this.parseResistanceValue(rawState);
+        if (Number.isFinite(resistance) && resistance > 0) {
+          const ratio =
+            (PHOTORESISTOR_MAX_OHMS -
+              Math.min(Math.max(resistance, PHOTORESISTOR_MIN_OHMS), PHOTORESISTOR_MAX_OHMS)) /
+            (PHOTORESISTOR_MAX_OHMS - PHOTORESISTOR_MIN_OHMS);
+          return ratio >= 0.5 ? 'high' : 'low';
+        }
+        return 'low';
       }
-      current.connections.forEach((neighbor) => {
-        if (!visited.has(neighbor.id)) {
-          visited.add(neighbor.id);
-          queue.push(neighbor);
-        }
-      });
     }
-
-    const voltageState = this.computeNodeVoltageState(node);
-    if (voltageState === 'high') return 4095;
-    if (voltageState === 'low') return 0;
     return null;
   }
 
-  estimateNodeVoltage(node, excludeComponentId) {
-    if (!node) return 0;
+  parseResistanceValue(raw) {
+    if (raw === null || typeof raw === 'undefined') return NaN;
+    if (typeof raw === 'number') return raw;
+    const normalized = String(raw).trim().toLowerCase();
+    if (!normalized) return NaN;
 
-    const startIsPower = this.isPowerReferenceNode(node);
-    const startIsGround = this.isGroundReferenceNode(node);
-    const directSupplyComponent = this.getComponentSupplyCandidate(node.component, excludeComponentId);
+    const match = normalized.match(/^([\d.,]+)\s*([a-zµΩ]*)$/i);
+    if (!match) return NaN;
 
-    const supplyPath = startIsPower
-      ? {
-          exists: true,
-          resistorIncluded: false,
-          resistors: [],
-          sources: directSupplyComponent ? [directSupplyComponent] : [],
-          leds: [],
-        }
-      : this.findPath(node, (neighbor) =>
-          neighbor.componentId !== excludeComponentId && this.isPowerReferenceNode(neighbor),
-        );
+    const numericPart = Number.parseFloat(match[1].replace(',', '.'));
+    if (!Number.isFinite(numericPart)) return NaN;
 
-    const groundPath = startIsGround
-      ? {
-          exists: true,
-          resistorIncluded: false,
-          resistors: [],
-          sources: [],
-          leds: [],
-        }
-      : this.findPath(node, (neighbor) =>
-          neighbor.componentId !== excludeComponentId && this.isGroundReferenceNode(neighbor),
-        );
+    const unit = match[2] ?? '';
+    if (!unit) return numericPart;
 
-    let supplyVoltage = 0;
-    if (supplyPath.exists && Array.isArray(supplyPath.sources) && supplyPath.sources.length) {
-      supplyVoltage = this.resolveSupplyVoltage(supplyPath.sources);
-    } else if (directSupplyComponent) {
-      supplyVoltage = this.getComponentSupplyVoltage(directSupplyComponent);
-    }
-
-    if ((!Number.isFinite(supplyVoltage) || supplyVoltage <= 0) && !startIsPower) {
-      const fallbackSupply = this.resolveSupplyVoltageForNode(node, excludeComponentId);
-      if (Number.isFinite(fallbackSupply) && fallbackSupply > supplyVoltage) {
-        supplyVoltage = fallbackSupply;
-      }
-    }
-
-    if (!Number.isFinite(supplyVoltage) || supplyVoltage <= 0) {
-      supplyVoltage = DEFAULT_SUPPLY_VOLTAGE;
-    }
-
-    const supplyResistance = startIsPower
-      ? 0
-      : this.computePathResistance(supplyPath, { includeLed: true });
-    const groundResistance = startIsGround
-      ? 0
-      : this.computePathResistance(groundPath, { includeLed: true });
-
-    const hasGroundReference = startIsGround || groundPath.exists;
-    if (!hasGroundReference) {
-      return supplyVoltage;
-    }
-
-    if (groundResistance === 0 && supplyResistance === 0) {
-      return supplyVoltage;
-    }
-
-    if (groundResistance === 0) {
-      return 0;
-    }
-
-    if (supplyResistance === 0) {
-      return supplyVoltage;
-    }
-
-    const totalResistance = supplyResistance + groundResistance;
-    if (totalResistance <= 0) {
-      return supplyVoltage;
-    }
-
-    return supplyVoltage * (groundResistance / totalResistance);
+    if (/(k|kω|kohm|kΩ)/i.test(unit)) return numericPart * 1_000;
+    if (/(m|meg|mega|mω|mΩ)/i.test(unit)) return numericPart * 1_000_000;
+    if (/(g|gω|gΩ)/i.test(unit)) return numericPart * 1_000_000_000;
+    if (/(µ|u)/i.test(unit)) return numericPart / 1_000_000;
+    return numericPart;
   }
 
-  computeNodeVoltageState(node) {
-    if (!node) return 'floating';
-
-    if (this.nodeVoltageCache.has(`computed:${node.id}`)) {
-      return this.nodeVoltageCache.get(`computed:${node.id}`);
-    }
-
-    const powerPath = this.findPath(node, (neighbor) => this.isPowerNode(neighbor));
-    const groundPath = this.findPath(node, (neighbor) => this.isGroundNode(neighbor));
-
-    const hasPower = powerPath.exists;
-    const hasGround = groundPath.exists;
-
-    if (hasPower && hasGround) {
-      const powerThroughResistor = powerPath.resistorIncluded;
-      const groundThroughResistor = groundPath.resistorIncluded;
-
-      let state;
-      if (powerThroughResistor && !groundThroughResistor) {
-        state = 'low';
-      } else if (!powerThroughResistor && groundThroughResistor) {
-        state = 'high';
-      } else if (powerThroughResistor && groundThroughResistor) {
-        state = 'floating';
-      } else {
-        state = 'error';
-      }
-      this.nodeVoltageCache.set(`computed:${node.id}`, state);
-      return state;
-    }
-
-    const state = hasPower ? 'high' : hasGround ? 'low' : 'floating';
-    this.nodeVoltageCache.set(`computed:${node.id}`, state);
-    return state;
+  parseVoltageValue(raw) {
+    if (raw === null || typeof raw === 'undefined') return NaN;
+    if (typeof raw === 'number') return raw;
+    const normalized = String(raw).trim().toLowerCase();
+    if (!normalized) return NaN;
+    const match = normalized.match(/^([\d.,]+)\s*([a-zv]*)$/);
+    if (!match) return NaN;
+    const numericPart = Number.parseFloat(match[1].replace(',', '.'));
+    if (!Number.isFinite(numericPart)) return NaN;
+    const unit = match[2] ?? '';
+    if (!unit || unit === 'v' || unit === 'volt' || unit === 'volts') return numericPart;
+    if (unit === 'mv') return numericPart / 1000;
+    if (unit === 'kv') return numericPart * 1000;
+    return numericPart;
   }
 
-  applyInternalComponentConnections() {
-    this.canvasManager.components.forEach((component) => {
-      switch (component.type) {
-        case 'resistor':
-          this.connectNodesByIndex(component.id, 0, 1);
-          break;
-        case 'potentiometer':
-          this.applyPotentiometerConnections(component);
-          break;
-        case 'led':
-          this.applyLedConnections(component);
-          break;
-        case 'dc-motor':
-          this.connectNodesByIndex(component.id, 0, 1);
-          break;
-        case 'switch':
-          this.applySwitchConnections(component);
-          break;
-        case 'pushbutton':
-          this.applyPushbuttonConnections(component);
-          break;
-        default:
-          break;
-      }
-    });
+  estimateLedResistance(component) {
+    if (!component) return LED_INTERNAL_RESISTANCE;
+    const info = getLedColorInfo(component.props?.color);
+    if (!info) return LED_INTERNAL_RESISTANCE;
+    const vf = (info.forwardVoltageMin + info.forwardVoltageMax) / 2;
+    const current = info.maxCurrent || 0.02;
+    if (!Number.isFinite(vf) || !Number.isFinite(current) || current <= 0) {
+      return LED_INTERNAL_RESISTANCE;
+    }
+    const ohms = vf / current;
+    return Number.isFinite(ohms) && ohms > 0 ? ohms : LED_INTERNAL_RESISTANCE;
   }
 
-  applyLedConnections(component) {
-    if (!component) return;
-    if (component.state?.burned) {
-      return;
-    }
-    this.connectNodesByIndex(component.id, 0, 1);
+  getPotentiometerTotalResistance(component) {
+    if (!component) return NaN;
+    const rawValue =
+      component.props?.resistance ?? component.props?.value ?? component.props?.ohms;
+    const parsed = this.parseResistanceValue(rawValue);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    return 1_000;
   }
 
-  applyPotentiometerConnections(component) {
-    if (!component) return;
-    this.connectNodesByIndex(component.id, 0, 1);
-    this.connectNodesByIndex(component.id, 1, 2);
-  }
-
-  applySwitchConnections(component) {
-    if (!component) return;
-    if (this.isSwitchOn(component)) {
-      this.connectNodesByIndex(component.id, 0, 1);
-    }
-  }
-
-  applyPushbuttonConnections(component) {
-    const componentId = component.id;
-    const element = component.element;
-    const storedState = component.state?.pressed;
-    const isPressed = storedState ?? this.isPushbuttonPressed(element);
-
-    const topLeft = this.getNodeByComponentIndex(componentId, 0);
-    const bottomLeft = this.getNodeByComponentIndex(componentId, 1);
-    const topRight = this.getNodeByComponentIndex(componentId, 2);
-    const bottomRight = this.getNodeByComponentIndex(componentId, 3);
-
-    this.connectNodes(topLeft, topRight);
-    this.connectNodes(bottomLeft, bottomRight);
-
-    if (isPressed) {
-      this.connectNodes(topLeft, bottomLeft);
-      this.connectNodes(topLeft, bottomRight);
-      this.connectNodes(topRight, bottomLeft);
-      this.connectNodes(topRight, bottomRight);
-    }
-  }
-
-  isPushbuttonPressed(element) {
-    if (!element) return false;
-    if (typeof element.value !== 'undefined') {
-      const value = element.value;
-      if (typeof value === 'number') return value !== 0;
-      if (typeof value === 'string') return value !== '' && value !== '0';
-      return Boolean(value);
-    }
-    if (typeof element.pressed !== 'undefined') {
-      return Boolean(element.pressed);
-    }
-    const attrValue = element.getAttribute?.('value');
-    if (attrValue !== null) {
-      return attrValue !== '0';
-    }
-    return element.hasAttribute?.('pressed');
-  }
-
-  isSwitchOn(component) {
-    if (!component) return false;
-    if (typeof component.state?.on === 'boolean') {
-      return component.state.on;
-    }
-    const elementValue = component.element?.value;
-    if (typeof elementValue === 'number') {
-      return elementValue > 0;
-    }
-    if (typeof elementValue === 'string') {
-      const trimmed = elementValue.trim().toLowerCase();
-      if (trimmed === '1' || trimmed === 'on' || trimmed === 'true') {
-        return true;
-      }
-      if (trimmed === '0' || trimmed === 'off' || trimmed === 'false') {
-        return false;
-      }
-    }
-    const initial = String(component.props?.initialState ?? 'off').toLowerCase();
-    return initial === 'on';
-  }
-
-  connectNodes(nodeA, nodeB) {
-    if (!nodeA || !nodeB || nodeA === nodeB) return;
-    nodeA.connections.add(nodeB);
-    nodeB.connections.add(nodeA);
-  }
-
-  connectNodesByIndex(componentId, indexA, indexB) {
-    if (indexA === indexB) return;
-    const nodeA = this.getNodeByComponentIndex(componentId, indexA);
-    const nodeB = this.getNodeByComponentIndex(componentId, indexB);
-    this.connectNodes(nodeA, nodeB);
-  }
-
-  hasConnectionToBoardSignal(startNode) {
-    if (!startNode) return false;
-    const visited = new Set([startNode.id]);
-    const queue = [startNode];
-
-    while (queue.length) {
-      const node = queue.shift();
-      if (this.isBoardSignalNode(node)) {
-        return true;
-      }
-      node.connections.forEach((neighbor) => {
-        if (!visited.has(neighbor.id)) {
-          visited.add(neighbor.id);
-          queue.push(neighbor);
-        }
-      });
-    }
-
-    return false;
-  }
-
-  isBoardSignalNode(node) {
-    if (!node) return false;
-    const type = node.componentType;
-    if (type !== 'amado-board' && type !== 'esp32') {
-      return false;
-    }
-    return node.pinType === 'signal';
+  getPotentiometerRatio(component) {
+    if (!component) return 0.5;
+    const rawValue = Number(component.state?.value);
+    if (!Number.isFinite(rawValue)) return 0.5;
+    const normalized = Math.max(0, Math.min(100, rawValue));
+    return normalized / 100;
   }
 }
+
 
 class Simulation {
   constructor() {
@@ -1562,7 +1395,7 @@ class Simulation {
       boardAnalogLevels: this.boardAnalogLevels,
     });
     const ledResults = snapshot.evaluateLEDs();
-    const buzzerResults = snapshot.evaluateBuzzers(snapshot);
+    const buzzerResults = snapshot.evaluateBuzzers();
     const motorResults = snapshot.evaluateDcMotors();
     const errorMessages = [];
 
@@ -1600,6 +1433,17 @@ class Simulation {
         }
       }
     });
+
+    if (Array.isArray(snapshot.solverWarnings) && snapshot.solverWarnings.length) {
+      snapshot.solverWarnings.forEach((warning) => {
+        if (!warning) return;
+        this.listeners.onLog?.({
+          message: warning,
+          level: 'warn',
+          timestamp: Date.now(),
+        });
+      });
+    }
 
     motorResults.forEach((result) => {
       this.setMotorState(result.component, result);
@@ -1791,8 +1635,8 @@ class Simulation {
       return;
     }
 
-    const voltagePlus = snapshot.estimateNodeVoltage(positiveNode, component.id);
-    const voltageMinus = snapshot.estimateNodeVoltage(negativeNode, component.id);
+    const voltagePlus = snapshot.estimateNodeVoltage(positiveNode);
+    const voltageMinus = snapshot.estimateNodeVoltage(negativeNode);
     const voltage = voltagePlus - voltageMinus;
 
     if (!Number.isFinite(voltage)) {

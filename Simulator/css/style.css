@@ -1190,7 +1190,7 @@ body {
 }
 
 .dc-motor-shell {
-  width: 150px;
+  width: 220px;
   position: relative;
   display: inline-block;
 }
@@ -1206,9 +1206,9 @@ body {
 .dc-motor-rotor {
   position: absolute;
   top: 50%;
-  right: 14px;
-  width: 28px;
-  height: 28px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
   transform: translateY(-50%);
   opacity: 0.4;
   pointer-events: none;
@@ -1227,10 +1227,10 @@ body {
 .dc-motor-spinner::after {
   content: '';
   position: absolute;
-  top: 4px;
+  top: 6px;
   left: 50%;
-  width: 2px;
-  height: 10px;
+  width: 3px;
+  height: 14px;
   background-color: #1f2937;
   border-radius: 1px;
   transform: translateX(-50%);
@@ -1260,10 +1260,10 @@ body {
 
 .dc-motor-speed {
   position: absolute;
-  bottom: -18px;
-  right: 8px;
-  padding: 1px 4px;
-  font-size: 10px;
+  bottom: -22px;
+  right: 12px;
+  padding: 2px 6px;
+  font-size: 11px;
   color: #1f2937;
   background-color: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(148, 163, 184, 0.4);
