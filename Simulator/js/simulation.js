@@ -306,12 +306,17 @@ class CircuitSnapshot {
             type: 'dc-motor',
           });
           break;
-        case 'buzzer':
+        case 'buzzer': {
+          const parsed = this.parseResistanceValue(component.props?.resistance);
+          const buzzerResistance = Number.isFinite(parsed) && parsed > 0
+            ? parsed
+            : BUZZER_DEFAULT_RESISTANCE;
           this.addResistiveTwoTerminal(component, {
-            resistance: this.parseResistanceValue(component.props?.resistance) ?? BUZZER_DEFAULT_RESISTANCE,
+            resistance: buzzerResistance,
             type: 'buzzer',
           });
           break;
+        }
         case 'led':
           this.addLedElement(component);
           break;
@@ -700,7 +705,10 @@ class CircuitSnapshot {
         const negative = pins.find((pin) => /gnd|\-|1/i.test(pin.pinName)) ?? pins[0];
         const voltage = this.getNodeVoltage(positive) - this.getNodeVoltage(negative);
         const absVoltage = Math.abs(voltage);
-        const resistance = this.parseResistanceValue(component.props?.resistance) ?? BUZZER_DEFAULT_RESISTANCE;
+        const parsedResistance = this.parseResistanceValue(component.props?.resistance);
+        const resistance = Number.isFinite(parsedResistance) && parsedResistance > 0
+          ? parsedResistance
+          : BUZZER_DEFAULT_RESISTANCE;
         const current = resistance > 0 ? absVoltage / resistance : 0;
         const active = absVoltage >= 0.7;
 
@@ -841,6 +849,154 @@ class CircuitSnapshot {
   estimateNodeVoltage(node) {
     if (!node) return 0;
     return this.getNodeVoltage(node);
+  }
+
+  buildResistanceGraph() {
+    const parent = new Map();
+    const find = (id) => {
+      if (!id) return null;
+      if (!parent.has(id)) {
+        parent.set(id, id);
+        return id;
+      }
+      let root = parent.get(id);
+      if (root !== id) {
+        root = find(root);
+        parent.set(id, root);
+      }
+      return root;
+    };
+    const union = (a, b) => {
+      if (!a || !b) return;
+      const rootA = find(a);
+      const rootB = find(b);
+      if (rootA === null || rootB === null || rootA === rootB) return;
+      parent.set(rootA, rootB);
+    };
+
+    this.nets.forEach((net) => {
+      parent.set(net.id, net.id);
+    });
+
+    this.voltageSources.forEach((source) => {
+      if (!source) return;
+      union(source.positiveNet, source.negativeNet);
+    });
+
+    const netRootMap = new Map();
+    this.nets.forEach((net) => {
+      netRootMap.set(net.id, find(net.id));
+    });
+
+    const edges = [];
+    this.resistiveElements.forEach((element) => {
+      if (!element) return;
+      const rootA = netRootMap.get(element.netA);
+      const rootB = netRootMap.get(element.netB);
+      if (!rootA || !rootB || rootA === rootB) return;
+      const resistance = element.resistance;
+      if (!Number.isFinite(resistance) || resistance <= 0) return;
+      const conductance = 1 / resistance;
+      if (!Number.isFinite(conductance) || conductance <= 0) return;
+      edges.push({
+        a: rootA,
+        b: rootB,
+        conductance,
+      });
+    });
+
+    return { netRootMap, edges };
+  }
+
+  computeResistanceBetweenNodes(nodeA, nodeB) {
+    if (!nodeA || !nodeB) return Infinity;
+    const netIdA = nodeA.netId;
+    const netIdB = nodeB.netId;
+    if (!netIdA || !netIdB) return Infinity;
+
+    const { netRootMap, edges } = this.buildResistanceGraph();
+    const rootA = netRootMap.get(netIdA);
+    const rootB = netRootMap.get(netIdB);
+    if (!rootA || !rootB) return Infinity;
+    if (rootA === rootB) return 0;
+
+    const adjacency = new Map();
+    edges.forEach(({ a, b }) => {
+      if (!adjacency.has(a)) adjacency.set(a, new Set());
+      if (!adjacency.has(b)) adjacency.set(b, new Set());
+      adjacency.get(a).add(b);
+      adjacency.get(b).add(a);
+    });
+
+    if (!adjacency.has(rootA)) adjacency.set(rootA, new Set());
+    if (!adjacency.has(rootB)) adjacency.set(rootB, new Set());
+
+    const visited = new Set([rootA]);
+    const queue = [rootA];
+    while (queue.length) {
+      const current = queue.shift();
+      if (current === rootB) break;
+      const neighbors = adjacency.get(current);
+      if (!neighbors) continue;
+      neighbors.forEach((neighbor) => {
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor);
+          queue.push(neighbor);
+        }
+      });
+    }
+    if (!visited.has(rootB)) {
+      return Infinity;
+    }
+
+    const nodesSet = new Set();
+    edges.forEach(({ a, b }) => {
+      nodesSet.add(a);
+      nodesSet.add(b);
+    });
+    nodesSet.add(rootA);
+    nodesSet.add(rootB);
+    nodesSet.delete(rootB);
+
+    const unknownNets = Array.from(nodesSet);
+    if (unknownNets.length === 0) {
+      return Infinity;
+    }
+
+    const index = new Map();
+    unknownNets.forEach((net, idx) => index.set(net, idx));
+
+    const size = unknownNets.length;
+    const matrix = Array.from({ length: size }, () => Array(size).fill(0));
+    const rhs = new Array(size).fill(0);
+
+    edges.forEach(({ a, b, conductance }) => {
+      const idxA = index.get(a);
+      const idxB = index.get(b);
+      if (idxA !== undefined) {
+        matrix[idxA][idxA] += conductance;
+      }
+      if (idxB !== undefined) {
+        matrix[idxB][idxB] += conductance;
+      }
+      if (idxA !== undefined && idxB !== undefined) {
+        matrix[idxA][idxB] -= conductance;
+        matrix[idxB][idxA] -= conductance;
+      }
+    });
+
+    const idxA = index.get(rootA);
+    if (idxA === undefined) {
+      return Infinity;
+    }
+    rhs[idxA] += 1;
+
+    const solution = this.solveLinearSystem(matrix, rhs);
+    if (!solution) return Infinity;
+
+    const voltageAtA = solution[idxA];
+    if (!Number.isFinite(voltageAtA)) return Infinity;
+    return Math.abs(voltageAtA);
   }
 
   resolveVoltageForNode(node) {
@@ -1635,18 +1791,55 @@ class Simulation {
       return;
     }
 
+    const mode = String(component.props?.mode ?? 'tensão').toLowerCase();
     const voltagePlus = snapshot.estimateNodeVoltage(positiveNode);
     const voltageMinus = snapshot.estimateNodeVoltage(negativeNode);
     const voltage = voltagePlus - voltageMinus;
 
+    if (mode === 'resistência') {
+      if (!Number.isFinite(voltage)) {
+        displayElement.textContent = '---';
+        if (component.state) {
+          delete component.state.lastResistance;
+        }
+        return;
+      }
+
+      if (Math.abs(voltage) > 0.05) {
+        displayElement.textContent = 'TENSÃO!';
+        if (component.state) {
+          delete component.state.lastResistance;
+        }
+        return;
+      }
+
+      const resistance = snapshot.computeResistanceBetweenNodes(positiveNode, negativeNode);
+      component.state = component.state ?? {};
+      component.state.lastResistance = Number.isFinite(resistance) ? resistance : Infinity;
+
+      if (!Number.isFinite(resistance) || resistance > 1e9) {
+        displayElement.textContent = 'OL';
+        return;
+      }
+
+      displayElement.textContent = this.formatResistance(resistance);
+      return;
+    }
+
     if (!Number.isFinite(voltage)) {
       displayElement.textContent = '---';
+      if (component.state) {
+        delete component.state.lastVoltage;
+      }
       return;
     }
 
     displayElement.textContent = `${voltage.toFixed(2)} V`;
     component.state = component.state ?? {};
     component.state.lastVoltage = voltage;
+    if (component.state) {
+      delete component.state.lastResistance;
+    }
   }
 
   resetMultimeter(component) {
@@ -1656,6 +1849,7 @@ class Simulation {
     }
     if (component.state) {
       delete component.state.lastVoltage;
+      delete component.state.lastResistance;
     }
   }
 
@@ -2084,6 +2278,29 @@ class Simulation {
       default:
         return 2048;
     }
+  }
+
+  formatResistance(value) {
+    if (!Number.isFinite(value)) return 'OL';
+    const abs = Math.abs(value);
+    if (abs < 1e-6) return '0 Ω';
+    if (abs >= 1_000_000) {
+      const scaled = abs / 1_000_000;
+      const decimals = Number.isInteger(scaled) ? 0 : 2;
+      return `${scaled.toFixed(decimals)} MΩ`;
+    }
+    if (abs >= 1_000) {
+      const scaled = abs / 1_000;
+      const decimals = Number.isInteger(scaled) ? 0 : 2;
+      return `${scaled.toFixed(decimals)} kΩ`;
+    }
+    if (abs >= 1) {
+      const decimals = abs >= 10 ? 1 : 2;
+      return `${abs.toFixed(decimals)} Ω`;
+    }
+    const scaled = abs * 1_000;
+    const decimals = scaled >= 10 ? 1 : 2;
+    return `${scaled.toFixed(decimals)} mΩ`;
   }
 
   waitNextAnimationFrame() {

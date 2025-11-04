@@ -572,6 +572,24 @@ export const availableComponents = [
       preview.element.classList.add('multimeter-preview');
       return preview.element;
     },
+    propertyControls: [
+      {
+        label: 'Modo',
+        formatValue: (value) => {
+          const normalized = String(value ?? '').toLowerCase();
+          if (normalized === 'resistência') return 'Resistência';
+          return 'Tensão';
+        },
+        control: {
+          type: 'select',
+          propKey: 'mode',
+          options: [
+            { label: 'Tensão (V)', value: 'tensão' },
+            { label: 'Resistência (Ω)', value: 'resistência' },
+          ],
+        },
+      },
+    ],
   },
   {
     id: 'resistor',
