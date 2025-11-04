@@ -22,6 +22,11 @@ const MULTIMETER_SHUNT_RESISTANCE = 0.1; // Ohms – shunt interno do multímetr
 const MULTIMETER_OVERLOAD_CURRENT = 5; // A – acima disso consideramos sobrecarga
 const MULTIMETER_PARALLEL_VDROP = 0.05; // V – queda acima disso indica ligação em paralelo
 const SOLVER_EPSILON = 1e-9;
+const BATTERY_COMPONENT_TYPES = new Set(['battery', 'battery-9v']);
+
+function isBatteryComponentType(type) {
+  return BATTERY_COMPONENT_TYPES.has(type);
+}
 
 class CircuitSnapshot {
   constructor(canvasManager, boardPinStates = new Map(), options = {}) {
@@ -209,7 +214,7 @@ class CircuitSnapshot {
         } else if (node.pinType === 'signal' && node.voltageState === 'low') {
           priority = Math.min(priority, 1);
         }
-      } else if (componentType === 'battery') {
+      } else if (isBatteryComponentType(componentType)) {
         if (node.pinType === 'ground') {
           priority = Math.min(priority, 2);
         }
@@ -324,6 +329,7 @@ class CircuitSnapshot {
           this.addLedElement(component);
           break;
         case 'battery':
+        case 'battery-9v':
           this.addBatteryElement(component);
           break;
         case 'multimeter': {
@@ -1112,7 +1118,7 @@ class CircuitSnapshot {
   getNodeForcedVoltage(node) {
     if (!node) return null;
     const componentType = node.component?.type ?? node.componentId;
-    if (componentType === 'battery') return null;
+    if (isBatteryComponentType(componentType)) return null;
 
     const boardSupply = this.getBoardSupplyVoltage(node);
 
@@ -1138,7 +1144,7 @@ class CircuitSnapshot {
   isGroundReferenceNode(node) {
     if (!node) return false;
     const componentType = node.component?.type ?? node.componentId;
-    if (componentType === 'battery') {
+    if (isBatteryComponentType(componentType)) {
       return node.pinType === 'ground';
     }
     if (componentType === 'amado-board' || componentType === 'esp32') {
@@ -1253,7 +1259,11 @@ class CircuitSnapshot {
     const netNeg = negative.netId;
     if (!netPos || !netNeg || netPos === netNeg) return;
 
-    const voltage = this.parseVoltageValue(component.props?.voltage ?? component.props?.value);
+    const rawVoltage =
+      component.props?.voltage ??
+      component.props?.value ??
+      (component.type === 'battery-9v' ? 9 : null);
+    const voltage = this.parseVoltageValue(rawVoltage);
     if (!Number.isFinite(voltage) || voltage === 0) return;
 
     const internalResistance = this.parseResistanceValue(

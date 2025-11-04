@@ -37,6 +37,32 @@ function createBatteryShell({ voltage, preview = false } = {}) {
   };
 }
 
+function createFixedBattery9vElement({ preview = false } = {}) {
+  const shell = document.createElement('div');
+  shell.className = `battery-9v-fixed${preview ? ' preview' : ''}`;
+  shell.title = 'Bateria 9V';
+
+  const image = document.createElement('img');
+  image.src = 'css/components/bateria_9v.svg';
+  image.alt = 'Bateria 9V';
+  image.draggable = false;
+
+  const positiveTerminal = document.createElement('div');
+  positiveTerminal.className = 'battery-terminal battery-terminal-positive';
+  positiveTerminal.dataset.pinSelector = 'positive';
+
+  const negativeTerminal = document.createElement('div');
+  negativeTerminal.className = 'battery-terminal battery-terminal-negative';
+  negativeTerminal.dataset.pinSelector = 'negative';
+
+  shell.append(image, positiveTerminal, negativeTerminal);
+
+  return {
+    element: shell,
+    applyProps: () => {},
+  };
+}
+
 function createWokwiPreview(elementTag, props = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'preview-scale';
@@ -507,6 +533,21 @@ export const availableComponents = [
         },
       },
     ],
+  },
+  {
+    id: 'battery-9v',
+    name: 'Bateria 9V (SVG)',
+    element: null,
+    description: 'Bateria de 9V com visual realistico e tensão fixa.',
+    group: 'sources',
+    defaultProps: { voltage: '9' },
+    pins: [
+      { name: 'VCC (+)', type: 'power', selector: '.battery-terminal-positive' },
+      { name: 'GND (-)', type: 'ground', selector: '.battery-terminal-negative' },
+    ],
+    getLabel: () => 'Bateria 9V',
+    createInstance: () => createFixedBattery9vElement({ preview: false }),
+    createPreview: () => createFixedBattery9vElement({ preview: true }).element,
   },
   {
     id: 'amado-board',

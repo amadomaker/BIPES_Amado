@@ -1195,6 +1195,44 @@ body {
   font-size: 11px;
 }
 
+.battery-9v-fixed {
+  position: relative;
+  width: 220px;
+  display: inline-block;
+}
+
+.battery-9v-fixed img {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.battery-9v-fixed .battery-terminal {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0);
+}
+
+.battery-9v-fixed .battery-terminal-positive {
+  top: 8%;
+  left: 97%;
+}
+
+.battery-9v-fixed .battery-terminal-negative {
+  top: 8%;
+  left: 4.8%;
+}
+
+.battery-9v-fixed.preview {
+  transform: scale(0.55);
+  transform-origin: top left;
+}
+
 .dc-motor-shell {
   width: 220px;
   position: relative;
