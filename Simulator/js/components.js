@@ -274,8 +274,8 @@ function createMultimeterElement({ props } = {}) {
   shell.__modeElement = modeLabel;
 
   const applyProps = (nextProps = {}) => {
-    const mode = nextProps.mode ?? 'tensão';
-    modeLabel.textContent = mode.toUpperCase();
+    const mode = (nextProps.mode ?? 'tensão').toUpperCase();
+    modeLabel.textContent = mode;
   };
 
   applyProps(props ?? {});
@@ -578,6 +578,7 @@ export const availableComponents = [
         formatValue: (value) => {
           const normalized = String(value ?? '').toLowerCase();
           if (normalized === 'resistência') return 'Resistência';
+          if (normalized === 'corrente') return 'Corrente';
           return 'Tensão';
         },
         control: {
@@ -586,6 +587,7 @@ export const availableComponents = [
           options: [
             { label: 'Tensão (V)', value: 'tensão' },
             { label: 'Resistência (Ω)', value: 'resistência' },
+            { label: 'Corrente (A)', value: 'corrente' },
           ],
         },
       },

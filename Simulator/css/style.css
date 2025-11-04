@@ -679,7 +679,7 @@ body {
 }
 
 .multimeter-shell {
-  width: 110px;
+  width: 132px;
   padding: 10px 12px 18px;
   border-radius: 8px;
   background: linear-gradient(160deg, #2f3640 0%, #3d4752 100%);
@@ -702,8 +702,9 @@ body {
   border-radius: 6px;
   background: radial-gradient(circle at 20% 20%, rgba(74, 189, 172, 0.45), rgba(52, 152, 219, 0.2));
   border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 18px;
+  font-size: 17px;
   text-align: right;
+  white-space: nowrap;
 }
 
 .multimeter-mode {

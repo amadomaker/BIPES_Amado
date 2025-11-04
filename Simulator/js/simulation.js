@@ -18,6 +18,9 @@ const PHOTORESISTOR_MAX_OHMS = 1_000_000;
 const MIN_RESISTANCE = 1e-3;
 const BUZZER_DEFAULT_RESISTANCE = 100;
 const BATTERY_INTERNAL_RESISTANCE = 0.5; // Ohms – mantém fontes estáveis em paralelo
+const MULTIMETER_SHUNT_RESISTANCE = 0.1; // Ohms – shunt interno do multímetro
+const MULTIMETER_OVERLOAD_CURRENT = 5; // A – acima disso consideramos sobrecarga
+const MULTIMETER_PARALLEL_VDROP = 0.05; // V – queda acima disso indica ligação em paralelo
 const SOLVER_EPSILON = 1e-9;
 
 class CircuitSnapshot {
@@ -323,6 +326,29 @@ class CircuitSnapshot {
         case 'battery':
           this.addBatteryElement(component);
           break;
+        case 'multimeter': {
+          const mode = String(component.props?.mode ?? 'tensão').toLowerCase();
+          if (mode === 'corrente') {
+            const positiveNode =
+              this.getNodeByComponentPin(component.id, 'V+') ??
+              this.getNodeByComponentIndex(component.id, 0);
+            const negativeNode =
+              this.getNodeByComponentPin(component.id, 'V-') ??
+              this.getNodeByComponentIndex(component.id, 1);
+            const netA = positiveNode?.netId;
+            const netB = negativeNode?.netId;
+            if (netA && netB && netA !== netB) {
+              this.resistiveElements.push({
+                component,
+                type: 'multimeter-shunt',
+                netA,
+                netB,
+                resistance: Math.max(MULTIMETER_SHUNT_RESISTANCE, MIN_RESISTANCE),
+              });
+            }
+          }
+          break;
+        }
         default:
           break;
       }
@@ -841,6 +867,14 @@ class CircuitSnapshot {
     return indexMap.get(pinIndex) ?? null;
   }
 
+  getComponentCurrent(componentId) {
+    if (!componentId) return 0;
+    const entries = this.elementCurrents.get(componentId);
+    if (!entries || !entries.length) return 0;
+    const value = entries[0].current;
+    return Number.isFinite(value) ? value : 0;
+  }
+
   getNodeVoltage(node) {
     if (!node || !node.netId) return 0;
     return this.netVoltages.get(node.netId) ?? 0;
@@ -902,13 +936,15 @@ class CircuitSnapshot {
         a: rootA,
         b: rootB,
         conductance,
+        componentId: element.component?.id ?? null,
       });
     });
 
     return { netRootMap, edges };
   }
 
-  computeResistanceBetweenNodes(nodeA, nodeB) {
+  computeResistanceBetweenNodes(nodeA, nodeB, options = {}) {
+    const { ignoreComponentId = null } = options;
     if (!nodeA || !nodeB) return Infinity;
     const netIdA = nodeA.netId;
     const netIdB = nodeB.netId;
@@ -970,7 +1006,8 @@ class CircuitSnapshot {
     const matrix = Array.from({ length: size }, () => Array(size).fill(0));
     const rhs = new Array(size).fill(0);
 
-    edges.forEach(({ a, b, conductance }) => {
+    edges.forEach(({ a, b, conductance, componentId }) => {
+      const isIgnored = ignoreComponentId !== null && componentId === ignoreComponentId;
       const idxA = index.get(a);
       const idxB = index.get(b);
       if (idxA !== undefined) {
@@ -979,7 +1016,7 @@ class CircuitSnapshot {
       if (idxB !== undefined) {
         matrix[idxB][idxB] += conductance;
       }
-      if (idxA !== undefined && idxB !== undefined) {
+      if (!isIgnored && idxA !== undefined && idxB !== undefined) {
         matrix[idxA][idxB] -= conductance;
         matrix[idxB][idxA] -= conductance;
       }
@@ -997,6 +1034,49 @@ class CircuitSnapshot {
     const voltageAtA = solution[idxA];
     if (!Number.isFinite(voltageAtA)) return Infinity;
     return Math.abs(voltageAtA);
+  }
+
+  hasParallelPathIgnoringComponent(nodeA, nodeB, ignoreComponentId) {
+    if (!nodeA || !nodeB) return false;
+    const netIdA = nodeA.netId;
+    const netIdB = nodeB.netId;
+    if (!netIdA || !netIdB) return false;
+    if (netIdA === netIdB) return true;
+
+    const adjacency = new Map();
+    this.resistiveElements.forEach((element) => {
+      if (!element) return;
+      if (element.component?.id === ignoreComponentId) return;
+      const { netA, netB, resistance } = element;
+      if (!netA || !netB) return;
+      if (!Number.isFinite(resistance) || resistance <= 0) return;
+      if (!adjacency.has(netA)) adjacency.set(netA, new Set());
+      if (!adjacency.has(netB)) adjacency.set(netB, new Set());
+      adjacency.get(netA).add(netB);
+      adjacency.get(netB).add(netA);
+    });
+
+    if (!adjacency.has(netIdA) || !adjacency.has(netIdB)) {
+      return false;
+    }
+
+    const visited = new Set([netIdA]);
+    const queue = [netIdA];
+    while (queue.length) {
+      const current = queue.shift();
+      if (current === netIdB) {
+        return true;
+      }
+      const neighbors = adjacency.get(current);
+      if (!neighbors) continue;
+      neighbors.forEach((neighbor) => {
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor);
+          queue.push(neighbor);
+        }
+      });
+    }
+    return false;
   }
 
   resolveVoltageForNode(node) {
@@ -1796,11 +1876,61 @@ class Simulation {
     const voltageMinus = snapshot.estimateNodeVoltage(negativeNode);
     const voltage = voltagePlus - voltageMinus;
 
+    if (mode === 'corrente') {
+      if (positiveNode.netId && positiveNode.netId === negativeNode.netId) {
+        displayElement.textContent = 'SÉRIE!';
+        if (component.state) {
+          delete component.state.lastCurrent;
+          delete component.state.lastVoltage;
+          delete component.state.lastResistance;
+        }
+        return;
+      }
+
+      const current = snapshot.getComponentCurrent(component.id);
+      if (!Number.isFinite(current)) {
+        displayElement.textContent = '---';
+        if (component.state) {
+          delete component.state.lastCurrent;
+          delete component.state.lastVoltage;
+          delete component.state.lastResistance;
+        }
+        return;
+      }
+
+      component.state = component.state ?? {};
+      component.state.lastCurrent = current;
+      if (component.state) {
+        delete component.state.lastVoltage;
+        delete component.state.lastResistance;
+      }
+
+      if (snapshot.hasParallelPathIgnoringComponent(positiveNode, negativeNode, component.id)) {
+        displayElement.textContent = 'ERRO!';
+        return;
+      }
+
+      const absCurrent = Math.abs(current);
+      const absVoltageDrop = Math.abs(voltage);
+      if (absVoltageDrop > MULTIMETER_PARALLEL_VDROP) {
+        displayElement.textContent = 'ERRO!';
+        return;
+      }
+      if (absCurrent > MULTIMETER_OVERLOAD_CURRENT) {
+        displayElement.textContent = 'CURTO!';
+        return;
+      }
+
+      displayElement.textContent = this.formatCurrent(current);
+      return;
+    }
+
     if (mode === 'resistência') {
       if (!Number.isFinite(voltage)) {
         displayElement.textContent = '---';
         if (component.state) {
           delete component.state.lastResistance;
+          delete component.state.lastCurrent;
         }
         return;
       }
@@ -1809,6 +1939,7 @@ class Simulation {
         displayElement.textContent = 'TENSÃO!';
         if (component.state) {
           delete component.state.lastResistance;
+          delete component.state.lastCurrent;
         }
         return;
       }
@@ -1816,6 +1947,9 @@ class Simulation {
       const resistance = snapshot.computeResistanceBetweenNodes(positiveNode, negativeNode);
       component.state = component.state ?? {};
       component.state.lastResistance = Number.isFinite(resistance) ? resistance : Infinity;
+      if (component.state) {
+        delete component.state.lastCurrent;
+      }
 
       if (!Number.isFinite(resistance) || resistance > 1e9) {
         displayElement.textContent = 'OL';
@@ -1830,6 +1964,8 @@ class Simulation {
       displayElement.textContent = '---';
       if (component.state) {
         delete component.state.lastVoltage;
+        delete component.state.lastResistance;
+        delete component.state.lastCurrent;
       }
       return;
     }
@@ -1839,6 +1975,7 @@ class Simulation {
     component.state.lastVoltage = voltage;
     if (component.state) {
       delete component.state.lastResistance;
+      delete component.state.lastCurrent;
     }
   }
 
@@ -1850,6 +1987,7 @@ class Simulation {
     if (component.state) {
       delete component.state.lastVoltage;
       delete component.state.lastResistance;
+      delete component.state.lastCurrent;
     }
   }
 
@@ -2301,6 +2439,24 @@ class Simulation {
     const scaled = abs * 1_000;
     const decimals = scaled >= 10 ? 1 : 2;
     return `${scaled.toFixed(decimals)} mΩ`;
+  }
+
+  formatCurrent(value) {
+    if (!Number.isFinite(value)) return '---';
+    const sign = value < 0 ? '-' : '';
+    const abs = Math.abs(value);
+    if (abs >= 1) {
+      const decimals = abs >= 10 ? 1 : 2;
+      return `${sign}${abs.toFixed(decimals)} A`;
+    }
+    if (abs >= 1e-3) {
+      const scaled = abs * 1_000;
+      const decimals = scaled >= 10 ? 1 : 2;
+      return `${sign}${scaled.toFixed(decimals)} mA`;
+    }
+    const scaled = abs * 1_000_000;
+    const decimals = scaled >= 10 ? 1 : 2;
+    return `${sign}${scaled.toFixed(decimals)} µA`;
   }
 
   waitNextAnimationFrame() {
