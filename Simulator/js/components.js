@@ -673,8 +673,8 @@ export const availableComponents = [
       label: 'Motor DC 3-6V',
     },
     pins: [
-      { name: 'V+', type: 'power', position: { xPercent: 9, yPercent: 32 } },
-      { name: 'V-', type: 'ground', position: { xPercent: 9, yPercent: 68 } },
+      { name: 'V+', type: 'power', position: { xPercent: 20.5, yPercent: 33 } },
+      { name: 'V-', type: 'ground', position: { xPercent: 20.5, yPercent: 67 } },
     ],
     createInstance: ({ props }) => createDcMotorElement({ props }),
     createPreview: () => createDcMotorElement({ props: { label: 'Motor DC' } }).element,
