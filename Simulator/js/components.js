@@ -41,7 +41,7 @@ function createFixedBattery9vElement({ preview = false } = {}) {
   const shell = document.createElement('div');
   shell.className = `battery-9v-fixed${preview ? ' preview' : ''}`;
   shell.title = 'Bateria 9V';
-  const baseWidth = preview ? 85 : 170;
+  const baseWidth = preview ? 85 : 90;
   shell.style.width = `${baseWidth}px`;
   shell.style.height = `${(baseWidth * 1594) / 1000}px`;
 
