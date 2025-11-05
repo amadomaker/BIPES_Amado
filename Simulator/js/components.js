@@ -41,6 +41,9 @@ function createFixedBattery9vElement({ preview = false } = {}) {
   const shell = document.createElement('div');
   shell.className = `battery-9v-fixed${preview ? ' preview' : ''}`;
   shell.title = 'Bateria 9V';
+  const baseWidth = preview ? 85 : 170;
+  shell.style.width = `${baseWidth}px`;
+  shell.style.height = `${(baseWidth * 1594) / 1000}px`;
 
   const image = document.createElement('img');
   image.src = 'css/components/bateria_9v.svg';
@@ -50,10 +53,14 @@ function createFixedBattery9vElement({ preview = false } = {}) {
   const positiveTerminal = document.createElement('div');
   positiveTerminal.className = 'battery-terminal battery-terminal-positive';
   positiveTerminal.dataset.pinSelector = 'positive';
+  positiveTerminal.style.left = '69.1%';
+  positiveTerminal.style.top = '32.2%';
 
   const negativeTerminal = document.createElement('div');
   negativeTerminal.className = 'battery-terminal battery-terminal-negative';
   negativeTerminal.dataset.pinSelector = 'negative';
+  negativeTerminal.style.left = '69.1%';
+  negativeTerminal.style.top = '35.3%';
 
   shell.append(image, positiveTerminal, negativeTerminal);
 
