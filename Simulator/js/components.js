@@ -1,12 +1,12 @@
 const BATTERY_VOLTAGES = ['3', '5', '9', '12'];
-const AMADO_BOARD_VIEWBOX = { width: 1087, height: 859.9 };
-const AMADO_BOARD_WIDTH = 420;
+const AMADO_BOARD_VIEWBOX = { width: 658.51, height: 761.07 };
+const AMADO_BOARD_WIDTH = 192;
 const AMADO_BOARD_HEIGHT = AMADO_BOARD_WIDTH * (AMADO_BOARD_VIEWBOX.height / AMADO_BOARD_VIEWBOX.width);
 const AMADO_BOARD_SCALE_A = 4.25635687732342;
-const AMADO_BOARD_SCALE_B = 133.5274349442379;
-const AMADO_BOARD_LEFT_X = 289.16;
-const AMADO_BOARD_RIGHT_X = 765.28;
-const AMADO_BOARD_RIGHT_TOP_X = 700.15;
+const AMADO_BOARD_SCALE_B = 85.7174349442379;
+const AMADO_BOARD_LEFT_X = 109.56;
+const AMADO_BOARD_RIGHT_X = 585.68;
+const AMADO_BOARD_RIGHT_TOP_X = 520.55;
 
 function createBatteryShell({ voltage, preview = false } = {}) {
   const shell = document.createElement('div');
@@ -53,14 +53,14 @@ function createFixedBattery9vElement({ preview = false } = {}) {
   const positiveTerminal = document.createElement('div');
   positiveTerminal.className = 'battery-terminal battery-terminal-positive';
   positiveTerminal.dataset.pinSelector = 'positive';
-  positiveTerminal.style.left = '69.1%';
-  positiveTerminal.style.top = '32.2%';
+  positiveTerminal.style.left = '99.1%';
+  positiveTerminal.style.top = '7.2%';
 
   const negativeTerminal = document.createElement('div');
   negativeTerminal.className = 'battery-terminal battery-terminal-negative';
   negativeTerminal.dataset.pinSelector = 'negative';
-  negativeTerminal.style.left = '69.1%';
-  negativeTerminal.style.top = '35.3%';
+  negativeTerminal.style.left = '99.1%';
+  negativeTerminal.style.top = '11.8%';
 
   shell.append(image, positiveTerminal, negativeTerminal);
 
@@ -418,19 +418,19 @@ const esp32PinLayout = [
 ];
 
 const amadoBoardCoordinates = {
-  EN: { xPercent: 26.6, yPercent: 27.4 },
-  VP: { xPercent: 26.6, yPercent: 32.4 },
-  VN: { xPercent: 26.6, yPercent: 37.3 },
-  D34: { xPercent: 26.6, yPercent: 41.8 },
-  D35: { xPercent: 70.4, yPercent: 101 },
-  D32: { xPercent: 26.6, yPercent: 51.3 },
-  D33: { xPercent: 26.6, yPercent: 55.9 },
-  D25: { xPercent: 26.6, yPercent: 60.7 },
-  D23: { xPercent: 64.4, yPercent: 27.4 },
-  D22: { xPercent: 70.4, yPercent: 32.4 },
-  TX0: { xPercent: 70.4, yPercent: 37.3 },
-  RX0: { xPercent: 70.4, yPercent: 41.8 },
-  D21: { xPercent: 70.4, yPercent: 46.7 },
+  EN: { xPercent: 16.6348, yPercent: 24.6761 },
+  VP: { xPercent: 16.6348, yPercent: 30.3254 },
+  VN: { xPercent: 16.6348, yPercent: 35.8617 },
+  D34: { xPercent: 16.6348, yPercent: 40.9461 },
+  D35: { xPercent: 88.9353, yPercent: 107.8336 },
+  D32: { xPercent: 16.6348, yPercent: 51.6797 },
+  D33: { xPercent: 16.6348, yPercent: 56.877 },
+  D25: { xPercent: 16.6348, yPercent: 62.3004 },
+  D23: { xPercent: 79.0311, yPercent: 24.6761 },
+  D22: { xPercent: 88.9353, yPercent: 30.3254 },
+  TX0: { xPercent: 88.9353, yPercent: 35.8617 },
+  RX0: { xPercent: 88.9353, yPercent: 40.9461 },
+  D21: { xPercent: 88.9353, yPercent: 46.4824 },
   // Continue adicionando os demais pinos seguindo este padrão...
 };
 

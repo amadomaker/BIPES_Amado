@@ -615,8 +615,8 @@ body {
 }
 
 .canvas-component[data-component-type="battery-9v"] .pin {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   border-width: 1px;
 }
 
@@ -1221,8 +1221,8 @@ body {
 
 .battery-9v-fixed .battery-terminal {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: rgba(255, 255, 255, 0);
@@ -1239,7 +1239,7 @@ body {
 }
 
 .battery-9v-fixed.preview {
-  transform: scale(0.9);
+  transform: scale(0.36);
   transform-origin: center;
 }
 
