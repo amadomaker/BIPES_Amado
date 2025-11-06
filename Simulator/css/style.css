@@ -1247,6 +1247,7 @@ body {
   width: 220px;
   position: relative;
   display: inline-block;
+  pointer-events: none;
 }
 
 .dc-motor-shell .dc-motor-image {
