@@ -14,6 +14,18 @@ function createWaitShadowBlock(Blockly) {
   return shadow;
 }
 
+function createNumberShadowBlock(Blockly, defaultValue = '0') {
+  const shadow = Blockly.utils.xml.createElement('shadow');
+  shadow.setAttribute('type', 'math_number');
+
+  const field = Blockly.utils.xml.createElement('field');
+  field.setAttribute('name', 'NUM');
+  field.textContent = String(defaultValue);
+
+  shadow.appendChild(field);
+  return shadow;
+}
+
 function createTextShadowBlock(Blockly) {
   const shadow = Blockly.utils.xml.createElement('shadow');
   shadow.setAttribute('type', 'text');
@@ -41,7 +53,7 @@ function createLevelSelectorShadow(Blockly) {
 function buildPinOptions() {
   const pins = new Set(
     amadoBoardPins
-      .filter((pin) => pin.type === 'signal')
+      .filter((pin) => pin.type === 'signal' && !/^MOTOR_/i.test(pin.name))
       .map((pin) => pin.name),
   );
 
@@ -52,6 +64,18 @@ function buildPinOptions() {
   return Array.from(pins)
     .sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }))
     .map((name) => [name, name]);
+}
+
+function createMotorNameField(Blockly, defaultValue = 'Motor A') {
+  const FieldTextInput = Blockly.FieldTextInput ?? Blockly.FieldInput ?? null;
+  if (!FieldTextInput) {
+    return null;
+  }
+  const field = new FieldTextInput(defaultValue);
+  if (typeof field.setSpellcheck === 'function') {
+    field.setSpellcheck(false);
+  }
+  return field;
 }
 
 export function registerAmadoBlocks(Blockly) {
@@ -89,6 +113,37 @@ export function registerAmadoBlocks(Blockly) {
       output: 'Number',
       colour: 210,
       tooltip: 'Retorna o valor analógico (0 a 4095) do pino selecionado.',
+      helpUrl: '',
+    },
+    {
+      type: 'motor_dc_init',
+      message0: 'motor DC %1 PWM %2 DIR1 %3 DIR2 %4',
+      args0: [
+        {
+          type: 'field_input',
+          name: 'NAME',
+          text: 'Motor A',
+        },
+        {
+          type: 'field_dropdown',
+          name: 'PWM',
+          options: pinOptions,
+        },
+        {
+          type: 'field_dropdown',
+          name: 'DIR1',
+          options: pinOptions,
+        },
+        {
+          type: 'field_dropdown',
+          name: 'DIR2',
+          options: pinOptions,
+        },
+      ],
+      previousStatement: null,
+      nextStatement: null,
+      colour: 18,
+      tooltip: 'Configura o motor DC mapeando os pinos PWM, DIR1 e DIR2 da placa Amado.',
       helpUrl: '',
     },
   ]);
@@ -177,6 +232,69 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  Blockly.Blocks.motor_dc_set_power = {
+    init() {
+      this.appendDummyInput()
+        .appendField('motor')
+        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+
+      const powerInput = this.appendValueInput('POWER')
+        .setCheck('Number')
+        .appendField('potência (%)');
+
+      this.setInputsInline(true);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(18);
+      this.setTooltip('Define o PWM aplicado ao motor DC (0 a 100%).');
+      this.setHelpUrl('');
+
+      const connection = powerInput?.connection;
+      if (connection) {
+        const shadow = createNumberShadowBlock(Blockly, '100');
+        connection.setShadowDom(shadow);
+      }
+    },
+  };
+
+  Blockly.Blocks.motor_dc_set_direction = {
+    init() {
+      this.appendDummyInput()
+        .appendField('motor')
+        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME')
+        .appendField('direção')
+        .appendField(
+          new Blockly.FieldDropdown([
+            ['Horário', 'forward'],
+            ['Anti-horário', 'reverse'],
+          ]),
+          'DIRECTION',
+        );
+
+      this.setInputsInline(true);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(18);
+      this.setTooltip('Define o sentido de rotação do motor: horário ou anti-horário.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.motor_dc_stop = {
+    init() {
+      this.appendDummyInput()
+        .appendField('motor')
+        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME')
+        .appendField('parar');
+
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(18);
+      this.setTooltip('Desliga o motor DC e coloca os pinos de direção em LOW.');
+      this.setHelpUrl('');
+    },
+  };
+
   const javascriptGenerator = Blockly.JavaScript ?? Blockly?.javascriptGenerator;
   if (!javascriptGenerator) return;
 
@@ -226,5 +344,38 @@ export function registerAmadoBlocks(Blockly) {
   javascriptGenerator.forBlock.amado_pin_level = function amadoPinLevel(block) {
     const level = block.getFieldValue('LEVEL') ?? "'FLOATING'";
     return [level, orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.motor_dc_init = function motorDcInit(block) {
+    const name = (block.getFieldValue('NAME') ?? '').trim();
+    const pwm = block.getFieldValue('PWM') ?? '';
+    const dir1 = block.getFieldValue('DIR1') ?? '';
+    const dir2 = block.getFieldValue('DIR2') ?? '';
+    const args = [
+      JSON.stringify(name),
+      JSON.stringify(pwm),
+      JSON.stringify(dir1),
+      JSON.stringify(dir2),
+    ].join(', ');
+    return `await api.motorDcInit(${args});\n`;
+  };
+
+  javascriptGenerator.forBlock.motor_dc_set_power = function motorDcSetPower(block) {
+    const name = (block.getFieldValue('NAME') ?? '').trim();
+    const power =
+      javascriptGenerator.valueToCode(block, 'POWER', javascriptGenerator.ORDER_NONE) ||
+      '0';
+    return `await api.motorDcSetPower(${JSON.stringify(name)}, ${power});\n`;
+  };
+
+  javascriptGenerator.forBlock.motor_dc_set_direction = function motorDcSetDirection(block) {
+    const name = (block.getFieldValue('NAME') ?? '').trim();
+    const direction = block.getFieldValue('DIRECTION') ?? 'forward';
+    return `await api.motorDcSetDirection(${JSON.stringify(name)}, ${JSON.stringify(direction)});\n`;
+  };
+
+  javascriptGenerator.forBlock.motor_dc_stop = function motorDcStop(block) {
+    const name = (block.getFieldValue('NAME') ?? '').trim();
+    return `await api.motorDcStop(${JSON.stringify(name)});\n`;
   };
 }

@@ -91,6 +91,9 @@ export class WiringManager {
     if (Array.isArray(componentDefinition.pins) && componentDefinition.pins.length) {
       const customPins = [];
       componentDefinition.pins.forEach((pinConfig, index) => {
+        if (pinConfig.hidden) {
+          return;
+        }
         const pinElement = document.createElement('div');
         pinElement.className = `pin pin-${pinConfig.type}`;
         pinElement.dataset.componentId = componentId;
@@ -126,6 +129,12 @@ export class WiringManager {
           event.stopPropagation();
           this.handlePinClick(pinElement);
         });
+
+        if (pinConfig.hidden) {
+          pinElement.classList.add('pin-hidden');
+          pinElement.style.display = 'none';
+          pinElement.style.pointerEvents = 'none';
+        }
 
         customPins.push(pinElement);
         container.appendChild(pinElement);

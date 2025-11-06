@@ -15,6 +15,22 @@ const VOLTAGE_DANGER_FACTOR = 1.6;
 const PHOTORESISTOR_MIN_OHMS = 500;
 const PHOTORESISTOR_MAX_OHMS = 1_000_000;
 
+const MOTOR_OUTPUT_CHANNELS = [
+  {
+    name: 'A',
+    pwm: 'D25',
+    dir1: 'D26',
+    dir2: 'D27',
+    outputs: { positive: 'MOTOR_A+', negative: 'MOTOR_A-' },
+  },
+  {
+    name: 'B',
+    pwm: 'D12',
+    dir1: 'D13',
+    dir2: 'D14',
+    outputs: { positive: 'MOTOR_B+', negative: 'MOTOR_B-' },
+  },
+];
 const MIN_RESISTANCE = 1e-3;
 const BUZZER_DEFAULT_RESISTANCE = 100;
 const BATTERY_INTERNAL_RESISTANCE = 0.5; // Ohms – mantém fontes estáveis em paralelo
@@ -33,6 +49,7 @@ class CircuitSnapshot {
     this.canvasManager = canvasManager;
     this.boardPinStates = boardPinStates;
     this.boardAnalogLevels = options.boardAnalogLevels ?? new Map();
+    this.boardMotorVoltages = options.boardMotorVoltages ?? new Map();
     this.powerEnabled = options.powerEnabled ?? true;
 
     this.pinNodes = new Map();
@@ -1123,10 +1140,16 @@ class CircuitSnapshot {
     const boardSupply = this.getBoardSupplyVoltage(node);
 
     if (componentType === 'amado-board' || componentType === 'esp32') {
+      const key = this.getComponentPinKey(node.componentId, node.pinName);
+      if (key && this.boardMotorVoltages.has(key)) {
+        const motorVoltage = this.boardMotorVoltages.get(key);
+        if (Number.isFinite(motorVoltage)) {
+          return motorVoltage;
+        }
+      }
       if (node.pinType === 'ground') return 0;
       if (!this.powerEnabled) return 0;
       if (node.pinType === 'power') return boardSupply;
-      const key = this.getComponentPinKey(node.componentId, node.pinName);
       const state = key ? this.boardPinStates.get(key) : null;
       if (state === 'high') return boardSupply;
       if (state === 'low') return 0;
@@ -1588,6 +1611,9 @@ class Simulation {
     this.lastErrorSignature = '';
     this.boardPinStates = new Map();
     this.boardAnalogLevels = new Map();
+    this.boardMotorOutputs = new Map();
+    this.motorControllers = new Map();
+    this.motorControllerBindings = new Map();
     this.programState = null;
     this.powerEnabled = false;
     this.audioContext = null;
@@ -1604,6 +1630,7 @@ class Simulation {
     this.isRunning = true;
     this.powerEnabled = true;
     this.clearBoardStates();
+    this.clearMotorControllers();
     this.listeners.onStateChange?.(true);
     if (options.program) {
       this.startProgram(options.program, {
@@ -1636,9 +1663,11 @@ class Simulation {
   }
 
   evaluate() {
+    this.refreshMotorControllerBindings();
     const snapshot = new CircuitSnapshot(this.canvasManager, this.boardPinStates, {
       powerEnabled: this.powerEnabled,
       boardAnalogLevels: this.boardAnalogLevels,
+      boardMotorVoltages: this.boardMotorOutputs,
     });
     const ledResults = snapshot.evaluateLEDs();
     const buzzerResults = snapshot.evaluateBuzzers();
@@ -1692,9 +1721,19 @@ class Simulation {
     }
 
     motorResults.forEach((result) => {
+      const override = this.computeMotorControllerOverride(result.component, result, snapshot);
+      if (override) {
+        Object.assign(result, override);
+        if (Array.isArray(override.reasons)) {
+          result.reasons = override.reasons;
+        }
+      }
       this.setMotorState(result.component, result);
+      const controlledByProgram = Boolean(result.controllerName);
       if (!result.active && result.reasons?.length) {
-        errorMessages.push(`Motor ${result.component.id}: ${result.reasons.join(', ')}`);
+        if (!controlledByProgram) {
+          errorMessages.push(`Motor ${result.component.id}: ${result.reasons.join(', ')}`);
+        }
       }
     });
 
@@ -1775,6 +1814,7 @@ class Simulation {
       direction,
       current: Number(state.current) || 0,
       voltage: Number(state.voltage) || 0,
+      controllerName: state.controllerName ?? null,
     };
 
     if (active) {
@@ -1789,6 +1829,72 @@ class Simulation {
       rotor.style.removeProperty('--motor-spin-duration');
       speedLabel.textContent = '0 RPM';
       speedLabel.classList.remove('visible');
+    }
+  }
+
+  setBoardMotorOutput(componentId, pinName, voltage, supplyVoltage = DEFAULT_SUPPLY_VOLTAGE) {
+    if (!componentId || !pinName) return;
+    const key = this.getBoardPinKey(componentId, pinName);
+    if (!key) return;
+
+    const clampedSupply = Math.max(0.1, Number(supplyVoltage) || DEFAULT_SUPPLY_VOLTAGE);
+    const clampedVoltage = Math.max(0, Math.min(clampedSupply, Number(voltage) || 0));
+
+    if (clampedVoltage <= 0) {
+      this.boardMotorOutputs.set(key, 0);
+      this.boardAnalogLevels.set(key, 0);
+      this.boardPinStates.set(key, 'low');
+      return;
+    }
+
+    this.boardMotorOutputs.set(key, clampedVoltage);
+
+    const analogLevel = Math.round((clampedVoltage / clampedSupply) * ADC_MAX_VALUE);
+    this.boardAnalogLevels.set(key, analogLevel);
+
+    const highThreshold = clampedSupply * 0.8;
+    const lowThreshold = clampedSupply * 0.2;
+
+    if (clampedVoltage >= highThreshold) {
+      this.boardPinStates.set(key, 'high');
+    } else if (clampedVoltage <= lowThreshold) {
+      this.boardPinStates.set(key, 'low');
+    } else {
+      this.boardPinStates.delete(key);
+    }
+  }
+
+  clearBoardMotorOutputs() {
+    const keys = Array.from(this.boardMotorOutputs.keys());
+    keys.forEach((key) => {
+      this.boardMotorOutputs.delete(key);
+      this.boardAnalogLevels.delete(key);
+      this.boardPinStates.delete(key);
+    });
+    this.boardMotorOutputs.clear();
+  }
+
+  updateMotorOutputs(boardComponentId, controller, driveVoltage, supplyVoltage) {
+    if (!controller?.outputs || !boardComponentId) return;
+    const { positive, negative } = controller.outputs;
+    if (!positive || !negative) return;
+
+    const clampedSupply = Math.max(0.1, Number(supplyVoltage) || DEFAULT_SUPPLY_VOLTAGE);
+    const clampedDrive = Math.max(0, Math.min(clampedSupply, Number(driveVoltage) || 0));
+
+    if (clampedDrive <= 0) {
+      this.setBoardMotorOutput(boardComponentId, positive, 0, clampedSupply);
+      this.setBoardMotorOutput(boardComponentId, negative, 0, clampedSupply);
+      return;
+    }
+
+    const direction = controller.direction === 'reverse' ? -1 : 1;
+    if (direction >= 0) {
+      this.setBoardMotorOutput(boardComponentId, positive, clampedDrive, clampedSupply);
+      this.setBoardMotorOutput(boardComponentId, negative, 0, clampedSupply);
+    } else {
+      this.setBoardMotorOutput(boardComponentId, positive, 0, clampedSupply);
+      this.setBoardMotorOutput(boardComponentId, negative, clampedDrive, clampedSupply);
     }
   }
 
@@ -1811,6 +1917,348 @@ class Simulation {
       } catch {}
     }
     return this.audioContext;
+  }
+
+  normalizeMotorName(name) {
+    return String(name ?? '')
+      .trim()
+      .toLowerCase();
+  }
+
+  normalizeBoardPinName(pinName) {
+    return String(pinName ?? '')
+      .trim()
+      .toUpperCase();
+  }
+
+  clearMotorControllers() {
+    this.motorControllers.clear();
+    this.motorControllerBindings.clear();
+    this.clearBoardMotorOutputs();
+  }
+
+  refreshMotorControllerBindings() {
+    if (!this.canvasManager) return;
+    const components = Array.isArray(this.canvasManager.components)
+      ? this.canvasManager.components
+      : [];
+    const motorComponents = components.filter((component) => component?.type === 'dc-motor');
+
+    const nextBindings = new Map();
+
+    components.forEach((component) => {
+      if (!component || component.type !== 'dc-motor') return;
+      const normalizedLabel = this.normalizeMotorName(component.props?.label ?? component.props?.name);
+      if (!normalizedLabel) return;
+      if (this.motorControllers.has(normalizedLabel)) {
+        nextBindings.set(component.id, normalizedLabel);
+      }
+    });
+
+    this.motorControllers.forEach((controller) => {
+      controller.boundComponentIds = [];
+    });
+
+    nextBindings.forEach((controllerName, componentId) => {
+      const controller = this.motorControllers.get(controllerName);
+      if (!controller) return;
+      if (!Array.isArray(controller.boundComponentIds)) {
+        controller.boundComponentIds = [];
+      }
+      if (!controller.boundComponentIds.includes(componentId)) {
+        controller.boundComponentIds.push(componentId);
+      }
+    });
+
+    const now = Date.now();
+
+    this.motorControllers.forEach((controller, controllerName) => {
+      const hasBinding = Array.isArray(controller.boundComponentIds) && controller.boundComponentIds.length > 0;
+      if (hasBinding) {
+        controller.warnedNoBinding = false;
+        controller.autoBindingAnnounced = false;
+        return;
+      }
+
+      if (motorComponents.length === 1) {
+        const soleMotor = motorComponents[0];
+        controller.boundComponentIds = [soleMotor.id];
+        nextBindings.set(soleMotor.id, controllerName);
+        if (!controller.autoBindingAnnounced) {
+          this.listeners.onLog?.({
+            message: `Motor DC "${controller.name ?? controller.normalizedName}": associado automaticamente ao único motor disponível. Renomeie o componente para "${controller.name ?? controller.normalizedName}" para evitar avisos.`,
+            level: 'info',
+            timestamp: now,
+          });
+          controller.autoBindingAnnounced = true;
+        }
+        controller.warnedNoBinding = false;
+        return;
+      }
+
+      if (!controller.warnedNoBinding) {
+        this.listeners.onLog?.({
+          message: `Motor DC "${controller.name ?? controller.normalizedName}": nenhum componente vinculado. Ajuste o rótulo do componente para corresponder ao nome configurado.`,
+          level: 'warn',
+          timestamp: now,
+        });
+        controller.warnedNoBinding = true;
+      }
+    });
+
+    Array.from(this.motorControllerBindings.keys()).forEach((componentId) => {
+      if (!nextBindings.has(componentId)) {
+        this.motorControllerBindings.delete(componentId);
+      }
+    });
+    nextBindings.forEach((controllerName, componentId) => {
+      this.motorControllerBindings.set(componentId, controllerName);
+    });
+  }
+
+  getMotorControllerForComponent(component) {
+    if (!component) return null;
+    const existingBinding = this.motorControllerBindings.get(component.id);
+    if (existingBinding && this.motorControllers.has(existingBinding)) {
+      return this.motorControllers.get(existingBinding);
+    }
+
+    const normalizedLabel = this.normalizeMotorName(component.props?.label ?? component.props?.name);
+    if (normalizedLabel && this.motorControllers.has(normalizedLabel)) {
+      const controller = this.motorControllers.get(normalizedLabel);
+      this.motorControllerBindings.set(component.id, normalizedLabel);
+      if (controller) {
+        if (!Array.isArray(controller.boundComponentIds)) {
+          controller.boundComponentIds = [];
+        }
+        if (!controller.boundComponentIds.includes(component.id)) {
+          controller.boundComponentIds.push(component.id);
+        }
+      }
+      return controller ?? null;
+    }
+
+    return null;
+  }
+
+  computeMotorControllerOverride(component, baseResult, snapshot) {
+    if (!component) return null;
+    const controller = this.getMotorControllerForComponent(component);
+    if (!controller) return null;
+
+    const duty = Math.max(0, Math.min(1, (Number(controller.power) || 0) / 100));
+    if (duty <= 0) {
+      if (baseResult.active || baseResult.voltage > 0.05) {
+        return null;
+      }
+      const supply = snapshot.getHighLevelVoltage();
+      return {
+        active: false,
+        direction: 0,
+        rpm: 0,
+        current: 0,
+        voltage: 0,
+        supplyVoltage: supply,
+        reasons: ['Motor aguardando comando de potência'],
+        controllerName: controller.name ?? controller.normalizedName,
+      };
+    }
+
+    if (baseResult.active && baseResult.voltage > 0.05) {
+      return null;
+    }
+
+    const supplyVoltage = snapshot.getHighLevelVoltage();
+    const voltage = supplyVoltage * duty;
+
+    let motorResistance = this.parseResistanceValue(
+      component.props?.resistance ?? component.props?.value ?? component.props?.ohms,
+    );
+    if (!Number.isFinite(motorResistance) || motorResistance <= 0) {
+      motorResistance = DC_MOTOR_DEFAULT_RESISTANCE;
+    }
+
+    const rpm = Math.min(DC_MOTOR_MAX_RPM, Math.max(0, voltage / DC_MOTOR_KV));
+    const active = voltage >= DC_MOTOR_MIN_DRIVE_VOLTAGE && rpm > 1;
+    const direction = controller.direction === 'reverse' ? -1 : 1;
+    const current = motorResistance > 0 ? voltage / motorResistance : 0;
+
+    if (!active) {
+      return {
+        active: false,
+        direction: 0,
+        rpm: 0,
+        current: 0,
+        voltage,
+        supplyVoltage,
+        reasons: ['PWM insuficiente para acionar o motor'],
+        controllerName: controller.name ?? controller.normalizedName,
+      };
+    }
+
+    return {
+      active: true,
+      direction,
+      rpm,
+      current: Math.abs(current),
+      voltage,
+      supplyVoltage,
+      reasons: [],
+      controllerName: controller.name ?? controller.normalizedName,
+    };
+  }
+
+  async applyMotorControllerOutputs(boardComponentId, controller) {
+    if (!boardComponentId) {
+      throw new Error('Nenhuma placa Amado foi selecionada para controlar o motor DC.');
+    }
+    if (!controller) {
+      throw new Error('Motor DC não configurado.');
+    }
+
+    const pwmPin = controller.pwmPin;
+    const dir1Pin = controller.dir1Pin;
+    const dir2Pin = controller.dir2Pin;
+    if (!pwmPin || !dir1Pin || !dir2Pin) {
+      throw new Error('O motor DC não possui todos os pinos (PWM, DIR1, DIR2) definidos.');
+    }
+
+    const clampedPower = Math.max(0, Math.min(100, Number(controller.power) || 0));
+    const analogLevel = Math.round((clampedPower / 100) * 4095);
+    this.setBoardPinAnalogLevel(boardComponentId, pwmPin, analogLevel);
+
+    controller.supplyVoltage = controller.supplyVoltage ?? DEFAULT_SUPPLY_VOLTAGE;
+    const supplyVoltage = controller.supplyVoltage;
+    const driveVoltage = (supplyVoltage * clampedPower) / 100;
+    controller.boardComponentId = boardComponentId;
+
+    if (analogLevel <= 0) {
+      this.setBoardPinState(boardComponentId, dir1Pin, 'low');
+      this.setBoardPinState(boardComponentId, dir2Pin, 'low');
+      this.updateMotorOutputs(boardComponentId, controller, 0, supplyVoltage);
+      controller.active = false;
+    } else {
+      const direction = controller.direction === 'reverse' ? 'reverse' : 'forward';
+      if (direction === 'reverse') {
+        this.setBoardPinState(boardComponentId, dir1Pin, 'low');
+        this.setBoardPinState(boardComponentId, dir2Pin, 'high');
+      } else {
+        this.setBoardPinState(boardComponentId, dir1Pin, 'high');
+        this.setBoardPinState(boardComponentId, dir2Pin, 'low');
+      }
+      this.updateMotorOutputs(boardComponentId, controller, driveVoltage, supplyVoltage);
+      controller.active = true;
+    }
+
+    controller.power = clampedPower;
+    controller.lastAnalogLevel = analogLevel;
+    controller.lastUpdate = Date.now();
+
+    await this.waitNextAnimationFrame();
+    return controller;
+  }
+
+  requireMotorController(name, displayName = null) {
+    const normalized = this.normalizeMotorName(name);
+    if (!normalized) {
+      throw new Error('Informe o nome do motor DC que deseja controlar.');
+    }
+    const controller = this.motorControllers.get(normalized);
+    if (!controller) {
+      throw new Error(
+        `Motor DC "${displayName ?? name}" não foi inicializado. Adicione o bloco "motor DC configurar" antes de utilizar este comando.`,
+      );
+    }
+    return controller;
+  }
+
+  async handleMotorDcInit(boardComponentId, rawName, pwmPin, dir1Pin, dir2Pin) {
+    const name = String(rawName ?? '').trim();
+    if (!name) {
+      throw new Error('Defina um nome para o motor DC (por exemplo, "Motor A").');
+    }
+
+    const pwm = this.normalizeBoardPinName(pwmPin);
+    const dir1 = this.normalizeBoardPinName(dir1Pin);
+    const dir2 = this.normalizeBoardPinName(dir2Pin);
+
+    if (!pwm || !dir1 || !dir2) {
+      throw new Error('Selecione os pinos PWM, DIR1 e DIR2 utilizados pelo motor DC.');
+    }
+
+    if (pwm === dir1 || pwm === dir2 || dir1 === dir2) {
+      throw new Error('Os pinos PWM, DIR1 e DIR2 do motor DC precisam ser diferentes.');
+    }
+
+    this.requireSignalPinElement(boardComponentId, pwm);
+    this.requireSignalPinElement(boardComponentId, dir1);
+    this.requireSignalPinElement(boardComponentId, dir2);
+
+    const channel = MOTOR_OUTPUT_CHANNELS.find(
+      (entry) =>
+        entry.pwm === pwm &&
+        entry.dir1 === dir1 &&
+        entry.dir2 === dir2,
+    );
+
+    const normalizedName = this.normalizeMotorName(name);
+    const controller = this.motorControllers.get(normalizedName) ?? {};
+    controller.name = name;
+    controller.normalizedName = normalizedName;
+    controller.pwmPin = pwm;
+    controller.dir1Pin = dir1;
+    controller.dir2Pin = dir2;
+    controller.power = 0;
+    controller.direction = controller.direction ?? 'forward';
+    controller.boundComponentIds = controller.boundComponentIds ?? [];
+    controller.warnedNoBinding = false;
+    controller.autoBindingAnnounced = false;
+    controller.supplyVoltage = controller.supplyVoltage ?? DEFAULT_SUPPLY_VOLTAGE;
+
+    if (channel) {
+      controller.channel = channel.name;
+      controller.outputs = { ...channel.outputs };
+    } else {
+      controller.channel = null;
+      controller.outputs = null;
+      this.listeners.onLog?.({
+        message: `Motor DC "${name}": conjunto de pinos (${pwm}, ${dir1}, ${dir2}) não corresponde a um canal com borne na placa. O motor será controlado apenas virtualmente.`,
+        level: 'warn',
+        timestamp: Date.now(),
+      });
+    }
+
+    this.motorControllers.set(normalizedName, controller);
+    this.refreshMotorControllerBindings();
+
+    await this.applyMotorControllerOutputs(boardComponentId, controller);
+    return controller;
+  }
+
+  async handleMotorDcSetDirection(boardComponentId, rawName, rawDirection) {
+    const controller = this.requireMotorController(rawName);
+    const directionValue = String(rawDirection ?? '')
+      .toLowerCase()
+      .trim();
+    controller.direction = directionValue === 'reverse' ? 'reverse' : 'forward';
+    await this.applyMotorControllerOutputs(boardComponentId, controller);
+    return controller.direction;
+  }
+
+  async handleMotorDcSetPower(boardComponentId, rawName, rawPower) {
+    const controller = this.requireMotorController(rawName);
+    const numeric = Number(rawPower);
+    const power = Number.isFinite(numeric) ? Math.max(0, Math.min(100, numeric)) : 0;
+    controller.power = power;
+    await this.applyMotorControllerOutputs(boardComponentId, controller);
+    return controller.power;
+  }
+
+  async handleMotorDcStop(boardComponentId, rawName) {
+    const controller = this.requireMotorController(rawName);
+    controller.power = 0;
+    await this.applyMotorControllerOutputs(boardComponentId, controller);
+    return true;
   }
 
   startBuzzerAudio(componentId) {
@@ -2023,11 +2471,13 @@ class Simulation {
         this.resetMultimeter(component);
       }
     });
+    this.clearMotorControllers();
   }
 
   clearBoardStates() {
     this.boardPinStates.clear();
     this.boardAnalogLevels.clear();
+    this.boardMotorOutputs.clear();
   }
 
   startProgram(program, options = {}) {
@@ -2134,6 +2584,46 @@ class Simulation {
             pinName,
           );
           return this.convertVoltageStateToAnalogValue(state);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      motorDcInit: async (name, pwmPin, dir1Pin, dir2Pin) => {
+        if (programState.aborted) return;
+        try {
+          await this.handleMotorDcInit(programState.boardComponentId, name, pwmPin, dir1Pin, dir2Pin);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      motorDcSetDirection: async (name, direction) => {
+        if (programState.aborted) return;
+        try {
+          await this.handleMotorDcSetDirection(programState.boardComponentId, name, direction);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      motorDcSetPower: async (name, power) => {
+        if (programState.aborted) return;
+        try {
+          await this.handleMotorDcSetPower(programState.boardComponentId, name, power);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      motorDcStop: async (name) => {
+        if (programState.aborted) return;
+        try {
+          await this.handleMotorDcStop(programState.boardComponentId, name);
         } catch (error) {
           const message = error?.message ?? String(error);
           programState.onProgramError?.(message);
@@ -2486,6 +2976,7 @@ class Simulation {
     return new CircuitSnapshot(this.canvasManager, this.boardPinStates, {
       powerEnabled: this.powerEnabled,
       boardAnalogLevels: this.boardAnalogLevels,
+      boardMotorVoltages: this.boardMotorOutputs,
     });
   }
 

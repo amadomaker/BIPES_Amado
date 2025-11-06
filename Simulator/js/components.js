@@ -432,9 +432,20 @@ const amadoBoardCoordinates = {
   RX0: { xPercent: 88.9353, yPercent: 40.9461 },
   D21: { xPercent: 88.9353, yPercent: 46.4824 },
   // Continue adicionando os demais pinos seguindo este padrão...
+  D26: { xPercent: 16.6348, yPercent: 67.5402 },
+  D27: { xPercent: 16.6348, yPercent: 72.7799 },
+  D14: { xPercent: 16.6348, yPercent: 78.0197 },
+  D12: { xPercent: 16.6348, yPercent: 83.2594 },
+  D13: { xPercent: 16.6348, yPercent: 88.4992 },
+  'MOTOR_A+': { xPercent: 38.2, yPercent: 6.1 },
+  'MOTOR_A-': { xPercent: 44.8, yPercent: 6.1 },
+  'MOTOR_B+': { xPercent: 55.6, yPercent: 6.1 },
+  'MOTOR_B-': { xPercent: 62.2, yPercent: 6.1 },
 };
 
-export const amadoBoardPins = esp32PinLayout.map((pin, index) => {
+const MOTOR_DRIVER_SIGNAL_PINS = new Set(['D25', 'D26', 'D27', 'D12', 'D13', 'D14']);
+
+const baseAmadoBoardPins = esp32PinLayout.map((pin, index) => {
   const manualPosition = amadoBoardCoordinates[pin.name];
 
   if (manualPosition) {
@@ -443,6 +454,7 @@ export const amadoBoardPins = esp32PinLayout.map((pin, index) => {
       type: classifyPinType(pin.name),
       pinIndex: index,
       position: manualPosition,
+      hidden: MOTOR_DRIVER_SIGNAL_PINS.has(pin.name),
     };
   }
 
@@ -462,8 +474,38 @@ export const amadoBoardPins = esp32PinLayout.map((pin, index) => {
       xPercent: (boardX / AMADO_BOARD_VIEWBOX.width) * 100,
       yPercent: (boardY / AMADO_BOARD_VIEWBOX.height) * 100,
     },
+    hidden: MOTOR_DRIVER_SIGNAL_PINS.has(pin.name),
   };
 });
+
+const motorOutputPins = [
+  {
+    name: 'MOTOR_A+',
+    type: 'signal',
+    pinIndex: baseAmadoBoardPins.length,
+    position: amadoBoardCoordinates['MOTOR_A+'],
+  },
+  {
+    name: 'MOTOR_A-',
+    type: 'signal',
+    pinIndex: baseAmadoBoardPins.length + 1,
+    position: amadoBoardCoordinates['MOTOR_A-'],
+  },
+  {
+    name: 'MOTOR_B+',
+    type: 'signal',
+    pinIndex: baseAmadoBoardPins.length + 2,
+    position: amadoBoardCoordinates['MOTOR_B+'],
+  },
+  {
+    name: 'MOTOR_B-',
+    type: 'signal',
+    pinIndex: baseAmadoBoardPins.length + 3,
+    position: amadoBoardCoordinates['MOTOR_B-'],
+  },
+];
+
+export const amadoBoardPins = [...baseAmadoBoardPins, ...motorOutputPins];
 
 function createAmadoBoardElement({ preview = false } = {}) {
   const container = document.createElement('div');

@@ -53,6 +53,24 @@ const DEFAULT_TOOLBOX = {
     },
     {
       kind: 'category',
+      name: 'Saídas e atuadores',
+      colour: '#F97316',
+      contents: [
+        {
+          kind: 'category',
+          name: 'Motor DC',
+          colour: '#FB923C',
+          contents: [
+            { kind: 'block', type: 'motor_dc_init' },
+            { kind: 'block', type: 'motor_dc_set_direction' },
+            { kind: 'block', type: 'motor_dc_set_power' },
+            { kind: 'block', type: 'motor_dc_stop' },
+          ],
+        },
+      ],
+    },
+    {
+      kind: 'category',
       name: 'Matemática',
       colour: '#FFAB19',
       contents: [

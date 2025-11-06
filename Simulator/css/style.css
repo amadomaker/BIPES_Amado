@@ -1330,3 +1330,19 @@ body {
 .dc-motor-speed.visible {
   opacity: 1;
 }
+
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="D25"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="D26"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="D27"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="D12"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="D13"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="D14"] {
+  display: none !important;
+  pointer-events: none !important;
+}
