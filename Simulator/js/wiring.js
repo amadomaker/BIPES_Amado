@@ -132,6 +132,13 @@ export class WiringManager {
       });
 
       this.pinRegistry.set(componentId, customPins);
+      this.scheduleConnectionRefresh({
+        immediate: true,
+        minFrames: 4,
+        durationMs: 160,
+        maxDurationMs: 320,
+      });
+      this.scheduleRefreshAfterMediaLoad(container);
       return;
     }
 
@@ -182,6 +189,7 @@ export class WiringManager {
     });
 
     this.pinRegistry.set(componentId, pins);
+    this.scheduleRefreshAfterMediaLoad(container);
   }
 
   getPinMetadata(componentType, info, index) {
@@ -1295,6 +1303,81 @@ export class WiringManager {
       updateConnections();
       cancel();
     }, finalTimeout);
+  }
+
+  scheduleRefreshAfterMediaLoad(container) {
+    if (!container || typeof window === 'undefined') {
+      return;
+    }
+
+    const mediaElements = Array.from(
+      container.querySelectorAll('img, video, canvas, svg image'),
+    );
+    if (!mediaElements.length) {
+      return;
+    }
+
+    let pending = mediaElements.length;
+    let triggered = false;
+
+    const schedule = () => {
+      if (triggered) {
+        return;
+      }
+      triggered = true;
+      this.scheduleConnectionRefresh({
+        immediate: true,
+        minFrames: 6,
+        durationMs: 220,
+        maxDurationMs: 420,
+      });
+    };
+
+    const handleReady = () => {
+      pending -= 1;
+      if (pending <= 0) {
+        window.requestAnimationFrame(schedule);
+      }
+    };
+
+    mediaElements.forEach((element) => {
+      if (!element) {
+        pending -= 1;
+        return;
+      }
+      if (element.tagName === 'IMG') {
+        const img = element;
+        if (img.complete && img.naturalWidth > 0) {
+          handleReady();
+        } else {
+          const once = () => {
+            img.removeEventListener('load', once);
+            img.removeEventListener('error', once);
+            handleReady();
+          };
+          img.addEventListener('load', once, { once: true });
+          img.addEventListener('error', once, { once: true });
+        }
+        return;
+      }
+      if (element.tagName === 'VIDEO') {
+        const video = element;
+        if (video.readyState >= 2) {
+          handleReady();
+        } else {
+          const once = () => {
+            video.removeEventListener('loadeddata', once);
+            video.removeEventListener('error', once);
+            handleReady();
+          };
+          video.addEventListener('loadeddata', once, { once: true });
+          video.addEventListener('error', once, { once: true });
+        }
+        return;
+      }
+      // Canvas or other media-like elements – assume immediately ready
+      handleReady();
+    });
   }
 
   resetAnchorsForComponent(componentId) {
