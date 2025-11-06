@@ -1332,6 +1332,103 @@ body {
   opacity: 1;
 }
 
+.battery-aaa-pack {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px 8px 16px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #1f2933 0%, #0f172a 100%);
+  box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.1), inset 0 -4px 10px rgba(0, 0, 0, 0.33);
+}
+
+.battery-aaa-pack.preview {
+  transform: scale(0.48);
+  transform-origin: top center;
+}
+
+.battery-aaa-pack-terminal {
+  position: absolute;
+  top: -10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  background: #152033;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+}
+
+.battery-aaa-pack-terminal::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.85);
+  transform: translate(-50%, -50%);
+}
+
+.battery-aaa-pack-terminal-positive::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.85);
+  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.battery-aaa-pack-cells {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.battery-aaa-pack-cell {
+  position: relative;
+  flex: 0 0 auto;
+  height: 120px;
+  border-radius: 6px;
+  border: 1px solid rgba(18, 42, 61, 0.35);
+  padding: 8px 10px;
+  background: linear-gradient(180deg, #37a7c9 0%, #1d6f88 55%, #14495c 100%);
+  box-shadow: inset 0 4px 8px rgba(255, 255, 255, 0.18), inset 0 -6px 12px rgba(0, 0, 0, 0.32);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.battery-aaa-pack-cell::before,
+.battery-aaa-pack-cell::after {
+  content: '';
+  width: 50%;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.16);
+}
+
+.battery-aaa-pack-cell::after {
+  background: rgba(11, 66, 102, 0.5);
+}
+
+.battery-aaa-pack-cell-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(17, 24, 39, 0.88);
+  letter-spacing: 0.06em;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  user-select: none;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
 .canvas-component[data-component-type="amado-board"]
   .pin[data-pin-name="D25"],
 .canvas-component[data-component-type="amado-board"]

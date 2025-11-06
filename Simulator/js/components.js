@@ -70,6 +70,87 @@ function createFixedBattery9vElement({ preview = false } = {}) {
   };
 }
 
+function clampCellCount(raw) {
+  const numeric = Number(raw);
+  if (!Number.isFinite(numeric)) return 1;
+  return Math.max(1, Math.min(4, Math.round(numeric)));
+}
+
+function createAaaBatteryPackElement({ props, preview = false } = {}) {
+  const shell = document.createElement('div');
+  shell.className = `battery-aaa-pack${preview ? ' preview' : ''}`;
+  shell.title = 'Pacote de pilhas AAA';
+
+  const positiveTerminal = document.createElement('div');
+  positiveTerminal.className = 'battery-aaa-pack-terminal battery-aaa-pack-terminal-positive';
+  positiveTerminal.dataset.pinSelector = 'positive';
+
+  const negativeTerminal = document.createElement('div');
+  negativeTerminal.className = 'battery-aaa-pack-terminal battery-aaa-pack-terminal-negative';
+  negativeTerminal.dataset.pinSelector = 'negative';
+
+  const cellsWrapper = document.createElement('div');
+  cellsWrapper.className = 'battery-aaa-pack-cells';
+
+  shell.append(positiveTerminal, negativeTerminal, cellsWrapper);
+
+  const renderCells = (count, cellWidth) => {
+    cellsWrapper.innerHTML = '';
+    for (let index = 0; index < count; index += 1) {
+      const cell = document.createElement('div');
+      cell.className = 'battery-aaa-pack-cell';
+      cell.style.width = `${cellWidth}px`;
+      const labelSpan = document.createElement('span');
+      labelSpan.className = 'battery-aaa-pack-cell-label';
+      labelSpan.textContent = 'AA 1.5V';
+      cell.appendChild(labelSpan);
+      cellsWrapper.appendChild(cell);
+    }
+    cellsWrapper.dataset.count = String(count);
+  };
+
+  const applyProps = (nextProps = {}) => {
+    const count = clampCellCount(nextProps.cells ?? props?.cells);
+    const voltageTotal = count * 1.5;
+    const cellWidth = 44;
+    const cellGap = 4;
+    const framePadding = 16;
+    const innerWidth = count * cellWidth + (count - 1) * cellGap;
+    const totalWidth = innerWidth + framePadding;
+    const totalHeight = 140;
+    const terminalSpacing = 14; // distância fixa entre os terminais
+
+    shell.style.width = `${totalWidth}px`;
+    shell.style.height = `${totalHeight}px`;
+    shell.dataset.cells = String(count);
+    shell.title = `Pacote AAA (${count} × 1,5V)`;
+
+    const centerShift = 5;
+    positiveTerminal.style.left = `calc(50% - ${centerShift}px + ${terminalSpacing / 2}px)`;
+    negativeTerminal.style.left = `calc(50% - ${centerShift}px - ${terminalSpacing / 2}px)`;
+    positiveTerminal.style.top = '-8px';
+    negativeTerminal.style.top = '-8px';
+
+    shell.style.setProperty('--cells', String(count));
+    shell.style.setProperty('--cell-gap', `${cellGap}px`);
+    cellsWrapper.style.width = `${innerWidth}px`;
+    cellsWrapper.style.margin = '0 auto';
+    renderCells(count, cellWidth);
+
+    if (props) {
+      props.cells = String(count);
+      props.voltage = voltageTotal.toFixed(2).replace(/\.?0+$/, '');
+    }
+  };
+
+  applyProps(props ?? {});
+
+  return {
+    element: shell,
+    applyProps,
+  };
+}
+
 function createWokwiPreview(elementTag, props = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'preview-scale';
@@ -597,6 +678,54 @@ export const availableComponents = [
     getLabel: () => 'Bateria 9V',
     createInstance: () => createFixedBattery9vElement({ preview: false }),
     createPreview: () => createFixedBattery9vElement({ preview: true }).element,
+  },
+  {
+    id: 'battery-aaa-pack',
+    name: 'Pacote AAA 1,5V',
+    element: null,
+    description: 'Agrupamento configurável de pilhas AAA (1,5V por célula).',
+    group: 'sources',
+    defaultProps: { cells: '1', voltage: '1.5' },
+    pins: [
+      {
+        name: 'VCC (+)',
+        type: 'power',
+        selector: '.battery-aaa-pack-terminal-positive',
+      },
+      {
+        name: 'GND (-)',
+        type: 'ground',
+        selector: '.battery-aaa-pack-terminal-negative',
+      },
+    ],
+    getLabel: (props = {}) => {
+      const count = clampCellCount(props.cells);
+      const total = (count * 1.5).toFixed(1).replace('.0', '');
+      return `Pacote AAA (${total}V)`;
+    },
+    createInstance: ({ props }) => createAaaBatteryPackElement({ props }),
+    createPreview: () =>
+      createAaaBatteryPackElement({ props: { cells: '1', voltage: '1.5' }, preview: true }).element,
+    propertyControls: [
+      {
+        label: 'Quantidade de pilhas',
+        formatValue: (value) => {
+          const count = clampCellCount(value);
+          const total = (count * 1.5).toFixed(1).replace('.0', '');
+          return `${count} × 1,5V = ${total}V`;
+        },
+        control: {
+          type: 'select',
+          propKey: 'cells',
+          options: [
+            { label: '1 pilha (1,5V)', value: '1' },
+            { label: '2 pilhas (3,0V)', value: '2' },
+            { label: '3 pilhas (4,5V)', value: '3' },
+            { label: '4 pilhas (6,0V)', value: '4' },
+          ],
+        },
+      },
+    ],
   },
   {
     id: 'amado-board',

@@ -38,7 +38,7 @@ const MULTIMETER_SHUNT_RESISTANCE = 0.1; // Ohms – shunt interno do multímetr
 const MULTIMETER_OVERLOAD_CURRENT = 5; // A – acima disso consideramos sobrecarga
 const MULTIMETER_PARALLEL_VDROP = 0.05; // V – queda acima disso indica ligação em paralelo
 const SOLVER_EPSILON = 1e-9;
-const BATTERY_COMPONENT_TYPES = new Set(['battery', 'battery-9v']);
+const BATTERY_COMPONENT_TYPES = new Set(['battery', 'battery-9v', 'battery-aaa-pack']);
 
 function isBatteryComponentType(type) {
   return BATTERY_COMPONENT_TYPES.has(type);
@@ -347,6 +347,7 @@ class CircuitSnapshot {
           break;
         case 'battery':
         case 'battery-9v':
+        case 'battery-aaa-pack':
           this.addBatteryElement(component);
           break;
         case 'multimeter': {
