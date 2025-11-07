@@ -393,7 +393,7 @@ export class CanvasManager {
     }
     await this.wiringManager.addPinsToComponent(visualWrapper, definition, componentId);
     this.syncComponentRuntimeState(componentData);
-    this.applyComponentTransform(componentData);
+    this.applyComponentTransform(componentData, { disableTransition: true });
     this.positionPhotoresistorControls(componentData);
     window.requestAnimationFrame(() => this.positionPhotoresistorControls(componentData));
     this.wiringManager.updateAllConnections();
@@ -1002,15 +1002,22 @@ export class CanvasManager {
     return maxDuration;
   }
 
-  applyComponentTransform(component) {
+  applyComponentTransform(component, options = {}) {
     if (!component) return;
     if (!component.transform) {
       component.transform = { rotation: 0, flipped: false };
     }
+    const disableTransition = Boolean(options?.disableTransition);
     const rotation = this.normaliseRotation(component.transform?.rotation ?? 0);
     const flipped = Boolean(component.transform?.flipped);
     const target = component.visualWrapper ?? component.container;
     if (!target) return;
+
+    let previousTransition = null;
+    if (disableTransition) {
+      previousTransition = target.style.transition ?? '';
+      target.style.transition = 'none';
+    }
 
     const transforms = [];
     if (rotation !== 0) {
@@ -1025,8 +1032,22 @@ export class CanvasManager {
     target.style.setProperty('--component-rotation', `${rotation}deg`);
     target.style.setProperty('--component-flip-compensation', flipped ? '-1' : '1');
 
+    if (disableTransition) {
+      // Force layout update to finalize transform before restoring transitions
+      void target.offsetWidth;
+      if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => {
+          target.style.transition = previousTransition ?? '';
+        });
+      } else {
+        target.style.transition = previousTransition ?? '';
+      }
+    }
+
     this.wiringManager.resetAnchorsForComponent(component.id);
-    const transitionDuration = this.getTransitionDurationMs(target, 'transform');
+    const transitionDuration = disableTransition
+      ? 0
+      : this.getTransitionDurationMs(target, 'transform');
     this.wiringManager.scheduleConnectionRefresh({
       immediate: true,
       minFrames: 4,
