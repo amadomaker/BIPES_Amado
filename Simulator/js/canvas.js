@@ -774,6 +774,7 @@ export class CanvasManager {
 
     component.props = { ...component.props, ...newProps };
     component.applyProps?.(component.props);
+    this.wiringManager.updatePinPositionsForComponent?.(component.id);
     this.syncComponentRuntimeState(component);
 
     const definition = this.resolveComponentDefinition(component.type);

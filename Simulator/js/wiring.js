@@ -121,6 +121,7 @@ export class WiringManager {
           pinElement.style.left = `${adjustedX}px`;
           pinElement.style.top = `${adjustedY}px`;
           pinElement.style.transform = 'translate(-50%, -50%)';
+          pinElement.dataset.pinSelector = pinConfig.selector;
         } else {
           return;
         }
@@ -1387,6 +1388,48 @@ export class WiringManager {
       // Canvas or other media-like elements – assume immediately ready
       handleReady();
     });
+  }
+
+  updatePinPositionsForComponent(componentId, options = {}) {
+    if (!componentId) return;
+    const pins = this.pinRegistry.get(componentId);
+    if (!pins || !pins.length) {
+      return;
+    }
+
+    const container = this.canvasManager?.getComponentVisualWrapper?.(componentId);
+    if (!container) {
+      return;
+    }
+
+    const scale = this.canvasManager?.viewportState?.scale ?? 1;
+    let updated = false;
+
+    pins.forEach((pin) => {
+      const selector = pin.dataset?.pinSelector;
+      if (!selector) {
+        return;
+      }
+      const target = container.querySelector(selector);
+      if (!target) {
+        return;
+      }
+      const position = this.getRelativeCenter(target, container);
+      const adjustedX = scale ? position.x / scale : position.x;
+      const adjustedY = scale ? position.y / scale : position.y;
+      pin.style.left = `${adjustedX}px`;
+      pin.style.top = `${adjustedY}px`;
+      updated = true;
+    });
+
+    if (updated && options?.skipConnectionUpdate !== true) {
+      this.scheduleConnectionRefresh({
+        immediate: true,
+        minFrames: 2,
+        durationMs: 160,
+        maxDurationMs: 320,
+      });
+    }
   }
 
   resetAnchorsForComponent(componentId) {
