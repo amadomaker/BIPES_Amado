@@ -1615,6 +1615,7 @@ class Simulation {
     this.boardMotorOutputs = new Map();
     this.motorControllers = new Map();
     this.motorControllerBindings = new Map();
+    this.oledControllers = new Map();
     this.programState = null;
     this.powerEnabled = false;
     this.audioContext = null;
@@ -1930,6 +1931,21 @@ class Simulation {
     return String(pinName ?? '')
       .trim()
       .toUpperCase();
+  }
+
+  normalizeBoardPinInput(value) {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return this.normalizeBoardPinName(`D${Math.round(value)}`);
+    }
+    const text = String(value ?? '').trim();
+    if (!text) return '';
+    if (/^\d+$/.test(text)) {
+      return this.normalizeBoardPinName(`D${text}`);
+    }
+    if (/^D\d+$/i.test(text)) {
+      return this.normalizeBoardPinName(text);
+    }
+    return this.normalizeBoardPinName(text);
   }
 
   clearMotorControllers() {
@@ -2262,6 +2278,151 @@ class Simulation {
     return true;
   }
 
+  getOledComponents() {
+    if (!this.canvasManager) return [];
+    const components = Array.isArray(this.canvasManager.components)
+      ? this.canvasManager.components
+      : [];
+    return components.filter((component) => component?.type === 'oled-display');
+  }
+
+  applyOledEntriesToComponent(component, entries = []) {
+    if (!component?.element?.__oledScreen) return;
+    const screen = component.element.__oledScreen;
+    screen.innerHTML = '';
+    entries.forEach((entry) => {
+      if (!entry || typeof entry.text === 'undefined') return;
+      const span = document.createElement('span');
+      span.className = 'oled-display-screen-text';
+      span.textContent = String(entry.text ?? '');
+      const xPercent = Math.max(0, Math.min(100, (Number(entry.x) || 0) / 128 * 100));
+      const yPercent = Math.max(0, Math.min(100, (Number(entry.y) || 0) / 64 * 100));
+      span.style.left = `${xPercent}%`;
+      span.style.top = `${yPercent}%`;
+      screen.appendChild(span);
+    });
+  }
+
+  findOledComponentByPins(boardComponentId, sclPinName, sdaPinName) {
+    if (!this.canvasManager) return null;
+    const snapshot = this.createSnapshot();
+    const sclNode = snapshot.getNodeByComponentPin(boardComponentId, sclPinName);
+    const sdaNode = snapshot.getNodeByComponentPin(boardComponentId, sdaPinName);
+    if (!sclNode || !sdaNode) {
+      return null;
+    }
+    return (
+      this.getOledComponents().find((component) => {
+        const oledScl = snapshot.getNodeByComponentPin(component.id, 'SCL');
+        const oledSda = snapshot.getNodeByComponentPin(component.id, 'SDA');
+        if (!oledScl || !oledSda) return false;
+        return oledScl.netId && oledSda.netId && oledScl.netId === sclNode.netId && oledSda.netId === sdaNode.netId;
+      }) ?? null
+    );
+  }
+
+  requireOledController(boardComponentId) {
+    const controller = this.oledControllers.get(boardComponentId);
+    if (!controller) {
+      throw new Error('Nenhum display OLED foi inicializado. Utilize o bloco "Iniciar display OLED" primeiro.');
+    }
+    const component = this.canvasManager?.getComponentById(controller.componentId);
+    if (!component) {
+      throw new Error('O display OLED configurado não está disponível no workspace.');
+    }
+    return controller;
+  }
+
+  normalizeOledCoordinate(value, max) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 0;
+    return Math.max(0, Math.min(max, Math.round(numeric)));
+  }
+
+  normalizeOledText(value) {
+    if (value === null || typeof value === 'undefined') return '';
+    return String(value);
+  }
+
+  async handleOledInit(boardComponentId, options = {}) {
+    const sclPin = this.normalizeBoardPinInput(options.scl);
+    const sdaPin = this.normalizeBoardPinInput(options.sda);
+    if (!sclPin || !sdaPin) {
+      throw new Error('Informe os pinos SCL e SDA utilizados pelo display OLED.');
+    }
+
+    this.requireSignalPinElement(boardComponentId, sclPin);
+    this.requireSignalPinElement(boardComponentId, sdaPin);
+
+    const component = this.findOledComponentByPins(boardComponentId, sclPin, sdaPin);
+    if (!component) {
+      if (!this.getOledComponents().length) {
+        throw new Error('Adicione um componente "Display OLED" ao workspace e conecte-o aos pinos indicados.');
+      }
+      throw new Error('Não foi encontrado um display OLED conectado aos pinos especificados. Verifique o cabeamento.');
+    }
+
+    const previous = this.oledControllers.get(boardComponentId);
+    if (previous) {
+      const oldComponent = this.canvasManager?.getComponentById(previous.componentId);
+      if (oldComponent) {
+        this.resetOledDisplay(oldComponent);
+      }
+    }
+
+    const controller = {
+      boardComponentId,
+      componentId: component.id,
+      sclPin,
+      sdaPin,
+      buffer: [],
+      visible: [],
+    };
+    this.oledControllers.set(boardComponentId, controller);
+    this.applyOledEntriesToComponent(component, []);
+    await this.waitNextAnimationFrame();
+    return controller;
+  }
+
+  async handleOledWriteText(boardComponentId, rawX, rawY, rawText) {
+    const controller = this.requireOledController(boardComponentId);
+    const entry = {
+      x: this.normalizeOledCoordinate(rawX, 127),
+      y: this.normalizeOledCoordinate(rawY, 63),
+      text: this.normalizeOledText(rawText),
+    };
+    controller.buffer = controller.buffer ?? [];
+    controller.buffer.push(entry);
+    return entry;
+  }
+
+  async handleOledWriteValue(boardComponentId, rawX, rawY, value) {
+    return this.handleOledWriteText(boardComponentId, rawX, rawY, this.normalizeOledText(value));
+  }
+
+  async handleOledShow(boardComponentId) {
+    const controller = this.requireOledController(boardComponentId);
+    controller.visible = (controller.buffer ?? []).map((entry) => ({ ...entry }));
+    const component = this.canvasManager?.getComponentById(controller.componentId);
+    if (component) {
+      this.applyOledEntriesToComponent(component, controller.visible);
+    }
+    await this.waitNextAnimationFrame();
+    return true;
+  }
+
+  async handleOledClear(boardComponentId) {
+    const controller = this.requireOledController(boardComponentId);
+    controller.buffer = [];
+    controller.visible = [];
+    const component = this.canvasManager?.getComponentById(controller.componentId);
+    if (component) {
+      this.applyOledEntriesToComponent(component, []);
+    }
+    await this.waitNextAnimationFrame();
+    return true;
+  }
+
   startBuzzerAudio(componentId) {
     if (!this.isRunning || !this.powerEnabled) return;
     if (this.buzzerAudioNodes.has(componentId)) {
@@ -2450,6 +2611,16 @@ class Simulation {
     }
   }
 
+  resetOledDisplay(component) {
+    if (!component) return;
+    if (component.element?.__oledScreen) {
+      component.element.__oledScreen.innerHTML = '';
+    }
+    if (component.state?.oled) {
+      delete component.state.oled;
+    }
+  }
+
   resetOutputs() {
     this.clearBoardStates();
     if (!this.canvasManager) return;
@@ -2470,15 +2641,19 @@ class Simulation {
         this.setMotorState(component, { active: false, rpm: 0, direction: 0 });
       } else if (component.type === 'multimeter') {
         this.resetMultimeter(component);
+      } else if (component.type === 'oled-display') {
+        this.resetOledDisplay(component);
       }
     });
     this.clearMotorControllers();
+    this.oledControllers.clear();
   }
 
   clearBoardStates() {
     this.boardPinStates.clear();
     this.boardAnalogLevels.clear();
     this.boardMotorOutputs.clear();
+    this.oledControllers.clear();
   }
 
   startProgram(program, options = {}) {
@@ -2625,6 +2800,56 @@ class Simulation {
         if (programState.aborted) return;
         try {
           await this.handleMotorDcStop(programState.boardComponentId, name);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      oledInit: async (options = {}) => {
+        if (programState.aborted) return;
+        try {
+          await this.handleOledInit(programState.boardComponentId, options);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      oledWriteText: async (x, y, text) => {
+        if (programState.aborted) return;
+        try {
+          await this.handleOledWriteText(programState.boardComponentId, x, y, text);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      oledWriteValue: async (x, y, value) => {
+        if (programState.aborted) return;
+        try {
+          await this.handleOledWriteValue(programState.boardComponentId, x, y, value);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      oledShow: async () => {
+        if (programState.aborted) return;
+        try {
+          await this.handleOledShow(programState.boardComponentId);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      oledClear: async () => {
+        if (programState.aborted) return;
+        try {
+          await this.handleOledClear(programState.boardComponentId);
         } catch (error) {
           const message = error?.message ?? String(error);
           programState.onProgramError?.(message);

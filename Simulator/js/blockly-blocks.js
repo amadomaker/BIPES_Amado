@@ -295,6 +295,115 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  const oledBlockColour = 200;
+
+  Blockly.Blocks.oled_display_init = {
+    init() {
+      this.appendDummyInput().appendField('Iniciar display OLED SSD1306 I2C');
+
+      const i2cInput = this.appendValueInput('I2C')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('I2C');
+      const sclInput = this.appendValueInput('SCL')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('SCL');
+      const sdaInput = this.appendValueInput('SDA')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('SDA');
+
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(oledBlockColour);
+      this.setTooltip('Inicializa o display OLED conectado aos pinos SCL/SDA informados.');
+      this.setHelpUrl('');
+
+      i2cInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '1'));
+      sclInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '22'));
+      sdaInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '21'));
+    },
+  };
+
+  Blockly.Blocks.oled_display_write_text = {
+    init() {
+      this.appendDummyInput().appendField('Escrever texto no display');
+      const xInput = this.appendValueInput('X')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Posição X');
+      const yInput = this.appendValueInput('Y')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Posição Y');
+      const textInput = this.appendValueInput('TEXT')
+        .setCheck('String')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Texto');
+
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(oledBlockColour);
+      this.setTooltip('Escreve um texto no buffer do display nas coordenadas indicadas.');
+      this.setHelpUrl('');
+
+      xInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '40'));
+      yInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '40'));
+      textInput?.connection?.setShadowDom(createTextShadowBlock(Blockly));
+    },
+  };
+
+  Blockly.Blocks.oled_display_write_value = {
+    init() {
+      this.appendDummyInput().appendField('Exibir valor no display');
+      const xInput = this.appendValueInput('X')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Posição X');
+      const yInput = this.appendValueInput('Y')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Posição Y');
+      const valueInput = this.appendValueInput('VALUE')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Valor');
+
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(oledBlockColour);
+      this.setTooltip('Mostra um valor numérico convertido em texto nas coordenadas do display.');
+      this.setHelpUrl('');
+
+      xInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '40'));
+      yInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '40'));
+      valueInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '0'));
+    },
+  };
+
+  Blockly.Blocks.oled_display_show = {
+    init() {
+      this.appendDummyInput().appendField('Atualizar display OLED');
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(oledBlockColour);
+      this.setTooltip('Atualiza o display exibindo o conteúdo escrito no buffer.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.oled_display_clear = {
+    init() {
+      this.appendDummyInput().appendField('Limpar display OLED');
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(oledBlockColour);
+      this.setTooltip('Limpa o conteúdo atual do display OLED.');
+      this.setHelpUrl('');
+    },
+  };
+
   const javascriptGenerator = Blockly.JavaScript ?? Blockly?.javascriptGenerator;
   if (!javascriptGenerator) return;
 
@@ -377,5 +486,43 @@ export function registerAmadoBlocks(Blockly) {
   javascriptGenerator.forBlock.motor_dc_stop = function motorDcStop(block) {
     const name = (block.getFieldValue('NAME') ?? '').trim();
     return `await api.motorDcStop(${JSON.stringify(name)});\n`;
+  };
+
+  javascriptGenerator.forBlock.oled_display_init = function oledDisplayInit(block) {
+    const i2c =
+      javascriptGenerator.valueToCode(block, 'I2C', javascriptGenerator.ORDER_NONE) || '0';
+    const scl =
+      javascriptGenerator.valueToCode(block, 'SCL', javascriptGenerator.ORDER_NONE) || '22';
+    const sda =
+      javascriptGenerator.valueToCode(block, 'SDA', javascriptGenerator.ORDER_NONE) || '21';
+    return `await api.oledInit({ i2c: ${i2c}, scl: ${scl}, sda: ${sda} });\n`;
+  };
+
+  javascriptGenerator.forBlock.oled_display_write_text = function oledDisplayWriteText(block) {
+    const x =
+      javascriptGenerator.valueToCode(block, 'X', javascriptGenerator.ORDER_NONE) || '0';
+    const y =
+      javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_NONE) || '0';
+    const text =
+      javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_NONE) || "''";
+    return `await api.oledWriteText(${x}, ${y}, ${text});\n`;
+  };
+
+  javascriptGenerator.forBlock.oled_display_write_value = function oledDisplayWriteValue(block) {
+    const x =
+      javascriptGenerator.valueToCode(block, 'X', javascriptGenerator.ORDER_NONE) || '0';
+    const y =
+      javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_NONE) || '0';
+    const value =
+      javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_NONE) || '0';
+    return `await api.oledWriteValue(${x}, ${y}, ${value});\n`;
+  };
+
+  javascriptGenerator.forBlock.oled_display_show = function oledDisplayShow() {
+    return 'await api.oledShow();\n';
+  };
+
+  javascriptGenerator.forBlock.oled_display_clear = function oledDisplayClear() {
+    return 'await api.oledClear();\n';
   };
 }

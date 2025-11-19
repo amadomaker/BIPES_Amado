@@ -208,8 +208,26 @@ function createOledDisplayElement({ preview = false } = {}) {
 
   container.appendChild(image);
 
+  if (!preview) {
+    const screen = document.createElement('div');
+    screen.className = 'oled-display-screen';
+    const screenContent = document.createElement('div');
+    screenContent.className = 'oled-display-screen-content';
+    screen.appendChild(screenContent);
+    container.appendChild(screen);
+    container.__oledScreen = screenContent;
+  }
+
+  let rootElement = container;
+  if (preview) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'preview-scale';
+    wrapper.appendChild(container);
+    rootElement = wrapper;
+  }
+
   return {
-    element: container,
+    element: rootElement,
     applyProps: () => {},
   };
 }

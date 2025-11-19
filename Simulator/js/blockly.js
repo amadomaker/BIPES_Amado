@@ -71,6 +71,25 @@ const DEFAULT_TOOLBOX = {
     },
     {
       kind: 'category',
+      name: 'Telas',
+      colour: '#1E88E5',
+      contents: [
+        {
+          kind: 'category',
+          name: 'Display OLED',
+          colour: '#3B82F6',
+          contents: [
+            { kind: 'block', type: 'oled_display_init' },
+            { kind: 'block', type: 'oled_display_write_text' },
+            { kind: 'block', type: 'oled_display_write_value' },
+            { kind: 'block', type: 'oled_display_show' },
+            { kind: 'block', type: 'oled_display_clear' },
+          ],
+        },
+      ],
+    },
+    {
+      kind: 'category',
       name: 'Matemática',
       colour: '#FFAB19',
       contents: [
