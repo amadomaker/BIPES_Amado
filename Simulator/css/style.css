@@ -1429,6 +1429,30 @@ body {
   user-select: none;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
 }
+
+.oled-display {
+  position: relative;
+  display: inline-block;
+  width: 160px;
+  margin-top: 5px;
+  margin-left: -0.2px;
+}
+
+.oled-display-preview {
+  width: 120px;
+}
+
+.oled-display img {
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+
+.oled-display-preview img {
+  width: 120px;
+}
 .canvas-component[data-component-type="amado-board"]
   .pin[data-pin-name="D25"],
 .canvas-component[data-component-type="amado-board"]

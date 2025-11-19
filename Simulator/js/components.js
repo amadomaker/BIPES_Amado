@@ -196,6 +196,24 @@ function createDcMotorElement({ props } = {}) {
   };
 }
 
+function createOledDisplayElement({ preview = false } = {}) {
+  const container = document.createElement('div');
+  container.className = `oled-display${preview ? ' oled-display-preview' : ''}`;
+  container.title = 'Display OLED 128x64';
+
+  const image = document.createElement('img');
+  image.src = 'css/components/display_oled.svg';
+  image.alt = 'Display OLED 128x64';
+  image.draggable = false;
+
+  container.appendChild(image);
+
+  return {
+    element: container,
+    applyProps: () => {},
+  };
+}
+
 function parseResistanceValue(raw) {
   if (raw === null || typeof raw === 'undefined') return NaN;
   if (typeof raw === 'number') return raw;
@@ -929,6 +947,21 @@ export const availableComponents = [
     group: 'outputs',
     defaultProps: {},
     createPreview: () => createWokwiPreview('wokwi-buzzer', {}),
+  },
+  {
+    id: 'oled-display',
+    name: 'Display OLED 128x64',
+    description: 'Display gráfico I2C de 0,96" com 128x64 pixels.',
+    group: 'outputs',
+    defaultProps: {},
+    pins: [
+      { name: 'GND', type: 'ground', position: { xPercent: 35.84, yPercent: 10.32 } },
+      { name: 'VCC', type: 'power', position: { xPercent: 45.25, yPercent: 10.32 } },
+      { name: 'SCL', type: 'signal', position: { xPercent: 54.66, yPercent: 10.32 } },
+      { name: 'SDA', type: 'signal', position: { xPercent: 64.06, yPercent: 10.32 } },
+    ],
+    createInstance: () => createOledDisplayElement({ preview: false }),
+    createPreview: () => createOledDisplayElement({ preview: true }).element,
   },
   {
     id: 'ir-receiver',
