@@ -116,6 +116,26 @@ export function registerAmadoBlocks(Blockly) {
       helpUrl: '',
     },
     {
+      type: 'amado_ultrasonic_read',
+      message0: 'ultrassom TRIG %1 ECHO %2 ler distância (cm)',
+      args0: [
+        {
+          type: 'field_dropdown',
+          name: 'TRIG',
+          options: pinOptions,
+        },
+        {
+          type: 'field_dropdown',
+          name: 'ECHO',
+          options: pinOptions,
+        },
+      ],
+      output: 'Number',
+      colour: 200,
+      tooltip: 'Lê a distância medida pelo sensor ultrassônico conectado aos pinos TRIG/ECHO.',
+      helpUrl: '',
+    },
+    {
       type: 'motor_dc_init',
       message0: 'motor DC %1 PWM %2 DIR1 %3 DIR2 %4',
       args0: [
@@ -436,6 +456,13 @@ export function registerAmadoBlocks(Blockly) {
   javascriptGenerator.forBlock.amado_read_analog = function amadoReadAnalog(block) {
     const pin = block.getFieldValue('PIN') ?? '';
     const code = `await api.readAnalog('${pin}')`;
+    return [code, orderAwait];
+  };
+
+  javascriptGenerator.forBlock.amado_ultrasonic_read = function amadoUltrasonicRead(block) {
+    const trig = block.getFieldValue('TRIG') ?? '';
+    const echo = block.getFieldValue('ECHO') ?? '';
+    const code = `await api.ultrasonicRead('${trig}', '${echo}')`;
     return [code, orderAwait];
   };
 

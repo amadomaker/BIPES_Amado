@@ -40,6 +40,7 @@ const DEFAULT_TOOLBOX = {
       contents: [
         { kind: 'block', type: 'amado_read_digital' },
         { kind: 'block', type: 'amado_read_analog' },
+        { kind: 'block', type: 'amado_ultrasonic_read' },
       ],
     },
     {

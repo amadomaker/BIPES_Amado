@@ -396,11 +396,15 @@ export class CanvasManager {
     this.applyComponentTransform(componentData, { disableTransition: true });
     this.positionPhotoresistorControls(componentData);
     window.requestAnimationFrame(() => this.positionPhotoresistorControls(componentData));
+    this.positionUltrasonicControls(componentData);
+    window.requestAnimationFrame(() => this.positionUltrasonicControls(componentData));
     this.wiringManager.updateAllConnections();
     this.selectComponent(componentId);
     this.notifyInteraction();
     this.ensurePhotoresistorControls(componentData);
+    this.ensureUltrasonicControls(componentData);
     this.updatePhotoresistorControlsVisibility();
+    this.updateUltrasonicControlsVisibility();
 
     return componentId;
   }
@@ -441,6 +445,9 @@ export class CanvasManager {
         if (component.type === 'photoresistor') {
           this.positionPhotoresistorControls(component);
         }
+        if (component.type === 'ultrasonic-sensor') {
+          this.positionUltrasonicControls(component);
+        }
       };
 
       const handlePointerUp = (upEvent) => {
@@ -455,6 +462,9 @@ export class CanvasManager {
           this.notifyInteraction();
           if (component.type === 'photoresistor') {
             this.positionPhotoresistorControls(component);
+          }
+          if (component.type === 'ultrasonic-sensor') {
+            this.positionUltrasonicControls(component);
           }
         } else {
           this.selectComponent(id);
@@ -646,6 +656,17 @@ export class CanvasManager {
         });
         break;
       }
+      case 'ultrasonic-sensor': {
+        this.positionUltrasonicControls(component);
+        this.wiringManager.scheduleConnectionRefresh({
+          immediate: true,
+          minFrames: 4,
+          durationMs: 160,
+          maxDurationMs: 360,
+        });
+        window.setTimeout(() => this.wiringManager.updateAllConnections(), 200);
+        break;
+      }
       default:
         break;
     }
@@ -661,14 +682,23 @@ export class CanvasManager {
     component.container.classList.add('component-selected');
     this.selectedComponentId = componentId;
 
-    this.renderPropertiesForComponent(component);
+    if (component.type !== 'ultrasonic-sensor') {
+      this.renderPropertiesForComponent(component);
+    } else {
+      clearPropertiesPanel();
+    }
     this.wiringManager.deselectWire();
     this.emitSelectionChange(component);
     if (component.type === 'photoresistor') {
       this.positionPhotoresistorControls(component);
       window.requestAnimationFrame(() => this.positionPhotoresistorControls(component));
     }
+    if (component.type === 'ultrasonic-sensor') {
+      this.positionUltrasonicControls(component);
+      window.requestAnimationFrame(() => this.positionUltrasonicControls(component));
+    }
     this.updatePhotoresistorControlsVisibility();
+    this.updateUltrasonicControlsVisibility();
   }
 
   clearComponentSelection() {
@@ -681,6 +711,7 @@ export class CanvasManager {
     clearPropertiesPanel();
     this.emitSelectionChange(null);
     this.updatePhotoresistorControlsVisibility();
+    this.updateUltrasonicControlsVisibility();
   }
 
   deleteSelectedComponent() {
@@ -710,6 +741,7 @@ export class CanvasManager {
 
     this.notifyInteraction();
     this.updatePhotoresistorControlsVisibility();
+    this.updateUltrasonicControlsVisibility();
   }
 
   clearWorkspace() {
@@ -933,7 +965,10 @@ export class CanvasManager {
         this.selectComponent(component.id);
       });
     }
-    if (!controls.parentElement) {
+    if (controls.parentElement !== this.workspace) {
+      if (controls.parentElement) {
+        controls.parentElement.removeChild(controls);
+      }
       this.workspace.appendChild(controls);
     }
     controls.dataset.componentId = component.id;
@@ -949,6 +984,57 @@ export class CanvasManager {
         controls.style.display = 'flex';
         this.positionPhotoresistorControls(comp);
         window.requestAnimationFrame(() => this.positionPhotoresistorControls(comp));
+      } else {
+        controls.style.display = 'none';
+      }
+    });
+  }
+
+  positionUltrasonicControls(component) {
+    if (!component || component.type !== 'ultrasonic-sensor') return;
+    const controls = component.element?.__controls;
+    const sensor = component.element?.__sensorElement ?? component.element?.querySelector('wokwi-hc-sr04');
+    if (!controls || !sensor) return;
+
+    const workspaceRect = this.workspace.getBoundingClientRect();
+    const sensorRect = sensor.getBoundingClientRect();
+    const controlsRect = controls.getBoundingClientRect();
+
+    const overlayLeft =
+      sensorRect.left + sensorRect.width / 2 - controlsRect.width / 2 - workspaceRect.left;
+    const overlayTop = sensorRect.top - workspaceRect.top - controlsRect.height - 10;
+
+    controls.style.left = `${overlayLeft}px`;
+    controls.style.top = `${overlayTop}px`;
+  }
+
+  ensureUltrasonicControls(component) {
+    if (!component || component.type !== 'ultrasonic-sensor') return;
+    const controls = component.element?.__controls;
+    if (!controls) return;
+    if (!controls.__managedByCanvas) {
+      controls.__managedByCanvas = true;
+      controls.addEventListener('pointerdown', (event) => {
+        event.stopPropagation();
+        this.selectComponent(component.id);
+      });
+    }
+    if (!controls.parentElement) {
+      this.workspace.appendChild(controls);
+    }
+    controls.dataset.componentId = component.id;
+  }
+
+  updateUltrasonicControlsVisibility() {
+    this.components.forEach((comp) => {
+      if (comp.type !== 'ultrasonic-sensor') return;
+      const controls = comp.element?.__controls;
+      if (!controls) return;
+      this.ensureUltrasonicControls(comp);
+      if (comp.id === this.selectedComponentId) {
+        controls.style.display = 'flex';
+        this.positionUltrasonicControls(comp);
+        window.requestAnimationFrame(() => this.positionUltrasonicControls(comp));
       } else {
         controls.style.display = 'none';
       }
@@ -1057,6 +1143,8 @@ export class CanvasManager {
 
     this.positionPhotoresistorControls(component);
     window.requestAnimationFrame(() => this.positionPhotoresistorControls(component));
+    this.positionUltrasonicControls(component);
+    window.requestAnimationFrame(() => this.positionUltrasonicControls(component));
   }
 
   getComponentVisualWrapper(componentId) {

@@ -1616,6 +1616,7 @@ class Simulation {
     this.motorControllers = new Map();
     this.motorControllerBindings = new Map();
     this.oledControllers = new Map();
+    this.ultrasonicBindings = new Map();
     this.programState = null;
     this.powerEnabled = false;
     this.audioContext = null;
@@ -2423,6 +2424,64 @@ class Simulation {
     return true;
   }
 
+  getUltrasonicComponents() {
+    if (!this.canvasManager) return [];
+    const components = Array.isArray(this.canvasManager.components)
+      ? this.canvasManager.components
+      : [];
+    return components.filter((component) => component?.type === 'ultrasonic-sensor');
+  }
+
+  findUltrasonicComponentByPins(boardComponentId, trigPinName, echoPinName) {
+    const snapshot = this.createSnapshot();
+    const trigNode = snapshot.getNodeByComponentPin(boardComponentId, trigPinName);
+    const echoNode = snapshot.getNodeByComponentPin(boardComponentId, echoPinName);
+    if (!trigNode || !echoNode) {
+      return null;
+    }
+
+    return (
+      this.getUltrasonicComponents().find((component) => {
+        const trig = snapshot.getNodeByComponentPin(component.id, 'TRIG');
+        const echo = snapshot.getNodeByComponentPin(component.id, 'ECHO');
+        if (!trig || !echo) return false;
+        return trig.netId && echo.netId && trig.netId === trigNode.netId && echo.netId === echoNode.netId;
+      }) ?? null
+    );
+  }
+
+  async handleUltrasonicRead(boardComponentId, trigPinRaw, echoPinRaw) {
+    const trigPin = this.normalizeBoardPinInput(trigPinRaw);
+    const echoPin = this.normalizeBoardPinInput(echoPinRaw);
+    if (!trigPin || !echoPin) {
+      throw new Error('Informe os pinos TRIG e ECHO do sensor ultrassônico.');
+    }
+
+    this.requireSignalPinElement(boardComponentId, trigPin);
+    this.requireSignalPinElement(boardComponentId, echoPin);
+
+    const cacheKey = `${boardComponentId}:${trigPin}:${echoPin}`;
+    let componentId = this.ultrasonicBindings.get(cacheKey);
+    let component = componentId ? this.canvasManager?.getComponentById(componentId) : null;
+    if (!component) {
+      component = this.findUltrasonicComponentByPins(boardComponentId, trigPin, echoPin);
+      if (component) {
+        this.ultrasonicBindings.set(cacheKey, component.id);
+      }
+    }
+
+    if (!component) {
+      if (!this.getUltrasonicComponents().length) {
+        throw new Error('Adicione um componente "Sensor Ultrassônico" e conecte aos pinos TRIG/ECHO informados.');
+      }
+      throw new Error('Nenhum sensor ultrassônico conectado aos pinos TRIG/ECHO informados.');
+    }
+
+    const distance = Number(component.element?.__distanceCm ?? component.props?.distance ?? 100);
+    const numeric = Number.isFinite(distance) ? distance : 100;
+    return Math.max(0, numeric);
+  }
+
   startBuzzerAudio(componentId) {
     if (!this.isRunning || !this.powerEnabled) return;
     if (this.buzzerAudioNodes.has(componentId)) {
@@ -2647,6 +2706,7 @@ class Simulation {
     });
     this.clearMotorControllers();
     this.oledControllers.clear();
+    this.ultrasonicBindings.clear();
   }
 
   clearBoardStates() {
@@ -2654,6 +2714,7 @@ class Simulation {
     this.boardAnalogLevels.clear();
     this.boardMotorOutputs.clear();
     this.oledControllers.clear();
+    this.ultrasonicBindings.clear();
   }
 
   startProgram(program, options = {}) {
@@ -2850,6 +2911,17 @@ class Simulation {
         if (programState.aborted) return;
         try {
           await this.handleOledClear(programState.boardComponentId);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      ultrasonicRead: async (trigPin, echoPin) => {
+        if (programState.aborted) return null;
+        try {
+          const result = await this.handleUltrasonicRead(programState.boardComponentId, trigPin, echoPin);
+          return result;
         } catch (error) {
           const message = error?.message ?? String(error);
           programState.onProgramError?.(message);

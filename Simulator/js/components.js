@@ -232,6 +232,80 @@ function createOledDisplayElement({ preview = false } = {}) {
   };
 }
 
+function createUltrasonicSensorElement({ props, preview = false } = {}) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'ultrasonic-shell';
+  wrapper.title = '';
+
+  const sensor = document.createElement('wokwi-hc-sr04');
+  const baseWidth = preview ? 140 : 160;
+  const baseHeight = preview ? 70 : 80;
+  wrapper.style.width = `${baseWidth}px`;
+  wrapper.style.height = `${baseHeight}px`;
+  sensor.style.width = '100%';
+  sensor.style.height = '100%';
+  sensor.style.display = 'block';
+  wrapper.appendChild(sensor);
+
+  if (preview) {
+    return wrapper;
+  }
+
+  const controls = document.createElement('div');
+  controls.className = 'ultrasonic-controls component-embedded-control';
+  controls.style.position = 'absolute';
+  controls.style.display = 'none';
+  const slider = document.createElement('input');
+  slider.type = 'range';
+  slider.min = '2';
+  slider.max = '400';
+  slider.step = '1';
+  const valueLabel = document.createElement('span');
+  valueLabel.className = 'value';
+  controls.append(slider, valueLabel);
+
+  let distanceCm = Number(props?.distance ?? 100);
+  const minDistance = Number(slider.min);
+  const maxDistance = Number(slider.max);
+
+  const clampDistance = (value) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return distanceCm;
+    return Math.max(minDistance, Math.min(maxDistance, numeric));
+  };
+
+  const updateUI = () => {
+    const normalized = clampDistance(distanceCm);
+    distanceCm = normalized;
+    slider.value = String(normalized);
+    valueLabel.textContent = `${normalized.toFixed(0)} cm`;
+    wrapper.__distanceCm = normalized;
+    sensor.setAttribute('distance', String(normalized));
+  };
+
+  const setDistance = (value) => {
+    distanceCm = clampDistance(value);
+    updateUI();
+  };
+
+  slider.addEventListener('input', () => setDistance(slider.value));
+  slider.addEventListener('pointerdown', (event) => event.stopPropagation());
+
+  setDistance(distanceCm);
+
+  wrapper.__controls = controls;
+  wrapper.__sensorElement = sensor;
+
+  return {
+    element: wrapper,
+    applyProps: (nextProps = {}) => {
+      if (typeof nextProps.distance !== 'undefined') {
+        setDistance(nextProps.distance);
+      }
+    },
+  };
+}
+
 function parseResistanceValue(raw) {
   if (raw === null || typeof raw === 'undefined') return NaN;
   if (typeof raw === 'number') return raw;
@@ -956,6 +1030,22 @@ export const availableComponents = [
     defaultProps: { resistance: '10k' },
     createInstance: ({ props }) => createPhotoresistorInstance({ props }),
     createPreview: () => createWokwiPreview('wokwi-photoresistor-sensor', {}),
+  },
+  {
+    id: 'ultrasonic-sensor',
+    name: 'Sensor Ultrassônico HC-SR04',
+    element: null,
+    description: 'Medição de distância por ultrassom.',
+    group: 'sensors',
+    defaultProps: { distance: 100 },
+    pins: [
+      { name: 'VCC', type: 'power', position: { xPercent: 18, yPercent: 86 } },
+      { name: 'TRIG', type: 'signal', position: { xPercent: 42, yPercent: 86 } },
+      { name: 'ECHO', type: 'signal', position: { xPercent: 66, yPercent: 86 } },
+      { name: 'GND', type: 'ground', position: { xPercent: 90, yPercent: 86 } },
+    ],
+    createInstance: ({ props }) => createUltrasonicSensorElement({ props, preview: false }),
+    createPreview: () => createUltrasonicSensorElement({ preview: true }),
   },
   {
     id: 'buzzer',
