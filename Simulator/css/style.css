@@ -582,8 +582,8 @@ body {
 
 /* Pinos dos componentes */
 .pin {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   border: 2px solid #d7dbe9;
   cursor: pointer;
@@ -609,8 +609,8 @@ body {
 }
 
 .pin-selected {
-  transform: scale(1.5);
-  box-shadow: 0 0 15px rgba(0, 123, 255, 1);
+  transform: scale(1.25);
+  box-shadow: 0 0 10px rgba(0, 123, 255, 1);
   animation: pulse 1s infinite;
 }
 
@@ -618,6 +618,24 @@ body {
   width: 7px;
   height: 7px;
   border-width: 1px;
+}
+
+.canvas-component[data-component-type="amado-board"] .pin {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  border-width: 1px;
+}
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="MOTOR_A+"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="MOTOR_A-"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="MOTOR_B+"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="MOTOR_B-"] {
+  width: 8px;
+  height: 8px;
 }
 
 @keyframes pulse {
