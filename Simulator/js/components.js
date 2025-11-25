@@ -598,6 +598,7 @@ const esp32PinLayout = [
   { name: 'D21', side: 'right', y: 62.9 },
   { name: 'D19', side: 'right', y: 72.2 },
   { name: 'D18', side: 'right', y: 81.7 },
+  { name: 'D17', side: 'right', y: 86.5 },
   { name: 'D5', side: 'right', y: 91.3 },
   { name: 'TX2', side: 'right', y: 101.0 },
   { name: 'RX2', side: 'right', y: 110.8 },
@@ -622,6 +623,9 @@ const amadoBoardCoordinates = {
   TX0: { xPercent: 88.9353, yPercent: 35.8617 },
   RX0: { xPercent: 88.9353, yPercent: 40.9461 },
   D21: { xPercent: 88.9353, yPercent: 46.4824 },
+  D19: { xPercent: 79.0311, yPercent: 51.7 },
+  D18: { xPercent: 88.9353, yPercent: 57.4 },
+  D17: { xPercent: 98.9353, yPercent: 63.3 },
   // Continue adicionando os demais pinos seguindo este padrão...
   D26: { xPercent: 16.6348, yPercent: 67.5402 },
   D27: { xPercent: 16.6348, yPercent: 72.7799 },

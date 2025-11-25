@@ -1494,9 +1494,11 @@ body {
 }
 
 .component-card-preview .ultrasonic-shell {
-  transform: scale(0.8);
+  transform: scale(0.34) translateX(-17px);
   transform-origin: top center;
-  margin: 10px auto 0;
+  margin: 41px auto 0;
+  display: flex;
+  justify-content: center;
 }
 
 .ultrasonic-shell {
@@ -1529,11 +1531,6 @@ body {
   font-size: 11px;
   min-width: 52px;
   text-align: right;
-}
-.component-card-preview .ultrasonic-shell {
-  transform: scale(0.8);
-  transform-origin: top center;
-  margin: 10px auto 0;
 }
 .canvas-component[data-component-type="amado-board"]
   .pin[data-pin-name="D25"],
