@@ -99,11 +99,17 @@ export class CanvasManager {
 
   refreshOverlayPositions() {
     this.components.forEach((component) => {
-      if (component.type !== 'photoresistor') return;
-      const controls = component.element?.__controls;
-      if (!controls) return;
-      if (controls.style.display === 'none') return;
-      this.positionPhotoresistorControls(component);
+      if (component.type === 'photoresistor') {
+        const controls = component.element?.__controls;
+        if (!controls || controls.style.display === 'none') return;
+        this.positionPhotoresistorControls(component);
+        return;
+      }
+      if (component.type === 'ultrasonic-sensor') {
+        const controls = component.element?.__controls;
+        if (!controls || controls.style.display === 'none') return;
+        this.positionUltrasonicControls(component);
+      }
     });
   }
 

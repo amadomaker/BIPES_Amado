@@ -1521,7 +1521,7 @@ body {
 }
 
 .ultrasonic-controls input[type='range'] {
-  width: 90px;
+  width: 120px;
 }
 
 .ultrasonic-controls .value {
