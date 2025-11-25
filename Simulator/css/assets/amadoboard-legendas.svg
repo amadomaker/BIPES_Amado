@@ -3,7 +3,7 @@
    id="Camada_1"
    viewBox="0 0 400.14999 725.44999"
    version="1.1"
-   sodipodi:docname="amadoboard-legendas (1).svg"
+   sodipodi:docname="Amado Board Com legendas 1.1 (Cinza).svg"
    width="400.14999"
    height="725.45001"
    inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
@@ -20,9 +20,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="0.85774892"
-     inkscape:cx="456.42727"
-     inkscape:cy="412.70818"
+     inkscape:zoom="1.7154978"
+     inkscape:cx="198.77612"
+     inkscape:cy="68.201776"
      inkscape:window-width="1920"
      inkscape:window-height="1051"
      inkscape:window-x="1341"
@@ -1414,7 +1414,7 @@
        id="tspan658"
        x="22.539709"
        y="394.02298"
-       style="font-size:7.55906px">V5</tspan></text><text
+       style="font-size:7.55906px">5V</tspan></text><text
      xml:space="preserve"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.55906px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#f2f2f2;stroke:#ffffff;stroke-width:0"
      x="42.715847"
@@ -1888,7 +1888,7 @@
        sodipodi:role="line"
        id="tspan1"
        x="-202.39732"
-       y="-3.6587687">D14</tspan></text><text
+       y="-3.6587687">D34</tspan></text><text
      xml:space="preserve"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.55906px;font-family:Arial;-inkscape-font-specification:Arial;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:none;stroke-width:0.944882;stroke-dasharray:none"
      x="-179.07375"
