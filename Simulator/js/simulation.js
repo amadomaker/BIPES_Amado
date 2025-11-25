@@ -1684,9 +1684,6 @@ class Simulation {
           ? 1
           : 0;
       this.setLedState(result.component, brightness);
-      if (!result.lightsUp && result.reasons.length) {
-        errorMessages.push(`LED ${result.component.id}: ${result.reasons.join(', ')}`);
-      }
       if (result.damageEvent) {
         const reasonLabel = result.damageReason === 'sobrecorrente' ? 'sobre-corrente' : 'sobre-tensão';
         const message = `LED ${result.component.id}: danificado por ${reasonLabel}`;
