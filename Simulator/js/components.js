@@ -578,6 +578,8 @@ function classifyPinType(name) {
 const esp32PinLayout = [
   { name: 'D36', side: 'left', y: 18.0 },
   { name: 'D39', side: 'left', y: 26.0 },
+  { name: 'D16', side: 'left', y: 34.0 },
+  { name: 'D15', side: 'right', y: 34.0 },
   { name: 'D34', side: 'left', y: 53.1 },
   { name: 'D35', side: 'left', y: 62.9 },
   { name: 'D32', side: 'left', y: 72.2 },
@@ -590,20 +592,16 @@ const esp32PinLayout = [
   { name: 'D13', side: 'left', y: 139.5 },
   { name: 'GND.2', side: 'left', y: 149.0 },
   { name: 'VIN', side: 'left', y: 158.5 },
-  { name: 'D23', side: 'right-top', y: 24.0 },
+  { name: 'D23 / MOSI', side: 'right-top', y: 24.0 },
   { name: 'D22 / SCL', side: 'right', y: 34.0 },
   { name: 'D21 / SDA', side: 'right', y: 44.0 },
-  { name: 'D19', side: 'right', y: 53.1 },
-  { name: 'D18', side: 'right', y: 62.9 },
+  { name: 'D19 / MISO', side: 'right', y: 53.1 },
+  { name: 'D18 / CLK', side: 'right', y: 62.9 },
   { name: 'D17', side: 'right', y: 72.2 },
-  { name: 'D5', side: 'right', y: 81.7 },
-  { name: 'TX2', side: 'right', y: 91.3 },
-  { name: 'RX2', side: 'right', y: 101.0 },
+  { name: 'D5 / CS', side: 'right', y: 81.7 },
   { name: 'D4', side: 'right', y: 110.8 },
   { name: 'D2', side: 'right', y: 120.0 },
   { name: 'D15', side: 'right', y: 130.4 },
-  { name: 'GND.1', side: 'right', y: 139.5 },
-  { name: '3V3', side: 'right', y: 149.0 },
   { name: 'GND.3', side: 'left', y: 168.0 },
   { name: '3V3.2', side: 'right', y: 168.0 },
   { name: 'GND.4', side: 'left', y: 170.0 },
@@ -612,8 +610,6 @@ const esp32PinLayout = [
   { name: 'GND.7', side: 'right', y: 170.0 },
   { name: 'GND.8', side: 'right', y: 176.0 },
   { name: 'GND.9', side: 'right', y: 182.0 },
-  { name: 'GND.10', side: 'left', y: 188.0 },
-  { name: 'GND.11', side: 'right', y: 188.0 },
   { name: '3V3.3', side: 'left', y: 164.0 },
   { name: '3V3.4', side: 'right', y: 164.0 },
   { name: '3V3.5', side: 'left', y: 194.0 },
@@ -635,35 +631,35 @@ const amadoBoardCoordinates = {
   D32: { xPercent: 16.6348, yPercent: 51.6797 },
   D33: { xPercent: 16.6348, yPercent: 56.877 },
   D25: { xPercent: 16.6348, yPercent: 62.3004 },
-  D23: { xPercent: 59.0311, yPercent: 24.6761 },
+  'D23 / MOSI': { xPercent: 21.6, yPercent: 64.7 }, //Feito
+  D16: { xPercent: 21.6, yPercent: 46.2 }, //Feito
+  D15: { xPercent: 28.57, yPercent: 46.2 }, //Feito
   'D22 / SCL': { xPercent: 77.3, yPercent: 34.45 }, //Feito
   'D21 / SDA': { xPercent: 77.3, yPercent: 37.2 }, //Feito
-  D19: { xPercent: 79.0311, yPercent: 46.0 },
-  D18: { xPercent: 88.9353, yPercent: 51.4 },
+  'D19 / MISO': { xPercent: 21.6, yPercent: 59.3 }, //Feito
+  'D18 / CLK': { xPercent: 21.6, yPercent: 61.9 }, //Feito
+  'D5 / CS': { xPercent: 21.6, yPercent: 67.4 },
   D17: { xPercent: 52.8 , yPercent: 4.1 }, //Feito
-  'GND.1': { xPercent: 88.9353, yPercent: 80.0 },
-  'GND.2': { xPercent: 16.6348, yPercent: 80.0 },
+  'GND.2': { xPercent: 21.6, yPercent: 56.8 }, //GND dos pinos do RFID
   'GND.3': { xPercent: 77.3, yPercent: 22.0 }, //GND do pino 34
   'GND.4': { xPercent: 77.3, yPercent: 28.5 },  //GND do pino 36
   'GND.5': { xPercent: 45, yPercent: 4.1 }, //GND do sensor ultrassônico
   'GND.6': { xPercent: 21.6, yPercent: 29.7 }, //GND do pino 39
   'GND.7': { xPercent: 21.6, yPercent: 24 }, //GND do pino 35
   'GND.8': { xPercent: 21.6, yPercent: 40.6 }, //GND do pino 16 (servo motor)
-  'GND.9': { xPercent: 88.9353, yPercent: 82.0 },
-  'GND.10': { xPercent: 16.6348, yPercent: 88.0 },
-  'GND.11': { xPercent: 88.9353, yPercent: 88.0 },
+  'GND.9': { xPercent: 28.57, yPercent: 40.6 }, //GND do pino 15 (servo motor)
   '3V3.2': { xPercent: 77.3, yPercent: 19 }, //3.3 do pino 34
   '3V3.3': { xPercent: 77.3, yPercent: 31.5 }, //3.3 do pino 36
   '3V3.4': { xPercent: 21.6, yPercent: 32.4 }, //3.3 do pino 39
   '3V3.5': { xPercent: 21.6, yPercent: 18.3 }, //3.3 do pino 35
-  '3V3.6': { xPercent: 88.9353, yPercent: 92.0 },
-  '3V3.7': { xPercent: 16.6348, yPercent: 96.0 },
+  '3V3.6': { xPercent: 28.4, yPercent: 51.2 }, //3.3 do pino de alimentação dos servos
+  '3V3.7': { xPercent: 21.6, yPercent: 70.4 }, //3.3 dos pinos do RFID
   '3V3.8': { xPercent: 88.9353, yPercent: 96.0 },
   '5V.1': { xPercent: 57, yPercent: 4.1 }, //5V do sensor ultrassônico
-  '5V.2': { xPercent: 88.9353, yPercent: 60.0 },
-  VS1: { xPercent: 16.6348, yPercent: 64.0 },
-  VS2: { xPercent: 88.9353, yPercent: 64.0 },
-  VS3: { xPercent: 21.6, yPercent: 43.15 }, //VS do pino 16 (servo motor)
+  '5V.2': { xPercent: 21.6, yPercent: 51.2 }, //5V do pino de alimentação dos servos
+  VS1: { xPercent: 25, yPercent: 51.2 }, //VS do pino de alimentação dos servos
+  VS2: { xPercent: 28.57, yPercent: 43.4 }, //VS do pino 15 (servo motor)
+  VS3: { xPercent: 21.6, yPercent: 43.4 }, //VS do pino 16 (servo motor)
   //Pinos referente ao driver de motor
   D26: { xPercent: 16.6348, yPercent: 67.5402 },
   D27: { xPercent: 16.6348, yPercent: 72.7799 },
