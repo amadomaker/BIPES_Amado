@@ -626,6 +626,123 @@ body {
   border-radius: 1px;
   border-width: 1px;
 }
+
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="D2"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="D32"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="D33"],
+.canvas-component[data-component-type="amado-board"]
+  .pin[data-pin-name="D4"] {
+  display: none;
+  pointer-events: none;
+}
+
+.amado-indicators {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.amado-buzzer-indicator {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.amado-buzzer-indicator.on {
+  opacity: 1;
+}
+
+.amado-buzzer-indicator .icon {
+  position: absolute;
+  inset: 4px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #0ea5e9, #0369a1);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.18), 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.amado-buzzer-indicator .wave {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(14, 165, 233, 0.7);
+  border-radius: 8px;
+  animation: amado-buzzer-wave 0.8s ease-out infinite;
+  box-shadow: 0 0 6px rgba(14, 165, 233, 0.5);
+}
+
+.amado-buzzer-indicator .wave-2 {
+  animation-delay: 0.2s;
+}
+
+@keyframes amado-buzzer-wave {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.25);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.amado-indicator {
+  position: absolute;
+  width: 8px;
+  height: 3px;
+  border-radius: 1px;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  opacity: 0;
+}
+
+.amado-indicator.on {
+  opacity: 1;
+}
+
+.amado-indicator .dot {
+  width: 100%;
+  height: 100%;
+  border-radius: 1px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.35);
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.amado-indicator.blue .dot {
+  background: #4fd1ff;
+  box-shadow: 0 0 6px rgba(79, 209, 255, 0.9);
+}
+
+.amado-indicator.red .dot {
+  background: #ff6b6b;
+  box-shadow: 0 0 6px rgba(255, 107, 107, 0.9);
+}
+
+.amado-indicator.green .dot {
+  background: #4ade80;
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.9);
+}
+
+.amado-indicator.on.blue .dot {
+  box-shadow: 0 0 8px rgba(79, 209, 255, 0.95), 0 0 14px rgba(79, 209, 255, 0.7);
+}
+
+.amado-indicator.on.red .dot {
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.95), 0 0 14px rgba(255, 107, 107, 0.7);
+}
+
+.amado-indicator.on.green .dot {
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.95), 0 0 14px rgba(74, 222, 128, 0.7);
+}
 .canvas-component[data-component-type="amado-board"]
   .pin[data-pin-name="MOTOR_A+"],
 .canvas-component[data-component-type="amado-board"]

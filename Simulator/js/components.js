@@ -591,7 +591,6 @@ const esp32PinLayout = [
   { name: 'D12', side: 'left', y: 130.4 },
   { name: 'D13', side: 'left', y: 139.5 },
   { name: 'GND.2', side: 'left', y: 149.0 },
-  { name: 'VIN', side: 'left', y: 158.5 },
   { name: 'D23 / MOSI', side: 'right-top', y: 24.0 },
   { name: 'D22 / SCL', side: 'right', y: 34.0 },
   { name: 'D21 / SDA', side: 'right', y: 44.0 },
@@ -615,7 +614,6 @@ const esp32PinLayout = [
   { name: '3V3.5', side: 'left', y: 194.0 },
   { name: '3V3.6', side: 'right', y: 194.0 },
   { name: '3V3.7', side: 'left', y: 200.0 },
-  { name: '3V3.8', side: 'right', y: 200.0 },
   { name: '5V.1', side: 'left', y: 206.0 },
   { name: '5V.2', side: 'right', y: 206.0 },
   { name: 'VS1', side: 'left', y: 212.0 },
@@ -628,8 +626,8 @@ const amadoBoardCoordinates = {
   D39: { xPercent: 21.6, yPercent: 35.2 }, //Feito
   D34: { xPercent: 49, yPercent: 4.1 }, //Feito
   D35: { xPercent: 21.6, yPercent: 21.3 }, //Feito
-  D32: { xPercent: 16.6348, yPercent: 51.6797 },
-  D33: { xPercent: 16.6348, yPercent: 56.877 },
+  D32: { xPercent: 35, yPercent: 51.6797 },
+  D33: { xPercent: 35, yPercent: 56.877 },
   D25: { xPercent: 16.6348, yPercent: 62.3004 },
   'D23 / MOSI': { xPercent: 21.6, yPercent: 64.7 }, //Feito
   D16: { xPercent: 21.6, yPercent: 46.2 }, //Feito
@@ -638,7 +636,7 @@ const amadoBoardCoordinates = {
   'D21 / SDA': { xPercent: 77.3, yPercent: 37.2 }, //Feito
   'D19 / MISO': { xPercent: 21.6, yPercent: 59.3 }, //Feito
   'D18 / CLK': { xPercent: 21.6, yPercent: 61.9 }, //Feito
-  'D5 / CS': { xPercent: 21.6, yPercent: 67.4 },
+  'D5 / CS': { xPercent: 21.6, yPercent: 67.4 }, //Feito
   D17: { xPercent: 52.8 , yPercent: 4.1 }, //Feito
   'GND.2': { xPercent: 21.6, yPercent: 56.8 }, //GND dos pinos do RFID
   'GND.3': { xPercent: 77.3, yPercent: 22.0 }, //GND do pino 34
@@ -654,7 +652,6 @@ const amadoBoardCoordinates = {
   '3V3.5': { xPercent: 21.6, yPercent: 18.3 }, //3.3 do pino 35
   '3V3.6': { xPercent: 28.4, yPercent: 51.2 }, //3.3 do pino de alimentação dos servos
   '3V3.7': { xPercent: 21.6, yPercent: 70.4 }, //3.3 dos pinos do RFID
-  '3V3.8': { xPercent: 88.9353, yPercent: 96.0 },
   '5V.1': { xPercent: 57, yPercent: 4.1 }, //5V do sensor ultrassônico
   '5V.2': { xPercent: 21.6, yPercent: 51.2 }, //5V do pino de alimentação dos servos
   VS1: { xPercent: 25, yPercent: 51.2 }, //VS do pino de alimentação dos servos
@@ -753,6 +750,41 @@ function createAmadoBoardElement({ preview = false } = {}) {
   if (preview) {
     return container;
   }
+
+  const indicators = document.createElement('div');
+  indicators.className = 'amado-indicators';
+  const indicatorPins = [
+    { pin: 'D2', color: 'blue', xPercent: 23.4, yPercent: 22.35 },
+    { pin: 'D32', color: 'green', xPercent: 23.4, yPercent:25.5 },
+    { pin: 'D33', color: 'red', xPercent: 23.4, yPercent: 29.1 },
+  ];
+  const indicatorMap = new Map();
+  indicatorPins.forEach(({ pin, color, xPercent, yPercent }) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = `amado-indicator ${color}`;
+    wrapper.style.left = `calc(${xPercent}% + 10px)`;
+    wrapper.style.top = `${yPercent}%`;
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    wrapper.append(dot);
+    indicators.appendChild(wrapper);
+    indicatorMap.set(pin.toUpperCase(), wrapper);
+  });
+  container.appendChild(indicators);
+  container.__pinIndicators = indicatorMap;
+
+  const buzzerIndicator = document.createElement('div');
+  buzzerIndicator.className = 'amado-buzzer-indicator';
+  const buzzerPos = { xPercent: 72.5, yPercent: 71 };
+  buzzerIndicator.style.left = `calc(${buzzerPos.xPercent}% + 0px)`;
+  buzzerIndicator.style.top = `${buzzerPos.yPercent}%`;
+  buzzerIndicator.innerHTML = `
+    <div class="icon"></div>
+    <div class="wave wave-1"></div>
+    <div class="wave wave-2"></div>
+  `;
+  container.appendChild(buzzerIndicator);
+  container.__buzzerIndicator = buzzerIndicator;
 
   return {
     element: container,

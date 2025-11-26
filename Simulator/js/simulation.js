@@ -1623,6 +1623,45 @@ class Simulation {
     this.buzzerAudioNodes = new Map();
   }
 
+  getEmbeddedBuzzerId(componentId) {
+    return `${componentId}:embedded-buzzer`;
+  }
+
+  updateEmbeddedBuzzer(componentId, pinName, isHigh) {
+    if (String(pinName).toUpperCase() !== 'D4') return;
+    const buzzerId = this.getEmbeddedBuzzerId(componentId);
+    const component = this.canvasManager?.getComponentById(componentId);
+    const indicator = component?.element?.__buzzerIndicator;
+    if (indicator) {
+      indicator.classList.toggle('on', Boolean(isHigh));
+    }
+    if (isHigh) {
+      this.startBuzzerAudio(buzzerId);
+    } else {
+      this.stopBuzzerAudio(buzzerId);
+    }
+  }
+
+  updateBoardIndicator(componentId, pinName, isHigh) {
+    if (!this.canvasManager) return;
+    const component = this.canvasManager.getComponentById(componentId);
+    if (!component?.element?.__pinIndicators) return;
+    const indicator = component.element.__pinIndicators.get(String(pinName).toUpperCase());
+    if (!indicator) return;
+    indicator.classList.toggle('on', Boolean(isHigh));
+  }
+
+  resetBoardIndicators() {
+    if (!this.canvasManager) return;
+    this.canvasManager.components.forEach((component) => {
+      if (!component?.element?.__pinIndicators) return;
+      component.element.__pinIndicators.forEach((indicator) => indicator.classList.remove('on'));
+      if (component.element.__buzzerIndicator) {
+        component.element.__buzzerIndicator.classList.remove('on');
+      }
+    });
+  }
+
   configure(listeners = {}) {
     this.listeners = { ...this.listeners, ...listeners };
   }
@@ -2712,6 +2751,12 @@ class Simulation {
     this.boardMotorOutputs.clear();
     this.oledControllers.clear();
     this.ultrasonicBindings.clear();
+    if (this.canvasManager?.components?.length) {
+      this.canvasManager.components
+        .filter((component) => component.type === 'amado-board')
+        .forEach((component) => this.stopBuzzerAudio(this.getEmbeddedBuzzerId(component.id)));
+    }
+    this.resetBoardIndicators();
   }
 
   startProgram(program, options = {}) {
@@ -3007,7 +3052,10 @@ class Simulation {
 
     const analogCandidate = this.tryParseAnalogLevel(level);
     if (analogCandidate !== null) {
-      return this.setBoardPinAnalogLevel(componentId, pinName, analogCandidate);
+      const result = this.setBoardPinAnalogLevel(componentId, pinName, analogCandidate);
+      this.updateBoardIndicator(componentId, pinName, analogCandidate > 0);
+      this.updateEmbeddedBuzzer(componentId, pinName, analogCandidate > 0);
+      return result;
     }
 
     const normalized = this.normalizePinLevel(level);
@@ -3016,12 +3064,16 @@ class Simulation {
     if (normalized === 'floating') {
       this.boardPinStates.delete(key);
       this.boardAnalogLevels.delete(key);
+      this.updateBoardIndicator(componentId, pinName, false);
+      this.updateEmbeddedBuzzer(componentId, pinName, false);
       return normalized;
     }
 
     this.boardPinStates.set(key, normalized);
     this.boardAnalogLevels.set(key, normalized === 'high' ? 4095 : 0);
 
+    this.updateBoardIndicator(componentId, pinName, normalized === 'high');
+    this.updateEmbeddedBuzzer(componentId, pinName, normalized === 'high');
     return normalized;
   }
 
@@ -3066,6 +3118,8 @@ class Simulation {
     this.boardAnalogLevels.set(key, analogLevel);
     const digitalState = analogLevel <= 0 ? 'low' : 'high';
     this.boardPinStates.set(key, digitalState);
+    this.updateBoardIndicator(componentId, pinName, digitalState === 'high');
+    this.updateEmbeddedBuzzer(componentId, pinName, digitalState === 'high');
     return analogLevel;
   }
 
@@ -3285,7 +3339,7 @@ class Simulation {
       throw new Error('Placa alvo não encontrada no workspace.');
     }
 
-    if (component.type !== 'amado-board' && component.type !== 'esp32') {
+    if (component.type !== 'amado-board') {
       throw new Error('O programa só pode controlar placas compatíveis (Amado ESP32).');
     }
 
