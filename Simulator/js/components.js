@@ -755,8 +755,8 @@ function createAmadoBoardElement({ preview = false } = {}) {
   indicators.className = 'amado-indicators';
   const indicatorPins = [
     { pin: 'D2', color: 'blue', xPercent: 23.4, yPercent: 22.35 },
-    { pin: 'D32', color: 'green', xPercent: 23.4, yPercent:25.5 },
-    { pin: 'D33', color: 'red', xPercent: 23.4, yPercent: 29.1 },
+    { pin: 'D32', color: 'red', xPercent: 23.4, yPercent:25.5 },
+    { pin: 'D33', color: 'green', xPercent: 23.4, yPercent: 29.1 },
   ];
   const indicatorMap = new Map();
   indicatorPins.forEach(({ pin, color, xPercent, yPercent }) => {
