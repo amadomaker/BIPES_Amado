@@ -1148,6 +1148,15 @@ export const availableComponents = [
     createPreview: () => createOledDisplayElement({ preview: true }).element,
   },
   {
+    id: 'servo',
+    name: 'Servo Motor',
+    element: 'wokwi-servo',
+    description: 'Servo rotativo padrão controlado por PWM.',
+    group: 'actuators',
+    defaultProps: {},
+    createPreview: () => createWokwiPreview('wokwi-servo', { angle: 0 }),
+  },
+  {
     id: 'ir-receiver',
     name: 'Sensor IR',
     element: 'wokwi-ir-receiver',

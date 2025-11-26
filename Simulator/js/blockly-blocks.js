@@ -50,6 +50,18 @@ function createLevelSelectorShadow(Blockly) {
   return shadow;
 }
 
+function createServoNameField(Blockly, defaultValue = 'Servo 1') {
+  const FieldTextInput = Blockly.FieldTextInput ?? Blockly.FieldInput ?? null;
+  if (!FieldTextInput) {
+    return null;
+  }
+  const field = new FieldTextInput(defaultValue);
+  if (typeof field.setSpellcheck === 'function') {
+    field.setSpellcheck(false);
+  }
+  return field;
+}
+
 function buildPinOptions() {
   const pins = new Set(
     amadoBoardPins
@@ -164,6 +176,27 @@ export function registerAmadoBlocks(Blockly) {
       nextStatement: null,
       colour: 18,
       tooltip: 'Configura o motor DC mapeando os pinos PWM, DIR1 e DIR2 da placa Amado.',
+      helpUrl: '',
+    },
+    {
+      type: 'servo_init',
+      message0: 'iniciar servo %1 no pino %2',
+      args0: [
+        {
+          type: 'field_input',
+          name: 'NAME',
+          text: 'Servo 1',
+        },
+        {
+          type: 'field_dropdown',
+          name: 'PIN',
+          options: pinOptions,
+        },
+      ],
+      previousStatement: null,
+      nextStatement: null,
+      colour: 30,
+      tooltip: 'Inicializa um servo motor indicando um nome e o pino de sinal (PWM).',
       helpUrl: '',
     },
   ]);
@@ -312,6 +345,32 @@ export function registerAmadoBlocks(Blockly) {
       this.setColour(18);
       this.setTooltip('Desliga o motor DC e coloca os pinos de direção em LOW.');
       this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.servo_move = {
+    init() {
+      this.appendDummyInput()
+        .appendField('mover servo')
+        .appendField(createServoNameField(Blockly, 'Servo 1') ?? 'Servo 1', 'NAME');
+
+      const angleInput = this.appendValueInput('ANGLE')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_LEFT)
+        .appendField('Ângulo');
+
+      this.setInputsInline(false);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(30);
+      this.setTooltip('Move o servo informado para o ângulo desejado (0° a 180°).');
+      this.setHelpUrl('');
+
+      const conn = angleInput?.connection;
+      if (conn) {
+        const shadow = createNumberShadowBlock(Blockly, '90');
+        conn.setShadowDom(shadow);
+      }
     },
   };
 
@@ -513,6 +572,19 @@ export function registerAmadoBlocks(Blockly) {
   javascriptGenerator.forBlock.motor_dc_stop = function motorDcStop(block) {
     const name = (block.getFieldValue('NAME') ?? '').trim();
     return `await api.motorDcStop(${JSON.stringify(name)});\n`;
+  };
+
+  javascriptGenerator.forBlock.servo_init = function servoInit(block) {
+    const name = (block.getFieldValue('NAME') ?? '').trim() || 'Servo';
+    const pin = block.getFieldValue('PIN') ?? '';
+    return `await api.servoInit(${JSON.stringify(name)}, ${JSON.stringify(pin)});\n`;
+  };
+
+  javascriptGenerator.forBlock.servo_move = function servoMove(block) {
+    const name = (block.getFieldValue('NAME') ?? '').trim() || 'Servo';
+    const angle =
+      javascriptGenerator.valueToCode(block, 'ANGLE', javascriptGenerator.ORDER_NONE) || '90';
+    return `await api.servoMove(${JSON.stringify(name)}, ${angle});\n`;
   };
 
   javascriptGenerator.forBlock.oled_display_init = function oledDisplayInit(block) {

@@ -1621,6 +1621,7 @@ class Simulation {
     this.powerEnabled = false;
     this.audioContext = null;
     this.buzzerAudioNodes = new Map();
+    this.servoMap = new Map();
   }
 
   getEmbeddedBuzzerId(componentId) {
@@ -1660,6 +1661,22 @@ class Simulation {
         component.element.__buzzerIndicator.classList.remove('on');
       }
     });
+  }
+
+  normalizeServoName(name) {
+    return String(name || '')
+      .trim()
+      .toUpperCase();
+  }
+
+  normalizeServoNameFromElement(component) {
+    const rawName =
+      component?.props?.name ??
+      component?.state?.name ??
+      component?.element?.dataset?.servoName ??
+      component?.element?.getAttribute?.('data-servo-name') ??
+      '';
+    return this.normalizeServoName(rawName || component?.id);
   }
 
   configure(listeners = {}) {
@@ -1775,6 +1792,8 @@ class Simulation {
         }
       }
     });
+
+    this.updateServos(snapshot);
 
     this.updateMultimeters(snapshot);
 
@@ -1970,6 +1989,12 @@ class Simulation {
       .toUpperCase();
   }
 
+  normalizeServoName(name) {
+    return String(name || '')
+      .trim()
+      .toUpperCase();
+  }
+
   normalizeBoardPinInput(value) {
     if (typeof value === 'number' && Number.isFinite(value)) {
       return this.normalizeBoardPinName(`D${Math.round(value)}`);
@@ -1983,6 +2008,20 @@ class Simulation {
       return this.normalizeBoardPinName(text);
     }
     return this.normalizeBoardPinName(text);
+  }
+
+  findServoComponentsByBoardPin(boardComponentId, pinName, snapshot) {
+    if (!this.canvasManager) return [];
+    const snap = snapshot ?? this.createSnapshot();
+    const boardNode = snap.getNodeByComponentPin(boardComponentId, pinName);
+    if (!boardNode || !boardNode.netId) return [];
+    const servos = Array.isArray(this.canvasManager.components)
+      ? this.canvasManager.components.filter((c) => c?.type === 'servo')
+      : [];
+    return servos.filter((servo) => {
+      const sigNode = snap.getNodeByComponentPin(servo.id, 'PWM');
+      return sigNode?.netId && sigNode.netId === boardNode.netId;
+    });
   }
 
   clearMotorControllers() {
@@ -2468,6 +2507,52 @@ class Simulation {
     return components.filter((component) => component?.type === 'ultrasonic-sensor');
   }
 
+  updateServos(snapshot) {
+    if (!this.canvasManager) return;
+    const servos = Array.isArray(this.canvasManager.components)
+      ? this.canvasManager.components.filter((c) => c?.type === 'servo')
+      : [];
+    if (!servos.length) return;
+
+    servos.forEach((component) => {
+      const sig = snapshot.getNodeByComponentPin(component.id, 'PWM');
+      const gnd = snapshot.getNodeByComponentPin(component.id, 'GND');
+      const vcc = snapshot.getNodeByComponentPin(component.id, 'V+');
+
+      if (!sig || !gnd) {
+        if (component.element) {
+          component.element.setAttribute('angle', '0');
+          component.element.angle = 0;
+        }
+        return;
+      }
+
+      // Se o servo foi iniciado via API e o pino/net batem, usa ângulo armazenado
+      const entryFromMap = Array.from(this.servoMap.values()).find((entry) => {
+        if (!entry?.pin || !entry.boardComponentId) return false;
+        const boardNode = snapshot.getNodeByComponentPin(entry.boardComponentId, entry.pin);
+        return boardNode?.netId && boardNode.netId === sig.netId;
+      });
+      if (entryFromMap && component.element) {
+        component.element.setAttribute('angle', String(entryFromMap.angle));
+        component.element.angle = entryFromMap.angle;
+        return;
+      }
+
+      const sigV = snapshot.estimateNodeVoltage(sig);
+      const gndV = snapshot.estimateNodeVoltage(gnd);
+      const vccV = vcc ? snapshot.estimateNodeVoltage(vcc) : DEFAULT_SUPPLY_VOLTAGE;
+      const supply = Math.max(vccV - gndV, DEFAULT_SUPPLY_VOLTAGE);
+      const level = Math.max(0, Math.min(1, (sigV - gndV) / Math.max(supply, 1e-3)));
+      const angle = Math.round(level * 180);
+
+      if (component.element) {
+        component.element.setAttribute('angle', String(angle));
+        component.element.angle = angle;
+      }
+    });
+  }
+
   findUltrasonicComponentByPins(boardComponentId, trigPinName, echoPinName) {
     const snapshot = this.createSnapshot();
     const trigNode = snapshot.getNodeByComponentPin(boardComponentId, trigPinName);
@@ -2751,6 +2836,7 @@ class Simulation {
     this.boardMotorOutputs.clear();
     this.oledControllers.clear();
     this.ultrasonicBindings.clear();
+    this.servoMap.clear();
     if (this.canvasManager?.components?.length) {
       this.canvasManager.components
         .filter((component) => component.type === 'amado-board')
@@ -2979,6 +3065,69 @@ class Simulation {
             : { message: '', args, timestamp: Date.now(), level: 'info' };
         this.listeners.onLog?.(entry);
         console.log('[Blockly]', ...args);
+      },
+      servoInit: async (name, pin) => {
+        if (programState.aborted) return;
+        try {
+          const normalizedName = this.normalizeServoName(name);
+          const pinName = this.normalizeBoardPinInput(pin);
+          if (!pinName) {
+            throw new Error('Informe o pino de sinal do servo.');
+          }
+          this.requireSignalPinElement(programState.boardComponentId, pinName);
+          const normalizedPin = this.normalizeBoardPinName(pinName);
+          this.servoMap.set(normalizedName, {
+            pin: normalizedPin,
+            angle: 0,
+            boardComponentId: programState.boardComponentId,
+          });
+          const snapshot = this.createSnapshot();
+          const matches = this.findServoComponentsByBoardPin(
+            programState.boardComponentId,
+            normalizedPin,
+            snapshot,
+          );
+          matches.forEach((component) => {
+            if (component.element) {
+              component.element.dataset.servoName = normalizedName;
+            }
+            component.props = component.props ?? {};
+            component.props.name = normalizedName;
+          });
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      servoMove: async (name, angle) => {
+        if (programState.aborted) return;
+        try {
+          const normalizedName = this.normalizeServoName(name);
+          if (!this.servoMap.has(normalizedName)) {
+            throw new Error('Inicialize o servo antes de mover.');
+          }
+          const numeric = Math.max(0, Math.min(180, Number(angle) || 0));
+          const entry = this.servoMap.get(normalizedName);
+          this.servoMap.set(normalizedName, { ...entry, angle: numeric });
+
+          const snapshot = this.createSnapshot();
+          const matches = this.findServoComponentsByBoardPin(
+            entry.boardComponentId ?? programState.boardComponentId,
+            entry.pin,
+            snapshot,
+          );
+          matches.forEach((component) => {
+            if (component.element) {
+              component.element.setAttribute('angle', String(numeric));
+              component.element.angle = numeric;
+            }
+          });
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
       },
     };
 

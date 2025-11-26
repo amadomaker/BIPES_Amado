@@ -59,6 +59,15 @@ const DEFAULT_TOOLBOX = {
       contents: [
         {
           kind: 'category',
+          name: 'Servo motor',
+          colour: '#fbad3d',
+          contents: [
+            { kind: 'block', type: 'servo_init' },
+            { kind: 'block', type: 'servo_move' },
+          ],
+        },
+        {
+          kind: 'category',
           name: 'Motor DC',
           colour: '#FB923C',
           contents: [
