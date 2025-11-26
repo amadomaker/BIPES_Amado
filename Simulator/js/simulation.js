@@ -1401,6 +1401,29 @@ class CircuitSnapshot {
     }
   }
 
+  applyRelayConnections(component) {
+    const sig = this.findRelayNode(component.id, ['IN', 'SIG', 'S', 'PWM']);
+    const gnd = this.findRelayNode(component.id, ['GND', 'GROUND']);
+    const vcc = this.findRelayNode(component.id, ['VCC', 'V+', '5V', 'VIN']);
+    const com = this.findRelayNode(component.id, ['COM', 'COMMON', 'C']);
+    const no = this.findRelayNode(component.id, ['NO', 'N.O', 'N-O']);
+    const nc = this.findRelayNode(component.id, ['NC', 'N.C', 'N-C']);
+    if (!com || (!no && !nc)) return;
+
+    const sigV = this.estimateNodeVoltage(sig);
+    const gndV = this.estimateNodeVoltage(gnd);
+    const vccV = this.estimateNodeVoltage(vcc);
+    const supply = Math.max(vccV - gndV, DEFAULT_SUPPLY_VOLTAGE);
+    const threshold = Math.max(0.2 * supply, 1.0);
+    const isOn = sig ? sigV - gndV >= threshold : false;
+
+    if (isOn && no) {
+      this.connectNodes(com, no);
+    } else if (!isOn && nc) {
+      this.connectNodes(com, nc);
+    }
+  }
+
   connectNodes(nodeA, nodeB) {
     if (!nodeA || !nodeB || nodeA === nodeB) return;
     nodeA.connections.add(nodeB);
@@ -2022,6 +2045,15 @@ class Simulation {
       const sigNode = snap.getNodeByComponentPin(servo.id, 'PWM');
       return sigNode?.netId && sigNode.netId === boardNode.netId;
     });
+  }
+
+  findRelayNode(componentId, names = [], snapshot) {
+    const snap = snapshot ?? this.createSnapshot();
+    for (const name of names) {
+      const node = snap.getNodeByComponentPin(componentId, name);
+      if (node) return node;
+    }
+    return null;
   }
 
   clearMotorControllers() {
