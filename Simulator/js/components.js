@@ -738,8 +738,9 @@ export const amadoBoardPins = [...baseAmadoBoardPins, ...motorOutputPins];
 function createAmadoBoardElement({ preview = false } = {}) {
   const container = document.createElement('div');
   container.className = `amado-board${preview ? ' amado-board-preview' : ''}`;
-  container.style.width = `${preview ? AMADO_BOARD_WIDTH * 0.45 : AMADO_BOARD_WIDTH}px`;
-  container.style.height = `${preview ? AMADO_BOARD_HEIGHT * 0.45 : AMADO_BOARD_HEIGHT}px`;
+  const previewScale = 0.22;
+  container.style.width = `${preview ? AMADO_BOARD_WIDTH * previewScale : AMADO_BOARD_WIDTH}px`;
+  container.style.height = `${preview ? AMADO_BOARD_HEIGHT * previewScale : AMADO_BOARD_HEIGHT}px`;
   container.dataset.board = 'amado';
 
   const image = document.createElement('img');
@@ -748,7 +749,10 @@ function createAmadoBoardElement({ preview = false } = {}) {
   container.appendChild(image);
 
   if (preview) {
-    return container;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'preview-scale amado-preview-wrapper';
+    wrapper.appendChild(container);
+    return wrapper;
   }
 
   const indicators = document.createElement('div');
