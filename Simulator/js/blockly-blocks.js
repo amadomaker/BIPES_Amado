@@ -385,11 +385,11 @@ export function registerAmadoBlocks(Blockly) {
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField('I2C');
       const sclInput = this.appendValueInput('SCL')
-        .setCheck('Number')
+        .setCheck('String')
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField('SCL');
       const sdaInput = this.appendValueInput('SDA')
-        .setCheck('Number')
+        .setCheck('String')
         .setAlign(Blockly.ALIGN_RIGHT)
         .appendField('SDA');
 
@@ -400,8 +400,8 @@ export function registerAmadoBlocks(Blockly) {
       this.setHelpUrl('');
 
       i2cInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '1'));
-      sclInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '22'));
-      sdaInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '21'));
+      sclInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      sdaInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
     },
   };
 
@@ -591,9 +591,9 @@ export function registerAmadoBlocks(Blockly) {
     const i2c =
       javascriptGenerator.valueToCode(block, 'I2C', javascriptGenerator.ORDER_NONE) || '0';
     const scl =
-      javascriptGenerator.valueToCode(block, 'SCL', javascriptGenerator.ORDER_NONE) || '22';
+      javascriptGenerator.valueToCode(block, 'SCL', javascriptGenerator.ORDER_NONE) || "''";
     const sda =
-      javascriptGenerator.valueToCode(block, 'SDA', javascriptGenerator.ORDER_NONE) || '21';
+      javascriptGenerator.valueToCode(block, 'SDA', javascriptGenerator.ORDER_NONE) || "''";
     return `await api.oledInit({ i2c: ${i2c}, scl: ${scl}, sda: ${sda} });\n`;
   };
 
