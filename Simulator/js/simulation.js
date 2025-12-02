@@ -2024,6 +2024,11 @@ class Simulation {
     return norm === 'D34' || norm === 'D35' || norm === 'D36' || norm === 'D39' || norm === 'D15';
   }
 
+  isInputOnlyPin(pinName) {
+    const norm = this.normalizeBoardPinName(pinName);
+    return norm === 'D34' || norm === 'D35' || norm === 'D36' || norm === 'D39';
+  }
+
   isRestrictedSensorNet(boardNode, snapshot) {
     if (!boardNode?.netId || !snapshot?.nets) return false;
     const net = snapshot.nets.find((n) => n.id === boardNode.netId);
@@ -3151,6 +3156,9 @@ class Simulation {
           const pinName = this.normalizeBoardPinInput(pin);
           if (!pinName) {
             throw new Error('Informe o pino de sinal do servo.');
+          }
+          if (this.isInputOnlyPin(pinName)) {
+            throw new Error('O servo deve usar pinos digitais (exceto 34, 35, 36 ou 39).');
           }
           this.requireSignalPinElement(programState.boardComponentId, pinName);
           const normalizedPin = this.normalizeBoardPinName(pinName);
