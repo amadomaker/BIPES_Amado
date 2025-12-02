@@ -1139,8 +1139,8 @@ export const availableComponents = [
     group: 'outputs',
     defaultProps: {},
     pins: [
-      { name: 'VCC', type: 'power', position: { xPercent: 35.84, yPercent: 10.32 } },
-      { name: 'GND', type: 'ground', position: { xPercent: 45.25, yPercent: 10.32 } },
+      { name: 'VCC', type: 'power', position: { xPercent: 35.74, yPercent: 10.32 } },
+      { name: 'GND', type: 'ground', position: { xPercent: 45.15, yPercent: 10.32 } },
       { name: 'SCL', type: 'signal', position: { xPercent: 54.66, yPercent: 10.32 } },
       { name: 'SDA', type: 'signal', position: { xPercent: 64.06, yPercent: 10.32 } },
     ],

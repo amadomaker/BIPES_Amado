@@ -2012,6 +2012,13 @@ class Simulation {
       .toUpperCase();
   }
 
+  normalizePinIdentifier(name) {
+    return String(name ?? '')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '');
+  }
+
   normalizeServoName(name) {
     return String(name || '')
       .trim()
@@ -2457,6 +2464,18 @@ class Simulation {
     const sdaPin = this.normalizeBoardPinInput(options.sda);
     if (!sclPin || !sdaPin) {
       throw new Error('Informe os pinos SCL e SDA utilizados pelo display OLED.');
+    }
+
+    // Restrição aos pinos reais (D22 = SCL, D21 = SDA) sem quebrar rótulos com barra
+    const sclNorm = this.normalizePinIdentifier(sclPin);
+    const sdaNorm = this.normalizePinIdentifier(sdaPin);
+    const sclOk = sclNorm.includes('22') || sclNorm.includes('SCL');
+    const sdaOk = sdaNorm.includes('21') || sdaNorm.includes('SDA');
+    if (!sclOk) {
+      throw new Error('O pino SCL do OLED na Amado deve ser o D22.');
+    }
+    if (!sdaOk) {
+      throw new Error('O pino SDA do OLED na Amado deve ser o D21.');
     }
 
     this.requireSignalPinElement(boardComponentId, sclPin);
