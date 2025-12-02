@@ -2019,6 +2019,19 @@ class Simulation {
       .replace(/[^A-Z0-9]/g, '');
   }
 
+  isAllowedSensorPin(pinName) {
+    const norm = this.normalizeBoardPinName(pinName);
+    return norm === 'D34' || norm === 'D35' || norm === 'D36' || norm === 'D39' || norm === 'D15';
+  }
+
+  isRestrictedSensorNet(boardNode, snapshot) {
+    if (!boardNode?.netId || !snapshot?.nets) return false;
+    const net = snapshot.nets.find((n) => n.id === boardNode.netId);
+    if (!net) return false;
+    const restricted = new Set(['photoresistor', 'ir-receiver', 'ultrasonic-sensor']);
+    return net.nodes.some((node) => restricted.has(node.componentType ?? node.component?.type));
+  }
+
   normalizeServoName(name) {
     return String(name || '')
       .trim()
@@ -2629,6 +2642,10 @@ class Simulation {
       throw new Error('Informe os pinos TRIG e ECHO do sensor ultrassônico.');
     }
 
+    if (!this.isAllowedSensorPin(trigPin) || !this.isAllowedSensorPin(echoPin)) {
+      throw new Error('O sensor ultrassônico deve usar os pinos 34, 35, 36, 39 ou 15 para TRIG/ECHO.');
+    }
+
     this.requireSignalPinElement(boardComponentId, trigPin);
     this.requireSignalPinElement(boardComponentId, echoPin);
 
@@ -2972,6 +2989,12 @@ class Simulation {
           return Promise.reject(abortError);
         }
         try {
+          this.requireSignalPinElement(programState.boardComponentId, pinName);
+          const snapshot = this.createSnapshot();
+          const boardNode = snapshot.getNodeByComponentPin(programState.boardComponentId, pinName);
+          if (this.isRestrictedSensorNet(boardNode, snapshot) && !this.isAllowedSensorPin(pinName)) {
+            throw new Error('Este sensor deve usar os pinos 34, 35, 36, 39 ou 15 para o sinal.');
+          }
           const state = this.getBoardPinVoltageState(programState.boardComponentId, pinName);
           return state === 'high';
         } catch (error) {
@@ -2987,6 +3010,10 @@ class Simulation {
         try {
           this.requireSignalPinElement(programState.boardComponentId, pinName);
           const snapshot = this.createSnapshot();
+          const boardNode = snapshot.getNodeByComponentPin(programState.boardComponentId, pinName);
+          if (this.isRestrictedSensorNet(boardNode, snapshot) && !this.isAllowedSensorPin(pinName)) {
+            throw new Error('Este sensor deve usar os pinos 34, 35, 36, 39 ou 15 para o sinal.');
+          }
           const analogValue = this.getBoardPinAnalogValue(
             programState.boardComponentId,
             pinName,
