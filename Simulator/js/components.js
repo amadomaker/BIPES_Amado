@@ -797,6 +797,7 @@ function createAmadoBoardElement({ preview = false } = {}) {
 }
 
 export const componentGroups = [
+  { id: 'basic', name: 'Básico' },
   { id: 'sources', name: 'Fontes' },
   { id: 'passives', name: 'Passivos' },
   { id: 'controls', name: 'Controles' },
@@ -814,7 +815,7 @@ export const availableComponents = [
     name: 'Bateria DC',
     element: null,
     description: 'Fonte contínua com tensão ajustável.',
-    group: 'sources',
+    group: 'basic',
     defaultProps: { voltage: '9' },
     pins: [
       { name: 'VCC (+)', type: 'power', selector: '.battery-terminal-positive' },
@@ -855,7 +856,7 @@ export const availableComponents = [
     name: 'Bateria 9V (SVG)',
     element: null,
     description: 'Bateria de 9V com visual realistico e tensão fixa.',
-    group: 'sources',
+    group: 'basic',
     defaultProps: { voltage: '9' },
     pins: [
       { name: 'VCC (+)', type: 'power', selector: '.battery-terminal-positive' },
@@ -870,7 +871,7 @@ export const availableComponents = [
     name: 'Pacote AAA 1,5V',
     element: null,
     description: 'Agrupamento configurável de pilhas AAA (1,5V por célula).',
-    group: 'sources',
+    group: 'basic',
     defaultProps: { cells: '1', voltage: '1.5' },
     pins: [
       {
@@ -935,7 +936,7 @@ export const availableComponents = [
     name: 'LED',
     element: 'wokwi-led',
     description: 'Diodo emissor de luz com cores configuráveis.',
-    group: 'active',
+    group: 'basic',
     defaultProps: { color: 'red' },
     getLabel: (props = {}) => {
       const info = getLedColorInfo(props.color);
@@ -1003,7 +1004,7 @@ export const availableComponents = [
     name: 'Resistor',
     element: 'wokwi-resistor',
     description: 'Componente passivo para limitar corrente.',
-    group: 'passives',
+    group: 'basic',
     defaultProps: { value: '220' },
     createPreview: () => createWokwiPreview('wokwi-resistor', { value: '220' }),
     propertyControls: [
@@ -1060,7 +1061,7 @@ export const availableComponents = [
     name: 'Chave ON/OFF',
     element: 'wokwi-slide-switch',
     description: 'Interruptor simples de dois terminais.',
-    group: 'controls',
+    group: 'basic',
     defaultProps: { initialState: 'off' },
     createInstance: ({ props }) => {
       const element = document.createElement('wokwi-slide-switch');
@@ -1186,7 +1187,7 @@ export const availableComponents = [
     name: 'Botão',
     element: 'wokwi-pushbutton',
     description: 'Chave momentânea de 4 terminais.',
-    group: 'active',
+    group: 'basic',
     defaultProps: { color: 'green' },
     createPreview: () => createWokwiPreview('wokwi-pushbutton', { color: 'green' }),
   },
@@ -1195,7 +1196,7 @@ export const availableComponents = [
     name: 'Potenciômetro',
     element: 'wokwi-potentiometer',
     description: 'Resistor variável de três terminais.',
-    group: 'passives',
+    group: 'basic',
     defaultProps: { value: '50', resistance: '10k' },
     getLabel: (props = {}) => {
       const resistance = props.resistance ? formatResistanceValue(props.resistance) : null;

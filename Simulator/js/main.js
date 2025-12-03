@@ -35,6 +35,8 @@ let lastSnapshot = null;
 let lastSnapshotHash = null;
 let isApplyingHistory = false;
 let historySuspended = false;
+let examplesList = [];
+const EXAMPLE_GROUP = { id: 'examples', name: 'Exemplos' };
 
 window.addEventListener('DOMContentLoaded', () => {
   initUI({
@@ -80,6 +82,7 @@ window.addEventListener('DOMContentLoaded', () => {
   restorePersistedState().finally(() => {
     initializeHistoryBaseline();
   });
+  loadExamplesList().catch(() => {});
   setPlayState(false);
 });
 
@@ -179,38 +182,7 @@ function handleLoadWorkspace() {
       try {
         const data = JSON.parse(content);
         snapshot = normalizeWorkspaceSnapshot(data);
-        if (!snapshot.circuit || !Array.isArray(snapshot.circuit.components)) {
-          throw new Error('Invalid circuit data');
-        }
-
-        const previousEntry =
-          lastSnapshot && lastSnapshotHash
-            ? { snapshot: lastSnapshot, hash: lastSnapshotHash }
-            : null;
-        simulation.stop();
-        setPlayState(false);
-        isRestoringState = true;
-
-        await runWithHistorySuspended(async () => {
-          await canvasManager.load(snapshot.circuit);
-
-          if (snapshot.hasBlockly) {
-            restoreBlocklyState(snapshot.blockly ?? null, { clearWhenMissing: true });
-          }
-
-          canvasManager.focusViewportOnContent();
-        });
-
-        if (previousEntry) {
-          undoStack.push(previousEntry);
-          if (undoStack.length > HISTORY_LIMIT) {
-            undoStack.shift();
-          }
-        }
-        redoStack = [];
-        refreshHistoryBaseline();
-
-        simulationResetNotified = false;
+        await applyWorkspaceSnapshot(snapshot);
         loadedSuccessfully = true;
       } catch (error) {
         showAlert('Arquivo inválido. Verifique o JSON e tente novamente.');
@@ -223,6 +195,41 @@ function handleLoadWorkspace() {
       }
     },
   });
+}
+
+async function applyWorkspaceSnapshot(snapshot) {
+  if (!snapshot || !snapshot.circuit || !Array.isArray(snapshot.circuit.components)) {
+    throw new Error('Invalid circuit data');
+  }
+
+  const previousEntry =
+    lastSnapshot && lastSnapshotHash
+      ? { snapshot: lastSnapshot, hash: lastSnapshotHash }
+      : null;
+  simulation.stop();
+  setPlayState(false);
+  isRestoringState = true;
+
+  await runWithHistorySuspended(async () => {
+    await canvasManager.load(snapshot.circuit);
+
+    if (snapshot.hasBlockly) {
+      restoreBlocklyState(snapshot.blockly ?? null, { clearWhenMissing: true });
+    }
+
+    canvasManager.focusViewportOnContent();
+  });
+
+  if (previousEntry) {
+    undoStack.push(previousEntry);
+    if (undoStack.length > HISTORY_LIMIT) {
+      undoStack.shift();
+    }
+  }
+  redoStack = [];
+  refreshHistoryBaseline();
+
+  simulationResetNotified = false;
 }
 
 function setupBlocklyPanelControls() {
@@ -458,25 +465,35 @@ function setupComponentFilter() {
   const filterSelect = document.getElementById('component-filter-select');
   if (!filterSelect) return;
 
-  filterSelect.innerHTML = '';
+  const rebuildOptions = () => {
+    const current = filterSelect.value || componentFilterGroup;
+    filterSelect.innerHTML = '';
 
-  const allOption = document.createElement('option');
-  allOption.value = 'all';
-  allOption.textContent = 'Todos';
-  filterSelect.appendChild(allOption);
+    const allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = 'Todos';
+    filterSelect.appendChild(allOption);
 
-  componentGroups.forEach((group) => {
-    const option = document.createElement('option');
-    option.value = group.id;
-    option.textContent = group.name;
-    filterSelect.appendChild(option);
-  });
+    getPaletteGroups().forEach((group) => {
+      const option = document.createElement('option');
+      option.value = group.id;
+      option.textContent = group.name;
+      filterSelect.appendChild(option);
+    });
+
+    filterSelect.value = current;
+  };
+
+  rebuildOptions();
 
   filterSelect.value = componentFilterGroup;
   filterSelect.addEventListener('change', (event) => {
     componentFilterGroup = event.target.value || 'all';
     renderComponentPalette();
   });
+
+  // Atualiza opções quando exemplos forem carregados
+  filterSelect.__refreshOptions = rebuildOptions;
 }
 
 function setupViewToggle() {
@@ -727,6 +744,14 @@ function clearPersistedState() {
   }
 }
 
+function getPaletteGroups() {
+  const groups = [...componentGroups];
+  if (examplesList.length) {
+    groups.push(EXAMPLE_GROUP);
+  }
+  return groups;
+}
+
 function renderComponentPalette(filterText = componentSearchTerm) {
   componentSearchTerm = filterText;
   const componentsList = document.querySelector('.components-list');
@@ -734,20 +759,34 @@ function renderComponentPalette(filterText = componentSearchTerm) {
 
   const searchTerm = filterText.trim().toLowerCase();
 
-  componentGroups.forEach((group) => {
+  const groups = getPaletteGroups();
+
+  groups.forEach((group) => {
     if (componentFilterGroup !== 'all' && componentFilterGroup !== group.id) {
       return;
     }
 
-    const groupComponents = availableComponents.filter(
-      (component) =>
-        component.group === group.id &&
-        (!searchTerm ||
-          component.name.toLowerCase().includes(searchTerm) ||
-          component.description?.toLowerCase().includes(searchTerm)),
-    );
+    const isExampleGroup = group.id === EXAMPLE_GROUP.id;
+    const items = isExampleGroup
+      ? examplesList
+      : availableComponents.filter(
+          (component) =>
+            component.group === group.id &&
+            (!searchTerm ||
+              component.name.toLowerCase().includes(searchTerm) ||
+              component.description?.toLowerCase().includes(searchTerm)),
+        );
 
-    if (!groupComponents.length) {
+    const filteredItems = isExampleGroup
+      ? items.filter(
+          (example) =>
+            !searchTerm ||
+            example.name.toLowerCase().includes(searchTerm) ||
+            example.description?.toLowerCase().includes(searchTerm),
+        )
+      : items;
+
+    if (!filteredItems.length) {
       return;
     }
 
@@ -761,8 +800,8 @@ function renderComponentPalette(filterText = componentSearchTerm) {
     const groupList = document.createElement('div');
     groupList.className = `component-group-list component-view-${componentViewMode}`;
 
-    groupComponents.forEach((component) => {
-      const card = createComponentCard(component);
+    filteredItems.forEach((item) => {
+      const card = isExampleGroup ? createExampleCard(item) : createComponentCard(item);
       groupList.appendChild(card);
     });
 
@@ -819,6 +858,114 @@ function createComponentCard(component) {
   });
 
   return card;
+}
+
+function createExampleCard(example) {
+  const card = document.createElement('div');
+  card.className = `component-card component-view-${componentViewMode} component-example-card`;
+  card.draggable = false;
+  card.dataset.exampleId = example.id;
+
+  const previewWrapper = document.createElement('div');
+  previewWrapper.className = 'component-card-preview';
+  if (example.preview) {
+    const img = document.createElement('img');
+    img.src = example.preview;
+    img.alt = example.name;
+    img.loading = 'lazy';
+    previewWrapper.appendChild(img);
+  } else {
+    const placeholder = document.createElement('span');
+    placeholder.textContent = example.name?.charAt?.(0) ?? 'E';
+    previewWrapper.appendChild(placeholder);
+  }
+
+  const info = document.createElement('div');
+  info.className = 'component-card-info';
+
+  const name = document.createElement('div');
+  name.className = 'component-card-name';
+  name.textContent = example.name ?? 'Exemplo';
+
+  const description = document.createElement('div');
+  description.className = 'component-card-description';
+  if (example.description) {
+    description.textContent = example.description;
+  } else {
+    description.style.display = 'none';
+  }
+
+  info.append(name, description);
+  card.append(previewWrapper, info);
+
+  card.addEventListener('click', () => {
+    loadExampleById(example.id).catch(() => {});
+  });
+
+  return card;
+}
+
+async function loadExamplesList() {
+  if (typeof fetch !== 'function') return;
+  try {
+    const response = await fetch('examples/index.json', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    if (!Array.isArray(data)) return;
+    examplesList = data
+      .filter((item) => item && item.id && item.name && item.file)
+      .map((item) => {
+        const file = item.file.startsWith('examples/') ? item.file : `examples/${item.file}`;
+        const preview = item.preview
+          ? item.preview.startsWith('examples/')
+            ? item.preview
+            : `examples/${item.preview}`
+          : null;
+        return {
+          id: item.id,
+          name: item.name,
+          description: item.description ?? '',
+          file,
+          preview,
+        };
+      });
+    const filterSelect = document.getElementById('component-filter-select');
+    if (filterSelect?.__refreshOptions) {
+      filterSelect.__refreshOptions();
+    }
+    renderComponentPalette();
+  } catch {
+    // ignora falha de carregamento de exemplos
+  }
+}
+
+async function loadExampleById(exampleId) {
+  const entry = examplesList.find((item) => item.id === exampleId);
+  if (!entry) {
+    showAlert('Exemplo não encontrado.');
+    return;
+  }
+  if (typeof fetch !== 'function') {
+    showAlert('Navegador não suporta carregamento de exemplos.');
+    return;
+  }
+  try {
+    const response = await fetch(entry.file, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error('Arquivo de exemplo não encontrado.');
+    }
+    const data = await response.json();
+    const snapshot = normalizeWorkspaceSnapshot(data);
+    await applyWorkspaceSnapshot(snapshot);
+    scheduleAutoSave();
+    showAlert(`Exemplo "${entry.name}" carregado.`);
+  } catch (error) {
+    showAlert('Falha ao carregar o exemplo.');
+    // eslint-disable-next-line no-console
+    console.error(error);
+  } finally {
+    isRestoringState = false;
+  }
 }
 
 function setupDropZone() {

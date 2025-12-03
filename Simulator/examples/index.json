@@ -1,0 +1,16 @@
+[
+  {
+    "id": "ligar-led",
+    "name": "Ligar LED",
+    "description": "LED com VCC/GND e resistor",
+    "file": "ligar_led.json",
+    "preview": "previews/ligar-led.png"
+  },
+  {
+    "id": "display-demo",
+    "name": "Display OLED demo",
+    "description": "OLED ligado ao VCC/GND/SCL/SDA",
+    "file": "display_demo.json",
+    "preview": "previews/display-demo.png"
+  }
+]
