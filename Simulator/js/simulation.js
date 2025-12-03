@@ -60,6 +60,8 @@ class CircuitSnapshot {
     this.nodeIdToNetId = new Map();
     this.nets = [];
     this.fixedNetVoltages = new Map();
+    this.netForcedVoltages = new Map();
+    this.componentFaults = new Map();
     this.resistiveElements = [];
     this.voltageSources = [];
     this.netVoltages = new Map();
@@ -76,6 +78,7 @@ class CircuitSnapshot {
     this.buildElementModels();
     this.determineFixedNetVoltages();
     this.solveCircuit();
+    this.detectPolarityIssues();
   }
 
   buildPinNodes() {
@@ -244,14 +247,17 @@ class CircuitSnapshot {
 
   determineFixedNetVoltages() {
     this.fixedNetVoltages = new Map();
+    this.netForcedVoltages = new Map();
     const groundCandidates = new Map();
 
     this.nets.forEach((net) => {
+      const forcedEntries = [];
       let forcedVoltage = null;
       let forcedFound = false;
       net.nodes.forEach((node) => {
         const candidate = this.getNodeForcedVoltage(node);
         if (candidate === null) return;
+        forcedEntries.push({ voltage: candidate, node });
         if (!forcedFound || Math.abs(candidate - forcedVoltage) <= 0.5) {
           forcedVoltage = candidate;
         } else {
@@ -259,6 +265,9 @@ class CircuitSnapshot {
         }
         forcedFound = true;
       });
+      if (forcedEntries.length) {
+        this.netForcedVoltages.set(net.id, forcedEntries);
+      }
       if (forcedFound && forcedVoltage !== null) {
         this.fixedNetVoltages.set(net.id, forcedVoltage);
       }
@@ -290,6 +299,110 @@ class CircuitSnapshot {
 
       if (!this.fixedNetVoltages.has(chosenNet)) {
         this.fixedNetVoltages.set(chosenNet, 0);
+      }
+    });
+
+    this.detectPowerGroundConflicts();
+  }
+
+  detectPowerGroundConflicts() {
+    const MERGE_TOLERANCE = 0.25;
+    const MIN_CONFLICT_DELTA = 0.5;
+
+    this.netForcedVoltages.forEach((entries, netId) => {
+      if (!Array.isArray(entries) || entries.length < 2) return;
+
+      const buckets = [];
+      entries.forEach(({ voltage, node }) => {
+        if (!Number.isFinite(voltage) || !node) return;
+        const bucket = buckets.find((item) => Math.abs(item.voltage - voltage) <= MERGE_TOLERANCE);
+        if (bucket) {
+          bucket.nodes.push(node);
+        } else {
+          buckets.push({ voltage, nodes: [node] });
+        }
+      });
+
+      if (buckets.length < 2) return;
+
+      buckets.sort((a, b) => a.voltage - b.voltage);
+      const min = buckets[0];
+      const max = buckets[buckets.length - 1];
+      if (max.voltage - min.voltage < MIN_CONFLICT_DELTA) return;
+
+      const from = this.describeNodeForWarning(min.nodes[0]);
+      const to = this.describeNodeForWarning(max.nodes[0]);
+      const message = `Curto detectado: ${from} (${this.formatVoltageLabel(min.voltage)}) conectado diretamente a ${to} (${this.formatVoltageLabel(max.voltage)}). Separe VCC e GND para evitar danos.`;
+
+      this.registerSolverWarning(message, {
+        level: 'error',
+        category: 'short-circuit',
+        netId,
+      });
+    });
+  }
+
+  detectPolarityIssues() {
+    const ACTIVE_THRESHOLD = 0.35; // ignora redes flutuantes/desconectadas
+    const REVERSE_MARGIN = 0.6; // diferença mínima para considerar inversão
+    const supply = this.getHighLevelVoltage();
+
+    this.canvasManager.components.forEach((component) => {
+      const pins = this.getPinsForComponent(component.id);
+      if (!pins?.length) return;
+      const powerPins = pins.filter((pin) => pin.pinType === 'power');
+      const groundPins = pins.filter((pin) => pin.pinType === 'ground');
+      if (!powerPins.length || !groundPins.length) return;
+
+      const powerVoltages = powerPins
+        .map((pin) => this.getNodeVoltage(pin))
+        .filter((value) => Number.isFinite(value));
+      const groundVoltages = groundPins
+        .map((pin) => this.getNodeVoltage(pin))
+        .filter((value) => Number.isFinite(value));
+      if (!powerVoltages.length || !groundVoltages.length) return;
+
+      const powerAvg =
+        powerVoltages.reduce((sum, value) => sum + value, 0) / powerVoltages.length;
+      const groundAvg =
+        groundVoltages.reduce((sum, value) => sum + value, 0) / groundVoltages.length;
+      const highestMagnitude = Math.max(
+        ...powerVoltages.map((v) => Math.abs(v)),
+        ...groundVoltages.map((v) => Math.abs(v)),
+      );
+
+      const shortedInternally = powerPins.some((p) =>
+        groundPins.some((g) => p.netId && g.netId && p.netId === g.netId),
+      );
+      if (shortedInternally) {
+        const message = `Curto interno: VCC e GND do componente ${this.getComponentLabel(component)} estão no mesmo nó.`;
+        this.registerSolverWarning(message, {
+          level: 'error',
+          category: 'reverse-polarity',
+        });
+        this.registerComponentFault(component, {
+          type: 'reverse-polarity',
+          level: 'error',
+          message,
+        });
+        return;
+      }
+
+      if (highestMagnitude < ACTIVE_THRESHOLD) return;
+
+      const margin = Math.max(REVERSE_MARGIN, supply * 0.15);
+      if (groundAvg - powerAvg > margin) {
+        const message = `Alimentação invertida em ${this.getComponentLabel(component)}: VCC está em ${this.formatVoltageLabel(powerAvg)} e GND em ${this.formatVoltageLabel(groundAvg)}.`;
+        this.registerSolverWarning(message, {
+          level: 'error',
+          category: 'reverse-polarity',
+        });
+        this.registerComponentFault(component, {
+          type: 'reverse-polarity',
+          level: 'error',
+          message,
+          data: { powerAvg, groundAvg },
+        });
       }
     });
   }
@@ -602,6 +715,25 @@ class CircuitSnapshot {
     this.canvasManager.components
       .filter((component) => component.type === 'led')
       .forEach((component) => {
+        const fault = this.isComponentFaulted(component);
+        if (fault) {
+          results.push({
+            component,
+            lightsUp: false,
+            brightness: 0,
+            voltageDrop: 0,
+            supplyVoltage: 0,
+            seriesResistance: null,
+            effectiveResistance: null,
+            currentEstimate: 0,
+            damageEvent: false,
+            damageReason: null,
+            warnings: null,
+            reasons: [fault.message ?? 'Alimentação incorreta ou curto no componente'],
+          });
+          return;
+        }
+
         const pins = this.getPinsForComponent(component.id);
         if (pins.length < 2) {
           results.push({
@@ -739,6 +871,18 @@ class CircuitSnapshot {
     this.canvasManager.components
       .filter((component) => component.type === 'buzzer')
       .forEach((component) => {
+        const fault = this.isComponentFaulted(component);
+        if (fault) {
+          results.push({
+            component,
+            active: false,
+            voltageDrop: 0,
+            supplyVoltage: 0,
+            reasons: [fault.message ?? 'Alimentação incorreta ou curto no componente'],
+          });
+          return;
+        }
+
         const pins = this.getPinsForComponent(component.id);
         if (pins.length < 2) {
           results.push({
@@ -789,6 +933,21 @@ class CircuitSnapshot {
     this.canvasManager.components
       .filter((component) => component.type === 'dc-motor')
       .forEach((component) => {
+        const fault = this.isComponentFaulted(component);
+        if (fault) {
+          results.push({
+            component,
+            active: false,
+            direction: 0,
+            rpm: 0,
+            current: 0,
+            voltage: 0,
+            supplyVoltage: 0,
+            reasons: [fault.message ?? 'Alimentação incorreta ou curto no componente'],
+          });
+          return;
+        }
+
         const pins = this.getPinsForComponent(component.id);
         if (pins.length < 2) {
           results.push({
@@ -1135,6 +1294,8 @@ class CircuitSnapshot {
 
   getNodeForcedVoltage(node) {
     if (!node) return null;
+    const fault = this.isComponentFaulted(node.component);
+    if (fault) return 0;
     const componentType = node.component?.type ?? node.componentId;
     if (isBatteryComponentType(componentType)) return null;
 
@@ -1336,9 +1497,74 @@ class CircuitSnapshot {
     this.highestVoltageMagnitude = Math.max(this.highestVoltageMagnitude, Math.abs(voltage));
   }
 
-  registerSolverWarning(message) {
+  registerSolverWarning(message, options = {}) {
     if (!message) return;
-    this.solverWarnings.push(message);
+    if (typeof message === 'object' && message.message) {
+      const entry = {
+        ...message,
+        level: message.level ?? options.level ?? 'warn',
+        category: message.category ?? options.category ?? null,
+        netId: message.netId ?? options.netId ?? null,
+      };
+      this.solverWarnings.push(entry);
+      return;
+    }
+
+    const entry = {
+      message: String(message),
+      level: options.level ?? 'warn',
+      category: options.category ?? null,
+      netId: options.netId ?? null,
+    };
+    this.solverWarnings.push(entry);
+  }
+
+  formatVoltageLabel(value) {
+    if (!Number.isFinite(value)) return '?V';
+    const absolute = Math.abs(value);
+    const precision = absolute >= 10 ? 0 : absolute >= 1 ? 1 : 2;
+    const formatted = value.toFixed(precision).replace(/\.?0+$/, '');
+    return `${formatted}V`;
+  }
+
+  describeNodeForWarning(node) {
+    if (!node) return 'pino desconhecido';
+    const componentLabel =
+      node.component?.props?.label ??
+      node.component?.name ??
+      node.component?.type ??
+      node.componentId ??
+      'componente';
+    const fallbackIndex = Number(node.pinIndex);
+    const pinLabel = node.pinName ?? (Number.isFinite(fallbackIndex) ? `pino ${fallbackIndex + 1}` : 'pino');
+    return `${componentLabel} (${pinLabel})`;
+  }
+
+  getComponentLabel(component) {
+    return (
+      component?.props?.label ??
+      component?.name ??
+      component?.type ??
+      component?.id ??
+      'componente'
+    );
+  }
+
+  registerComponentFault(component, fault = {}) {
+    if (!component?.id) return;
+    const entry = {
+      type: fault.type ?? 'fault',
+      level: fault.level ?? 'error',
+      message: fault.message ?? null,
+      data: fault.data ?? null,
+    };
+    this.componentFaults.set(component.id, entry);
+  }
+
+  isComponentFaulted(componentOrId) {
+    const id = typeof componentOrId === 'string' ? componentOrId : componentOrId?.id;
+    if (!id) return null;
+    return this.componentFaults.get(id) ?? null;
   }
 
   sanitizeResistance(value) {
@@ -1632,7 +1858,9 @@ class Simulation {
       onError: () => {},
       onLog: () => {},
     };
+    this.lastSnapshot = null;
     this.lastErrorSignature = '';
+    this.lastWarningSignature = '';
     this.boardPinStates = new Map();
     this.boardAnalogLevels = new Map();
     this.boardMotorOutputs = new Map();
@@ -1727,6 +1955,7 @@ class Simulation {
     if (!this.isRunning) return;
     this.isRunning = false;
     this.powerEnabled = false;
+    this.lastSnapshot = null;
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -1735,6 +1964,7 @@ class Simulation {
     this.resetOutputs();
     this.listeners.onStateChange?.(false);
     this.lastErrorSignature = '';
+    this.lastWarningSignature = '';
     this.stopAllBuzzerAudio();
   }
 
@@ -1751,10 +1981,52 @@ class Simulation {
       boardAnalogLevels: this.boardAnalogLevels,
       boardMotorVoltages: this.boardMotorOutputs,
     });
+    this.lastSnapshot = snapshot;
     const ledResults = snapshot.evaluateLEDs();
     const buzzerResults = snapshot.evaluateBuzzers();
     const motorResults = snapshot.evaluateDcMotors();
     const errorMessages = [];
+
+    const solverWarnings = Array.isArray(snapshot.solverWarnings)
+      ? snapshot.solverWarnings
+          .map((warning) => {
+            if (!warning) return null;
+            if (typeof warning === 'string') {
+              return { message: warning, level: 'warn' };
+            }
+            if (warning && typeof warning === 'object') {
+              const message = warning.message ?? '';
+              if (!message) return null;
+              return {
+                message,
+                level: warning.level ?? 'warn',
+              };
+            }
+            return null;
+          })
+          .filter(Boolean)
+      : [];
+
+    const warningSignature = solverWarnings
+      .map((warning) => `${warning.level ?? 'warn'}:${warning.message}`)
+      .sort()
+      .join('|');
+
+    if (solverWarnings.length && warningSignature !== this.lastWarningSignature) {
+      solverWarnings.forEach((warning) => {
+        this.listeners.onLog?.({
+          message: warning.message,
+          level: warning.level ?? 'warn',
+          timestamp: Date.now(),
+        });
+      });
+    }
+    this.lastWarningSignature = solverWarnings.length ? warningSignature : '';
+
+    const criticalWarnings = solverWarnings
+      .filter((warning) => (warning.level ?? 'warn') === 'error')
+      .map((warning) => warning.message);
+    errorMessages.push(...criticalWarnings);
 
     ledResults.forEach((result) => {
       const brightness = Number.isFinite(result.brightness)
@@ -1787,17 +2059,6 @@ class Simulation {
         }
       }
     });
-
-    if (Array.isArray(snapshot.solverWarnings) && snapshot.solverWarnings.length) {
-      snapshot.solverWarnings.forEach((warning) => {
-        if (!warning) return;
-        this.listeners.onLog?.({
-          message: warning,
-          level: 'warn',
-          timestamp: Date.now(),
-        });
-      });
-    }
 
     motorResults.forEach((result) => {
       const override = this.computeMotorControllerOverride(result.component, result, snapshot);
@@ -2019,9 +2280,14 @@ class Simulation {
       .replace(/[^A-Z0-9]/g, '');
   }
 
-  isAllowedSensorPin(pinName) {
+  isAllowedAnalogPin(pinName) {
     const norm = this.normalizeBoardPinName(pinName);
     return norm === 'D34' || norm === 'D35' || norm === 'D36' || norm === 'D39' || norm === 'D15';
+  }
+
+  // Mantém compatibilidade com validações existentes
+  isAllowedSensorPin(pinName) {
+    return this.isAllowedAnalogPin(pinName);
   }
 
   isInputOnlyPin(pinName) {
@@ -2420,6 +2686,7 @@ class Simulation {
   }
 
   applyOledEntriesToComponent(component, entries = []) {
+    if (this.lastSnapshot?.isComponentFaulted?.(component)) return;
     if (!component?.element?.__oledScreen) return;
     const screen = component.element.__oledScreen;
     screen.innerHTML = '';
@@ -2587,6 +2854,15 @@ class Simulation {
       const sig = snapshot.getNodeByComponentPin(component.id, 'PWM');
       const gnd = snapshot.getNodeByComponentPin(component.id, 'GND');
       const vcc = snapshot.getNodeByComponentPin(component.id, 'V+');
+
+      const fault = snapshot.isComponentFaulted?.(component);
+      if (fault) {
+        if (component.element) {
+          component.element.setAttribute('angle', '0');
+          component.element.angle = 0;
+        }
+        return;
+      }
 
       if (!sig || !gnd) {
         if (component.element) {
@@ -2995,11 +3271,6 @@ class Simulation {
         }
         try {
           this.requireSignalPinElement(programState.boardComponentId, pinName);
-          const snapshot = this.createSnapshot();
-          const boardNode = snapshot.getNodeByComponentPin(programState.boardComponentId, pinName);
-          if (this.isRestrictedSensorNet(boardNode, snapshot) && !this.isAllowedSensorPin(pinName)) {
-            throw new Error('Este sensor deve usar os pinos 34, 35, 36, 39 ou 15 para o sinal.');
-          }
           const state = this.getBoardPinVoltageState(programState.boardComponentId, pinName);
           return state === 'high';
         } catch (error) {
@@ -3014,11 +3285,11 @@ class Simulation {
         }
         try {
           this.requireSignalPinElement(programState.boardComponentId, pinName);
+          if (!this.isAllowedAnalogPin(pinName)) {
+            throw new Error('Leitura analógica permitida apenas nos pinos 34, 35, 36, 39 ou 15.');
+          }
           const snapshot = this.createSnapshot();
           const boardNode = snapshot.getNodeByComponentPin(programState.boardComponentId, pinName);
-          if (this.isRestrictedSensorNet(boardNode, snapshot) && !this.isAllowedSensorPin(pinName)) {
-            throw new Error('Este sensor deve usar os pinos 34, 35, 36, 39 ou 15 para o sinal.');
-          }
           const analogValue = this.getBoardPinAnalogValue(
             programState.boardComponentId,
             pinName,

@@ -625,7 +625,7 @@ const amadoBoardCoordinates = {
   D36: { xPercent: 77.3, yPercent: 24.4 }, //Feito
   D39: { xPercent: 21.6, yPercent: 35.2 }, //Feito
   D34: { xPercent: 49, yPercent: 4.1 }, //Feito
-  D35: { xPercent: 21.6, yPercent: 21.3 }, //Feito
+  D35: { xPercent: 21.6, yPercent: 24 }, //Feito
   D32: { xPercent: 35, yPercent: 51.6797 },
   D33: { xPercent: 35, yPercent: 56.877 },
   D25: { xPercent: 16.6348, yPercent: 62.3004 },
@@ -643,7 +643,7 @@ const amadoBoardCoordinates = {
   'GND.4': { xPercent: 77.3, yPercent: 28.5 },  //GND do pino 36
   'GND.5': { xPercent: 45, yPercent: 4.1 }, //GND do sensor ultrassônico
   'GND.6': { xPercent: 21.6, yPercent: 29.7 }, //GND do pino 39
-  'GND.7': { xPercent: 21.6, yPercent: 24 }, //GND do pino 35
+  'GND.7': { xPercent: 21.6, yPercent: 21.3 }, //GND do pino 35
   'GND.8': { xPercent: 21.6, yPercent: 40.6 }, //GND do pino 16 (servo motor)
   'GND.9': { xPercent: 28.57, yPercent: 40.6 }, //GND do pino 15 (servo motor)
   '3V3.2': { xPercent: 77.3, yPercent: 19 }, //3.3 do pino 34

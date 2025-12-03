@@ -269,6 +269,22 @@ export class WiringManager {
         if (normalised.includes('3V') || normalised.includes('5V') || normalised.startsWith('VIN')) type = 'power';
         return { label, type };
       }
+      case 'servo': {
+        const label = info.name ?? `Pino ${index + 1}`;
+        const normalised = label.toUpperCase();
+        let type = 'signal';
+        if (normalised.includes('GND')) type = 'ground';
+        else if (normalised.includes('V+') || normalised.includes('VCC') || normalised.includes('VIN')) type = 'power';
+        return { label, type };
+      }
+      case 'ir-receiver': {
+        const label = info.name ?? `Pino ${index + 1}`;
+        const normalised = label.toUpperCase();
+        let type = 'signal';
+        if (normalised.includes('GND')) type = 'ground';
+        else if (normalised.includes('VCC') || normalised.includes('V+')) type = 'power';
+        return { label, type };
+      }
       default:
         return { label: info.name ?? `Pino ${index + 1}`, type: 'signal' };
     }
