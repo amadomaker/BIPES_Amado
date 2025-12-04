@@ -5,13 +5,36 @@ const DEFAULT_TOOLBOX = {
   contents: [
     {
       kind: 'category',
+      name: 'Controle',
+      colour: '#d9a600',
+      contents: [
+        {
+          kind: 'category',
+          name: 'Laços',
+          colour: '#d9a600',
+          contents: [
+            { kind: 'block', type: 'controls_repeat_ext' },
+            { kind: 'block', type: 'controls_whileUntil' },
+            { kind: 'block', type: 'controls_for' },
+          ],
+        },
+        {
+          kind: 'category',
+          name: 'Temporização',
+          colour: '#d9a600',
+          contents: [{ kind: 'block', type: 'amado_wait' }],
+        },
+      ],
+    },
+    {
+      kind: 'category',
       name: 'Matemática',
-      colour: '#FFAB19',
+      colour: '#008000',
       contents: [
         {
           kind: 'category',
           name: 'Lógica',
-          colour: '#4C97FF',
+          colour: '#008000',
           contents: [
             { kind: 'block', type: 'controls_if' },
             { kind: 'block', type: 'logic_compare' },
@@ -23,7 +46,7 @@ const DEFAULT_TOOLBOX = {
         {
           kind: 'category',
           name: 'Operadores',
-          colour: '#FFAB19',
+          colour: '#008000',
           contents: [
             { kind: 'block', type: 'math_number' },
             { kind: 'block', type: 'math_arithmetic' },
@@ -36,31 +59,55 @@ const DEFAULT_TOOLBOX = {
     },
     {
       kind: 'category',
-      name: 'Controle',
-      colour: '#8B5CF6',
+      name: 'Variáveis',
+      colour: '#1c1f7a',
       contents: [
         {
           kind: 'category',
-          name: 'Laços',
-          colour: '#9966FF',
+          name: 'Variáveis criadas',
+          colour: '#1c1f7a',
+          custom: 'VARIABLE',
+        },
+        {
+          kind: 'category',
+          name: 'Boleanas',
+          colour: '#1c1f7a',
+          contents: [{ kind: 'block', type: 'variable_boolean_const' }],
+        },
+        {
+          kind: 'category',
+          name: 'Numéricas',
+          colour: '#1c1f7a',
           contents: [
-            { kind: 'block', type: 'controls_repeat_ext' },
-            { kind: 'block', type: 'controls_whileUntil' },
-            { kind: 'block', type: 'controls_for' },
+            { kind: 'block', type: 'variable_number_const' },
+            { kind: 'block', type: 'variable_pi_const' },
+            { kind: 'block', type: 'variable_random_int' },
           ],
         },
         {
           kind: 'category',
-          name: 'Temporização',
-          colour: '#4CAF50',
-          contents: [{ kind: 'block', type: 'amado_wait' }],
+          name: 'Texto',
+          colour: '#1c1f7a',
+          contents: [],
+        },
+        {
+          kind: 'category',
+          name: 'Listas',
+          colour: '#1c1f7a',
+          contents: [],
         },
       ],
     },
     {
       kind: 'category',
+      name: 'Funções',
+      colour: '#995ba5',
+      custom: 'PROCEDURE',
+    },
+    {
+      kind: 'category',
       name: 'Pinos entrada/saída',
-      colour: '#2BC3A3',
+      colour: '#708090',
       contents: [
         { kind: 'block', type: 'amado_set_pin' },
         { kind: 'block', type: 'amado_serial_log' },
@@ -71,70 +118,43 @@ const DEFAULT_TOOLBOX = {
     {
       kind: 'category',
       name: 'Sensores',
-      colour: '#00BFA6',
+      colour: '#708090',
       contents: [
         {
           kind: 'category',
           name: 'Temperatura e umidade',
-          colour: '#14b8a6',
+          colour: '#708090',
           contents: [],
         },
         {
           kind: 'category',
           name: 'Ultrassônico',
-          colour: '#10b981',
+          colour: '#708090',
           contents: [{ kind: 'block', type: 'amado_ultrasonic_read' }],
         },
         {
           kind: 'category',
           name: 'Acelerômetro e giroscópio',
-          colour: '#22c55e',
+          colour: '#708090',
           contents: [],
         },
         {
           kind: 'category',
           name: 'Leitor RFID',
-          colour: '#16a34a',
+          colour: '#708090',
           contents: [],
-        },
-      ],
-    },
-    {
-      kind: 'category',
-      name: 'Saídas e atuadores',
-      colour: '#F97316',
-      contents: [
-        {
-          kind: 'category',
-          name: 'Servo motor',
-          colour: '#fbad3d',
-          contents: [
-            { kind: 'block', type: 'servo_init' },
-            { kind: 'block', type: 'servo_move' },
-          ],
-        },
-        {
-          kind: 'category',
-          name: 'Motor DC',
-          colour: '#FB923C',
-          contents: [
-            { kind: 'block', type: 'motor_dc_init' },
-            { kind: 'block', type: 'motor_dc_set_direction' },
-            { kind: 'block', type: 'motor_dc_set_power' },
-            { kind: 'block', type: 'motor_dc_stop' },
-          ],
         },
       ],
     },
     {
       kind: 'category',
       name: 'Telas',
-      colour: '#1E88E5',
+      colour: '#708090',
       contents: [
         {
           kind: 'category',
           name: 'Display OLED',
-          colour: '#3B82F6',
+          colour: '#708090',
           contents: [
             { kind: 'block', type: 'oled_display_init' },
             { kind: 'block', type: 'oled_display_write_text' },
@@ -147,50 +167,30 @@ const DEFAULT_TOOLBOX = {
     },
     {
       kind: 'category',
-      name: 'Variáveis',
-      colour: '#FF8C1A',
+      name: 'Saídas e atuadores',
+      colour: '#708090',
       contents: [
         {
           kind: 'category',
-          name: 'Variáveis criadas',
-          colour: '#FF8C1A',
-          custom: 'VARIABLE',
-        },
-        {
-          kind: 'category',
-          name: 'Boleanas',
-          colour: '#4C97FF',
-          contents: [{ kind: 'block', type: 'logic_boolean' }],
-        },
-        {
-          kind: 'category',
-          name: 'Numéricas',
-          colour: '#FFAB19',
+          name: 'Servo motor',
+          colour: '#708090',
           contents: [
-            { kind: 'block', type: 'math_number' },
-            { kind: 'block', type: 'math_number_property' },
-            { kind: 'block', type: 'math_random_int' },
+            { kind: 'block', type: 'servo_init' },
+            { kind: 'block', type: 'servo_move' },
           ],
         },
         {
           kind: 'category',
-          name: 'Texto',
-          colour: '#6b7280',
-          contents: [],
-        },
-        {
-          kind: 'category',
-          name: 'Listas',
-          colour: '#6b7280',
-          contents: [],
+          name: 'Motor DC',
+          colour: '#708090',
+          contents: [
+            { kind: 'block', type: 'motor_dc_init' },
+            { kind: 'block', type: 'motor_dc_set_direction' },
+            { kind: 'block', type: 'motor_dc_set_power' },
+            { kind: 'block', type: 'motor_dc_stop' },
+          ],
         },
       ],
-    },
-    {
-      kind: 'category',
-      name: 'Funções',
-      colour: '#FF6680',
-      custom: 'PROCEDURE',
     },
   ],
 };
@@ -217,37 +217,37 @@ function getTheme(Blockly) {
     base: baseTheme ?? undefined,
     blockStyles: {
       logic_blocks: {
-        colourPrimary: '#4C97FF',
-        colourSecondary: '#4280D7',
-        colourTertiary: '#3373CC',
+        colourPrimary: '#008000',
+        colourSecondary: '#006600',
+        colourTertiary: '#004d00',
       },
       loop_blocks: {
-        colourPrimary: '#9966FF',
-        colourSecondary: '#855CD6',
-        colourTertiary: '#774DCB',
+        colourPrimary: '#d9a600',
+        colourSecondary: '#bf9100',
+        colourTertiary: '#a67e00',
       },
       math_blocks: {
-        colourPrimary: '#FFAB19',
-        colourSecondary: '#E29C17',
-        colourTertiary: '#B8860B',
+        colourPrimary: '#008000',
+        colourSecondary: '#006600',
+        colourTertiary: '#004d00',
       },
       variable_blocks: {
-        colourPrimary: '#FF8C1A',
-        colourSecondary: '#DB770F',
-        colourTertiary: '#A8540A',
+        colourPrimary: '#1c1f7a',
+        colourSecondary: '#16185f',
+        colourTertiary: '#101243',
       },
       procedure_blocks: {
-        colourPrimary: '#FF6680',
-        colourSecondary: '#E6506B',
-        colourTertiary: '#B33C52',
+        colourPrimary: '#995ba5',
+        colourSecondary: '#7f4a88',
+        colourTertiary: '#653a6b',
       },
     },
     categoryStyles: {
       logic_category: { colour: '#4C97FF' },
       loop_category: { colour: '#9966FF' },
       math_category: { colour: '#FFAB19' },
-      variable_category: { colour: '#FF8C1A' },
-      procedure_category: { colour: '#FF6680' },
+      variable_category: { colour: '#1c1f7a' },
+      procedure_category: { colour: '#995ba5' },
     },
     componentStyles: {
       workspaceBackgroundColour: '#1E1E1E',

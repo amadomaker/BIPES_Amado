@@ -96,6 +96,58 @@ export function registerAmadoBlocks(Blockly) {
 
   const pinOptions = buildPinOptions();
 
+  // Blocos personalizados para variáveis (cor #1c1f7a)
+  Blockly.Blocks.variable_boolean_const = {
+    init() {
+      this.appendDummyInput().appendField(
+        new (Blockly.FieldDropdown || Blockly.FieldChoice)([
+          ['true', 'TRUE'],
+          ['false', 'FALSE'],
+        ]),
+        'BOOL',
+      );
+      this.setOutput(true, 'Boolean');
+      this.setColour('#1c1f7a');
+      this.setTooltip('Valor booleano verdadeiro ou falso.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.variable_number_const = {
+    init() {
+      const FieldNumber = Blockly.FieldNumber ?? Blockly.FieldInput;
+      this.appendDummyInput().appendField(new FieldNumber(0), 'NUM');
+      this.setOutput(true, 'Number');
+      this.setColour('#1c1f7a');
+      this.setTooltip('Número constante.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.variable_pi_const = {
+    init() {
+      this.appendDummyInput().appendField('pi');
+      this.setOutput(true, 'Number');
+      this.setColour('#1c1f7a');
+      this.setTooltip('Constante π (pi).');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.variable_random_int = {
+    init() {
+      this.appendValueInput('FROM').setCheck('Number').appendField('número aleatório de');
+      this.appendValueInput('TO').setCheck('Number').appendField('até');
+      this.setOutput(true, 'Number');
+      this.setColour('#1c1f7a');
+      this.setTooltip('Gera um inteiro aleatório dentro do intervalo informado (inclusive).');
+      this.setHelpUrl('');
+
+      this.getInput('FROM')?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '1'));
+      this.getInput('TO')?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '10'));
+    },
+  };
+
   Blockly.defineBlocksWithJsonArray([
     {
       type: 'amado_read_digital',
@@ -108,7 +160,7 @@ export function registerAmadoBlocks(Blockly) {
         },
       ],
       output: 'Boolean',
-      colour: 210,
+      colour: '#708090',
       tooltip: 'Lê o nível lógico atual (HIGH/LOW) do pino selecionado.',
       helpUrl: '',
     },
@@ -123,7 +175,7 @@ export function registerAmadoBlocks(Blockly) {
         },
       ],
       output: 'Number',
-      colour: 210,
+      colour: '#708090',
       tooltip: 'Retorna o valor analógico (0 a 4095) do pino selecionado.',
       helpUrl: '',
     },
@@ -143,7 +195,7 @@ export function registerAmadoBlocks(Blockly) {
         },
       ],
       output: 'Number',
-      colour: 200,
+      colour: '#708090',
       tooltip: 'Lê a distância medida pelo sensor ultrassônico conectado aos pinos TRIG/ECHO.',
       helpUrl: '',
     },
@@ -174,7 +226,7 @@ export function registerAmadoBlocks(Blockly) {
       ],
       previousStatement: null,
       nextStatement: null,
-      colour: 18,
+      colour: '#708090',
       tooltip: 'Configura o motor DC mapeando os pinos PWM, DIR1 e DIR2 da placa Amado.',
       helpUrl: '',
     },
@@ -195,7 +247,7 @@ export function registerAmadoBlocks(Blockly) {
       ],
       previousStatement: null,
       nextStatement: null,
-      colour: 30,
+      colour: '#708090',
       tooltip: 'Inicializa um servo motor indicando um nome e o pino de sinal (PWM).',
       helpUrl: '',
     },
@@ -211,7 +263,7 @@ export function registerAmadoBlocks(Blockly) {
         .appendField('como');
       this.setPreviousStatement(true);
       this.setNextStatement(true);
-      this.setColour(162);
+      this.setColour('#708090');
       this.setTooltip('Configura o nível lógico de um pino digital da placa Amado ESP32.');
       this.setHelpUrl('');
 
@@ -227,7 +279,7 @@ export function registerAmadoBlocks(Blockly) {
         .appendField('Print');
       this.setPreviousStatement(true);
       this.setNextStatement(true);
-      this.setColour(200);
+      this.setColour('#708090');
       this.setTooltip('Envia dados para o monitor serial.');
       this.setHelpUrl('');
 
@@ -243,7 +295,7 @@ export function registerAmadoBlocks(Blockly) {
       this.setInputsInline(true);
       this.setPreviousStatement(true);
       this.setNextStatement(true);
-      this.setColour(210);
+      this.setColour('#d9a600');
       this.setTooltip('Pausa a execução do programa pelo tempo indicado (em milissegundos).');
       this.setHelpUrl('');
 
@@ -262,7 +314,7 @@ export function registerAmadoBlocks(Blockly) {
         'PIN',
       );
       this.setOutput(true, 'String');
-      this.setColour(195);
+      this.setColour('#708090');
       this.setTooltip('Seleciona um pino digital da placa.');
       this.setHelpUrl('');
     },
@@ -279,7 +331,7 @@ export function registerAmadoBlocks(Blockly) {
         'LEVEL',
       );
       this.setOutput(true, 'String');
-      this.setColour(195);
+      this.setColour('#708090');
       this.setTooltip('Seleciona o nível lógico (HIGH/LOW/flutuante).');
       this.setHelpUrl('');
     },
@@ -298,7 +350,7 @@ export function registerAmadoBlocks(Blockly) {
       this.setInputsInline(true);
       this.setPreviousStatement(true);
       this.setNextStatement(true);
-      this.setColour(18);
+      this.setColour('#708090');
       this.setTooltip('Define o PWM aplicado ao motor DC (0 a 100%).');
       this.setHelpUrl('');
 
@@ -327,7 +379,7 @@ export function registerAmadoBlocks(Blockly) {
       this.setInputsInline(true);
       this.setPreviousStatement(true);
       this.setNextStatement(true);
-      this.setColour(18);
+      this.setColour('#708090');
       this.setTooltip('Define o sentido de rotação do motor: horário ou anti-horário.');
       this.setHelpUrl('');
     },
@@ -342,7 +394,7 @@ export function registerAmadoBlocks(Blockly) {
 
       this.setPreviousStatement(true);
       this.setNextStatement(true);
-      this.setColour(18);
+      this.setColour('#708090');
       this.setTooltip('Desliga o motor DC e coloca os pinos de direção em LOW.');
       this.setHelpUrl('');
     },
@@ -362,7 +414,7 @@ export function registerAmadoBlocks(Blockly) {
       this.setInputsInline(false);
       this.setPreviousStatement(true);
       this.setNextStatement(true);
-      this.setColour(30);
+      this.setColour('#708090');
       this.setTooltip('Move o servo informado para o ângulo desejado (0° a 180°).');
       this.setHelpUrl('');
 
@@ -374,7 +426,7 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
-  const oledBlockColour = 200;
+  const oledBlockColour = '#708090';
 
   Blockly.Blocks.oled_display_init = {
     init() {
@@ -490,6 +542,28 @@ export function registerAmadoBlocks(Blockly) {
     (javascriptGenerator.ORDER_AWAIT ?? javascriptGenerator.ORDER_NONE ?? 0);
   const orderAtomic =
     (javascriptGenerator.ORDER_ATOMIC ?? javascriptGenerator.ORDER_NONE ?? 0);
+
+  // Geradores para blocos de variáveis customizados
+  javascriptGenerator.forBlock.variable_boolean_const = function variableBooleanConst(block) {
+    const bool = block.getFieldValue('BOOL') === 'TRUE' ? 'true' : 'false';
+    return [bool, orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.variable_number_const = function variableNumberConst(block) {
+    const num = Number(block.getFieldValue('NUM')) || 0;
+    return [String(num), orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.variable_pi_const = function variablePiConst() {
+    return ['Math.PI', orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.variable_random_int = function variableRandomInt(block) {
+    const from = javascriptGenerator.valueToCode(block, 'FROM', javascriptGenerator.ORDER_NONE) || '0';
+    const to = javascriptGenerator.valueToCode(block, 'TO', javascriptGenerator.ORDER_NONE) || '0';
+    const code = `Math.floor(Math.random() * ((${to}) - (${from}) + 1) + (${from}))`;
+    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+  };
 
   javascriptGenerator.forBlock.amado_set_pin = function amadoSetPin(block) {
     const pinCode =
