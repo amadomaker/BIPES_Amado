@@ -125,6 +125,57 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  // Blocos personalizados para lógica/matemática (cor #008000)
+  Blockly.Blocks.amado_logic_ternary = {
+    init() {
+      this.appendValueInput('COND').setCheck(null).appendField('teste');
+      this.appendValueInput('IF_TRUE').setCheck(null).appendField('se verdadeiro');
+      this.appendValueInput('IF_FALSE').setCheck(null).appendField('se falso');
+      this.setOutput(true, null);
+      this.setColour('#008000');
+      this.setTooltip('Retorna o valor em "se verdadeiro" ou "se falso" conforme a condição.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_map_range = {
+    init() {
+      this.appendValueInput('VALUE').setCheck(null).appendField('mapear');
+      this.appendValueInput('IN_MIN').setCheck(null).appendField('entrada mínima');
+      this.appendValueInput('IN_MAX').setCheck(null).appendField('entrada máxima');
+      this.appendValueInput('OUT_MIN').setCheck(null).appendField('saída mínima');
+      this.appendValueInput('OUT_MAX').setCheck(null).appendField('saída máxima');
+      this.setOutput(true, null);
+      this.setColour('#008000');
+      this.setTooltip('Faz o mapeamento linear de um valor de um intervalo de entrada para um intervalo de saída.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_min_between = {
+    init() {
+      this.appendValueInput('A').setCheck(null).appendField('Mínimo entre');
+      this.appendValueInput('B').setCheck(null).appendField('e');
+      this.setInputsInline(true);
+      this.setOutput(true, null);
+      this.setColour('#008000');
+      this.setTooltip('Retorna o menor valor entre as duas entradas.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_max_between = {
+    init() {
+      this.appendValueInput('A').setCheck(null).appendField('Máximo entre');
+      this.appendValueInput('B').setCheck(null).appendField('e');
+      this.setInputsInline(true);
+      this.setOutput(true, null);
+      this.setColour('#008000');
+      this.setTooltip('Retorna o maior valor entre as duas entradas.');
+      this.setHelpUrl('');
+    },
+  };
+
   // Blocos personalizados para variáveis (cor #1c1f7a)
   Blockly.Blocks.variable_boolean_const = {
     init() {
@@ -308,7 +359,7 @@ export function registerAmadoBlocks(Blockly) {
         .appendField('Print');
       this.setPreviousStatement(true);
       this.setNextStatement(true);
-      this.setColour('#708090');
+      this.setColour('#1c1f7a');
       this.setTooltip('Envia dados para o monitor serial.');
       this.setHelpUrl('');
 
@@ -571,6 +622,12 @@ export function registerAmadoBlocks(Blockly) {
     (javascriptGenerator.ORDER_AWAIT ?? javascriptGenerator.ORDER_NONE ?? 0);
   const orderAtomic =
     (javascriptGenerator.ORDER_ATOMIC ?? javascriptGenerator.ORDER_NONE ?? 0);
+  const orderConditional =
+    (javascriptGenerator.ORDER_CONDITIONAL ?? javascriptGenerator.ORDER_NONE ?? 0);
+  const orderMultiplication =
+    (javascriptGenerator.ORDER_MULTIPLICATION ?? javascriptGenerator.ORDER_NONE ?? 0);
+  const orderFunctionCall =
+    (javascriptGenerator.ORDER_FUNCTION_CALL ?? javascriptGenerator.ORDER_NONE ?? 0);
 
   // Geradores blocos de controle adicionais
   javascriptGenerator.forBlock.amado_for_each_item = function amadoForEachItem(block) {
@@ -588,6 +645,48 @@ export function registerAmadoBlocks(Blockly) {
 
   javascriptGenerator.forBlock.amado_break_loop = function amadoBreakLoop() {
     return 'break;\n';
+  };
+
+  // Geradores blocos de lógica/matemática adicionais
+  javascriptGenerator.forBlock.amado_logic_ternary = function amadoLogicTernary(block) {
+    const condition =
+      javascriptGenerator.valueToCode(block, 'COND', javascriptGenerator.ORDER_NONE) || 'false';
+    const ifTrue =
+      javascriptGenerator.valueToCode(block, 'IF_TRUE', javascriptGenerator.ORDER_NONE) || 'null';
+    const ifFalse =
+      javascriptGenerator.valueToCode(block, 'IF_FALSE', javascriptGenerator.ORDER_NONE) || 'null';
+    return [`((${condition}) ? ${ifTrue} : ${ifFalse})`, orderConditional];
+  };
+
+  javascriptGenerator.forBlock.amado_map_range = function amadoMapRange(block) {
+    const value =
+      javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_NONE) || '0';
+    const inMin =
+      javascriptGenerator.valueToCode(block, 'IN_MIN', javascriptGenerator.ORDER_NONE) || '0';
+    const inMax =
+      javascriptGenerator.valueToCode(block, 'IN_MAX', javascriptGenerator.ORDER_NONE) || '1';
+    const outMin =
+      javascriptGenerator.valueToCode(block, 'OUT_MIN', javascriptGenerator.ORDER_NONE) || '0';
+    const outMax =
+      javascriptGenerator.valueToCode(block, 'OUT_MAX', javascriptGenerator.ORDER_NONE) || '0';
+    const code = `((${value} - (${inMin})) * ((${outMax}) - (${outMin})) / (((${inMax}) - (${inMin})) || 1) + (${outMin}))`;
+    return [code, orderMultiplication];
+  };
+
+  javascriptGenerator.forBlock.amado_min_between = function amadoMinBetween(block) {
+    const a =
+      javascriptGenerator.valueToCode(block, 'A', javascriptGenerator.ORDER_NONE) || '0';
+    const b =
+      javascriptGenerator.valueToCode(block, 'B', javascriptGenerator.ORDER_NONE) || '0';
+    return [`Math.min(${a}, ${b})`, orderFunctionCall];
+  };
+
+  javascriptGenerator.forBlock.amado_max_between = function amadoMaxBetween(block) {
+    const a =
+      javascriptGenerator.valueToCode(block, 'A', javascriptGenerator.ORDER_NONE) || '0';
+    const b =
+      javascriptGenerator.valueToCode(block, 'B', javascriptGenerator.ORDER_NONE) || '0';
+    return [`Math.max(${a}, ${b})`, orderFunctionCall];
   };
 
   // Geradores para blocos de variáveis customizados

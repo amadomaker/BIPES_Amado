@@ -41,8 +41,21 @@ const DEFAULT_TOOLBOX = {
             { kind: 'block', type: 'controls_if' },
             { kind: 'block', type: 'logic_compare' },
             { kind: 'block', type: 'logic_operation' },
-            { kind: 'block', type: 'logic_boolean' },
             { kind: 'block', type: 'logic_negate' },
+            { kind: 'block', type: 'amado_logic_ternary' },
+            {
+              kind: 'block',
+              type: 'amado_map_range',
+              inputs: {
+                VALUE: { shadow: { type: 'math_number', fields: { NUM: 0 } } },
+                IN_MIN: { shadow: { type: 'math_number', fields: { NUM: 0 } } },
+                IN_MAX: { shadow: { type: 'math_number', fields: { NUM: 1023 } } },
+                OUT_MIN: { shadow: { type: 'math_number', fields: { NUM: 0 } } },
+                OUT_MAX: { shadow: { type: 'math_number', fields: { NUM: 255 } } },
+              },
+            },
+            { kind: 'block', type: 'amado_min_between' },
+            { kind: 'block', type: 'amado_max_between' },
           ],
         },
         {
@@ -90,7 +103,7 @@ const DEFAULT_TOOLBOX = {
           kind: 'category',
           name: 'Texto',
           colour: '#1c1f7a',
-          contents: [],
+          contents: [{ kind: 'block', type: 'amado_serial_log' }],
         },
         {
           kind: 'category',
@@ -112,7 +125,6 @@ const DEFAULT_TOOLBOX = {
       colour: '#708090',
       contents: [
         { kind: 'block', type: 'amado_set_pin' },
-        { kind: 'block', type: 'amado_serial_log' },
         { kind: 'block', type: 'amado_read_digital' },
         { kind: 'block', type: 'amado_read_analog' },
       ],
