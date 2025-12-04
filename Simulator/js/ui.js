@@ -108,7 +108,7 @@ function renderToolbar() {
     currentToolbarHandlers.onClear?.();
   });
 
-  saveButton = createToolbarButton('💾 Salvar (JSON)', () => {
+  saveButton = createToolbarButton('💾 Salvar', () => {
     currentToolbarHandlers.onSave?.();
   });
 
@@ -116,7 +116,7 @@ function renderToolbar() {
     currentToolbarHandlers.onLoad?.();
   });
 
-  monitorButton = createToolbarButton('🖥 Monitor Serial', () => {
+  monitorButton = createToolbarButton('🖥 Console', () => {
     currentToolbarHandlers.onToggleSerialMonitor?.();
   });
   monitorButton.setAttribute('aria-pressed', 'false');

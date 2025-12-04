@@ -96,6 +96,35 @@ export function registerAmadoBlocks(Blockly) {
 
   const pinOptions = buildPinOptions();
 
+  // Blocos de controle adicionais (cor #d9a600)
+  Blockly.Blocks.amado_for_each_item = {
+    init() {
+      this.appendDummyInput()
+        .appendField('para cada item')
+        .appendField(new (Blockly.FieldVariable ?? Blockly.FieldInput)('item'), 'VAR')
+        .appendField('na lista');
+      this.appendValueInput('LIST').setCheck('Array').setAlign(Blockly.ALIGN_RIGHT);
+      this.appendStatementInput('DO').setCheck(null).appendField('faça');
+      this.setInputsInline(false);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#d9a600');
+      this.setTooltip('Itera sobre cada item de uma lista e executa o bloco interno.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_break_loop = {
+    init() {
+      this.appendDummyInput().appendField('encerra o laço');
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#d9a600');
+      this.setTooltip('Interrompe imediatamente o laço atual.');
+      this.setHelpUrl('');
+    },
+  };
+
   // Blocos personalizados para variáveis (cor #1c1f7a)
   Blockly.Blocks.variable_boolean_const = {
     init() {
@@ -542,6 +571,24 @@ export function registerAmadoBlocks(Blockly) {
     (javascriptGenerator.ORDER_AWAIT ?? javascriptGenerator.ORDER_NONE ?? 0);
   const orderAtomic =
     (javascriptGenerator.ORDER_ATOMIC ?? javascriptGenerator.ORDER_NONE ?? 0);
+
+  // Geradores blocos de controle adicionais
+  javascriptGenerator.forBlock.amado_for_each_item = function amadoForEachItem(block) {
+    const list =
+      javascriptGenerator.valueToCode(block, 'LIST', javascriptGenerator.ORDER_NONE) || '[]';
+    const variable = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('VAR'),
+      Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE',
+    );
+    let branch = javascriptGenerator.statementToCode(block, 'DO');
+    branch = javascriptGenerator.addLoopTrap(branch, block.id);
+    const code = `for (const ${variable} of (${list})) {\n${branch}}\n`;
+    return code;
+  };
+
+  javascriptGenerator.forBlock.amado_break_loop = function amadoBreakLoop() {
+    return 'break;\n';
+  };
 
   // Geradores para blocos de variáveis customizados
   javascriptGenerator.forBlock.variable_boolean_const = function variableBooleanConst(block) {

@@ -247,7 +247,7 @@ function setupBlocklyPanelControls() {
     canvasArea.classList.toggle('blockly-open', isOpen);
     openButton.setAttribute('aria-expanded', String(isOpen));
     openButton.style.display = isOpen ? 'none' : 'inline-flex';
-    closeButton.textContent = isOpen ? 'Minimizar' : 'Abrir Blockly';
+    closeButton.textContent = isOpen ? 'Minimizar' : 'Código';
     closeButton.setAttribute('aria-expanded', String(isOpen));
 
     if (isOpen && blocklyWorkspace && window.Blockly) {

@@ -16,6 +16,8 @@ const DEFAULT_TOOLBOX = {
             { kind: 'block', type: 'controls_repeat_ext' },
             { kind: 'block', type: 'controls_whileUntil' },
             { kind: 'block', type: 'controls_for' },
+            { kind: 'block', type: 'amado_for_each_item' },
+            { kind: 'block', type: 'amado_break_loop' },
           ],
         },
         {
