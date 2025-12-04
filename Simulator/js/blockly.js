@@ -103,7 +103,11 @@ const DEFAULT_TOOLBOX = {
           kind: 'category',
           name: 'Texto',
           colour: '#1c1f7a',
-          contents: [{ kind: 'block', type: 'amado_serial_log' }],
+          contents: [
+            { kind: 'block', type: 'amado_serial_log' },
+            { kind: 'block', type: 'amado_text_literal' },
+            { kind: 'block', type: 'amado_text_join' },
+          ],
         },
         {
           kind: 'category',

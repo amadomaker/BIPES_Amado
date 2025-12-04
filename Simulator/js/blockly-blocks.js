@@ -176,6 +176,37 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  // Bloco de texto simples (cor #1c1f7a)
+  Blockly.Blocks.amado_text_literal = {
+    init() {
+      this.appendDummyInput()
+        .appendField('"')
+        .appendField(new (Blockly.FieldTextInput ?? Blockly.FieldInput)(''), 'TEXT')
+        .appendField('"');
+      this.setOutput(true, 'String');
+      this.setColour('#1c1f7a');
+      this.setTooltip('Texto literal.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_text_join = {
+    init() {
+      if (Blockly.Blocks.text_join?.init) {
+        Blockly.Blocks.text_join.init.call(this);
+        this.setColour('#1c1f7a');
+      } else {
+        // Fallback simples com duas entradas sem mutator
+        this.appendValueInput('ADD0').appendField('criar texto com');
+        this.appendValueInput('ADD1');
+        this.setOutput(true, 'String');
+        this.setColour('#1c1f7a');
+      }
+      this.setTooltip('Concatena vários textos em uma única string.');
+      this.setHelpUrl('');
+    },
+  };
+
   // Blocos personalizados para variáveis (cor #1c1f7a)
   Blockly.Blocks.variable_boolean_const = {
     init() {
@@ -628,6 +659,8 @@ export function registerAmadoBlocks(Blockly) {
     (javascriptGenerator.ORDER_MULTIPLICATION ?? javascriptGenerator.ORDER_NONE ?? 0);
   const orderFunctionCall =
     (javascriptGenerator.ORDER_FUNCTION_CALL ?? javascriptGenerator.ORDER_NONE ?? 0);
+  const orderNone =
+    javascriptGenerator.ORDER_NONE ?? 0;
 
   // Geradores blocos de controle adicionais
   javascriptGenerator.forBlock.amado_for_each_item = function amadoForEachItem(block) {
@@ -709,6 +742,28 @@ export function registerAmadoBlocks(Blockly) {
     const to = javascriptGenerator.valueToCode(block, 'TO', javascriptGenerator.ORDER_NONE) || '0';
     const code = `Math.floor(Math.random() * ((${to}) - (${from}) + 1) + (${from}))`;
     return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+  };
+
+  // Geradores para blocos de texto
+  javascriptGenerator.forBlock.amado_text_literal = function amadoTextLiteral(block) {
+    const text = block.getFieldValue('TEXT') ?? '';
+    return [javascriptGenerator.quote_(text), orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.amado_text_join = function amadoTextJoin(block) {
+    const parts = block.inputList
+      .filter((input) => input.name && input.name.startsWith('ADD'))
+      .map((input) => javascriptGenerator.valueToCode(block, input.name, orderNone) || "''");
+    if (parts.length === 0) return ["''", orderAtomic];
+    if (parts.length === 1) return [parts[0], orderNone];
+    const code = `[${parts.join(', ')}].join('')`;
+    return [code, orderFunctionCall];
+  };
+
+  // Geradores para bloco de texto
+  javascriptGenerator.forBlock.amado_text_literal = function amadoTextLiteral(block) {
+    const text = block.getFieldValue('TEXT') ?? '';
+    return [javascriptGenerator.quote_(text), orderAtomic];
   };
 
   javascriptGenerator.forBlock.amado_set_pin = function amadoSetPin(block) {
