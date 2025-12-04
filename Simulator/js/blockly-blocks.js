@@ -224,7 +224,7 @@ export function registerAmadoBlocks(Blockly) {
     init() {
       const input = this.appendValueInput('VALUE')
         .setCheck(null)
-        .appendField('enviar para monitor');
+        .appendField('Print');
       this.setPreviousStatement(true);
       this.setNextStatement(true);
       this.setColour(200);

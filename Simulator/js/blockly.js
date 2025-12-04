@@ -5,51 +5,98 @@ const DEFAULT_TOOLBOX = {
   contents: [
     {
       kind: 'category',
-      name: 'Lógica',
-      colour: '#4C97FF',
+      name: 'Matemática',
+      colour: '#FFAB19',
       contents: [
-        { kind: 'block', type: 'controls_if' },
-        { kind: 'block', type: 'logic_compare' },
-        { kind: 'block', type: 'logic_operation' },
-        { kind: 'block', type: 'logic_boolean' },
-        { kind: 'block', type: 'logic_negate' },
+        {
+          kind: 'category',
+          name: 'Lógica',
+          colour: '#4C97FF',
+          contents: [
+            { kind: 'block', type: 'controls_if' },
+            { kind: 'block', type: 'logic_compare' },
+            { kind: 'block', type: 'logic_operation' },
+            { kind: 'block', type: 'logic_boolean' },
+            { kind: 'block', type: 'logic_negate' },
+          ],
+        },
+        {
+          kind: 'category',
+          name: 'Operadores',
+          colour: '#FFAB19',
+          contents: [
+            { kind: 'block', type: 'math_number' },
+            { kind: 'block', type: 'math_arithmetic' },
+            { kind: 'block', type: 'math_single' },
+            { kind: 'block', type: 'math_number_property' },
+            { kind: 'block', type: 'math_random_int' },
+          ],
+        },
       ],
     },
     {
       kind: 'category',
-      name: 'Laços',
-      colour: '#9966FF',
+      name: 'Controle',
+      colour: '#8B5CF6',
       contents: [
-        { kind: 'block', type: 'controls_repeat_ext' },
-        { kind: 'block', type: 'controls_whileUntil' },
-        { kind: 'block', type: 'controls_for' },
+        {
+          kind: 'category',
+          name: 'Laços',
+          colour: '#9966FF',
+          contents: [
+            { kind: 'block', type: 'controls_repeat_ext' },
+            { kind: 'block', type: 'controls_whileUntil' },
+            { kind: 'block', type: 'controls_for' },
+          ],
+        },
+        {
+          kind: 'category',
+          name: 'Temporização',
+          colour: '#4CAF50',
+          contents: [{ kind: 'block', type: 'amado_wait' }],
+        },
       ],
     },
     {
       kind: 'category',
-      name: 'Temporização',
-      colour: '#4CAF50',
-      contents: [
-        { kind: 'block', type: 'amado_wait' },
-      ],
-    },
-    {
-      kind: 'category',
-      name: 'Leituras',
-      colour: '#00BFA6',
-      contents: [
-        { kind: 'block', type: 'amado_read_digital' },
-        { kind: 'block', type: 'amado_read_analog' },
-        { kind: 'block', type: 'amado_ultrasonic_read' },
-      ],
-    },
-    {
-      kind: 'category',
-      name: 'Amado ESP32',
+      name: 'Pinos entrada/saída',
       colour: '#2BC3A3',
       contents: [
         { kind: 'block', type: 'amado_set_pin' },
         { kind: 'block', type: 'amado_serial_log' },
+        { kind: 'block', type: 'amado_read_digital' },
+        { kind: 'block', type: 'amado_read_analog' },
+      ],
+    },
+    {
+      kind: 'category',
+      name: 'Sensores',
+      colour: '#00BFA6',
+      contents: [
+        {
+          kind: 'category',
+          name: 'Temperatura e umidade',
+          colour: '#14b8a6',
+          contents: [],
+        },
+        {
+          kind: 'category',
+          name: 'Ultrassônico',
+          colour: '#10b981',
+          contents: [{ kind: 'block', type: 'amado_ultrasonic_read' }],
+        },
+        {
+          kind: 'category',
+          name: 'Acelerômetro e giroscópio',
+          colour: '#22c55e',
+          contents: [],
+        },
+        {
+          kind: 'category',
+          name: 'Leitor RFID',
+          colour: '#16a34a',
+          contents: [],
+        },
       ],
     },
     {
@@ -100,21 +147,44 @@ const DEFAULT_TOOLBOX = {
     },
     {
       kind: 'category',
-      name: 'Matemática',
-      colour: '#FFAB19',
-      contents: [
-        { kind: 'block', type: 'math_number' },
-        { kind: 'block', type: 'math_arithmetic' },
-        { kind: 'block', type: 'math_single' },
-        { kind: 'block', type: 'math_number_property' },
-        { kind: 'block', type: 'math_random_int' },
-      ],
-    },
-    {
-      kind: 'category',
       name: 'Variáveis',
       colour: '#FF8C1A',
-      custom: 'VARIABLE',
+      contents: [
+        {
+          kind: 'category',
+          name: 'Variáveis criadas',
+          colour: '#FF8C1A',
+          custom: 'VARIABLE',
+        },
+        {
+          kind: 'category',
+          name: 'Boleanas',
+          colour: '#4C97FF',
+          contents: [{ kind: 'block', type: 'logic_boolean' }],
+        },
+        {
+          kind: 'category',
+          name: 'Numéricas',
+          colour: '#FFAB19',
+          contents: [
+            { kind: 'block', type: 'math_number' },
+            { kind: 'block', type: 'math_number_property' },
+            { kind: 'block', type: 'math_random_int' },
+          ],
+        },
+        {
+          kind: 'category',
+          name: 'Texto',
+          colour: '#6b7280',
+          contents: [],
+        },
+        {
+          kind: 'category',
+          name: 'Listas',
+          colour: '#6b7280',
+          contents: [],
+        },
+      ],
     },
     {
       kind: 'category',
