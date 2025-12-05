@@ -1584,6 +1584,7 @@ class CircuitSnapshot {
   }
 
   applyInternalComponentConnections() {
+    const protoboards = [];
     this.canvasManager.components.forEach((component) => {
       switch (component.type) {
         case 'switch':
@@ -1594,10 +1595,15 @@ class CircuitSnapshot {
           break;
         case 'protoboard-half':
           this.applyProtoboardConnections(component);
+          protoboards.push(component);
           break;
         default:
           break;
       }
+    });
+
+    protoboards.forEach((board) => {
+      this.applyProtoboardOverlapConnections(board);
     });
   }
 
@@ -1664,8 +1670,9 @@ class CircuitSnapshot {
     const matcher = /^([+\-][LR]|[A-J])(\d+)$/i;
 
     indexMap.forEach((node) => {
-      const pinName = String(node.pinName ?? '');
-      const match = matcher.exec(pinName);
+      const rawPinName = String(node.pinName ?? '');
+      const cleanedPinName = rawPinName.replace(/[\u200b-\u200d\uFEFF]/g, '').trim();
+      const match = matcher.exec(cleanedPinName);
       if (!match) return;
 
       const prefix = match[1].toUpperCase();
@@ -1693,6 +1700,43 @@ class CircuitSnapshot {
     railBuckets.forEach(connectGroup);
     rowLeftBuckets.forEach(connectGroup);
     rowRightBuckets.forEach(connectGroup);
+  }
+
+  applyProtoboardOverlapConnections(boardComponent) {
+    if (!boardComponent || boardComponent.type !== 'protoboard-half') return;
+    const wiringManager = this.canvasManager?.wiringManager;
+    if (!wiringManager?.getPinPosition) return;
+
+    const boardNodes = [];
+    const boardPinIndexMap = this.pinNodesByComponentIndex.get(boardComponent.id);
+    if (!boardPinIndexMap) return;
+    boardPinIndexMap.forEach((node) => {
+      if (!node?.pinElement) return;
+      const pos = wiringManager.getPinPosition(node.pinElement);
+      boardNodes.push({ node, pos });
+    });
+    if (!boardNodes.length) return;
+
+    const tolerancePx = 3; // considera encaixe no furo
+    const tolSq = tolerancePx * tolerancePx;
+
+    this.canvasManager.components.forEach((component) => {
+      if (component.id === boardComponent.id) return;
+      const indexMap = this.pinNodesByComponentIndex.get(component.id);
+      if (!indexMap) return;
+      indexMap.forEach((node) => {
+        if (!node?.pinElement) return;
+        const pos = wiringManager.getPinPosition(node.pinElement);
+        boardNodes.forEach((boardEntry) => {
+          const dx = pos.x - boardEntry.pos.x;
+          const dy = pos.y - boardEntry.pos.y;
+          const distSq = dx * dx + dy * dy;
+          if (distSq <= tolSq) {
+            this.connectNodes(node, boardEntry.node);
+          }
+        });
+      });
+    });
   }
 
   connectNodes(nodeA, nodeB) {

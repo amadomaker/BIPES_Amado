@@ -435,6 +435,9 @@ export class CanvasManager {
       const offsetX = startPoint.x - container.offsetLeft;
       const offsetY = startPoint.y - container.offsetTop;
       let moved = false;
+      let lastPoint = startPoint;
+      const attachedComponents =
+        component.type === 'protoboard-half' ? this.getAttachedComponents(component) : null;
 
       const handlePointerMove = (moveEvent) => {
         if (moveEvent.pointerId !== event.pointerId) return;
@@ -442,11 +445,17 @@ export class CanvasManager {
         moved = true;
 
         const currentPoint = this.clientToWorkspace(moveEvent.clientX, moveEvent.clientY);
+        const deltaX = currentPoint.x - lastPoint.x;
+        const deltaY = currentPoint.y - lastPoint.y;
+        lastPoint = currentPoint;
         const newX = currentPoint.x - offsetX;
         const newY = currentPoint.y - offsetY;
 
         container.style.left = `${newX}px`;
         container.style.top = `${newY}px`;
+        if (component.type === 'protoboard-half' && attachedComponents?.length) {
+          this.nudgeAttachedComponents(attachedComponents, { dx: deltaX, dy: deltaY });
+        }
         this.wiringManager.updateAllConnections();
         if (component.type === 'photoresistor') {
           this.positionPhotoresistorControls(component);
@@ -465,6 +474,7 @@ export class CanvasManager {
         container.removeEventListener('pointercancel', handlePointerUp);
 
         if (moved) {
+          this.snapComponentToProtoboard(component);
           this.notifyInteraction();
           if (component.type === 'photoresistor') {
             this.positionPhotoresistorControls(component);
@@ -497,6 +507,77 @@ export class CanvasManager {
       showComponentContextMenu(event.clientX, event.clientY, {
         onDelete: () => this.removeComponent(id),
       });
+    });
+  }
+
+  snapComponentToProtoboard(component) {
+    if (!this.wiringManager) return;
+    if (component.type === 'protoboard-half') return;
+
+    const protoboards = this.components.filter((item) => item.type === 'protoboard-half');
+    if (!protoboards.length) return;
+
+    const componentPins = this.wiringManager.getPinsForComponent(component.id);
+    if (!componentPins.length) return;
+
+    const maxDistancePx = 12;
+    const maxDistanceSq = maxDistancePx * maxDistancePx;
+    let bestMatch = null;
+
+    protoboards.forEach((board) => {
+      const boardPins = this.wiringManager.getPinsForComponent(board.id);
+      boardPins.forEach((boardPin) => {
+        const boardPos = this.wiringManager.getPinPosition(boardPin);
+        componentPins.forEach((compPin) => {
+          const compPos = this.wiringManager.getPinPosition(compPin);
+          const dx = boardPos.x - compPos.x;
+          const dy = boardPos.y - compPos.y;
+          const distSq = dx * dx + dy * dy;
+          if (distSq <= maxDistanceSq && (!bestMatch || distSq < bestMatch.distSq)) {
+            bestMatch = { dx, dy, distSq };
+          }
+        });
+      });
+    });
+
+    if (!bestMatch) return;
+
+    const currentLeft = parseFloat(component.container.style.left) || 0;
+    const currentTop = parseFloat(component.container.style.top) || 0;
+    component.container.style.left = `${currentLeft + bestMatch.dx}px`;
+    component.container.style.top = `${currentTop + bestMatch.dy}px`;
+    this.wiringManager.updateAllConnections();
+  }
+
+  getAttachedComponents(protoboardComponent) {
+    const attached = [];
+    const boardPins = this.wiringManager.getPinsForComponent(protoboardComponent.id);
+    if (!boardPins.length) return attached;
+
+    const threshold = 2; // px tolerance to consider a pin sitting on a hole
+    this.components.forEach((component) => {
+      if (component.id === protoboardComponent.id) return;
+      const pins = this.wiringManager.getPinsForComponent(component.id);
+      if (!pins.length) return;
+      const overlaps = pins.some((pin) => {
+        const pos = this.wiringManager.getPinPosition(pin);
+        return boardPins.some((bp) => {
+          const bpos = this.wiringManager.getPinPosition(bp);
+          return Math.abs(pos.x - bpos.x) <= threshold && Math.abs(pos.y - bpos.y) <= threshold;
+        });
+      });
+      if (overlaps) attached.push(component);
+    });
+    return attached;
+  }
+
+  nudgeAttachedComponents(attachedComponents, delta) {
+    if (!delta || (!delta.dx && !delta.dy)) return;
+    attachedComponents.forEach((component) => {
+      const currentLeft = parseFloat(component.container.style.left) || 0;
+      const currentTop = parseFloat(component.container.style.top) || 0;
+      component.container.style.left = `${currentLeft + delta.dx}px`;
+      component.container.style.top = `${currentTop + delta.dy}px`;
     });
   }
 
