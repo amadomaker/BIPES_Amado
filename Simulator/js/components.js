@@ -8,6 +8,66 @@ const AMADO_BOARD_LEFT_X = 109.56;
 const AMADO_BOARD_RIGHT_X = 585.68;
 const AMADO_BOARD_RIGHT_TOP_X = 520.55;
 
+const PROTOBOARD_HALF_VIEWBOX = { x: 747.5, y: 257.5, width: 505, height: 650 };
+const PROTOBOARD_HALF_BASE_WIDTH = 320;
+const PROTOBOARD_HALF_ASPECT_RATIO = PROTOBOARD_HALF_VIEWBOX.height / PROTOBOARD_HALF_VIEWBOX.width;
+const PROTOBOARD_HALF_LAYOUT = {
+  rows: 30,
+  rowStartY: 367.2,
+  rowPitch: 15,
+  columns: [
+    { prefix: '+L', type: 'power', x: 855.3 },
+    { prefix: '-L', type: 'ground', x: 870.3 },
+    { prefix: 'A', type: 'signal', x: 915.3 },
+    { prefix: 'B', type: 'signal', x: 930.3 },
+    { prefix: 'C', type: 'signal', x: 945.3 },
+    { prefix: 'D', type: 'signal', x: 960.3 },
+    { prefix: 'E', type: 'signal', x: 975.3 },
+    { prefix: 'F', type: 'signal', x: 1020.3 },
+    { prefix: 'G', type: 'signal', x: 1035.3 },
+    { prefix: 'H', type: 'signal', x: 1050.3 },
+    { prefix: 'I', type: 'signal', x: 1065.3 },
+    { prefix: 'J', type: 'signal', x: 1080.3 },
+    { prefix: '+R', type: 'power', x: 1125.3 },
+    { prefix: '-R', type: 'ground', x: 1140.3 },
+  ],
+};
+
+function toProtoboardPercent(x, y) {
+  const xOffsetPercent = 0.6;
+  const yOffsetPercent = -0.35;
+  return {
+    xPercent:
+      ((x - PROTOBOARD_HALF_VIEWBOX.x) / PROTOBOARD_HALF_VIEWBOX.width) * 100 +
+      xOffsetPercent,
+    yPercent:
+      ((y - PROTOBOARD_HALF_VIEWBOX.y) / PROTOBOARD_HALF_VIEWBOX.height) * 100 +
+      yOffsetPercent,
+  };
+}
+
+function generateProtoboardPins() {
+  const pins = [];
+  const { rows, rowStartY, rowPitch, columns } = PROTOBOARD_HALF_LAYOUT;
+  const columnCount = columns.length;
+
+  for (let row = 1; row <= rows; row += 1) {
+    const y = rowStartY + (row - 1) * rowPitch;
+    columns.forEach((column, columnIndex) => {
+      pins.push({
+        name: `${column.prefix}${row}`,
+        type: column.type,
+        position: toProtoboardPercent(column.x, y),
+        pinIndex: (row - 1) * columnCount + columnIndex,
+      });
+    });
+  }
+
+  return pins;
+}
+
+const PROTOBOARD_HALF_PINS = generateProtoboardPins();
+
 function createBatteryShell({ voltage, preview = false } = {}) {
   const shell = document.createElement('div');
   shell.className = `battery-shell${preview ? ' preview' : ''}`;
@@ -148,6 +208,26 @@ function createAaaBatteryPackElement({ props, preview = false } = {}) {
   return {
     element: shell,
     applyProps,
+  };
+}
+
+function createProtoboardElement({ preview = false } = {}) {
+  const container = document.createElement('div');
+  container.className = `protoboard-shell${preview ? ' protoboard-preview' : ''}`;
+  const width = preview ? PROTOBOARD_HALF_BASE_WIDTH * 0.45 : PROTOBOARD_HALF_BASE_WIDTH;
+  container.style.width = `${width}px`;
+  container.style.height = `${width * PROTOBOARD_HALF_ASPECT_RATIO}px`;
+
+  const image = document.createElement('img');
+  image.src = 'css/components/protoboard_svg.svg';
+  image.alt = 'Protoboard half-size (400 pontos)';
+  image.draggable = false;
+
+  container.appendChild(image);
+
+  return {
+    element: container,
+    applyProps: () => {},
   };
 }
 
@@ -913,6 +993,17 @@ export const availableComponents = [
         },
       },
     ],
+  },
+  {
+    id: 'protoboard-half',
+    name: 'Protoboard 400 pontos',
+    element: null,
+    description: 'Placa de ensaio half-size (400 pontos).',
+    group: 'tools',
+    defaultProps: {},
+    pins: PROTOBOARD_HALF_PINS,
+    createInstance: () => createProtoboardElement({ preview: false }),
+    createPreview: () => createProtoboardElement({ preview: true }).element,
   },
   {
     id: 'amado-board',

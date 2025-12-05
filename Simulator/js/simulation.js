@@ -1592,6 +1592,9 @@ class CircuitSnapshot {
         case 'pushbutton':
           this.applyPushbuttonConnections(component);
           break;
+        case 'protoboard-half':
+          this.applyProtoboardConnections(component);
+          break;
         default:
           break;
       }
@@ -1648,6 +1651,48 @@ class CircuitSnapshot {
     } else if (!isOn && nc) {
       this.connectNodes(com, nc);
     }
+  }
+
+  applyProtoboardConnections(component) {
+    const indexMap = this.pinNodesByComponentIndex.get(component.id);
+    if (!indexMap) return;
+
+    const railBuckets = new Map(); // +L, -L, +R, -R
+    const rowLeftBuckets = new Map(); // A-E por linha
+    const rowRightBuckets = new Map(); // F-J por linha
+
+    const matcher = /^([+\-][LR]|[A-J])(\d+)$/i;
+
+    indexMap.forEach((node) => {
+      const pinName = String(node.pinName ?? '');
+      const match = matcher.exec(pinName);
+      if (!match) return;
+
+      const prefix = match[1].toUpperCase();
+      const row = Number(match[2]);
+      if (Number.isNaN(row)) return;
+
+      if (prefix === '+L' || prefix === '-L' || prefix === '+R' || prefix === '-R') {
+        if (!railBuckets.has(prefix)) railBuckets.set(prefix, []);
+        railBuckets.get(prefix).push(node);
+        return;
+      }
+
+      const isLeft = prefix >= 'A' && prefix <= 'E';
+      const bucket = isLeft ? rowLeftBuckets : rowRightBuckets;
+      if (!bucket.has(row)) bucket.set(row, []);
+      bucket.get(row).push(node);
+    });
+
+    const connectGroup = (nodes) => {
+      if (!nodes || nodes.length < 2) return;
+      const [first, ...rest] = nodes;
+      rest.forEach((node) => this.connectNodes(first, node));
+    };
+
+    railBuckets.forEach(connectGroup);
+    rowLeftBuckets.forEach(connectGroup);
+    rowRightBuckets.forEach(connectGroup);
   }
 
   connectNodes(nodeA, nodeB) {
