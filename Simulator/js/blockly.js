@@ -1,5 +1,58 @@
 import { registerAmadoBlocks } from './blockly-blocks.js';
 
+function applyPortugueseMathMessages(BlocklyInstance) {
+  if (!BlocklyInstance || !BlocklyInstance.Msg) return;
+  const msg = BlocklyInstance.Msg;
+  Object.assign(msg, {
+    MATH_SINGLE_OP_ROOT: 'raiz quadrada',
+    MATH_SINGLE_OP_ABSOLUTE: 'valor absoluto',
+    MATH_SINGLE_OP_NEG: 'negativo',
+    MATH_SINGLE_TOOLTIP_ROOT: 'Retorna a raiz quadrada de um número.',
+    MATH_SINGLE_TOOLTIP_ABS: 'Retorna o valor absoluto.',
+    MATH_SINGLE_TOOLTIP_NEG: 'Retorna o negativo do número.',
+    MATH_TRIG_SIN: 'sin',
+    MATH_TRIG_COS: 'cos',
+    MATH_TRIG_TAN: 'tan',
+    MATH_TRIG_TOOLTIP_SIN: 'Retorna o seno (graus).',
+    MATH_TRIG_TOOLTIP_COS: 'Retorna o cosseno (graus).',
+    MATH_TRIG_TOOLTIP_TAN: 'Retorna a tangente (graus).',
+    MATH_IS_EVEN: 'é par',
+    MATH_IS_ODD: 'é ímpar',
+    MATH_IS_PRIME: 'é primo',
+    MATH_IS_WHOLE: 'é inteiro',
+    MATH_IS_POSITIVE: 'é positivo',
+    MATH_IS_NEGATIVE: 'é negativo',
+    MATH_IS_DIVISIBLE_BY: 'divisível por',
+    MATH_IS_TOOLTIP: 'Verifica se o número atende à condição escolhida.',
+    MATH_ROUND_OPERATOR_ROUND: 'arredonda',
+    MATH_ROUND_OPERATOR_ROUNDUP: 'arredonda para cima',
+    MATH_ROUND_OPERATOR_ROUNDDOWN: 'arredonda para baixo',
+    MATH_ROUND_TOOLTIP: 'Arredonda um número para cima ou para baixo.',
+    MATH_ONLIST_OPERATOR_SUM: 'soma de uma lista',
+    MATH_ONLIST_OPERATOR_MIN: 'mínimo',
+    MATH_ONLIST_OPERATOR_MAX: 'máximo',
+    MATH_ONLIST_OPERATOR_AVERAGE: 'média',
+    MATH_ONLIST_OPERATOR_MEDIAN: 'mediana',
+    MATH_ONLIST_OPERATOR_MODE: 'moda',
+    MATH_ONLIST_OPERATOR_STD_DEV: 'desvio padrão',
+    MATH_ONLIST_OPERATOR_RANDOM: 'item aleatório',
+    MATH_ONLIST_TOOLTIP_SUM: 'Retorna a soma de todos os números da lista.',
+    MATH_ONLIST_TOOLTIP_MIN: 'Retorna o menor número da lista.',
+    MATH_ONLIST_TOOLTIP_MAX: 'Retorna o maior número da lista.',
+    MATH_ONLIST_TOOLTIP_AVERAGE: 'Retorna a média aritmética da lista.',
+    MATH_MODULO_TITLE: 'resto da divisão de %1 ÷ %2',
+    MATH_MODULO_TOOLTIP: 'Retorna o resto da divisão de dois números.',
+    MATH_CONSTRAIN_TITLE: 'restringe %1 inferior %2 superior %3',
+    MATH_CONSTRAIN_TOOLTIP: 'Restringe um número para que fique entre os limites inferior e superior.',
+    MATH_ARITHMETIC_TOOLTIP_ADD: 'Retorna a soma de dois números.',
+    MATH_ARITHMETIC_TOOLTIP_MINUS: 'Retorna a diferença de dois números.',
+    MATH_ARITHMETIC_TOOLTIP_MULTIPLY: 'Retorna o produto de dois números.',
+    MATH_ARITHMETIC_TOOLTIP_DIVIDE: 'Retorna o quociente de dois números.',
+    MATH_ARITHMETIC_TOOLTIP_POWER: 'Retorna o primeiro número elevado ao segundo.',
+    LISTS_INLIST: 'lista',
+  });
+}
+
 const DEFAULT_TOOLBOX = {
   kind: 'categoryToolbox',
   contents: [
@@ -66,7 +119,14 @@ const DEFAULT_TOOLBOX = {
             { kind: 'block', type: 'math_number' },
             { kind: 'block', type: 'math_arithmetic' },
             { kind: 'block', type: 'math_single' },
+            { kind: 'block', type: 'math_trig' },
             { kind: 'block', type: 'math_number_property' },
+            { kind: 'block', type: 'math_round' },
+            { kind: 'block', type: 'math_on_list' },
+            { kind: 'block', type: 'math_modulo' },
+            { kind: 'block', type: 'math_constrain' },
+            { kind: 'block', type: 'amado_to_int' },
+            { kind: 'block', type: 'amado_to_float' },
             { kind: 'block', type: 'math_random_int' },
           ],
         },
@@ -335,6 +395,7 @@ export function initBlocklyWorkspace({
     return null;
   }
 
+  applyPortugueseMathMessages(BlocklyInstance);
   registerAmadoBlocks(BlocklyInstance);
 
   const theme = getTheme(BlocklyInstance);

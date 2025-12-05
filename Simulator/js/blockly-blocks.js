@@ -176,6 +176,27 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  // Conversões numéricas simples
+  Blockly.Blocks.amado_to_int = {
+    init() {
+      this.appendValueInput('VALUE').setCheck(null).appendField('Para inteiro');
+      this.setOutput(true, 'Number');
+      this.setColour('#008000');
+      this.setTooltip('Converte o valor para inteiro (trunca).');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_to_float = {
+    init() {
+      this.appendValueInput('VALUE').setCheck(null).appendField('Para decimal');
+      this.setOutput(true, 'Number');
+      this.setColour('#008000');
+      this.setTooltip('Converte o valor para número decimal.');
+      this.setHelpUrl('');
+    },
+  };
+
   // Bloco de texto simples (cor #1c1f7a)
   Blockly.Blocks.amado_text_literal = {
     init() {
@@ -720,6 +741,18 @@ export function registerAmadoBlocks(Blockly) {
     const b =
       javascriptGenerator.valueToCode(block, 'B', javascriptGenerator.ORDER_NONE) || '0';
     return [`Math.max(${a}, ${b})`, orderFunctionCall];
+  };
+
+  javascriptGenerator.forBlock.amado_to_int = function amadoToInt(block) {
+    const value =
+      javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_NONE) || '0';
+    return [`Math.trunc(Number(${value}) || 0)`, orderFunctionCall];
+  };
+
+  javascriptGenerator.forBlock.amado_to_float = function amadoToFloat(block) {
+    const value =
+      javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_NONE) || '0';
+    return [`Number(${value}) || 0`, orderFunctionCall];
   };
 
   // Geradores para blocos de variáveis customizados
