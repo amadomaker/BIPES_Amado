@@ -666,6 +666,24 @@ body {
   animation: pulse 1s infinite;
 }
 
+.canvas-component[data-component-type="protoboard-half"] .pin,
+.canvas-component[data-component-type="amado-board"] .pin {
+  opacity: 0;
+  border-color: transparent;
+}
+
+.canvas-component[data-component-type="protoboard-half"] .pin:hover,
+.canvas-component[data-component-type="amado-board"] .pin:hover {
+  opacity: 1;
+  border-color: #d7dbe9;
+}
+
+.canvas-component[data-component-type="protoboard-half"] .pin.pin-selected,
+.canvas-component[data-component-type="amado-board"] .pin.pin-selected {
+  opacity: 1;
+  border-color: #0ea5e9;
+}
+
 .canvas-component[data-component-type="battery-9v"] .pin {
   width: 7px;
   height: 7px;
