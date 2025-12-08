@@ -63,19 +63,33 @@ function createServoNameField(Blockly, defaultValue = 'Servo 1') {
 }
 
 function buildPinOptions() {
-  const pins = new Set(
-    amadoBoardPins
-      .filter((pin) => pin.type === 'signal' && !/^MOTOR_/i.test(pin.name))
-      .map((pin) => pin.name),
-  );
+  const labels = [
+    ['D2 / LED AZUL', 'D2'],
+    ['D4 / BUZZER', 'D4'],
+    ['D5 / CS', 'D5'],
+    ['D12 / PWM J1', 'D12'],
+    ['D13 / DIR1 J1', 'D13'],
+    ['D14 / DIR2 J1', 'D14'],
+    ['D15 / SERVO A', 'D15'],
+    ['D16 / SERVO B', 'D16'],
+    ['D17', 'D17'],
+    ['D18 / CLK', 'D18 / CLK'],
+    ['D19 / MISO', 'D19 / MISO'],
+    ['D21 / SDA', 'D21 / SDA'],
+    ['D22 / SCL', 'D22 / SCL'],
+    ['D23 / MOSI', 'D23 / MOSI'],
+    ['D25 / PWM J3', 'D25'],
+    ['D26 / DIR1 J3', 'D26'],
+    ['D27 / DIR2 J3', 'D27'],
+    ['D32 / LED VERMELHO', 'D32'],
+    ['D33 / LED VERDE', 'D33'],
+    ['D34', 'D34'],
+    ['D35', 'D35'],
+    ['D36', 'D36'],
+    ['D39', 'D39'],
+  ];
 
-  if (!pins.size) {
-    return [['D2', 'D2']];
-  }
-
-  return Array.from(pins)
-    .sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }))
-    .map((name) => [name, name]);
+  return labels;
 }
 
 function createMotorNameField(Blockly, defaultValue = 'Motor A') {
@@ -312,36 +326,6 @@ export function registerAmadoBlocks(Blockly) {
 
   Blockly.defineBlocksWithJsonArray([
     {
-      type: 'amado_read_digital',
-      message0: 'ler pino digital %1',
-      args0: [
-        {
-          type: 'field_dropdown',
-          name: 'PIN',
-          options: pinOptions,
-        },
-      ],
-      output: 'Boolean',
-      colour: '#708090',
-      tooltip: 'Lê o nível lógico atual (HIGH/LOW) do pino selecionado.',
-      helpUrl: '',
-    },
-    {
-      type: 'amado_read_analog',
-      message0: 'ler pino analógico %1',
-      args0: [
-        {
-          type: 'field_dropdown',
-          name: 'PIN',
-          options: pinOptions,
-        },
-      ],
-      output: 'Number',
-      colour: '#708090',
-      tooltip: 'Retorna o valor analógico (0 a 4095) do pino selecionado.',
-      helpUrl: '',
-    },
-    {
       type: 'amado_ultrasonic_read',
       message0: 'ultrassom TRIG %1 ECHO %2 ler distância (cm)',
       args0: [
@@ -419,10 +403,11 @@ export function registerAmadoBlocks(Blockly) {
     init() {
       const pinInput = this.appendValueInput('PIN')
         .setCheck('String')
-        .appendField('definir pino');
+        .appendField('ajustar pino de saída');
       const levelInput = this.appendValueInput('LEVEL')
-        .setCheck('String')
-        .appendField('como');
+        .setCheck('Boolean')
+        .appendField('para');
+      this.setInputsInline(false);
       this.setPreviousStatement(true);
       this.setNextStatement(true);
       this.setColour('#708090');
@@ -430,7 +415,15 @@ export function registerAmadoBlocks(Blockly) {
       this.setHelpUrl('');
 
       pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
-      levelInput?.connection?.setShadowDom(createLevelSelectorShadow(Blockly));
+      if (levelInput?.connection) {
+        const shadow = Blockly.utils.xml.createElement('shadow');
+        shadow.setAttribute('type', 'logic_boolean');
+        const field = Blockly.utils.xml.createElement('field');
+        field.setAttribute('name', 'BOOL');
+        field.textContent = 'TRUE';
+        shadow.appendChild(field);
+        levelInput.connection.setShadowDom(shadow);
+      }
     },
   };
 
@@ -471,10 +464,9 @@ export function registerAmadoBlocks(Blockly) {
 
   Blockly.Blocks.amado_pin_selector = {
     init() {
-      this.appendDummyInput().appendField(
-        new Blockly.FieldDropdown(pinOptions),
-        'PIN',
-      );
+      this.appendDummyInput()
+        .appendField('pino')
+        .appendField(new Blockly.FieldDropdown(pinOptions), 'PIN');
       this.setOutput(true, 'String');
       this.setColour('#708090');
       this.setTooltip('Seleciona um pino digital da placa.');
@@ -488,13 +480,178 @@ export function registerAmadoBlocks(Blockly) {
         new Blockly.FieldDropdown([
           ['HIGH (3V3)', "'HIGH'"],
           ['LOW (GND)', "'LOW'"],
-          ['Liberar (flutuante)', "'FLOATING'"],
         ]),
         'LEVEL',
       );
       this.setOutput(true, 'String');
       this.setColour('#708090');
-      this.setTooltip('Seleciona o nível lógico (HIGH/LOW/flutuante).');
+      this.setTooltip('Seleciona o nível lógico (HIGH/LOW).');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_read_digital = {
+    init() {
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .appendField('ler entrada digital');
+      const pullupInput = this.appendValueInput('PULLUP')
+        .setCheck('Boolean')
+        .appendField('Pull-up');
+      this.setInputsInline(false);
+      this.setOutput(true, 'Boolean');
+      this.setColour('#708090');
+      this.setTooltip('Lê o nível lógico (HIGH/LOW) do pino selecionado.');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      if (pullupInput?.connection) {
+        const shadow = Blockly.utils.xml.createElement('shadow');
+        shadow.setAttribute('type', 'logic_boolean');
+        const field = Blockly.utils.xml.createElement('field');
+        field.setAttribute('name', 'BOOL');
+        field.textContent = 'TRUE';
+        shadow.appendChild(field);
+        pullupInput.connection.setShadowDom(shadow);
+      }
+    },
+  };
+
+  Blockly.Blocks.amado_read_analog = {
+    init() {
+      this.appendDummyInput().appendField('Ler entrada analógica');
+      this.appendDummyInput()
+        .appendField(
+          new Blockly.FieldDropdown([
+            ['ATTN_0DB', 'ATTN_0DB'],
+            ['ATTN_2_5DB', 'ATTN_2_5DB'],
+            ['ATTN_6DB', 'ATTN_6DB'],
+            ['ATTN_11DB', 'ATTN_11DB'],
+          ]),
+          'ATTN',
+        );
+      this.appendDummyInput()
+        .appendField(
+          new Blockly.FieldDropdown([
+            ['WIDTH_9BIT', 'WIDTH_9BIT'],
+            ['WIDTH_10BIT', 'WIDTH_10BIT'],
+            ['WIDTH_11BIT', 'WIDTH_11BIT'],
+            ['WIDTH_12BIT', 'WIDTH_12BIT'],
+          ]),
+          'WIDTH',
+        );
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .appendField('pino');
+      this.setInputsInline(false);
+      this.setOutput(true, 'Number');
+      this.setColour('#708090');
+      this.setTooltip('Lê o valor analógico do pino selecionado (0 a 4095 nos pinos ADC).');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+    },
+  };
+
+  const pwmChannelField = () =>
+    new (Blockly.FieldNumber ?? Blockly.FieldInput)(0, 0, 15, 1);
+
+  Blockly.Blocks.amado_pwm_setup = {
+    init() {
+      this.appendDummyInput()
+        .appendField('PWM #')
+        .appendField(pwmChannelField(), 'CHANNEL');
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('pino');
+      const freqInput = this.appendValueInput('FREQ')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Frequência');
+      const dutyInput = this.appendValueInput('DUTY')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Ciclo de trabalho');
+      this.setInputsInline(false);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Configura um canal PWM (pino, frequência e ciclo de trabalho).');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      freqInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '1000'));
+      dutyInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '50'));
+    },
+  };
+
+  Blockly.Blocks.amado_pwm_set_frequency = {
+    init() {
+      const freqInput = this.appendValueInput('FREQ')
+        .setCheck('Number')
+        .appendField('PWM #')
+        .appendField(pwmChannelField(), 'CHANNEL')
+        .appendField('Frequência');
+      this.setInputsInline(false);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Ajusta a frequência de um canal PWM.');
+      this.setHelpUrl('');
+
+      freqInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '1000'));
+    },
+  };
+
+  Blockly.Blocks.amado_pwm_set_duty = {
+    init() {
+      const dutyInput = this.appendValueInput('DUTY')
+        .setCheck('Number')
+        .appendField('PWM #')
+        .appendField(pwmChannelField(), 'CHANNEL')
+        .appendField('Ciclo de trabalho');
+      this.setInputsInline(false);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Ajusta o ciclo de trabalho (duty) de um canal PWM (0 a 100%).');
+      this.setHelpUrl('');
+
+      dutyInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '50'));
+    },
+  };
+
+  Blockly.Blocks.amado_pwm_start = {
+    init() {
+      this.appendDummyInput()
+        .appendField('PWM #')
+        .appendField(pwmChannelField(), 'CHANNEL')
+        .appendField('Iniciar');
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('pino');
+      this.setInputsInline(true);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Inicia a saída PWM em um pino usando o canal informado.');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+    },
+  };
+
+  Blockly.Blocks.amado_pwm_stop = {
+    init() {
+      this.appendDummyInput()
+        .appendField('Desativar PWM #')
+        .appendField(pwmChannelField(), 'CHANNEL');
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Desativa o canal PWM e desliga a saída.');
       this.setHelpUrl('');
     },
   };
@@ -848,11 +1005,12 @@ export function registerAmadoBlocks(Blockly) {
   };
 
   javascriptGenerator.forBlock.amado_set_pin = function amadoSetPin(block) {
-    const pinCode =
+    const pin =
       javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
-    const levelCode =
-      javascriptGenerator.valueToCode(block, 'LEVEL', javascriptGenerator.ORDER_NONE) || "'FLOATING'";
-    return `await api.setPin(${pinCode}, ${levelCode});\n`;
+    const levelBool =
+      javascriptGenerator.valueToCode(block, 'LEVEL', javascriptGenerator.ORDER_NONE) || 'false';
+    const level = `((${levelBool}) ? 'HIGH' : 'LOW')`;
+    return `await api.setPin(${pin}, ${level});\n`;
   };
 
   javascriptGenerator.forBlock.amado_wait = function amadoWait(block) {
@@ -863,15 +1021,54 @@ export function registerAmadoBlocks(Blockly) {
   };
 
   javascriptGenerator.forBlock.amado_read_digital = function amadoReadDigital(block) {
-    const pin = block.getFieldValue('PIN') ?? '';
-    const code = `await api.readDigital('${pin}')`;
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    const code = `await api.readDigital(${pin})`;
     return [code, orderAwait];
   };
 
   javascriptGenerator.forBlock.amado_read_analog = function amadoReadAnalog(block) {
-    const pin = block.getFieldValue('PIN') ?? '';
-    const code = `await api.readAnalog('${pin}')`;
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    const code = `await api.readAnalog(${pin})`;
     return [code, orderAwait];
+  };
+
+  javascriptGenerator.forBlock.amado_pwm_setup = function amadoPwmSetup(block) {
+    const channel = Number(block.getFieldValue('CHANNEL')) || 0;
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    const freq =
+      javascriptGenerator.valueToCode(block, 'FREQ', javascriptGenerator.ORDER_NONE) || '0';
+    const duty =
+      javascriptGenerator.valueToCode(block, 'DUTY', javascriptGenerator.ORDER_NONE) || '0';
+    return `await api.pwmSetup(${channel}, ${pin}, ${freq}, ${duty});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_pwm_set_frequency = function amadoPwmSetFrequency(block) {
+    const channel = Number(block.getFieldValue('CHANNEL')) || 0;
+    const freq =
+      javascriptGenerator.valueToCode(block, 'FREQ', javascriptGenerator.ORDER_NONE) || '0';
+    return `await api.pwmSetFrequency(${channel}, ${freq});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_pwm_set_duty = function amadoPwmSetDuty(block) {
+    const channel = Number(block.getFieldValue('CHANNEL')) || 0;
+    const duty =
+      javascriptGenerator.valueToCode(block, 'DUTY', javascriptGenerator.ORDER_NONE) || '0';
+    return `await api.pwmSetDuty(${channel}, ${duty});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_pwm_start = function amadoPwmStart(block) {
+    const channel = Number(block.getFieldValue('CHANNEL')) || 0;
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    return `await api.pwmStart(${channel}, ${pin});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_pwm_stop = function amadoPwmStop(block) {
+    const channel = Number(block.getFieldValue('CHANNEL')) || 0;
+    return `await api.pwmStop(${channel});\n`;
   };
 
   javascriptGenerator.forBlock.amado_ultrasonic_read = function amadoUltrasonicRead(block) {

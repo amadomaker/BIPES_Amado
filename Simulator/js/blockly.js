@@ -7,6 +7,8 @@ function applyPortugueseMathMessages(BlocklyInstance) {
     MATH_SINGLE_OP_ROOT: 'raiz quadrada',
     MATH_SINGLE_OP_ABSOLUTE: 'valor absoluto',
     MATH_SINGLE_OP_NEG: 'negativo',
+    LOGIC_BOOLEAN_TRUE: 'verdadeiro',
+    LOGIC_BOOLEAN_FALSE: 'falso',
     MATH_SINGLE_TOOLTIP_ROOT: 'Retorna a raiz quadrada de um número.',
     MATH_SINGLE_TOOLTIP_ABS: 'Retorna o valor absoluto.',
     MATH_SINGLE_TOOLTIP_NEG: 'Retorna o negativo do número.',
@@ -208,9 +210,41 @@ const DEFAULT_TOOLBOX = {
       name: 'Pinos entrada/saída',
       colour: '#708090',
       contents: [
+        { kind: 'block', type: 'amado_pin_selector' },
         { kind: 'block', type: 'amado_set_pin' },
         { kind: 'block', type: 'amado_read_digital' },
         { kind: 'block', type: 'amado_read_analog' },
+        {
+          kind: 'block',
+          type: 'amado_pwm_setup',
+          inputs: {
+            PIN: { shadow: { type: 'amado_pin_selector' } },
+            FREQ: { shadow: { type: 'math_number', fields: { NUM: 1000 } } },
+            DUTY: { shadow: { type: 'math_number', fields: { NUM: 50 } } },
+          },
+        },
+        {
+          kind: 'block',
+          type: 'amado_pwm_set_frequency',
+          inputs: {
+            FREQ: { shadow: { type: 'math_number', fields: { NUM: 1000 } } },
+          },
+        },
+        {
+          kind: 'block',
+          type: 'amado_pwm_set_duty',
+          inputs: {
+            DUTY: { shadow: { type: 'math_number', fields: { NUM: 50 } } },
+          },
+        },
+        {
+          kind: 'block',
+          type: 'amado_pwm_start',
+          inputs: {
+            PIN: { shadow: { type: 'amado_pin_selector' } },
+          },
+        },
+        { kind: 'block', type: 'amado_pwm_stop' },
       ],
     },
     {

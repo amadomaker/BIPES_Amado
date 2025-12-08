@@ -1957,6 +1957,7 @@ class Simulation {
     this.motorControllerBindings = new Map();
     this.oledControllers = new Map();
     this.ultrasonicBindings = new Map();
+    this.pwmChannels = new Map();
     this.programState = null;
     this.powerEnabled = false;
     this.audioContext = null;
@@ -2383,6 +2384,96 @@ class Simulation {
     const norm = this.normalizeBoardPinName(pinName);
     if (!norm.startsWith('D')) return false;
     return !this.isInputOnlyPin(norm);
+  }
+
+  clampPwmDuty(duty) {
+    const num = Number(duty);
+    if (!Number.isFinite(num)) {
+      throw new Error('Ciclo de trabalho PWM inválido.');
+    }
+    return Math.max(0, Math.min(100, num));
+  }
+
+  clampPwmFrequency(freq) {
+    const num = Number(freq);
+    if (!Number.isFinite(num) || num <= 0) {
+      throw new Error('Frequência PWM inválida.');
+    }
+    return num;
+  }
+
+  ensurePwmChannel(boardComponentId, channel) {
+    const ch = Number(channel);
+    if (!Number.isInteger(ch) || ch < 0) {
+      throw new Error('Canal PWM inválido. Use um número inteiro >= 0.');
+    }
+    const key = `${boardComponentId}:${ch}`;
+    const existing =
+      this.pwmChannels.get(key) ??
+      { channel: ch, boardComponentId, pin: null, frequency: 1000, duty: 0 };
+    this.pwmChannels.set(key, existing);
+    return { key, entry: existing };
+  }
+
+  setPwmAnalogLevel(boardComponentId, entry) {
+    if (!entry?.pin) return;
+    const analog = Math.round((entry.duty / 100) * ADC_MAX_VALUE);
+    this.setBoardPinAnalogLevel(boardComponentId, entry.pin, analog);
+  }
+
+  handlePwmConfigure(boardComponentId, channel, pinName, frequency, duty) {
+    const { key, entry } = this.ensurePwmChannel(boardComponentId, channel);
+    const pin = this.normalizeBoardPinName(pinName);
+    if (this.isInputOnlyPin(pin)) {
+      throw new Error(`O pino ${pin} é apenas entrada e não suporta PWM.`);
+    }
+    this.requireSignalPinElement(boardComponentId, pin);
+    const freq = this.clampPwmFrequency(frequency);
+    const dutyClamped = this.clampPwmDuty(duty);
+    const updated = { ...entry, pin, frequency: freq, duty: dutyClamped };
+    this.pwmChannels.set(key, updated);
+    this.setPwmAnalogLevel(boardComponentId, updated);
+    return updated;
+  }
+
+  handlePwmSetFrequency(boardComponentId, channel, frequency) {
+    const { key, entry } = this.ensurePwmChannel(boardComponentId, channel);
+    const freq = this.clampPwmFrequency(frequency);
+    const updated = { ...entry, frequency: freq };
+    this.pwmChannels.set(key, updated);
+    // Frequência não altera nível DC no simulador.
+    return updated;
+  }
+
+  handlePwmSetDuty(boardComponentId, channel, duty) {
+    const { key, entry } = this.ensurePwmChannel(boardComponentId, channel);
+    const dutyClamped = this.clampPwmDuty(duty);
+    const updated = { ...entry, duty: dutyClamped };
+    this.pwmChannels.set(key, updated);
+    this.setPwmAnalogLevel(boardComponentId, updated);
+    return updated;
+  }
+
+  handlePwmStart(boardComponentId, channel, pinName) {
+    const { key, entry } = this.ensurePwmChannel(boardComponentId, channel);
+    const pin = this.normalizeBoardPinName(pinName);
+    if (this.isInputOnlyPin(pin)) {
+      throw new Error(`O pino ${pin} é apenas entrada e não suporta PWM.`);
+    }
+    this.requireSignalPinElement(boardComponentId, pin);
+    const updated = { ...entry, pin };
+    this.pwmChannels.set(key, updated);
+    this.setPwmAnalogLevel(boardComponentId, updated);
+    return updated;
+  }
+
+  handlePwmStop(boardComponentId, channel) {
+    const { key, entry } = this.ensurePwmChannel(boardComponentId, channel);
+    if (entry.pin) {
+      this.setBoardPinAnalogLevel(boardComponentId, entry.pin, 0);
+    }
+    this.pwmChannels.delete(key);
+    return null;
   }
 
   isInputOnlyPin(pinName) {
@@ -3284,6 +3375,7 @@ class Simulation {
     this.boardMotorOutputs.clear();
     this.oledControllers.clear();
     this.ultrasonicBindings.clear();
+    this.pwmChannels.clear();
     this.servoMap.clear();
     if (this.canvasManager?.components?.length) {
       this.canvasManager.components
@@ -3402,6 +3494,56 @@ class Simulation {
             pinName,
           );
           return this.convertVoltageStateToAnalogValue(state);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      pwmSetup: async (channel, pinName, frequency, duty) => {
+        if (programState.aborted) return;
+        try {
+          await this.handlePwmConfigure(programState.boardComponentId, channel, pinName, frequency, duty);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      pwmSetFrequency: async (channel, frequency) => {
+        if (programState.aborted) return;
+        try {
+          await this.handlePwmSetFrequency(programState.boardComponentId, channel, frequency);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      pwmSetDuty: async (channel, duty) => {
+        if (programState.aborted) return;
+        try {
+          await this.handlePwmSetDuty(programState.boardComponentId, channel, duty);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      pwmStart: async (channel, pinName) => {
+        if (programState.aborted) return;
+        try {
+          await this.handlePwmStart(programState.boardComponentId, channel, pinName);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      pwmStop: async (channel) => {
+        if (programState.aborted) return;
+        try {
+          await this.handlePwmStop(programState.boardComponentId, channel);
         } catch (error) {
           const message = error?.message ?? String(error);
           programState.onProgramError?.(message);
