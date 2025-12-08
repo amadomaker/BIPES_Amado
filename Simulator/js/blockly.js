@@ -214,6 +214,7 @@ const DEFAULT_TOOLBOX = {
         { kind: 'block', type: 'amado_set_pin' },
         { kind: 'block', type: 'amado_read_digital' },
         { kind: 'block', type: 'amado_read_analog' },
+        /* Blocos PWM desativados temporariamente
         {
           kind: 'block',
           type: 'amado_pwm_setup',
@@ -245,6 +246,7 @@ const DEFAULT_TOOLBOX = {
           },
         },
         { kind: 'block', type: 'amado_pwm_stop' },
+        */
       ],
     },
     {
