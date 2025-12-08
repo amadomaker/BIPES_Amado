@@ -2379,6 +2379,12 @@ class Simulation {
     return this.isAllowedAnalogPin(pinName);
   }
 
+  isDigitalPin(pinName) {
+    const norm = this.normalizeBoardPinName(pinName);
+    if (!norm.startsWith('D')) return false;
+    return !this.isInputOnlyPin(norm);
+  }
+
   isInputOnlyPin(pinName) {
     const norm = this.normalizeBoardPinName(pinName);
     return norm === 'D34' || norm === 'D35' || norm === 'D36' || norm === 'D39';
@@ -3012,8 +3018,12 @@ class Simulation {
       throw new Error('Informe os pinos TRIG e ECHO do sensor ultrassônico.');
     }
 
-    if (!this.isAllowedSensorPin(trigPin) || !this.isAllowedSensorPin(echoPin)) {
-      throw new Error('O sensor ultrassônico deve usar os pinos 34, 35, 36, 39 ou 15 para TRIG/ECHO.');
+    const echoAllowed = this.isAllowedSensorPin(echoPin);
+    const trigAllowed = this.isDigitalPin(trigPin);
+    if (!echoAllowed || !trigAllowed) {
+      throw new Error(
+        'O sensor ultrassônico deve usar ECHO nos pinos 34, 35, 36, 39 ou 15, e TRIG em qualquer pino digital (exceto 34, 35, 36 ou 39).',
+      );
     }
 
     this.requireSignalPinElement(boardComponentId, trigPin);

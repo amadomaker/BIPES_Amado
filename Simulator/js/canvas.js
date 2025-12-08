@@ -890,10 +890,18 @@ export class CanvasManager {
 
     component.props = { ...component.props, ...newProps };
     component.applyProps?.(component.props);
-    this.wiringManager.updatePinPositionsForComponent?.(component.id);
+    const definition = this.resolveComponentDefinition(component.type);
+    let needsIgnoreTransform = false;
+    if (definition?.id === 'battery-aaa-pack') {
+      const wrapper = component.visualWrapper ?? component.container;
+      const computed = wrapper ? window.getComputedStyle(wrapper).transform : 'none';
+      needsIgnoreTransform = computed && computed !== 'none';
+    }
+    this.wiringManager.updatePinPositionsForComponent?.(component.id, {
+      ignoreTransform: needsIgnoreTransform,
+    });
     this.syncComponentRuntimeState(component);
 
-    const definition = this.resolveComponentDefinition(component.type);
     if (definition?.getLabel) {
       component.label.textContent = definition.getLabel(component.props);
     }
