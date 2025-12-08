@@ -394,9 +394,6 @@ export class CanvasManager {
     this.components.push(componentData);
     this.attachComponentInteractions(componentData);
     this.attachComponentElementListeners(componentData);
-    if (definition.id === 'dc-motor' && componentData.visualWrapper) {
-      componentData.visualWrapper.style.pointerEvents = 'none';
-    }
     await this.wiringManager.addPinsToComponent(visualWrapper, definition, componentId);
     this.syncComponentRuntimeState(componentData);
     this.applyComponentTransform(componentData, { disableTransition: true });
