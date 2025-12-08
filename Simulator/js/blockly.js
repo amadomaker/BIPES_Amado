@@ -50,6 +50,12 @@ function applyPortugueseMathMessages(BlocklyInstance) {
     MATH_ARITHMETIC_TOOLTIP_DIVIDE: 'Retorna o quociente de dois números.',
     MATH_ARITHMETIC_TOOLTIP_POWER: 'Retorna o primeiro número elevado ao segundo.',
     LISTS_INLIST: 'lista',
+    LISTS_CREATE_EMPTY_TITLE: 'criar lista vazia',
+    LISTS_CREATE_WITH_INPUT_WITH: 'criar lista com',
+    LISTS_CREATE_WITH_CONTAINER_TITLE_ADD: 'itens',
+    LISTS_CREATE_WITH_ITEM_TITLE: 'item',
+    LISTS_REPEAT_TITLE: 'criar lista com item %1 repetido %2 vezes',
+    LISTS_REPEAT_TOOLTIP: 'Cria uma lista com o item fornecido repetido o número de vezes informado.',
   });
 }
 
@@ -147,7 +153,10 @@ const DEFAULT_TOOLBOX = {
           kind: 'category',
           name: 'Boleanas',
           colour: '#1c1f7a',
-          contents: [{ kind: 'block', type: 'variable_boolean_const' }],
+          contents: [
+            { kind: 'block', type: 'variable_boolean_const' },
+            { kind: 'block', type: 'amado_null_const' },
+          ],
         },
         {
           kind: 'category',
@@ -157,6 +166,7 @@ const DEFAULT_TOOLBOX = {
             { kind: 'block', type: 'variable_number_const' },
             { kind: 'block', type: 'variable_pi_const' },
             { kind: 'block', type: 'variable_random_int' },
+            { kind: 'block', type: 'variable_random_float' },
           ],
         },
         {
@@ -173,7 +183,17 @@ const DEFAULT_TOOLBOX = {
           kind: 'category',
           name: 'Listas',
           colour: '#1c1f7a',
-          contents: [],
+          contents: [
+            { kind: 'block', type: 'lists_create_empty' },
+            { kind: 'block', type: 'lists_create_with' },
+            {
+              kind: 'block',
+              type: 'lists_repeat',
+              inputs: {
+                NUM: { shadow: { type: 'math_number', fields: { NUM: 5 } } },
+              },
+            },
+          ],
         },
       ],
     },
@@ -308,6 +328,11 @@ function getTheme(Blockly) {
         colourPrimary: '#008000',
         colourSecondary: '#006600',
         colourTertiary: '#004d00',
+      },
+      list_blocks: {
+        colourPrimary: '#1c1f7a',
+        colourSecondary: '#16185f',
+        colourTertiary: '#101243',
       },
       variable_blocks: {
         colourPrimary: '#1c1f7a',

@@ -245,6 +245,16 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  Blockly.Blocks.amado_null_const = {
+    init() {
+      this.appendDummyInput().appendField('nulo');
+      this.setOutput(true, null);
+      this.setColour('#1c1f7a');
+      this.setTooltip('Retorna o valor nulo.');
+      this.setHelpUrl('');
+    },
+  };
+
   Blockly.Blocks.variable_number_const = {
     init() {
       const FieldNumber = Blockly.FieldNumber ?? Blockly.FieldInput;
@@ -258,10 +268,20 @@ export function registerAmadoBlocks(Blockly) {
 
   Blockly.Blocks.variable_pi_const = {
     init() {
-      this.appendDummyInput().appendField('pi');
+      this.appendDummyInput().appendField(
+        new (Blockly.FieldDropdown || Blockly.FieldChoice)([
+          ['π', 'PI'],
+          ['e', 'E'],
+          ['φ', 'PHI'],
+          ['sqrt(2)', 'SQRT2'],
+          ['sqrt(½)', 'SQRT1_2'],
+          ['∞', 'INF'],
+        ]),
+        'CONST',
+      );
       this.setOutput(true, 'Number');
       this.setColour('#1c1f7a');
-      this.setTooltip('Constante π (pi).');
+      this.setTooltip('Constantes matemáticas (π, e, φ, sqrt(2), sqrt(½), ∞).');
       this.setHelpUrl('');
     },
   };
@@ -277,6 +297,16 @@ export function registerAmadoBlocks(Blockly) {
 
       this.getInput('FROM')?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '1'));
       this.getInput('TO')?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '10'));
+    },
+  };
+
+  Blockly.Blocks.variable_random_float = {
+    init() {
+      this.appendDummyInput().appendField('decimal aleatório');
+      this.setOutput(true, 'Number');
+      this.setColour('#1c1f7a');
+      this.setTooltip('Gera um número decimal aleatório entre 0 (inclusive) e 1 (exclusivo).');
+      this.setHelpUrl('');
     },
   };
 
@@ -761,13 +791,27 @@ export function registerAmadoBlocks(Blockly) {
     return [bool, orderAtomic];
   };
 
+  javascriptGenerator.forBlock.amado_null_const = function amadoNullConst() {
+    return ['null', orderAtomic];
+  };
+
   javascriptGenerator.forBlock.variable_number_const = function variableNumberConst(block) {
     const num = Number(block.getFieldValue('NUM')) || 0;
     return [String(num), orderAtomic];
   };
 
-  javascriptGenerator.forBlock.variable_pi_const = function variablePiConst() {
-    return ['Math.PI', orderAtomic];
+  javascriptGenerator.forBlock.variable_pi_const = function variablePiConst(block) {
+    const choice = block.getFieldValue ? block.getFieldValue('CONST') : null;
+    const key = choice || 'PI';
+    const map = {
+      PI: 'Math.PI',
+      E: 'Math.E',
+      PHI: '(1 + Math.sqrt(5)) / 2',
+      SQRT2: 'Math.SQRT2',
+      SQRT1_2: 'Math.SQRT1_2',
+      INF: 'Infinity',
+    };
+    return [map[key] ?? 'Math.PI', orderAtomic];
   };
 
   javascriptGenerator.forBlock.variable_random_int = function variableRandomInt(block) {
@@ -775,6 +819,10 @@ export function registerAmadoBlocks(Blockly) {
     const to = javascriptGenerator.valueToCode(block, 'TO', javascriptGenerator.ORDER_NONE) || '0';
     const code = `Math.floor(Math.random() * ((${to}) - (${from}) + 1) + (${from}))`;
     return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+  };
+
+  javascriptGenerator.forBlock.variable_random_float = function variableRandomFloat() {
+    return ['Math.random()', orderFunctionCall];
   };
 
   // Geradores para blocos de texto
