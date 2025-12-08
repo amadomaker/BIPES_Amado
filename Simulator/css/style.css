@@ -1406,6 +1406,12 @@ body {
   font-size: 11px;
 }
 
+.battery-shell.preview {
+  transform: translateY(5.7px) scale(0.55);
+  transform-origin: center;
+  display: inline-flex;
+}
+
 .battery-9v-fixed {
   position: relative;
   width: 90px;
@@ -1468,8 +1474,9 @@ body {
 }
 
 .protoboard-preview {
-  transform: scale(0.45);
-  transform-origin: top left;
+  transform: scale(0.384);
+  transform-origin: center;
+  display: inline-block;
 }
 
 .dc-motor-shell {
@@ -1574,8 +1581,8 @@ body {
 }
 
 .battery-aaa-pack.preview {
-  transform: scale(0.48);
-  transform-origin: top center;
+  transform: translateY(2.5px) scale(0.38);
+  transform-origin: center;
 }
 
 .battery-aaa-pack-terminal {
