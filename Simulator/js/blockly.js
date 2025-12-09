@@ -264,7 +264,10 @@ const DEFAULT_TOOLBOX = {
           kind: 'category',
           name: 'Ultrassônico',
           colour: '#708090',
-          contents: [{ kind: 'block', type: 'amado_ultrasonic_read' }],
+          contents: [
+            { kind: 'block', type: 'amado_ultrasonic_init' },
+            { kind: 'block', type: 'amado_ultrasonic_read' },
+          ],
         },
         {
           kind: 'category',

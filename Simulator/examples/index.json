@@ -12,5 +12,12 @@
     "description": "OLED ligado ao VCC/GND/SCL/SDA",
     "file": "display_demo.json",
     "preview": "previews/display-demo.png"
+  },
+  {
+    "id": "sensor-ultrassonico",
+    "name": "Sensor ultrassônico",
+    "description": "Exemplo HCSR04 com pinos TRIG/ECHO configurados",
+    "file": "sensor_ultrassonico.json",
+    "preview": "previews/sensor_ultrassonico_exemplo.png"
   }
 ]

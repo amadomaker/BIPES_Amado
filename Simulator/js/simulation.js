@@ -3142,6 +3142,28 @@ class Simulation {
     return Math.max(0, numeric);
   }
 
+  handleUltrasonicInit(programState, trigPinRaw, echoPinRaw, timeoutRaw) {
+    const trigPin = this.normalizeBoardPinInput(trigPinRaw);
+    const echoPin = this.normalizeBoardPinInput(echoPinRaw);
+    const timeoutUs = Number(timeoutRaw);
+    if (!trigPin || !echoPin) {
+      throw new Error('Informe os pinos TRIG e ECHO do sensor ultrassônico.');
+    }
+    if (!this.isDigitalPin(trigPin)) {
+      throw new Error('Pino TRIG deve ser um pino digital (exceto 34, 35, 36 ou 39).');
+    }
+    if (!this.isAllowedSensorPin(echoPin)) {
+      throw new Error('Pino ECHO deve ser 34, 35, 36, 39 ou 15.');
+    }
+    this.requireSignalPinElement(programState.boardComponentId, trigPin);
+    this.requireSignalPinElement(programState.boardComponentId, echoPin);
+    programState.ultrasonicConfig = {
+      trigPin,
+      echoPin,
+      timeoutUs: Number.isFinite(timeoutUs) ? timeoutUs : 10000,
+    };
+  }
+
   startBuzzerAudio(componentId) {
     if (!this.isRunning || !this.powerEnabled) return;
     if (this.buzzerAudioNodes.has(componentId)) {
@@ -3643,8 +3665,27 @@ class Simulation {
       ultrasonicRead: async (trigPin, echoPin) => {
         if (programState.aborted) return null;
         try {
-          const result = await this.handleUltrasonicRead(programState.boardComponentId, trigPin, echoPin);
+          const finalTrig = trigPin ?? programState.ultrasonicConfig?.trigPin;
+          const finalEcho = echoPin ?? programState.ultrasonicConfig?.echoPin;
+          if (!finalTrig || !finalEcho) {
+            throw new Error('Configure o sensor ultrassônico (TRIG/ECHO) antes de obter a distância.');
+          }
+          const result = await this.handleUltrasonicRead(
+            programState.boardComponentId,
+            finalTrig,
+            finalEcho,
+          );
           return result;
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      ultrasonicInit: async (trigPin, echoPin, timeoutUs) => {
+        if (programState.aborted) return;
+        try {
+          this.handleUltrasonicInit(programState, trigPin, echoPin, timeoutUs);
         } catch (error) {
           const message = error?.message ?? String(error);
           programState.onProgramError?.(message);

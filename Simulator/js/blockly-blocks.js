@@ -1,4 +1,5 @@
 import { amadoBoardPins } from './components.js';
+import { showAlert } from './ui.js';
 
 let blocksRegistered = false;
 
@@ -102,6 +103,25 @@ function createMotorNameField(Blockly, defaultValue = 'Motor A') {
     field.setSpellcheck(false);
   }
   return field;
+}
+
+const LOOP_BLOCK_TYPES = new Set([
+  'controls_repeat_ext',
+  'controls_repeat',
+  'controls_whileUntil',
+  'controls_for',
+  'controls_forEach',
+  'amado_for_each_item',
+]);
+
+function isBlockInsideLoop(block) {
+  if (!block?.getSurroundParent) return false;
+  let parent = block.getSurroundParent();
+  while (parent) {
+    if (LOOP_BLOCK_TYPES.has(parent.type)) return true;
+    parent = parent.getSurroundParent ? parent.getSurroundParent() : null;
+  }
+  return false;
 }
 
 export function registerAmadoBlocks(Blockly) {
@@ -327,22 +347,11 @@ export function registerAmadoBlocks(Blockly) {
   Blockly.defineBlocksWithJsonArray([
     {
       type: 'amado_ultrasonic_read',
-      message0: 'ultrassom TRIG %1 ECHO %2 ler distância (cm)',
-      args0: [
-        {
-          type: 'field_dropdown',
-          name: 'TRIG',
-          options: pinOptions,
-        },
-        {
-          type: 'field_dropdown',
-          name: 'ECHO',
-          options: pinOptions,
-        },
-      ],
+      message0: 'obter distância (cm)',
+      args0: [],
       output: 'Number',
       colour: '#708090',
-      tooltip: 'Lê a distância medida pelo sensor ultrassônico conectado aos pinos TRIG/ECHO.',
+      tooltip: 'Lê a distância usando o sensor ultrassônico já iniciado.',
       helpUrl: '',
     },
     {
@@ -854,6 +863,66 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  Blockly.Blocks.amado_ultrasonic_init = {
+    init() {
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Configura o sensor ultrassônico informando pinos TRIG/ECHO e tempo limite.');
+      this.setHelpUrl('');
+      this.appendDummyInput()
+        .appendField(new Blockly.FieldImage('/ui/media/hcsr04.png', 55, 55, '*'))
+        .appendField('Iniciar sensor ultrassônico HCSR04');
+      const trigInput = this.appendValueInput('TRIG')
+        .setCheck('String')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Pino trigger');
+      const echoInput = this.appendValueInput('ECHO')
+        .setCheck('String')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Pino echo');
+      const timeoutInput = this.appendValueInput('TIMEOUT')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Tempo limite (µs)');
+      this.setInputsInline(false);
+
+      timeoutInput.connection?.setShadowDom(createNumberShadowBlock(Blockly, '10000'));
+      const trigShadow = Blockly.utils.xml.createElement('shadow');
+      trigShadow.setAttribute('type', 'amado_pin_selector');
+      const trigField = Blockly.utils.xml.createElement('field');
+      trigField.setAttribute('name', 'PIN');
+      trigField.textContent = 'D2';
+      trigShadow.appendChild(trigField);
+      trigInput.connection?.setShadowDom(trigShadow);
+
+      const echoShadow = Blockly.utils.xml.createElement('shadow');
+      echoShadow.setAttribute('type', 'amado_pin_selector');
+      const echoField = Blockly.utils.xml.createElement('field');
+      echoField.setAttribute('name', 'PIN');
+      echoField.textContent = 'D2';
+      echoShadow.appendChild(echoField);
+      echoInput.connection?.setShadowDom(echoShadow);
+
+      this.setOnChange(function () {
+        if (!this.workspace || this.workspace.isFlyout) return;
+        const insideLoop = isBlockInsideLoop(this);
+        const warning = insideLoop
+          ? 'Coloque este bloco fora de laços: configure o sensor uma única vez antes do loop.'
+          : null;
+        this.setWarningText(warning);
+        const alreadyWarned = this.__loopWarnedOnce;
+        if (insideLoop && !alreadyWarned) {
+          this.__loopWarnedOnce = true;
+          showAlert('Bloco de init do ultrassônico deve ficar fora do loop.');
+        }
+        if (!insideLoop) {
+          this.__loopWarnedOnce = false;
+        }
+      });
+    },
+  };
+
   const javascriptGenerator = Blockly.JavaScript ?? Blockly?.javascriptGenerator;
   if (!javascriptGenerator) return;
 
@@ -1071,10 +1140,19 @@ export function registerAmadoBlocks(Blockly) {
     return `await api.pwmStop(${channel});\n`;
   };
 
+  javascriptGenerator.forBlock.amado_ultrasonic_init = function amadoUltrasonicInit(block) {
+    const trig =
+      javascriptGenerator.valueToCode(block, 'TRIG', javascriptGenerator.ORDER_NONE) || "''";
+    const echo =
+      javascriptGenerator.valueToCode(block, 'ECHO', javascriptGenerator.ORDER_NONE) || "''";
+    const timeout =
+      javascriptGenerator.valueToCode(block, 'TIMEOUT', javascriptGenerator.ORDER_NONE) ||
+      '10000';
+    return `await api.ultrasonicInit(${trig}, ${echo}, ${timeout});\n`;
+  };
+
   javascriptGenerator.forBlock.amado_ultrasonic_read = function amadoUltrasonicRead(block) {
-    const trig = block.getFieldValue('TRIG') ?? '';
-    const echo = block.getFieldValue('ECHO') ?? '';
-    const code = `await api.ultrasonicRead('${trig}', '${echo}')`;
+    const code = `await api.ultrasonicRead()`;
     return [code, orderAwait];
   };
 
