@@ -110,6 +110,11 @@ class CircuitSnapshot {
         if (mapKey) {
           this.pinNodesByComponentPin.set(mapKey, node);
         }
+        // Guarda um alias canônico (ex.: "D5 / CS" -> "D5") para consultas com pino simplificado
+        const canonicalKey = this.getComponentPinKey(component.id, this.canonicalPinName(node.pinName));
+        if (canonicalKey && canonicalKey !== mapKey) {
+          this.pinNodesByComponentPin.set(canonicalKey, node);
+        }
 
         let indexMap = this.pinNodesByComponentIndex.get(component.id);
         if (!indexMap) {
@@ -1035,7 +1040,8 @@ class CircuitSnapshot {
 
   getComponentPinKey(componentId, pinName) {
     if (!componentId || !pinName) return null;
-    return `${componentId}:${pinName}`;
+    const canonical = this.canonicalPinName(pinName);
+    return `${componentId}:${canonical}`;
   }
 
   getNodeByComponentPin(componentId, pinName) {
@@ -1048,6 +1054,18 @@ class CircuitSnapshot {
     const indexMap = this.pinNodesByComponentIndex.get(componentId);
     if (!indexMap) return null;
     return indexMap.get(pinIndex) ?? null;
+  }
+
+  canonicalPinName(pinName) {
+    const text = String(pinName ?? '').trim().toUpperCase();
+    if (!text) return '';
+    const token = text.split(/[\s/]+/)[0]?.trim();
+    return token || text;
+  }
+
+  getBoardPinKey(componentId, pinName) {
+    const canonical = this.canonicalPinName(pinName);
+    return `${componentId}:${canonical}`;
   }
 
   getComponentCurrent(componentId) {
@@ -1782,13 +1800,13 @@ class CircuitSnapshot {
 
   getBoardPinState(componentId, pinName) {
     if (!componentId || !pinName) return 'floating';
-    const key = `${componentId}:${pinName}`;
+    const key = this.getBoardPinKey(componentId, pinName);
     return this.boardPinStates.get(key) ?? 'floating';
   }
 
   getBoardPinAnalogLevel(componentId, pinName) {
     if (!componentId || !pinName) return null;
-    const key = `${componentId}:${pinName}`;
+    const key = this.getBoardPinKey(componentId, pinName);
     const component = this.canvasManager?.getComponentById(componentId);
     if (!component) {
       const storedFallback = this.boardAnalogLevels.get(key);
@@ -2368,6 +2386,14 @@ class Simulation {
       .trim()
       .toUpperCase()
       .replace(/[^A-Z0-9]/g, '');
+  }
+
+  canonicalPinName(pinName) {
+    const text = String(pinName ?? '').trim().toUpperCase();
+    if (!text) return '';
+    // Remove descrições após espaço ou barra (ex.: "D5 / CS" -> "D5")
+    const token = text.split(/[\s/]+/)[0]?.trim();
+    return token || text;
   }
 
   isAllowedAnalogPin(pinName) {
@@ -3920,7 +3946,8 @@ class Simulation {
   }
 
   getBoardPinKey(componentId, pinName) {
-    return `${componentId}:${pinName}`;
+    const canonical = this.canonicalPinName(pinName);
+    return `${componentId}:${canonical}`;
   }
 
   getBoardPinVoltageState(componentId, pinName) {
@@ -4137,7 +4164,10 @@ class Simulation {
   requireSignalPinElement(componentId, pinName) {
     const component = this.requireBoardComponent(componentId);
     const pins = this.canvasManager.wiringManager.getPinsForComponent(componentId) ?? [];
-    const pinElement = pins.find((pin) => pin.dataset.pinName === pinName);
+    const target = this.canonicalPinName(pinName);
+    const pinElement =
+      pins.find((pin) => this.canonicalPinName(pin.dataset.pinName) === target) ??
+      pins.find((pin) => pin.dataset.pinName === pinName);
 
     if (!pinElement) {
       if (component.type === 'amado-board' || component.type === 'esp32') {

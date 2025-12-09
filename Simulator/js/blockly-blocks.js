@@ -514,6 +514,8 @@ export function registerAmadoBlocks(Blockly) {
       this.setHelpUrl('');
 
       pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      // Compat: alguns workspaces antigos salvam o pino como campo 'PIN'; criamos um field oculto para evitar warnings.
+      this.appendDummyInput('_PIN_COMPAT').appendField(new Blockly.FieldLabel(''), 'PIN').setVisible(false);
       if (pullupInput?.connection) {
         const shadow = Blockly.utils.xml.createElement('shadow');
         shadow.setAttribute('type', 'logic_boolean');
