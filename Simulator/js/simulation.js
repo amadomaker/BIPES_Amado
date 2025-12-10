@@ -353,6 +353,7 @@ class CircuitSnapshot {
     const supply = this.getHighLevelVoltage();
 
     this.canvasManager.components.forEach((component) => {
+      if (component.type === 'water-pump') return; // bomba pode inverter sem problema
       const pins = this.getPinsForComponent(component.id);
       if (!pins?.length) return;
       const powerPins = pins.filter((pin) => pin.pinType === 'power');
@@ -454,9 +455,20 @@ class CircuitSnapshot {
           const buzzerResistance = Number.isFinite(parsed) && parsed > 0
             ? parsed
             : BUZZER_DEFAULT_RESISTANCE;
+      this.addResistiveTwoTerminal(component, {
+        resistance: buzzerResistance,
+        type: 'buzzer',
+      });
+      break;
+    }
+        case 'water-pump': {
+          const parsed = this.parseResistanceValue(component.props?.resistance);
+          const pumpResistance = Number.isFinite(parsed) && parsed > 0
+            ? parsed
+            : DC_MOTOR_DEFAULT_RESISTANCE;
           this.addResistiveTwoTerminal(component, {
-            resistance: buzzerResistance,
-            type: 'buzzer',
+            resistance: pumpResistance,
+            type: 'water-pump',
           });
           break;
         }
@@ -936,7 +948,7 @@ class CircuitSnapshot {
     const results = [];
 
     this.canvasManager.components
-      .filter((component) => component.type === 'dc-motor')
+      .filter((component) => component.type === 'dc-motor' || component.type === 'water-pump')
       .forEach((component) => {
         const fault = this.isComponentFaulted(component);
         if (fault) {
@@ -973,6 +985,8 @@ class CircuitSnapshot {
         const voltageDiff = this.getNodeVoltage(positive) - this.getNodeVoltage(negative);
         const absVoltage = Math.abs(voltageDiff);
 
+        const isPump = component.type === 'water-pump';
+
         let motorResistance = this.parseResistanceValue(
           component.props?.resistance ?? component.props?.value ?? component.props?.ohms,
         );
@@ -986,12 +1000,12 @@ class CircuitSnapshot {
 
         let rpm = 0;
         let active = false;
-        if (
-          absVoltage >= DC_MOTOR_MIN_DRIVE_VOLTAGE &&
-          absCurrent >= DC_MOTOR_MIN_DRIVE_CURRENT
-        ) {
+        const minVoltage = isPump ? 0.05 : DC_MOTOR_MIN_DRIVE_VOLTAGE;
+        const minCurrent = isPump ? 0 : DC_MOTOR_MIN_DRIVE_CURRENT;
+
+        if (absVoltage >= minVoltage && absCurrent >= minCurrent) {
           rpm = Math.min(DC_MOTOR_MAX_RPM, Math.max(0, absVoltage / DC_MOTOR_KV));
-          active = rpm > 1;
+          active = isPump ? absVoltage >= minVoltage : rpm > 1;
         }
 
         if (!component.state) component.state = {};
@@ -1003,7 +1017,7 @@ class CircuitSnapshot {
         };
 
         const reasons = [];
-        if (!active) {
+        if (!active && !isPump) {
           if (absVoltage < DC_MOTOR_MIN_DRIVE_VOLTAGE) {
             reasons.push('Diferença de tensão insuficiente');
           } else if (absCurrent < DC_MOTOR_MIN_DRIVE_CURRENT) {
@@ -2253,7 +2267,8 @@ class Simulation {
   setMotorState(component, state = {}) {
     const element = component.element;
     if (!element || !element.__motorVisual) return;
-    const { rotor, spinner, speedLabel } = element.__motorVisual;
+    const { rotor, spinner, speedLabel, water } = element.__motorVisual;
+    const isPump = component.type === 'water-pump';
     const rpm = Math.max(0, Number(state.rpm) || 0);
     const direction = Math.sign(Number(state.direction) || 0);
     const active = Boolean(state.active) && rpm > 1;
@@ -2267,18 +2282,29 @@ class Simulation {
       controllerName: state.controllerName ?? null,
     };
 
-    if (active) {
-      rotor.classList.add('active');
-      rotor.classList.toggle('reverse', direction < 0);
-      const duration = Math.max(0.12, 60 / Math.max(rpm, 1));
-      rotor.style.setProperty('--motor-spin-duration', `${duration}s`);
-      speedLabel.textContent = `${Math.round(rpm)} RPM`;
-      speedLabel.classList.add('visible');
+    if (water) {
+      water.classList.toggle('on', isPump && active);
+    }
+    if (!isPump) {
+      if (active) {
+        rotor.classList.add('active');
+        rotor.classList.toggle('reverse', direction < 0);
+        const duration = Math.max(0.12, 60 / Math.max(rpm, 1));
+        rotor.style.setProperty('--motor-spin-duration', `${duration}s`);
+        speedLabel.textContent = `${Math.round(rpm)} RPM`;
+        speedLabel.classList.add('visible');
+      } else {
+        rotor.classList.remove('active', 'reverse');
+        rotor.style.removeProperty('--motor-spin-duration');
+        speedLabel.textContent = '0 RPM';
+        speedLabel.classList.remove('visible');
+      }
     } else {
+      // bomba: não exibir rotor/RPM
       rotor.classList.remove('active', 'reverse');
       rotor.style.removeProperty('--motor-spin-duration');
-      speedLabel.textContent = '0 RPM';
-      speedLabel.classList.remove('visible');
+      speedLabel.textContent = component.props?.label ?? 'Bomba d\'água';
+      speedLabel.classList.toggle('visible', false);
     }
   }
 
@@ -2699,9 +2725,13 @@ class Simulation {
     const supplyVoltage = snapshot.getHighLevelVoltage();
     const voltage = supplyVoltage * duty;
 
-    let motorResistance = this.parseResistanceValue(
-      component.props?.resistance ?? component.props?.value ?? component.props?.ohms,
-    );
+    const parseResistance =
+      typeof snapshot?.parseResistanceValue === 'function'
+        ? snapshot.parseResistanceValue.bind(snapshot)
+        : null;
+    let motorResistance = parseResistance
+      ? parseResistance(component.props?.resistance ?? component.props?.value ?? component.props?.ohms)
+      : Number(component.props?.resistance ?? component.props?.value ?? component.props?.ohms);
     if (!Number.isFinite(motorResistance) || motorResistance <= 0) {
       motorResistance = DC_MOTOR_DEFAULT_RESISTANCE;
     }
@@ -3402,6 +3432,11 @@ class Simulation {
       } else if (component.type === 'buzzer') {
         this.setBuzzerState(component, false);
       } else if (component.type === 'dc-motor') {
+        if (component.state) {
+          delete component.state.motor;
+        }
+        this.setMotorState(component, { active: false, rpm: 0, direction: 0 });
+      } else if (component.type === 'water-pump') {
         if (component.state) {
           delete component.state.motor;
         }

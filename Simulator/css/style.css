@@ -1486,6 +1486,74 @@ body {
   pointer-events: none;
 }
 
+.pump-shell .pump-water {
+  position: absolute;
+  left: 58.2%;
+  top: -57%;
+  width: 80px;
+  height: 200px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  transform: rotate(0deg);
+}
+.pump-shell .pump-water.on {
+  opacity: 1;
+}
+.pump-shell .pump-water .stream {
+  position: absolute;
+  top: 0;
+  left: 10px;
+  width: 24px;
+  height: 150px;
+  background: linear-gradient(180deg, rgba(0, 174, 255, 0.9), rgba(0, 174, 255, 0.55));
+  box-shadow: 0 0 12px rgba(0, 174, 255, 0.6);
+  border-radius: 12px;
+  transform-origin: top center;
+  animation: pump-stream 1s infinite ease-in-out;
+}
+.pump-shell .pump-water .drops {
+  position: absolute;
+  left: 10px; /* alinhado com o início do fluxo */
+  top: 60%;
+  width: 24px; /* mesma largura do fluxo */
+  height: 120px;
+  overflow: visible;
+}
+.pump-shell .pump-water .drop {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 170, 255, 0.9);
+  box-shadow: 0 0 6px rgba(0, 170, 255, 0.6);
+  animation: pump-drop 1s infinite ease-in;
+}
+.pump-shell .pump-water .drop-1 { left: 2px; animation-delay: 0s; }
+.pump-shell .pump-water .drop-2 { left: 6px; animation-delay: 0.05s; }
+.pump-shell .pump-water .drop-3 { left: 10px; animation-delay: 0.10s; }
+.pump-shell .pump-water .drop-4 { left: 14px; animation-delay: 0.15s; }
+.pump-shell .pump-water .drop-5 { left: 4px; animation-delay: 0.20s; }
+.pump-shell .pump-water .drop-6 { left: 12px; animation-delay: 0.25s; }
+.pump-shell .pump-water .drop-7 { left: 8px; animation-delay: 0.30s; }
+.pump-shell .pump-water .drop-8 { left: 16px; animation-delay: 0.35s; }
+.pump-shell .pump-water .drop-9 { left: 5px; animation-delay: 0.40s; }
+.pump-shell .pump-water .drop-10 { left: 11px; animation-delay: 0.45s; }
+.pump-shell .pump-water .drop-11 { left: 7px; animation-delay: 0.50s; }
+.pump-shell .pump-water .drop-12 { left: 15px; animation-delay: 0.55s; }
+.pump-shell .pump-water .drop-13 { left: 3px; animation-delay: 0.60s; }
+.pump-shell .pump-water .drop-14 { left: 9px; animation-delay: 0.65s; }
+.pump-shell .pump-water .drop-15 { left: 13px; animation-delay: 0.70s; }
+.pump-shell .pump-water .drop-16 { left: 1px; animation-delay: 0.75s; }
+.pump-shell .pump-water .drop-17 { left: 6px; animation-delay: 0.80s; }
+.pump-shell .pump-water .drop-18 { left: 12px; animation-delay: 0.85s; }
+.pump-shell .pump-water .drop-19 { left: 4px; animation-delay: 0.90s; }
+.pump-shell .pump-water .drop-20 { left: 8px; animation-delay: 0.95s; }
+.pump-shell .pump-water .drop-21 { left: 14px; animation-delay: 1.00s; }
+.pump-shell .pump-water .drop-22 { left: 2px; animation-delay: 1.05s; }
+.pump-shell .pump-water .drop-23 { left: 10px; animation-delay: 1.10s; }
+.pump-shell .pump-water .drop-24 { left: 6px; animation-delay: 1.15s; }
+
 .dc-motor-shell .dc-motor-image {
   width: 100%;
   height: auto;
@@ -1538,6 +1606,27 @@ body {
 
 .dc-motor-rotor.reverse .dc-motor-spinner {
   animation-direction: reverse;
+}
+
+@keyframes pump-stream {
+  0% { transform: scaleX(0.96); }
+  30% { transform: scaleX(1); }
+  60% { transform: scaleX(1.05); }
+  100% { transform: scaleX(0.94); }
+}
+
+@keyframes pump-drop {
+  0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+  20% { opacity: 1; }
+  70% { transform: translate(0, -90px) scale(1); opacity: 0.9; }
+  100% { transform: translate(0, -140px) scale(0.6); opacity: 0; }
+}
+
+@keyframes pump-splash {
+  0% { transform: translateY(0) scale(0.8); opacity: 0; }
+  30% { opacity: 0.9; }
+  60% { transform: translateY(-6px) scale(1); opacity: 1; }
+  100% { transform: translateY(2px) scale(0.7); opacity: 0; }
 }
 
 @keyframes motor-spin {

@@ -240,31 +240,45 @@ function createWokwiPreview(elementTag, props = {}) {
   return wrapper;
 }
 
-function createDcMotorElement({ props } = {}) {
+function createDcMotorElement({ props, isPump = false } = {}) {
   const wrapper = document.createElement('div');
-  wrapper.className = 'dc-motor-shell';
+  wrapper.className = `dc-motor-shell${isPump ? ' pump-shell' : ''}`;
 
   const image = document.createElement('img');
-  image.src = 'css/components/motor_dc_reducao.svg';
-  image.alt = props?.label ?? 'Motor DC com redução';
+  image.src = isPump ? 'css/components/bomba_svg.svg' : 'css/components/motor_dc_reducao.svg';
+  image.alt = props?.label ?? (isPump ? 'Bomba d\'água' : 'Motor DC com redução');
   image.draggable = false;
-  image.className = 'dc-motor-image';
+  image.className = `dc-motor-image${isPump ? ' pump-image' : ''}`;
 
   const rotor = document.createElement('div');
-  rotor.className = 'dc-motor-rotor';
+  rotor.className = `dc-motor-rotor${isPump ? ' pump-rotor' : ''}`;
   const spinner = document.createElement('div');
-  spinner.className = 'dc-motor-spinner';
+  spinner.className = `dc-motor-spinner${isPump ? ' pump-spinner' : ''}`;
   rotor.appendChild(spinner);
+  if (isPump) {
+    rotor.style.display = 'none';
+  }
+
+  const water = document.createElement('div');
+  water.className = 'pump-water';
+  water.innerHTML = `
+    <div class="stream"></div>
+    <div class="drops">
+      ${Array.from({ length: 24 })
+        .map((_, idx) => `<div class="drop drop-${idx + 1}"></div>`)
+        .join('')}
+    </div>
+  `;
 
   const speedLabel = document.createElement('span');
   speedLabel.className = 'dc-motor-speed';
   speedLabel.textContent = '0 RPM';
 
-  wrapper.append(image, rotor, speedLabel);
-  wrapper.__motorVisual = { rotor, spinner, speedLabel };
+  wrapper.append(image, rotor, water, speedLabel);
+  wrapper.__motorVisual = { rotor, spinner, speedLabel, water };
 
   const applyProps = (nextProps = {}) => {
-    image.alt = nextProps.label ?? 'Motor DC com redução';
+    image.alt = nextProps.label ?? (isPump ? 'Bomba d\'água' : 'Motor DC com redução');
     wrapper.title = image.alt;
   };
 
@@ -1143,6 +1157,42 @@ export const availableComponents = [
           type: 'text',
           propKey: 'label',
           placeholder: 'Motor DC',
+        },
+      },
+    ],
+  },
+  {
+    id: 'water-pump',
+    name: 'Bomba d\'água',
+    element: null,
+    description: 'Bomba d\'água DC de dois terminais.',
+    group: 'actuators',
+    defaultProps: {
+      resistance: '30',
+      label: 'Bomba d\'água',
+    },
+    pins: [
+      { name: 'V+', type: 'power', position: { xPercent: 20.5, yPercent: 33 } },
+      { name: 'V-', type: 'ground', position: { xPercent: 20.5, yPercent: 67 } },
+    ],
+    createInstance: ({ props }) => createDcMotorElement({ props, isPump: true }),
+    createPreview: () => createDcMotorElement({ props: { label: 'Bomba' }, isPump: true }).element,
+    propertyControls: [
+      {
+        label: 'Resistência interna',
+        formatValue: (value) => formatResistanceValue(value),
+        control: {
+          type: 'text',
+          propKey: 'resistance',
+          placeholder: '30Ω',
+        },
+      },
+      {
+        label: 'Rótulo',
+        control: {
+          type: 'text',
+          propKey: 'label',
+          placeholder: 'Bomba d\'água',
         },
       },
     ],
