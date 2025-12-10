@@ -1510,7 +1510,7 @@ body {
   box-shadow: 0 0 12px rgba(0, 174, 255, 0.6);
   border-radius: 12px;
   transform-origin: top center;
-  animation: pump-stream 1s infinite ease-in-out;
+  animation: pump-stream var(--pump-flow-duration, 1s) infinite ease-in-out;
 }
 .pump-shell .pump-water .drops {
   position: absolute;
@@ -1527,7 +1527,7 @@ body {
   border-radius: 50%;
   background: rgba(0, 170, 255, 0.9);
   box-shadow: 0 0 6px rgba(0, 170, 255, 0.6);
-  animation: pump-drop 1s infinite ease-in;
+  animation: pump-drop var(--pump-flow-duration, 1s) infinite ease-in;
 }
 .pump-shell .pump-water .drop-1 { left: 2px; animation-delay: 0s; }
 .pump-shell .pump-water .drop-2 { left: 6px; animation-delay: 0.05s; }

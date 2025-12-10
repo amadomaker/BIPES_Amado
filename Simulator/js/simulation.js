@@ -965,6 +965,7 @@ class CircuitSnapshot {
           return;
         }
 
+        const isPump = component.type === 'water-pump';
         const pins = this.getPinsForComponent(component.id);
         if (pins.length < 2) {
           results.push({
@@ -984,8 +985,6 @@ class CircuitSnapshot {
         const negative = pins.find((pin) => pin.pinType === 'ground') ?? pins[1];
         const voltageDiff = this.getNodeVoltage(positive) - this.getNodeVoltage(negative);
         const absVoltage = Math.abs(voltageDiff);
-
-        const isPump = component.type === 'water-pump';
 
         let motorResistance = this.parseResistanceValue(
           component.props?.resistance ?? component.props?.value ?? component.props?.ohms,
@@ -2272,6 +2271,7 @@ class Simulation {
     const rpm = Math.max(0, Number(state.rpm) || 0);
     const direction = Math.sign(Number(state.direction) || 0);
     const active = Boolean(state.active) && rpm > 1;
+    const flowSpeed = Math.max(0, Math.min(1, active ? rpm / DC_MOTOR_MAX_RPM : 0));
 
     if (!component.state) component.state = {};
     component.state.motor = {
@@ -2284,6 +2284,10 @@ class Simulation {
 
     if (water) {
       water.classList.toggle('on', isPump && active);
+      if (isPump) {
+        const duration = 1.2 - flowSpeed * 0.7; // de ~1.2s até ~0.5s
+        water.style.setProperty('--pump-flow-duration', `${duration.toFixed(2)}s`);
+      }
     }
     if (!isPump) {
       if (active) {
@@ -2596,12 +2600,14 @@ class Simulation {
     const components = Array.isArray(this.canvasManager.components)
       ? this.canvasManager.components
       : [];
-    const motorComponents = components.filter((component) => component?.type === 'dc-motor');
+    const motorComponents = components.filter(
+      (component) => component?.type === 'dc-motor' || component?.type === 'water-pump',
+    );
 
     const nextBindings = new Map();
 
     components.forEach((component) => {
-      if (!component || component.type !== 'dc-motor') return;
+      if (!component || (component.type !== 'dc-motor' && component.type !== 'water-pump')) return;
       const normalizedLabel = this.normalizeMotorName(component.props?.label ?? component.props?.name);
       if (!normalizedLabel) return;
       if (this.motorControllers.has(normalizedLabel)) {
@@ -2650,6 +2656,16 @@ class Simulation {
         return;
       }
 
+      // fallback: se houver múltiplos motores/bombas e nenhum nome casar, vincula ao primeiro disponível
+      const available = motorComponents.find((m) => !nextBindings.has(m.id));
+      if (available) {
+        controller.boundComponentIds = [available.id];
+        nextBindings.set(available.id, controllerName);
+        controller.autoBindingAnnounced = true;
+        controller.warnedNoBinding = false;
+        return;
+      }
+
       if (!controller.warnedNoBinding) {
         this.listeners.onLog?.({
           message: `Motor DC "${controller.name ?? controller.normalizedName}": nenhum componente vinculado. Ajuste o rótulo do componente para corresponder ao nome configurado.`,
@@ -2660,6 +2676,25 @@ class Simulation {
       }
     });
 
+    // Força vínculo para bombas/motores restantes quando houver apenas um controlador disponível
+    const controllerNames = Array.from(this.motorControllers.keys());
+    if (controllerNames.length === 1) {
+      const soleControllerName = controllerNames[0];
+      const soleController = this.motorControllers.get(soleControllerName);
+      components
+        .filter((c) => c && (c.type === 'water-pump' || c.type === 'dc-motor'))
+        .forEach((component) => {
+          if (nextBindings.has(component.id)) return;
+          nextBindings.set(component.id, soleControllerName);
+          if (soleController) {
+            soleController.boundComponentIds = soleController.boundComponentIds ?? [];
+            if (!soleController.boundComponentIds.includes(component.id)) {
+              soleController.boundComponentIds.push(component.id);
+            }
+          }
+        });
+    }
+
     Array.from(this.motorControllerBindings.keys()).forEach((componentId) => {
       if (!nextBindings.has(componentId)) {
         this.motorControllerBindings.delete(componentId);
@@ -2668,6 +2703,25 @@ class Simulation {
     nextBindings.forEach((controllerName, componentId) => {
       this.motorControllerBindings.set(componentId, controllerName);
     });
+
+    // Se ainda houver bombas sem binding, vincula ao primeiro controlador disponível
+    const allControllers = Array.from(this.motorControllers.keys());
+    if (allControllers.length) {
+      components
+        .filter((c) => c?.type === 'water-pump')
+        .forEach((pump) => {
+          if (this.motorControllerBindings.has(pump.id)) return;
+          const firstController = allControllers[0];
+          this.motorControllerBindings.set(pump.id, firstController);
+          const ctrl = this.motorControllers.get(firstController);
+          if (ctrl) {
+            ctrl.boundComponentIds = ctrl.boundComponentIds ?? [];
+            if (!ctrl.boundComponentIds.includes(pump.id)) {
+              ctrl.boundComponentIds.push(pump.id);
+            }
+          }
+        });
+    }
   }
 
   getMotorControllerForComponent(component) {
@@ -2701,27 +2755,6 @@ class Simulation {
     if (!controller) return null;
 
     const duty = Math.max(0, Math.min(1, (Number(controller.power) || 0) / 100));
-    if (duty <= 0) {
-      if (baseResult.active || baseResult.voltage > 0.05) {
-        return null;
-      }
-      const supply = snapshot.getHighLevelVoltage();
-      return {
-        active: false,
-        direction: 0,
-        rpm: 0,
-        current: 0,
-        voltage: 0,
-        supplyVoltage: supply,
-        reasons: ['Motor aguardando comando de potência'],
-        controllerName: controller.name ?? controller.normalizedName,
-      };
-    }
-
-    if (baseResult.active && baseResult.voltage > 0.05) {
-      return null;
-    }
-
     const supplyVoltage = snapshot.getHighLevelVoltage();
     const voltage = supplyVoltage * duty;
 
@@ -2737,31 +2770,19 @@ class Simulation {
     }
 
     const rpm = Math.min(DC_MOTOR_MAX_RPM, Math.max(0, voltage / DC_MOTOR_KV));
-    const active = voltage >= DC_MOTOR_MIN_DRIVE_VOLTAGE && rpm > 1;
+    const active = voltage >= DC_MOTOR_MIN_DRIVE_VOLTAGE && rpm > 1 && duty > 0;
     const direction = controller.direction === 'reverse' ? -1 : 1;
     const current = motorResistance > 0 ? voltage / motorResistance : 0;
 
-    if (!active) {
-      return {
-        active: false,
-        direction: 0,
-        rpm: 0,
-        current: 0,
-        voltage,
-        supplyVoltage,
-        reasons: ['PWM insuficiente para acionar o motor'],
-        controllerName: controller.name ?? controller.normalizedName,
-      };
-    }
-
+    // Sempre retorna override coerente com o comando, inclusive quando duty=0
     return {
-      active: true,
-      direction,
-      rpm,
-      current: Math.abs(current),
-      voltage,
+      active,
+      direction: active ? direction : 0,
+      rpm: active ? rpm : 0,
+      current: active ? Math.abs(current) : 0,
+      voltage: active ? voltage : 0,
       supplyVoltage,
-      reasons: [],
+      reasons: active ? [] : ['PWM insuficiente para acionar o motor'],
       controllerName: controller.name ?? controller.normalizedName,
     };
   }
@@ -2867,6 +2888,8 @@ class Simulation {
     controller.dir1Pin = dir1;
     controller.dir2Pin = dir2;
     controller.power = 0;
+    controller.savedPower = controller.savedPower ?? 0;
+    controller.wasStopped = false;
     controller.direction = controller.direction ?? 'forward';
     controller.boundComponentIds = controller.boundComponentIds ?? [];
     controller.warnedNoBinding = false;
@@ -2899,6 +2922,13 @@ class Simulation {
       .toLowerCase()
       .trim();
     controller.direction = directionValue === 'reverse' ? 'reverse' : 'forward';
+
+    // Se estava parado, retoma a última potência configurada ao mudar o sentido
+    if ((controller.power ?? 0) === 0 && (controller.savedPower ?? 0) > 0 && controller.wasStopped) {
+      controller.power = controller.savedPower;
+    }
+    controller.wasStopped = false;
+
     await this.applyMotorControllerOutputs(boardComponentId, controller);
     return controller.direction;
   }
@@ -2908,12 +2938,15 @@ class Simulation {
     const numeric = Number(rawPower);
     const power = Number.isFinite(numeric) ? Math.max(0, Math.min(100, numeric)) : 0;
     controller.power = power;
+    controller.savedPower = power;
+    controller.wasStopped = false;
     await this.applyMotorControllerOutputs(boardComponentId, controller);
     return controller.power;
   }
 
   async handleMotorDcStop(boardComponentId, rawName) {
     const controller = this.requireMotorController(rawName);
+    controller.wasStopped = true;
     controller.power = 0;
     await this.applyMotorControllerOutputs(boardComponentId, controller);
     return true;
