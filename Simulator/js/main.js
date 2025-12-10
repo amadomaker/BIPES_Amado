@@ -10,6 +10,7 @@ import {
   appendSerialLog,
   clearSerialMonitor,
   setTransformControlsState,
+  clearPropertiesPanel,
 } from './ui.js';
 import { simulation } from './simulation.js';
 import { initBlocklyWorkspace, compileWorkspaceToProgram } from './blockly.js';
@@ -37,6 +38,54 @@ let isApplyingHistory = false;
 let historySuspended = false;
 let examplesList = [];
 const EXAMPLE_GROUP = { id: 'examples', name: 'Exemplos' };
+
+function getBlocklyInstance() {
+  if (typeof window === 'undefined') return null;
+  return window.Blockly ?? null;
+}
+
+function clearSimulationSelection() {
+  canvasManager?.clearComponentSelection?.();
+  canvasManager?.wiringManager?.deselectWire?.();
+  clearPropertiesPanel();
+}
+
+function clearBlocklySelection() {
+  const selected = blocklyWorkspace?.getSelected?.();
+  if (selected?.unselect) {
+    selected.unselect();
+  }
+  const Blockly = getBlocklyInstance();
+  if (Blockly?.hideChaff) {
+    Blockly.hideChaff();
+  }
+  if (Blockly?.DropDownDiv?.hide) {
+    Blockly.DropDownDiv.hide();
+  }
+  if (Blockly?.Tooltip?.hide) {
+    Blockly.Tooltip.hide();
+  }
+}
+
+function attachCrossSelectionGuards() {
+  const blocklyPanel = document.getElementById('blockly-panel');
+  const blocklyContainer = document.getElementById('blockly-container');
+  const blocklyToggle = document.getElementById('blockly-toggle-button');
+  const blocklyOpenTrigger = document.getElementById('blockly-open-trigger');
+  const workspaceEl = document.getElementById('workspace');
+
+  const handleGlobalPointer = (event) => {
+    const target = event.target;
+    if (blocklyPanel?.contains(target) || blocklyContainer?.contains(target) || blocklyToggle === target || blocklyOpenTrigger === target) {
+      clearSimulationSelection();
+    } else if (workspaceEl?.contains(target)) {
+      clearBlocklySelection();
+    }
+  };
+
+  document.addEventListener('mousedown', handleGlobalPointer, true);
+  document.addEventListener('touchstart', handleGlobalPointer, true);
+}
 
 window.addEventListener('DOMContentLoaded', () => {
   initUI({
@@ -78,6 +127,7 @@ window.addEventListener('DOMContentLoaded', () => {
   blocklyWorkspace = initBlocklyWorkspace();
   setupBlocklyPanelControls();
   attachBlocklyAutoSave();
+  attachCrossSelectionGuards();
   initializeHistoryBaseline();
   restorePersistedState().finally(() => {
     initializeHistoryBaseline();
@@ -254,6 +304,9 @@ function setupBlocklyPanelControls() {
       window.requestAnimationFrame(() => {
         window.Blockly.svgResize(blocklyWorkspace);
       });
+    } else if (!isOpen) {
+      clearBlocklySelection();
+      clearSimulationSelection();
     }
   };
 

@@ -19,5 +19,12 @@
     "description": "Exemplo HCSR04 com pinos TRIG/ECHO configurados",
     "file": "sensor_ultrassonico.json",
     "preview": "previews/sensor_ultrassonico_exemplo.png"
+  },
+  {
+    "id": "bomba-agua",
+    "name": "Bomba de água",
+    "description": "Liga bomba de água usando motor DC",
+    "file": "bomba_agua_.json",
+    "preview": "previews/bomba_agua_exemplo.png"
   }
 ]

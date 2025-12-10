@@ -211,21 +211,24 @@ function positionPropertiesPopover(anchor) {
 
   const margin = 12;
   const { offsetWidth: width, offsetHeight: height } = propertiesPopover;
-  const viewportHeight = window.innerHeight;
-  let top = margin;
+  const canvasArea = document.getElementById('canvas-area');
+  const canvasRect = canvasArea?.getBoundingClientRect();
 
+  // Alinha no canto superior direito da área do canvas, com leve margem
+  const rightEdge = (canvasRect?.right ?? window.innerWidth) - margin;
+  const topEdge = (canvasRect?.top ?? 0) + margin;
+  const left = Math.max(margin, rightEdge - width);
+
+  // Mantém o topo dentro da viewport, mas prioriza a faixa superior do canvas
+  const viewportHeight = window.innerHeight;
+  let top = Math.max(margin, topEdge);
   if (anchor && typeof anchor === 'object') {
     const rectTop = Number(anchor.top) || 0;
-    const rectHeight = Number(anchor.height) || 0;
-    const desiredTop = rectTop + rectHeight / 2 - height / 2;
-    if (!Number.isNaN(desiredTop)) {
-      top = Math.max(margin, Math.min(desiredTop, viewportHeight - height - margin));
-    }
+    const desired = rectTop - margin; // ligeiramente acima do componente
+    top = Math.max(top, Math.min(desired, viewportHeight - height - margin));
   }
 
-  const left = window.innerWidth - width - margin;
-
-  propertiesPopover.style.left = `${Math.round(Math.max(margin, left))}px`;
+  propertiesPopover.style.left = `${Math.round(left)}px`;
   propertiesPopover.style.top = `${Math.round(top)}px`;
 }
 
