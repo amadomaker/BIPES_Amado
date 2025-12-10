@@ -2754,7 +2754,7 @@ class Simulation {
     const controller = this.getMotorControllerForComponent(component);
     if (!controller) return null;
 
-    const duty = Math.max(0, Math.min(1, (Number(controller.power) || 0) / 100));
+    const duty = Math.max(0, Math.min(1, (Number(controller.power) || 0) / 1023));
     const supplyVoltage = snapshot.getHighLevelVoltage();
     const voltage = supplyVoltage * duty;
 
@@ -2802,13 +2802,13 @@ class Simulation {
       throw new Error('O motor DC não possui todos os pinos (PWM, DIR1, DIR2) definidos.');
     }
 
-    const clampedPower = Math.max(0, Math.min(100, Number(controller.power) || 0));
-    const analogLevel = Math.round((clampedPower / 100) * 4095);
+    const clampedPower = Math.max(0, Math.min(1023, Number(controller.power) || 0));
+    const analogLevel = Math.round((clampedPower / 1023) * 4095);
     this.setBoardPinAnalogLevel(boardComponentId, pwmPin, analogLevel);
 
     controller.supplyVoltage = controller.supplyVoltage ?? DEFAULT_SUPPLY_VOLTAGE;
     const supplyVoltage = controller.supplyVoltage;
-    const driveVoltage = (supplyVoltage * clampedPower) / 100;
+    const driveVoltage = (supplyVoltage * clampedPower) / 1023;
     controller.boardComponentId = boardComponentId;
 
     if (analogLevel <= 0) {
@@ -2936,7 +2936,7 @@ class Simulation {
   async handleMotorDcSetPower(boardComponentId, rawName, rawPower) {
     const controller = this.requireMotorController(rawName);
     const numeric = Number(rawPower);
-    const power = Number.isFinite(numeric) ? Math.max(0, Math.min(100, numeric)) : 0;
+    const power = Number.isFinite(numeric) ? Math.max(0, Math.min(1023, numeric)) : 0;
     controller.power = power;
     controller.savedPower = power;
     controller.wasStopped = false;

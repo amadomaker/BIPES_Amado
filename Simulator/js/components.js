@@ -1143,15 +1143,6 @@ export const availableComponents = [
     createPreview: () => createDcMotorElement({ props: { label: 'Motor DC' } }).element,
     propertyControls: [
       {
-        label: 'Resistência interna',
-        formatValue: (value) => formatResistanceValue(value),
-        control: {
-          type: 'text',
-          propKey: 'resistance',
-          placeholder: '30Ω',
-        },
-      },
-      {
         label: 'Rótulo',
         control: {
           type: 'text',

@@ -356,34 +356,6 @@ export function registerAmadoBlocks(Blockly) {
     },
     {
       type: 'motor_dc_init',
-      message0: 'motor DC %1 PWM %2 DIR1 %3 DIR2 %4',
-      args0: [
-        {
-          type: 'field_input',
-          name: 'NAME',
-          text: 'Motor A',
-        },
-        {
-          type: 'field_dropdown',
-          name: 'PWM',
-          options: pinOptions,
-        },
-        {
-          type: 'field_dropdown',
-          name: 'DIR1',
-          options: pinOptions,
-        },
-        {
-          type: 'field_dropdown',
-          name: 'DIR2',
-          options: pinOptions,
-        },
-      ],
-      previousStatement: null,
-      nextStatement: null,
-      colour: '#708090',
-      tooltip: 'Configura o motor DC mapeando os pinos PWM, DIR1 e DIR2 da placa Amado.',
-      helpUrl: '',
     },
     {
       type: 'servo_init',
@@ -670,23 +642,23 @@ export function registerAmadoBlocks(Blockly) {
   Blockly.Blocks.motor_dc_set_power = {
     init() {
       this.appendDummyInput()
-        .appendField('motor')
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+        .appendField('Definir potência do motor DC  -  Potência:');
 
-      const powerInput = this.appendValueInput('POWER')
-        .setCheck('Number')
-        .appendField('potência (%)');
+      const powerInput = this.appendValueInput('POWER').setCheck('Number');
+
+      this.appendDummyInput()
+        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
 
       this.setInputsInline(true);
       this.setPreviousStatement(true);
       this.setNextStatement(true);
       this.setColour('#708090');
-      this.setTooltip('Define o PWM aplicado ao motor DC (0 a 100%).');
+      this.setTooltip('Define o PWM aplicado ao motor DC (0 a 1023).');
       this.setHelpUrl('');
 
       const connection = powerInput?.connection;
       if (connection) {
-        const shadow = createNumberShadowBlock(Blockly, '100');
+        const shadow = createNumberShadowBlock(Blockly, '70');
         connection.setShadowDom(shadow);
       }
     },
@@ -695,16 +667,14 @@ export function registerAmadoBlocks(Blockly) {
   Blockly.Blocks.motor_dc_set_direction = {
     init() {
       this.appendDummyInput()
-        .appendField('motor')
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME')
-        .appendField('direção')
-        .appendField(
-          new Blockly.FieldDropdown([
-            ['Horário', 'forward'],
-            ['Anti-horário', 'reverse'],
-          ]),
-          'DIRECTION',
-        );
+        .appendField('Definir direção do motor DC  -  Direção:');
+
+      const dirInput = this.appendValueInput('DIRECTION_NUM')
+        .setCheck('Number')
+        .setAlign(Blockly.ALIGN_RIGHT);
+
+      this.appendDummyInput()
+        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
 
       this.setInputsInline(true);
       this.setPreviousStatement(true);
@@ -712,15 +682,61 @@ export function registerAmadoBlocks(Blockly) {
       this.setColour('#708090');
       this.setTooltip('Define o sentido de rotação do motor: horário ou anti-horário.');
       this.setHelpUrl('');
+
+      const dirConn = dirInput?.connection;
+      if (dirConn) {
+        const shadow = createNumberShadowBlock(Blockly, '1');
+        dirConn.setShadowDom(shadow);
+      }
+    },
+  };
+
+  Blockly.Blocks.motor_dc_init = {
+    init() {
+      const FieldImage = Blockly.FieldImage || Blockly.FieldImageSvg || Blockly.FieldImageHtml;
+      this.appendDummyInput()
+        .appendField(
+          FieldImage
+            ? new FieldImage('/ui/media/dcmotor.png', 32, 32, 'Motor DC')
+            : 'Iniciar motor DC',
+        )
+        .appendField(FieldImage ? 'Iniciar motor DC' : '');
+
+      const pwmInput = this.appendValueInput('PWM')
+        .setCheck('String')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('PWM');
+      const dir1Input = this.appendValueInput('DIR1')
+        .setCheck('String')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Direção 1');
+      const dir2Input = this.appendValueInput('DIR2')
+        .setCheck('String')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('Direção 2');
+
+      this.appendDummyInput()
+        .appendField('Nome do motor:')
+        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+
+      pwmInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      dir1Input?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      dir2Input?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Configura o motor DC mapeando os pinos PWM, DIR1 e DIR2 da placa Amado.');
+      this.setHelpUrl('');
+      this.setInputsInline(false);
     },
   };
 
   Blockly.Blocks.motor_dc_stop = {
     init() {
       this.appendDummyInput()
-        .appendField('motor')
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME')
-        .appendField('parar');
+        .appendField('Parar motor DC')
+        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
 
       this.setPreviousStatement(true);
       this.setNextStatement(true);
@@ -1181,16 +1197,13 @@ export function registerAmadoBlocks(Blockly) {
 
   javascriptGenerator.forBlock.motor_dc_init = function motorDcInit(block) {
     const name = (block.getFieldValue('NAME') ?? '').trim();
-    const pwm = block.getFieldValue('PWM') ?? '';
-    const dir1 = block.getFieldValue('DIR1') ?? '';
-    const dir2 = block.getFieldValue('DIR2') ?? '';
-    const args = [
-      JSON.stringify(name),
-      JSON.stringify(pwm),
-      JSON.stringify(dir1),
-      JSON.stringify(dir2),
-    ].join(', ');
-    return `await api.motorDcInit(${args});\n`;
+    const pwm =
+      javascriptGenerator.valueToCode(block, 'PWM', javascriptGenerator.ORDER_NONE) || "''";
+    const dir1 =
+      javascriptGenerator.valueToCode(block, 'DIR1', javascriptGenerator.ORDER_NONE) || "''";
+    const dir2 =
+      javascriptGenerator.valueToCode(block, 'DIR2', javascriptGenerator.ORDER_NONE) || "''";
+    return `await api.motorDcInit(${JSON.stringify(name)}, ${pwm}, ${dir1}, ${dir2});\n`;
   };
 
   javascriptGenerator.forBlock.motor_dc_set_power = function motorDcSetPower(block) {
@@ -1198,13 +1211,20 @@ export function registerAmadoBlocks(Blockly) {
     const power =
       javascriptGenerator.valueToCode(block, 'POWER', javascriptGenerator.ORDER_NONE) ||
       '0';
-    return `await api.motorDcSetPower(${JSON.stringify(name)}, ${power});\n`;
+    const clamped = `Math.max(0, Math.min(1023, Number(${power}) || 0))`;
+    return `await api.motorDcSetPower(${JSON.stringify(name)}, ${clamped});\n`;
   };
 
   javascriptGenerator.forBlock.motor_dc_set_direction = function motorDcSetDirection(block) {
     const name = (block.getFieldValue('NAME') ?? '').trim();
-    const direction = block.getFieldValue('DIRECTION') ?? 'forward';
-    return `await api.motorDcSetDirection(${JSON.stringify(name)}, ${JSON.stringify(direction)});\n`;
+    const directionRaw =
+      javascriptGenerator.valueToCode(block, 'DIRECTION_NUM', javascriptGenerator.ORDER_NONE) ||
+      '0';
+    const directionNum = `Math.max(0, Math.min(2, Number(${directionRaw}) || 0))`;
+    const dirCode =
+      `((${directionNum}) === 2 ? 'reverse' : ((${directionNum}) === 1 ? 'forward' : 'stop'))`;
+    const final = `((${dirCode}) === 'stop' ? await api.motorDcStop(${JSON.stringify(name)}) : await api.motorDcSetDirection(${JSON.stringify(name)}, ${dirCode}))`;
+    return `${final};\n`;
   };
 
   javascriptGenerator.forBlock.motor_dc_stop = function motorDcStop(block) {

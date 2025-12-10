@@ -24,7 +24,7 @@
     "id": "bomba-agua",
     "name": "Bomba de água",
     "description": "Liga bomba de água usando motor DC",
-    "file": "bomba_agua_.json",
+    "file": "bomba_agua_demo.json",
     "preview": "previews/bomba_agua_exemplo.png"
   }
 ]
