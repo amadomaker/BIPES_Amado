@@ -941,6 +941,10 @@ export function registerAmadoBlocks(Blockly) {
   const orderNone =
     javascriptGenerator.ORDER_NONE ?? 0;
 
+  // Inserir um yield mínimo dentro dos laços para não travar o navegador
+  const LOOP_YIELD_MS = 5;
+  const appendLoopYield = (branch = '') => `${branch}await api.wait(${LOOP_YIELD_MS});\n`;
+
   // Geradores blocos de controle adicionais
   javascriptGenerator.forBlock.amado_for_each_item = function amadoForEachItem(block) {
     const list =
@@ -951,6 +955,7 @@ export function registerAmadoBlocks(Blockly) {
     );
     let branch = javascriptGenerator.statementToCode(block, 'DO');
     branch = javascriptGenerator.addLoopTrap(branch, block.id);
+    branch = appendLoopYield(branch);
     const code = `for (const ${variable} of (${list})) {\n${branch}}\n`;
     return code;
   };
@@ -1205,6 +1210,70 @@ export function registerAmadoBlocks(Blockly) {
   javascriptGenerator.forBlock.motor_dc_stop = function motorDcStop(block) {
     const name = (block.getFieldValue('NAME') ?? '').trim();
     return `await api.motorDcStop(${JSON.stringify(name)});\n`;
+  };
+
+  // Sobrescreve laços padrões para inserir yield implícito e evitar travamentos
+  javascriptGenerator.forBlock.controls_repeat_ext = function controlsRepeatExt(block) {
+    let repeats = '';
+    if (block.getField('TIMES')) {
+      repeats = String(Number(block.getFieldValue('TIMES')) || 0);
+    } else {
+      repeats =
+        javascriptGenerator.valueToCode(block, 'TIMES', javascriptGenerator.ORDER_ASSIGNMENT) || '0';
+    }
+    let branch = javascriptGenerator.statementToCode(block, 'DO');
+    branch = javascriptGenerator.addLoopTrap(branch, block.id);
+    branch = appendLoopYield(branch);
+    const loopVar = javascriptGenerator.nameDB_.getDistinctName(
+      'count',
+      Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE',
+    );
+    return `for (let ${loopVar} = 0; ${loopVar} < ${repeats}; ${loopVar}++) {\n${branch}}\n`;
+  };
+  javascriptGenerator.forBlock.controls_repeat = javascriptGenerator.forBlock.controls_repeat_ext;
+
+  javascriptGenerator.forBlock.controls_whileUntil = function controlsWhileUntil(block) {
+    const until = block.getFieldValue('MODE') === 'UNTIL';
+    let condition =
+      javascriptGenerator.valueToCode(block, 'BOOL', javascriptGenerator.ORDER_LOGICAL_NOT) || 'false';
+    if (until) {
+      condition = `!(${condition})`;
+    }
+    let branch = javascriptGenerator.statementToCode(block, 'DO');
+    branch = javascriptGenerator.addLoopTrap(branch, block.id);
+    branch = appendLoopYield(branch);
+    return `while (${condition}) {\n${branch}}\n`;
+  };
+
+  javascriptGenerator.forBlock.controls_for = function controlsFor(block) {
+    const variable = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('VAR'),
+      Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE',
+    );
+    const from =
+      javascriptGenerator.valueToCode(block, 'FROM', javascriptGenerator.ORDER_ASSIGNMENT) || '0';
+    const to = javascriptGenerator.valueToCode(block, 'TO', javascriptGenerator.ORDER_ASSIGNMENT) || '0';
+    const by = javascriptGenerator.valueToCode(block, 'BY', javascriptGenerator.ORDER_ASSIGNMENT) || '1';
+    let branch = javascriptGenerator.statementToCode(block, 'DO');
+    branch = javascriptGenerator.addLoopTrap(branch, block.id);
+    branch = appendLoopYield(branch);
+    const code =
+      `for (let ${variable} = ${from}; ${variable} <= ${to}; ${variable} += ${by}) {\n${branch}}\n`;
+    return code;
+  };
+
+  javascriptGenerator.forBlock.controls_forEach = function controlsForEach(block) {
+    const variable = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('VAR'),
+      Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE',
+    );
+    const list =
+      javascriptGenerator.valueToCode(block, 'LIST', javascriptGenerator.ORDER_ASSIGNMENT) || '[]';
+    let branch = javascriptGenerator.statementToCode(block, 'DO');
+    branch = javascriptGenerator.addLoopTrap(branch, block.id);
+    branch = appendLoopYield(branch);
+    const code = `for (const ${variable} of ${list}) {\n${branch}}\n`;
+    return code;
   };
 
   javascriptGenerator.forBlock.servo_init = function servoInit(block) {
