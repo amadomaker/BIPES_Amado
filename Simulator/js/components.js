@@ -1172,8 +1172,8 @@ export const availableComponents = [
       label: 'Bomba d\'água',
     },
     pins: [
-      { name: 'V+', type: 'power', position: { xPercent: 20.5, yPercent: 33 } },
-      { name: 'V-', type: 'ground', position: { xPercent: 20.5, yPercent: 67 } },
+      { name: 'V+', type: 'power', position: { xPercent: 13.8, yPercent: 57.5 } },
+      { name: 'V-', type: 'ground', position: { xPercent: 13.8, yPercent: 55 } },
     ],
     createInstance: ({ props }) => createDcMotorElement({ props, isPump: true }),
     createPreview: () => createDcMotorElement({ props: { label: 'Bomba' }, isPump: true }).element,
