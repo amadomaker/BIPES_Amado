@@ -197,9 +197,13 @@ function createAaaBatteryPackElement({ props, preview = false } = {}) {
     cellsWrapper.style.margin = '0 auto';
     renderCells(count, cellWidth);
 
-    if (props) {
+    const normalizedVoltage = voltageTotal.toFixed(2).replace(/\.?0+$/, '');
+    // Atualiza tanto o objeto recebido quanto a cópia interna para manter consistência
+    nextProps.cells = String(count);
+    nextProps.voltage = normalizedVoltage;
+    if (props && props !== nextProps) {
       props.cells = String(count);
-      props.voltage = voltageTotal.toFixed(2).replace(/\.?0+$/, '');
+      props.voltage = normalizedVoltage;
     }
   };
 
