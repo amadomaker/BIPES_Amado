@@ -1487,7 +1487,8 @@ body {
   width: 220px;
   position: relative;
   display: inline-block;
-  pointer-events: none;
+  pointer-events: auto;
+  user-select: none;
 }
 
 .pump-shell .pump-water {
@@ -1564,6 +1565,10 @@ body {
   display: block;
   pointer-events: none;
   user-select: none;
+}
+
+.dc-motor-shell * {
+  pointer-events: none;
 }
 
 .dc-motor-rotor {
