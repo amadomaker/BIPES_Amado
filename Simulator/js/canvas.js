@@ -330,6 +330,7 @@ export class CanvasManager {
     container.id = componentId;
     container.dataset.componentType = definition.id;
     container.style.position = 'absolute';
+    container.style.zIndex = definition.id === 'protoboard-half' ? '0' : '1';
     container.style.left = `${x}px`;
     container.style.top = `${y}px`;
     container.style.cursor = 'move';
@@ -762,6 +763,11 @@ export class CanvasManager {
 
     const component = this.getComponentById(componentId);
     if (!component) return;
+
+    // Protoboard deve permanecer no fundo para facilitar encaixe de outros componentes
+    if (component.type === 'protoboard-half') {
+      component.container.style.zIndex = '0';
+    }
 
     component.container.classList.add('component-selected');
     this.selectedComponentId = componentId;

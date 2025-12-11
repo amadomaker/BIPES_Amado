@@ -631,6 +631,10 @@ body {
   transition: transform 0.1s ease-out;
 }
 
+.canvas-component[data-component-type="protoboard-half"] {
+  z-index: 0;
+}
+
 
 /* Pinos dos componentes */
 .pin {
