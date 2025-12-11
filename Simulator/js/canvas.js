@@ -334,6 +334,8 @@ export class CanvasManager {
     container.style.left = `${x}px`;
     container.style.top = `${y}px`;
     container.style.cursor = 'move';
+    container.setAttribute('draggable', 'false');
+    container.addEventListener('dragstart', (e) => e.preventDefault());
 
     const appliedProps = { ...definition.defaultProps, ...(options.props ?? {}) };
     let element = null;

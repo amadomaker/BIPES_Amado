@@ -629,10 +629,12 @@ body {
 /* Animação suave */
 .canvas-component {
   transition: transform 0.1s ease-out;
+  user-select: none;
 }
 
 .canvas-component[data-component-type="protoboard-half"] {
   z-index: 0;
+  pointer-events: auto;
 }
 
 
