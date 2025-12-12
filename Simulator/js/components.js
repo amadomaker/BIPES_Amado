@@ -1252,6 +1252,92 @@ export const availableComponents = [
     createPreview: () => createUltrasonicSensorElement({ preview: true }),
   },
   {
+    id: 'dht-sensor',
+    name: 'Sensor DHT11/22',
+    element: null,
+    description: 'Sensor de temperatura e umidade (DHT11/DHT22).',
+    group: 'sensors',
+    defaultProps: { model: 'DHT11', temperature: 25, humidity: 60 },
+    pins: [
+      { name: 'VCC', type: 'power', position: { xPercent: 28.8, yPercent: 88 } },
+      { name: 'DATA', type: 'signal', position: { xPercent: 42.8, yPercent: 88 } },
+      { name: 'GND', type: 'ground', position: { xPercent: 72.2, yPercent: 88 } },
+    ],
+    getLabel: (props = {}) => `Sensor ${props.model ?? 'DHT11'}`,
+    createInstance: ({ props }) => {
+      const container = document.createElement('div');
+      container.className = 'dht-sensor-shell';
+      const image = document.createElement('img');
+      image.src = 'css/components/dht11_svg.svg';
+      image.alt = `Sensor ${props?.model ?? 'DHT11/22'}`;
+      image.draggable = false;
+      container.appendChild(image);
+      const applyProps = (nextProps = {}) => {
+        const model = nextProps.model ?? 'DHT11';
+        image.alt = `Sensor ${model}`;
+        container.title = `Sensor ${model}`;
+        const state = container.__state ?? (container.__state = {});
+        const temperature = Number.isFinite(Number(nextProps.temperature))
+          ? Number(nextProps.temperature)
+          : Number.isFinite(Number(state.temperature))
+            ? Number(state.temperature)
+            : 25;
+        const humidity = Number.isFinite(Number(nextProps.humidity))
+          ? Number(nextProps.humidity)
+          : Number.isFinite(Number(state.humidity))
+            ? Number(state.humidity)
+            : 60;
+        state.temperature = temperature;
+        state.humidity = humidity;
+      };
+      applyProps(props ?? {});
+      return { element: container, applyProps };
+    },
+    createPreview: () => {
+      const container = document.createElement('div');
+      container.className = 'dht-sensor-shell dht-sensor-preview';
+      const image = document.createElement('img');
+      image.src = 'css/components/dht11_svg.svg';
+      image.alt = 'Sensor DHT';
+      image.draggable = false;
+      container.appendChild(image);
+      return container;
+    },
+    propertyControls: [
+      {
+        label: 'Modelo',
+        control: {
+          type: 'select',
+          propKey: 'model',
+          options: [
+            { label: 'DHT11', value: 'DHT11' },
+            { label: 'DHT22', value: 'DHT22' },
+          ],
+        },
+      },
+      {
+        label: 'Temperatura (°C)',
+        control: {
+          type: 'number',
+          propKey: 'temperature',
+          min: -20,
+          max: 80,
+          step: 0.5,
+        },
+      },
+      {
+        label: 'Umidade (%)',
+        control: {
+          type: 'number',
+          propKey: 'humidity',
+          min: 0,
+          max: 100,
+          step: 1,
+        },
+      },
+    ],
+  },
+  {
     id: 'buzzer',
     name: 'Buzzer',
     element: 'wokwi-buzzer',

@@ -392,6 +392,72 @@ export function registerAmadoBlocks(Blockly) {
       tooltip: 'Inicializa um servo motor indicando um nome e o pino de sinal (PWM).',
       helpUrl: '',
     },
+    {
+      type: 'dht_init',
+      message0: '%1 Iniciar sensor DHT11/22',
+      args0: [
+        {
+          type: 'field_image',
+          src: '/ui/media/dht.png',
+          width: 50,
+          height: 50,
+          alt: 'DHT',
+        },
+      ],
+      message1: 'modelo %1',
+      args1: [
+        {
+          type: 'field_dropdown',
+          name: 'MODEL',
+          options: [
+            ['DHT11', 'DHT11'],
+            ['DHT22', 'DHT22'],
+          ],
+        },
+      ],
+      message2: 'pino %1',
+      args2: [
+        {
+          type: 'input_value',
+          name: 'PIN',
+          check: 'String',
+        },
+      ],
+      previousStatement: null,
+      nextStatement: null,
+      colour: '#708090',
+      inputsInline: false,
+      tooltip: 'Inicializa o sensor DHT11/DHT22 selecionando o modelo e o pino de dados.',
+      helpUrl: '',
+    },
+    {
+      type: 'dht_update',
+      message0: 'atualizar leitura do sensor DHT11/22',
+      args0: [],
+      previousStatement: null,
+      nextStatement: null,
+      colour: '#708090',
+      tooltip: 'Executa uma leitura do sensor DHT11/22 inicializado.',
+      helpUrl: '',
+    },
+    {
+      type: 'dht_temperature',
+      message0: 'temperatura do DHT11/22',
+      args0: [],
+      output: 'Number',
+      colour: '#1C1F7A',
+      tooltip: 'Retorna a temperatura (°C) medida pelo sensor DHT11/22.',
+      helpUrl: '',
+    },
+    {
+      type: 'dht_humidity',
+      message0: 'umidade do DHT11/22',
+      args0: [],
+      output: 'Number',
+      colour: '#1C1F7A',
+      tooltip: 'Retorna a umidade relativa (%) medida pelo sensor DHT11/22.',
+      helpUrl: '',
+    },
   ]);
 
   Blockly.Blocks.amado_set_pin = {
@@ -1373,6 +1439,27 @@ export function registerAmadoBlocks(Blockly) {
     const angle =
       javascriptGenerator.valueToCode(block, 'ANGLE', javascriptGenerator.ORDER_NONE) || '90';
     return `await api.servoMove(${JSON.stringify(name)}, ${angle});\n`;
+  };
+
+  javascriptGenerator.forBlock.dht_init = function dhtInit(block) {
+    const model = block.getFieldValue('MODEL') || 'DHT11';
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    return `await api.dhtInit(${JSON.stringify(model)}, ${pin});\n`;
+  };
+
+  javascriptGenerator.forBlock.dht_update = function dhtUpdate() {
+    return 'await api.dhtUpdate();\n';
+  };
+
+  javascriptGenerator.forBlock.dht_temperature = function dhtTemperature() {
+    const code = 'await api.dhtGetTemperature()';
+    return [code, orderAwait];
+  };
+
+  javascriptGenerator.forBlock.dht_humidity = function dhtHumidity() {
+    const code = 'await api.dhtGetHumidity()';
+    return [code, orderAwait];
   };
 
   javascriptGenerator.forBlock.oled_display_init = function oledDisplayInit(block) {

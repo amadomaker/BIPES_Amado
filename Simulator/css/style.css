@@ -1869,6 +1869,32 @@ body {
   min-width: 52px;
   text-align: right;
 }
+
+.dht-sensor-shell {
+  position: relative;
+  display: inline-flex;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dht-sensor-shell img {
+  position: relative;
+  width: 84px;
+  height: auto;
+  object-fit: contain;
+  pointer-events: auto;
+  display: block;
+}
+
+.dht-sensor-preview {
+  transform: translateY(1px) scale(0.58);
+  transform-origin: center;
+}
 .canvas-component[data-component-type="amado-board"]
   .pin[data-pin-name="D25"],
 .canvas-component[data-component-type="amado-board"]

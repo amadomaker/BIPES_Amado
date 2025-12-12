@@ -33,5 +33,12 @@
     "description": "Exemplo de controle de servo",
     "file": "servo_motor_demo.json",
     "preview": "previews/servo_motor_preview.png"
+  },
+  {
+    "id": "dht11-sensor",
+    "name": "Sensor DHT11/22",
+    "description": "Leitura de temperatura e umidade com DHT11/22",
+    "file": "dht11_sensor_demo.json",
+    "preview": "previews/dht11_sensor_preview.png"
   }
 ]

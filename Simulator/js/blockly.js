@@ -258,7 +258,20 @@ const DEFAULT_TOOLBOX = {
           kind: 'category',
           name: 'Temperatura e umidade',
           colour: '#708090',
-          contents: [],
+          contents: [
+            {
+              kind: 'block',
+              type: 'dht_init',
+              inputs: {
+                PIN: {
+                  shadow: { type: 'amado_pin_selector', fields: { PIN: 'D2' } },
+                },
+              },
+            },
+            { kind: 'block', type: 'dht_update' },
+            { kind: 'block', type: 'dht_temperature' },
+            { kind: 'block', type: 'dht_humidity' },
+          ],
         },
         {
           kind: 'category',

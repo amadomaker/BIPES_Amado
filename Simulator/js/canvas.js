@@ -1310,6 +1310,16 @@ export class CanvasManager {
         }
         break;
       }
+      case 'dht-sensor': {
+        const elementState = component.element?.__state ?? {};
+        const temp =
+          Number(component.props?.temperature ?? elementState.temperature ?? state.temperature);
+        const humid =
+          Number(component.props?.humidity ?? elementState.humidity ?? state.humidity);
+        if (Number.isFinite(temp)) state.temperature = temp;
+        if (Number.isFinite(humid)) state.humidity = humid;
+        break;
+      }
       default:
         break;
     }

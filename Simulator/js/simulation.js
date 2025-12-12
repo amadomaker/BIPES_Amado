@@ -2034,6 +2034,8 @@ class Simulation {
     this.motorControllerBindings = new Map();
     this.oledControllers = new Map();
     this.ultrasonicBindings = new Map();
+    this.dhtConfig = null;
+    this.dhtLastReading = { temperature: null, humidity: null, timestamp: 0 };
     this.pwmChannels = new Map();
     this.programState = null;
     this.powerEnabled = false;
@@ -3253,6 +3255,20 @@ class Simulation {
     );
   }
 
+  findDhtComponentByPin(boardComponentId, dataPinName, snapshot) {
+    if (!this.canvasManager) return null;
+    const snap = snapshot ?? this.createSnapshot();
+    const boardNode = snap.getNodeByComponentPin(boardComponentId, dataPinName);
+    if (!boardNode || !boardNode.netId) return null;
+    const dht = (this.canvasManager.components || []).find((c) => c?.type === 'dht-sensor');
+    if (!dht) return null;
+    const dataNode = snap.getNodeByComponentPin(dht.id, 'DATA');
+    if (dataNode?.netId && dataNode.netId === boardNode.netId) {
+      return dht;
+    }
+    return null;
+  }
+
   async handleUltrasonicRead(boardComponentId, trigPinRaw, echoPinRaw) {
     const trigPin = this.normalizeBoardPinInput(trigPinRaw);
     const echoPin = this.normalizeBoardPinInput(echoPinRaw);
@@ -3553,6 +3569,8 @@ class Simulation {
     this.boardMotorOutputs.clear();
     this.oledControllers.clear();
     this.ultrasonicBindings.clear();
+    this.dhtConfig = null;
+    this.dhtLastReading = { temperature: null, humidity: null, timestamp: 0 };
     this.pwmChannels.clear();
     this.servoMap.clear();
     if (this.canvasManager?.components?.length) {
@@ -3584,6 +3602,9 @@ class Simulation {
       rejectors: new Set(),
       boardComponentId,
       onProgramError,
+      lastWaitMs: 0,
+      lastWaitTimestamp: 0,
+      waitAccumulatedMs: 0,
     };
 
     const abortError = new Error('Programa interrompido.');
@@ -3612,6 +3633,12 @@ class Simulation {
           const message = 'Valor inválido no bloco "aguardar". O tempo deve ser um número positivo.';
           programState.onProgramError?.(message);
           return Promise.reject(new Error(message));
+        }
+        programState.lastWaitMs = duration;
+        programState.lastWaitTimestamp = Date.now();
+        // Só contar waits "reais" (>=50ms) para requisitos de tempo, ignorando yields internos.
+        if (duration >= 50) {
+          programState.waitAccumulatedMs += duration;
         }
         return new Promise((resolve, reject) => {
           const timerId = window.setTimeout(() => {
@@ -3923,6 +3950,100 @@ class Simulation {
           programState.onProgramError?.(message);
           throw error;
         }
+      },
+      dhtInit: async (model, pin) => {
+        if (programState.aborted) return;
+        try {
+          const normalizedModel = String(model || 'DHT11').toUpperCase().startsWith('DHT22')
+            ? 'DHT22'
+            : 'DHT11';
+          const pinName = this.normalizeBoardPinInput(pin);
+          if (!pinName) {
+            throw new Error('Informe o pino de dados do DHT11/22.');
+          }
+          if (this.isInputOnlyPin(pinName) || !this.isDigitalPin(pinName)) {
+            throw new Error('O DHT deve usar pinos digitais (exceto 34, 35, 36 ou 39).');
+          }
+          this.requireSignalPinElement(programState.boardComponentId, pinName);
+          const normalizedPin = this.normalizeBoardPinName(pinName);
+          programState.dhtConfig = {
+            model: normalizedModel,
+            pin: normalizedPin,
+            boardComponentId: programState.boardComponentId,
+          };
+          programState.dhtLastUpdateAt = undefined;
+          programState.waitAccumulatedMs = 0;
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      dhtUpdate: async () => {
+        if (programState.aborted) return { temperature: null, humidity: null };
+        try {
+          const cfg = programState.dhtConfig;
+          if (!cfg?.pin || !cfg.boardComponentId) {
+            throw new Error('Inicialize o sensor DHT11/22 antes de atualizar a leitura.');
+          }
+          const minIntervalMs = 1000;
+          const now = Date.now();
+          if (programState.dhtLastUpdateAt) {
+            const elapsed = now - programState.dhtLastUpdateAt;
+            const waited = programState.waitAccumulatedMs;
+            if (elapsed < minIntervalMs && waited < minIntervalMs) {
+              throw new Error(
+                'Inclua um bloco "aguardar" de pelo menos 1s entre leituras do DHT11/22.',
+              );
+            }
+          }
+          const snapshot = this.createSnapshot();
+          const component = this.findDhtComponentByPin(cfg.boardComponentId, cfg.pin, snapshot);
+          if (!component) {
+            throw new Error('Conecte o pino DATA do DHT11/22 ao pino digital escolhido.');
+          }
+          if (this.isInputOnlyPin(cfg.pin)) {
+            throw new Error('Use um pino digital (não 34/35/36/39) para o DHT11/22.');
+          }
+          const vccNode = snapshot.getNodeByComponentPin(component.id, 'VCC');
+          const gndNode = snapshot.getNodeByComponentPin(component.id, 'GND');
+          const vcc = snapshot.getNodeVoltage(vccNode);
+          const gnd = snapshot.getNodeVoltage(gndNode);
+          if (!vccNode?.netId || !gndNode?.netId || vcc - gnd < 2) {
+            throw new Error('Alimente o DHT11/22 (VCC e GND) antes de ler o sensor.');
+          }
+          // Valores de exemplo/dummy; pode ser estendido depois
+          const temperature =
+            component?.state?.temperature ??
+            component?.props?.temperature ??
+            component?.element?.__state?.temperature ??
+            25;
+          const humidity =
+            component?.state?.humidity ??
+            component?.props?.humidity ??
+            component?.element?.__state?.humidity ??
+            60;
+          this.dhtLastReading = {
+            temperature,
+            humidity,
+            timestamp: Date.now(),
+          };
+          programState.dhtLastUpdateAt = Date.now();
+          programState.waitAccumulatedMs = 0;
+          return { temperature, humidity };
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      dhtGetTemperature: async () => {
+        if (programState.aborted) return null;
+        return this.dhtLastReading.temperature ?? null;
+      },
+      dhtGetHumidity: async () => {
+        if (programState.aborted) return null;
+        return this.dhtLastReading.humidity ?? null;
       },
     };
 
