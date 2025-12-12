@@ -359,22 +359,36 @@ export function registerAmadoBlocks(Blockly) {
     },
     {
       type: 'servo_init',
-      message0: 'iniciar servo %1 no pino %2',
+      message0: '%1 Iniciar servo motor',
       args0: [
+        {
+          type: 'field_image',
+          src: 'ui/media/servo.png',
+          width: 50,
+          height: 50,
+          alt: 'Servo',
+        },
+      ],
+      message1: 'Nome do servo: %1',
+      args1: [
         {
           type: 'field_input',
           name: 'NAME',
-          text: 'Servo 1',
+          text: 'servo1',
         },
+      ],
+      message2: 'pino %1',
+      args2: [
         {
-          type: 'field_dropdown',
+          type: 'input_value',
           name: 'PIN',
-          options: pinOptions,
+          check: 'String',
         },
       ],
       previousStatement: null,
       nextStatement: null,
       colour: '#708090',
+      inputsInline: false,
       tooltip: 'Inicializa um servo motor indicando um nome e o pino de sinal (PWM).',
       helpUrl: '',
     },
@@ -743,6 +757,57 @@ export function registerAmadoBlocks(Blockly) {
       this.setColour('#708090');
       this.setTooltip('Desliga o motor DC e coloca os pinos de direção em LOW.');
       this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.servo_init = {
+    init() {
+      const FieldImage = Blockly.FieldImage || Blockly.FieldImageSvg || Blockly.FieldImageHtml;
+      this.appendDummyInput()
+        .appendField(
+          FieldImage
+            ? new FieldImage('/ui/media/servo.png', 50, 50, 'Servo')
+            : 'Iniciar servo motor',
+        )
+        .appendField(FieldImage ? 'Iniciar servo motor' : '');
+
+      this.appendDummyInput()
+        .appendField('Nome do servo:')
+        .appendField(createServoNameField(Blockly, 'servo1') ?? 'servo1', 'NAME');
+
+      const pin = this.appendValueInput('PIN')
+        .setCheck('String')
+        .setAlign(Blockly.ALIGN_RIGHT)
+        .appendField('pino');
+
+      this.setInputsInline(false);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Inicializa um servo motor indicando um nome e o pino de sinal (PWM).');
+      this.setHelpUrl('');
+
+      const conn = pin?.connection;
+      if (conn) {
+        const shadow = createPinSelectorShadow(Blockly);
+        conn.setShadowDom(shadow);
+      }
+
+      this.setOnChange(function () {
+        if (!this.workspace || this.workspace.isFlyout) return;
+        const insideLoop = isBlockInsideLoop(this);
+        const warning = insideLoop
+          ? 'Coloque este bloco fora de laços: configure o servo apenas uma vez antes do loop.'
+          : null;
+        this.setWarningText(warning);
+        if (insideLoop && !this.__servoWarned) {
+          this.__servoWarned = true;
+          showAlert('Bloco de init do servo deve ficar fora do loop.');
+        }
+        if (!insideLoop) {
+          this.__servoWarned = false;
+        }
+      });
     },
   };
 
@@ -1298,8 +1363,9 @@ export function registerAmadoBlocks(Blockly) {
 
   javascriptGenerator.forBlock.servo_init = function servoInit(block) {
     const name = (block.getFieldValue('NAME') ?? '').trim() || 'Servo';
-    const pin = block.getFieldValue('PIN') ?? '';
-    return `await api.servoInit(${JSON.stringify(name)}, ${JSON.stringify(pin)});\n`;
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    return `await api.servoInit(${JSON.stringify(name)}, ${pin});\n`;
   };
 
   javascriptGenerator.forBlock.servo_move = function servoMove(block) {
