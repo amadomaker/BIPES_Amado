@@ -26,5 +26,12 @@
     "description": "Liga bomba de água usando motor DC",
     "file": "bomba_agua_demo.json",
     "preview": "previews/bomba_agua_exemplo.png"
+  },
+  {
+    "id": "servo-motor",
+    "name": "Servo motor",
+    "description": "Exemplo de controle de servo",
+    "file": "servo_motor_demo.json",
+    "preview": "previews/servo_motor_preview.png"
   }
 ]

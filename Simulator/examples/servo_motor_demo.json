@@ -1,0 +1,337 @@
+{
+  "version": 1,
+  "savedAt": "2025-12-12T14:28:46.286Z",
+  "circuit": {
+    "components": [
+      {
+        "id": "comp-14",
+        "type": "amado-board",
+        "x": -486,
+        "y": 597,
+        "props": {},
+        "transform": {
+          "rotation": 0,
+          "flipped": false
+        }
+      },
+      {
+        "id": "comp-18",
+        "type": "servo",
+        "x": -640,
+        "y": 631,
+        "props": {
+          "name": "SERVO 1"
+        },
+        "transform": {
+          "rotation": 180,
+          "flipped": false
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "wire-26",
+        "color": "#1f2937",
+        "from": {
+          "componentId": "comp-18",
+          "pinIndex": 0
+        },
+        "to": {
+          "componentId": "comp-14",
+          "pinIndex": 31
+        },
+        "anchors": [
+          {
+            "x": -463.5843233989561,
+            "y": 705.6655233219458
+          },
+          {
+            "x": -447.365880203041,
+            "y": 690.0818938143476
+          }
+        ]
+      },
+      {
+        "id": "wire-27",
+        "color": "#22c55e",
+        "from": {
+          "componentId": "comp-18",
+          "pinIndex": 2
+        },
+        "to": {
+          "componentId": "comp-14",
+          "pinIndex": 2
+        },
+        "anchors": [
+          {
+            "x": -465.80655240286234,
+            "y": 686.6724609847062
+          }
+        ]
+      },
+      {
+        "id": "wire-30",
+        "color": "#ef4444",
+        "from": {
+          "componentId": "comp-14",
+          "pinIndex": 42
+        },
+        "to": {
+          "componentId": "comp-18",
+          "pinIndex": 1
+        },
+        "anchors": []
+      },
+      {
+        "id": "wire-31",
+        "color": "#ef4444",
+        "from": {
+          "componentId": "comp-14",
+          "pinIndex": 40
+        },
+        "to": {
+          "componentId": "comp-14",
+          "pinIndex": 39
+        },
+        "anchors": [
+          {
+            "x": -440.8969796937281,
+            "y": 710.509275633431
+          }
+        ]
+      }
+    ]
+  },
+  "blockly": {
+    "format": "json",
+    "data": {
+      "blocks": {
+        "languageVersion": 0,
+        "blocks": [
+          {
+            "type": "servo_init",
+            "id": "jy2f{/CQ}M9*$,dR3p:h",
+            "x": 370,
+            "y": 470,
+            "fields": {
+              "NAME": "Servo 1"
+            },
+            "inputs": {
+              "PIN": {
+                "shadow": {
+                  "type": "amado_pin_selector",
+                  "id": "7;Ix1/=UhEMjgiT|grZD",
+                  "fields": {
+                    "PIN": "D16"
+                  }
+                }
+              }
+            },
+            "next": {
+              "block": {
+                "type": "controls_whileUntil",
+                "id": "QcYX?d(+1cq1PW${F:7i",
+                "fields": {
+                  "MODE": "WHILE"
+                },
+                "inputs": {
+                  "BOOL": {
+                    "block": {
+                      "type": "logic_boolean",
+                      "id": "D,4pcJj3YxS#@%Ik%#C0",
+                      "fields": {
+                        "BOOL": "TRUE"
+                      }
+                    }
+                  },
+                  "DO": {
+                    "block": {
+                      "type": "servo_move",
+                      "id": "qx$=1#S*B,s@d`?tE*Nw",
+                      "fields": {
+                        "NAME": "Servo 1"
+                      },
+                      "inputs": {
+                        "ANGLE": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "gR8sH4o6]X}~_UUC9P83",
+                            "fields": {
+                              "NUM": 90
+                            }
+                          },
+                          "block": {
+                            "type": "math_number",
+                            "id": "cMi[cY#m)~rGA#z-_JM*",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "amado_wait",
+                          "id": "W3uD`OyJ)-arcqEtUmH5",
+                          "inputs": {
+                            "MS": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "@Mwu(p)HzE;H]%)e{jF[",
+                                "fields": {
+                                  "NUM": 500
+                                }
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "servo_move",
+                              "id": "Mt?x)lZ=5T_}8m]^MMGV",
+                              "fields": {
+                                "NAME": "Servo 1"
+                              },
+                              "inputs": {
+                                "ANGLE": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "9HbQulR60uQ/e=6/Ms.!",
+                                    "fields": {
+                                      "NUM": 90
+                                    }
+                                  },
+                                  "block": {
+                                    "type": "math_number",
+                                    "id": "!F9P}gjN@?49j!(9t=uY",
+                                    "fields": {
+                                      "NUM": 90
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "amado_wait",
+                                  "id": ";A_daK$CK,4gL$)zVRK^",
+                                  "inputs": {
+                                    "MS": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "w!z7DS!-S28/):P1i?u:",
+                                        "fields": {
+                                          "NUM": 200
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "servo_move",
+                                      "id": "ip(BV^FQS]dBg|S.B[m7",
+                                      "fields": {
+                                        "NAME": "Servo 1"
+                                      },
+                                      "inputs": {
+                                        "ANGLE": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "}p|D}`5((1ZR}kTzyMO_",
+                                            "fields": {
+                                              "NUM": 90
+                                            }
+                                          },
+                                          "block": {
+                                            "type": "math_number",
+                                            "id": "~-zqbF-p-V/gCb?dvh|5",
+                                            "fields": {
+                                              "NUM": 180
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "amado_wait",
+                                          "id": "hF-X*I2e0dLd+-ZDr#ZS",
+                                          "inputs": {
+                                            "MS": {
+                                              "shadow": {
+                                                "type": "math_number",
+                                                "id": ";.%|TXafvCL;-EAN1zrX",
+                                                "fields": {
+                                                  "NUM": 500
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "next": {
+                                            "block": {
+                                              "type": "servo_move",
+                                              "id": "#lsQ5~4LuNEMzA8v(R#H",
+                                              "fields": {
+                                                "NAME": "Servo 1"
+                                              },
+                                              "inputs": {
+                                                "ANGLE": {
+                                                  "shadow": {
+                                                    "type": "math_number",
+                                                    "id": "F28|dscF{W/=N}tq:ryy",
+                                                    "fields": {
+                                                      "NUM": 90
+                                                    }
+                                                  },
+                                                  "block": {
+                                                    "type": "math_number",
+                                                    "id": "i,/LTED,yCs{3kZb$HLO",
+                                                    "fields": {
+                                                      "NUM": 90
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "next": {
+                                                "block": {
+                                                  "type": "amado_wait",
+                                                  "id": "Gxg2HDbigd*#W$mYq8xP",
+                                                  "inputs": {
+                                                    "MS": {
+                                                      "shadow": {
+                                                        "type": "math_number",
+                                                        "id": "-7Y{NsdX~Ehm(qB~Ec$4",
+                                                        "fields": {
+                                                          "NUM": 500
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "variables": [
+        {
+          "name": "distancia",
+          "id": "k]+tj+cDd8_rj,p5~f|b"
+        }
+      ]
+    }
+  }
+}
