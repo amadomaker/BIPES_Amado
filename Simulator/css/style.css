@@ -1895,6 +1895,83 @@ body {
   transform: translateY(1px) scale(0.58);
   transform-origin: center;
 }
+
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+}
+.tutorial-overlay.hidden {
+  display: none;
+}
+.tutorial-backdrop {
+  display: none;
+}
+.tutorial-highlight {
+  position: absolute;
+  border: 2px solid #2563eb;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25), 0 0 0 6px rgba(37, 99, 235, 0.18);
+  transition: all 0.15s ease;
+  pointer-events: none;
+}
+.tutorial-highlight.hidden {
+  opacity: 0;
+}
+.tutorial-panel {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  min-width: 420px;
+  max-width: 560px;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tutorial-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+.tutorial-step-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1f2937;
+}
+.tutorial-description {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.4;
+}
+.tutorial-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.tutorial-actions button {
+  pointer-events: auto;
+  background: #2563eb;
+  border: none;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.tutorial-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.tutorial-actions button:nth-child(3) {
+  background: #e5e7eb;
+  color: #1f2937;
+}
 .canvas-component[data-component-type="amado-board"]
   .pin[data-pin-name="D25"],
 .canvas-component[data-component-type="amado-board"]

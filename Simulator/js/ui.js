@@ -14,6 +14,7 @@ let loadButton;
 let monitorButton;
 let rotateButton;
 let flipButton;
+let tutorialButton;
 
 let currentToolbarHandlers = {
   onPlayPause: null,
@@ -28,6 +29,14 @@ let currentToolbarHandlers = {
 let contextMenu;
 let colorPickerPopover;
 let fileInput;
+let tutorialOverlay;
+let tutorialHighlight;
+let tutorialPanel;
+let tutorialState = {
+  active: false,
+  id: null,
+  stepIndex: 0,
+};
 
 const alertTimers = new Map();
 const TOOLBAR_ICON_LABELS = {
@@ -102,51 +111,56 @@ function renderToolbar() {
 
   playPauseButton = createToolbarButton('▶ Play', () => {
     currentToolbarHandlers.onPlayPause?.();
-  });
+  }, 'btn-play');
 
   clearButton = createToolbarButton('🗑️ Limpar tudo', () => {
     currentToolbarHandlers.onClear?.();
-  });
+  }, 'btn-clear');
 
   saveButton = createToolbarButton('💾 Salvar', () => {
     currentToolbarHandlers.onSave?.();
-  });
+  }, 'btn-save');
 
   loadButton = createToolbarButton('📂 Carregar', () => {
     currentToolbarHandlers.onLoad?.();
-  });
+  }, 'btn-load');
 
   monitorButton = createToolbarButton('🖥 Console', () => {
     currentToolbarHandlers.onToggleSerialMonitor?.();
-  });
+  }, 'btn-console');
   monitorButton.setAttribute('aria-pressed', 'false');
 
   rotateButton = createToolbarIconButton('rotate', () => {
     currentToolbarHandlers.onRotateComponent?.();
-  });
+  }, 'btn-rotate');
   rotateButton.disabled = true;
   rotateButton.title = 'Rotacionar componente selecionado';
 
   flipButton = createToolbarIconButton('flip', () => {
     currentToolbarHandlers.onFlipComponent?.();
-  });
+  }, 'btn-flip');
   flipButton.disabled = true;
   flipButton.title = 'Inverter componente selecionado';
 
   const undoButton = createToolbarIconButton('undo', () => {
     currentToolbarHandlers.onUndo?.();
-  });
+  }, 'btn-undo');
   undoButton.title = 'Desfazer (Ctrl+Z)';
 
   const redoButton = createToolbarIconButton('redo', () => {
     currentToolbarHandlers.onRedo?.();
-  });
+  }, 'btn-redo');
   redoButton.title = 'Refazer (Ctrl+Shift+Z)';
 
   const deleteButton = createToolbarIconButton('delete', () => {
     currentToolbarHandlers.onDelete?.();
-  });
+  }, 'btn-delete');
   deleteButton.title = 'Excluir seleção (Delete)';
+
+  tutorialButton = createToolbarButton('📘 Tutorial', () => {
+    startTutorial('onboarding');
+  }, 'btn-tutorial');
+  tutorialButton.title = 'Abrir tutorial guiado';
 
   toolbarElement.append(
     playPauseButton,
@@ -159,23 +173,26 @@ function renderToolbar() {
     deleteButton,
     rotateButton,
     flipButton,
+    tutorialButton,
   );
 
   setTransformControlsState({ canRotate: false, canFlip: false });
 }
 
-function createToolbarButton(label, handler) {
+function createToolbarButton(label, handler, id) {
   const button = document.createElement('button');
   button.type = 'button';
   button.textContent = label;
+  if (id) button.id = id;
   button.addEventListener('click', handler);
   return button;
 }
 
-function createToolbarIconButton(iconName, handler) {
+function createToolbarIconButton(iconName, handler, id) {
   const button = document.createElement('button');
   button.type = 'button';
   button.classList.add('toolbar-icon');
+  if (id) button.id = id;
   button.addEventListener('click', handler);
   if (TOOLBAR_ICON_LABELS[iconName]) {
     button.setAttribute('aria-label', TOOLBAR_ICON_LABELS[iconName]);
@@ -195,6 +212,9 @@ function ensureGlobalListeners() {
     hideColorPicker();
     if (propertiesPopover?.style.display === 'block') {
       positionPropertiesPopover(lastPropertiesAnchor);
+    }
+    if (tutorialState.active) {
+      renderTutorialStep();
     }
   });
 }
@@ -726,4 +746,265 @@ export function promptFileSelection({ onLoad } = {}) {
   };
 
   fileInput.click();
+}
+
+const tutorialScripts = {
+  onboarding: {
+    title: 'Primeiros passos',
+    steps: [
+      {
+        title: 'Bem-vindo',
+        description:
+          'Bem-vindo! Vamos apresentar as áreas e recursos principais da simulação para você começar rápido.',
+        targetSelector: '#toolbar',
+      },
+      {
+        title: 'Barra de ferramentas',
+        description:
+          'Aqui ficam os botões principais. Vamos passar por cada um rapidamente.',
+        targetSelector: '#toolbar',
+      },
+      {
+        title: 'Play/Pause',
+        description: 'Roda ou pausa a simulação quando seu circuito e blocos estiverem prontos.',
+        targetSelector: '#btn-play',
+      },
+      {
+        title: 'Limpar',
+        description: 'Remove tudo do canvas para começar do zero.',
+        targetSelector: '#btn-clear',
+      },
+      {
+        title: 'Salvar / Carregar',
+        description: 'Guarde seu projeto em JSON ou carregue um salvo anteriormente.',
+        targetSelector: '#btn-save',
+      },
+      {
+        title: 'Console',
+        description: 'Abre/fecha o console para ver logs do seu programa.',
+        targetSelector: '#btn-console',
+      },
+      {
+        title: 'Desfazer / Refazer / Excluir',
+        description: 'Volte atrás, refaça ações ou exclua o que estiver selecionado.',
+        targetSelector: '#btn-undo',
+      },
+      {
+        title: 'Rotacionar / Inverter',
+        description: 'Ajuste a orientação do componente selecionado.',
+        targetSelector: '#btn-rotate',
+      },
+      {
+        title: 'Categorias e modo de visualização',
+        description: 'Use as categorias para filtrar componentes e alterne entre grade ou lista.',
+        targetSelector: '.component-controls',
+      },
+      {
+        title: 'Grade / Lista',
+        description: 'Escolha a visualização que preferir para navegar nos componentes.',
+        targetSelector: '.component-view-toggle',
+      },
+      {
+        title: 'Escolha um componente',
+        description: 'Clique em um item e arraste para o canvas para começar a montar.',
+        targetSelector: '.components-list',
+      },
+      {
+        title: 'Área de montagem',
+        description:
+          'Aqui você monta o circuito. Selecione um componente para ver propriedades e mover/rotacionar.',
+        targetSelector: '#workspace',
+      },
+      {
+        title: 'Editor de blocos (Código)',
+        description:
+          'Use o botão Código para abrir os blocos e montar sua programação arrastando-os na área lateral.',
+        targetSelector: '#blockly-open-trigger',
+      },
+      {
+        title: 'Próximo passo',
+        description:
+          'Pronto! Agora você conhece os controles. Clique em Próximo para seguir para um projeto rápido.',
+        targetSelector: '#workspace',
+      },
+    ],
+    nextTutorial: 'led-basic',
+  },
+  'led-basic': {
+    title: 'Meu primeiro projeto',
+    steps: [
+      {
+        title: 'Visão geral',
+        description: 'Vamos montar um LED com resistor e bateria. Comece arrastando uma bateria.',
+        targetSelector: '.components-list',
+      },
+      {
+        title: 'Adicionar LED',
+        description: 'Agora arraste um LED para o canvas.',
+        targetSelector: '.component-card[data-component-id="led"]',
+      },
+      {
+        title: 'Adicionar resistor',
+        description: 'Arraste também um resistor para a área.',
+        targetSelector: '.component-card[data-component-id="resistor"]',
+      },
+      {
+        title: 'Adicionar bateria',
+        description: 'Escolha a bateria e arraste para o canvas.',
+        targetSelector: '.component-card[data-component-id="battery-9v"]',
+      },
+      {
+        title: 'Ajuste de zoom',
+        description: 'Use a roda do mouse ou gesto de pinça para dar zoom e enxergar melhor os pinos.',
+        targetSelector: '#canvas-area',
+      },
+      {
+        title: 'Fazer as ligações',
+        description:
+          'Conecte VCC da bateria → resistor → ânodo do LED (perna maior). Depois GND da bateria → cátodo do LED. Siga na ordem para facilitar.',
+        targetSelector: '#workspace',
+      },
+      {
+        title: 'Valor do resistor',
+        description: 'Selecione o resistor e ajuste o valor se quiser limitar mais a corrente.',
+        targetSelector: '#workspace',
+      },
+      {
+        title: 'Rodar a simulação',
+        description: 'Clique em Play para ligar o circuito. Se não acender, revise as conexões.',
+        targetSelector: '#btn-play',
+      },
+    ],
+    nextTutorial: null,
+  },
+};
+
+function ensureTutorialOverlay() {
+  if (tutorialOverlay) return;
+  tutorialOverlay = document.createElement('div');
+  tutorialOverlay.id = 'tutorial-overlay';
+  tutorialOverlay.className = 'tutorial-overlay hidden';
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'tutorial-backdrop';
+  tutorialOverlay.appendChild(backdrop);
+
+  tutorialHighlight = document.createElement('div');
+  tutorialHighlight.className = 'tutorial-highlight';
+  tutorialOverlay.appendChild(tutorialHighlight);
+
+  tutorialPanel = document.createElement('div');
+  tutorialPanel.className = 'tutorial-panel';
+  tutorialOverlay.appendChild(tutorialPanel);
+
+  document.body.appendChild(tutorialOverlay);
+}
+
+function renderTutorialStep() {
+  if (!tutorialState.active || !tutorialOverlay) return;
+  const script = tutorialScripts[tutorialState.id];
+  if (!script) return stopTutorial();
+  const step = script.steps[tutorialState.stepIndex];
+  if (!step) return stopTutorial();
+
+  tutorialOverlay.classList.remove('hidden');
+  tutorialPanel.innerHTML = '';
+
+  const title = document.createElement('div');
+  title.className = 'tutorial-title';
+  title.textContent = script.title;
+
+  const subtitle = document.createElement('div');
+  subtitle.className = 'tutorial-step-title';
+  subtitle.textContent = step.title;
+
+  const description = document.createElement('div');
+  description.className = 'tutorial-description';
+  description.textContent = step.description;
+
+  const actions = document.createElement('div');
+  actions.className = 'tutorial-actions';
+
+  const prevBtn = document.createElement('button');
+  prevBtn.type = 'button';
+  prevBtn.textContent = 'Anterior';
+  prevBtn.disabled = tutorialState.stepIndex === 0;
+  prevBtn.addEventListener('click', () => goToPrevStep());
+
+  const nextBtn = document.createElement('button');
+  nextBtn.type = 'button';
+  const isLast = tutorialState.stepIndex === script.steps.length - 1;
+  nextBtn.textContent = isLast ? (script.nextTutorial ? 'Próximo tutorial' : 'Concluir') : 'Próximo';
+  nextBtn.addEventListener('click', () => goToNextStep());
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.textContent = 'Fechar';
+  closeBtn.addEventListener('click', () => stopTutorial());
+
+  actions.append(prevBtn, nextBtn, closeBtn);
+  tutorialPanel.append(title, subtitle, description, actions);
+
+  positionTutorialHighlight(step.targetSelector);
+}
+
+function positionTutorialHighlight(selector) {
+  if (!tutorialHighlight) return;
+  if (!selector) {
+    tutorialHighlight.classList.add('hidden');
+    return;
+  }
+  const target = document.querySelector(selector);
+  if (!target) {
+    tutorialHighlight.classList.add('hidden');
+    return;
+  }
+  const rect = target.getBoundingClientRect();
+  if (!rect?.width || !rect?.height) {
+    tutorialHighlight.classList.add('hidden');
+    return;
+  }
+  const padding = 6;
+  tutorialHighlight.classList.remove('hidden');
+  tutorialHighlight.style.left = `${rect.left - padding}px`;
+  tutorialHighlight.style.top = `${rect.top - padding}px`;
+  tutorialHighlight.style.width = `${rect.width + padding * 2}px`;
+  tutorialHighlight.style.height = `${rect.height + padding * 2}px`;
+}
+
+function goToPrevStep() {
+  const script = tutorialScripts[tutorialState.id];
+  if (!script) return stopTutorial();
+  tutorialState.stepIndex = Math.max(0, tutorialState.stepIndex - 1);
+  renderTutorialStep();
+}
+
+function goToNextStep() {
+  const script = tutorialScripts[tutorialState.id];
+  if (!script) return stopTutorial();
+  const isLast = tutorialState.stepIndex >= script.steps.length - 1;
+  if (isLast) {
+    if (script.nextTutorial) {
+      startTutorial(script.nextTutorial);
+      return;
+    }
+    stopTutorial();
+    return;
+  }
+  tutorialState.stepIndex = Math.min(script.steps.length - 1, tutorialState.stepIndex + 1);
+  renderTutorialStep();
+}
+
+function stopTutorial() {
+  tutorialState = { active: false, id: null, stepIndex: 0 };
+  if (tutorialOverlay) {
+    tutorialOverlay.classList.add('hidden');
+  }
+}
+
+function startTutorial(id) {
+  if (!tutorialScripts[id]) return;
+  ensureTutorialOverlay();
+  tutorialState = { active: true, id, stepIndex: 0 };
+  renderTutorialStep();
 }
