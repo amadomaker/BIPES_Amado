@@ -75,6 +75,7 @@ class CircuitSnapshot {
     this.buildPinNodes();
     this.buildConnections();
     this.buildNets();
+    this.applyVsDistribution();
     this.buildElementModels();
     this.determineFixedNetVoltages();
     this.solveCircuit();
@@ -172,6 +173,47 @@ class CircuitSnapshot {
     const netId = `VN${this.virtualNetCounter++}`;
     this.nets.push({ id: netId, nodes: [] });
     return netId;
+  }
+
+  mergeNets(targetNetId, sourceNetId) {
+    if (!targetNetId || !sourceNetId || targetNetId === sourceNetId) return;
+    const targetNet = this.nets.find((net) => net.id === targetNetId);
+    const sourceNet = this.nets.find((net) => net.id === sourceNetId);
+    if (!targetNet || !sourceNet) return;
+    sourceNet.nodes.forEach((node) => {
+      node.netId = targetNetId;
+      this.nodeIdToNetId.set(node.id, targetNetId);
+      targetNet.nodes.push(node);
+    });
+    this.nets = this.nets.filter((net) => net.id !== sourceNetId);
+  }
+
+  applyVsDistribution() {
+    const boards = Array.isArray(this.canvasManager?.components)
+      ? this.canvasManager.components.filter((c) => c?.type === 'amado-board')
+      : [];
+    boards.forEach((board) => {
+      const vs1 = this.getNodeByComponentPin(board.id, 'VS1');
+      const vs2 = this.getNodeByComponentPin(board.id, 'VS2');
+      const vs3 = this.getNodeByComponentPin(board.id, 'VS3');
+      const v5 = this.getNodeByComponentPin(board.id, '5V.2');
+      const v33 = this.getNodeByComponentPin(board.id, '3V3.6');
+
+      if (!vs1 || (!v5 && !v33)) return;
+
+      const sourceNet = vs1.netId;
+      if (!sourceNet) return;
+
+      const tiedTo5v = v5 && v5.netId && v5.netId === sourceNet;
+      const tiedTo3v3 = v33 && v33.netId && v33.netId === sourceNet;
+      if (!tiedTo5v && !tiedTo3v3) return;
+
+      [vs2, vs3].forEach((node) => {
+        if (node && node.netId && node.netId !== sourceNet) {
+          this.mergeNets(sourceNet, node.netId);
+        }
+      });
+    });
   }
 
   buildNetComponents() {
@@ -1342,7 +1384,10 @@ class CircuitSnapshot {
       }
       if (node.pinType === 'ground') return 0;
       if (!this.powerEnabled) return 0;
-      if (node.pinType === 'power') return boardSupply;
+      if (node.pinType === 'power') {
+        if (boardSupply === null) return null;
+        return boardSupply;
+      }
       const state = key ? this.boardPinStates.get(key) : null;
       if (state === 'high') return boardSupply;
       if (state === 'low') return 0;
@@ -1610,6 +1655,7 @@ class CircuitSnapshot {
   getBoardSupplyVoltage(node) {
     if (!node) return DEFAULT_SUPPLY_VOLTAGE;
     const pin = String(node.pinName ?? '').toUpperCase();
+    if (/^VS[123]/.test(pin)) return null;
     if (/VIN|5V|5\.0/.test(pin)) return 5;
     return DEFAULT_SUPPLY_VOLTAGE;
   }
@@ -3147,7 +3193,28 @@ class Simulation {
         return;
       }
 
-      // Se o servo foi iniciado via API e o pino/net batem, usa ângulo armazenado
+      // Sem alimentação explícita, não move
+      if (!vcc) {
+        if (component.element) {
+          component.element.setAttribute('angle', '0');
+          component.element.angle = 0;
+        }
+        return;
+      }
+
+      const sigV = snapshot.estimateNodeVoltage(sig);
+      const gndV = snapshot.estimateNodeVoltage(gnd);
+      const vccV = snapshot.estimateNodeVoltage(vcc);
+      const supply = Math.max(0, vccV - gndV);
+      if (supply < 0.5) {
+        if (component.element) {
+          component.element.setAttribute('angle', '0');
+          component.element.angle = 0;
+        }
+        return;
+      }
+
+      // Se o servo foi iniciado via API e o pino/net batem, usa ângulo armazenado (somente se houver alimentação)
       const entryFromMap = Array.from(this.servoMap.values()).find((entry) => {
         if (!entry?.pin || !entry.boardComponentId) return false;
         const boardNode = snapshot.getNodeByComponentPin(entry.boardComponentId, entry.pin);
@@ -3158,11 +3225,6 @@ class Simulation {
         component.element.angle = entryFromMap.angle;
         return;
       }
-
-      const sigV = snapshot.estimateNodeVoltage(sig);
-      const gndV = snapshot.estimateNodeVoltage(gnd);
-      const vccV = vcc ? snapshot.estimateNodeVoltage(vcc) : DEFAULT_SUPPLY_VOLTAGE;
-      const supply = Math.max(vccV - gndV, DEFAULT_SUPPLY_VOLTAGE);
       const level = Math.max(0, Math.min(1, (sigV - gndV) / Math.max(supply, 1e-3)));
       const angle = Math.round(level * 180);
 
