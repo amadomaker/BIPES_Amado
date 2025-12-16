@@ -1964,6 +1964,9 @@ body {
   cursor: pointer;
   font-size: 13px;
 }
+.tutorial-actions button.tutorial-next {
+  background: #ee8537;
+}
 .tutorial-actions button:disabled {
   opacity: 0.5;
   cursor: not-allowed;

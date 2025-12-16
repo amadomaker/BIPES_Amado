@@ -835,8 +835,13 @@ const tutorialScripts = {
     steps: [
       {
         title: 'Visão geral',
-        description: 'Vamos montar um LED com resistor e bateria. Comece arrastando uma bateria.',
+        description: 'Vamos montar um LED com resistor e bateria 9V. Siga os passos para arrastar cada um.',
         targetSelector: '.components-list',
+      },
+      {
+        title: 'Adicionar bateria',
+        description: 'Arraste a bateria de 9V para o canvas.',
+        targetSelector: '.component-card[data-component-id="battery-9v"]',
       },
       {
         title: 'Adicionar LED',
@@ -849,11 +854,6 @@ const tutorialScripts = {
         targetSelector: '.component-card[data-component-id="resistor"]',
       },
       {
-        title: 'Adicionar bateria',
-        description: 'Escolha a bateria e arraste para o canvas.',
-        targetSelector: '.component-card[data-component-id="battery-9v"]',
-      },
-      {
         title: 'Ajuste de zoom',
         description: 'Use a roda do mouse ou gesto de pinça para dar zoom e enxergar melhor os pinos.',
         targetSelector: '#canvas-area',
@@ -861,7 +861,7 @@ const tutorialScripts = {
       {
         title: 'Fazer as ligações',
         description:
-          'Conecte VCC da bateria → resistor → ânodo do LED (perna maior). Depois GND da bateria → cátodo do LED. Siga na ordem para facilitar.',
+          'Conecte VCC da bateria → resistor → terminal positivo do LED (perna maior). Depois GND da bateria → terminal negativo do LED. Siga na ordem para facilitar.',
         targetSelector: '#workspace',
       },
       {
@@ -925,17 +925,20 @@ function renderTutorialStep() {
   const actions = document.createElement('div');
   actions.className = 'tutorial-actions';
 
-  const prevBtn = document.createElement('button');
-  prevBtn.type = 'button';
-  prevBtn.textContent = 'Anterior';
-  prevBtn.disabled = tutorialState.stepIndex === 0;
-  prevBtn.addEventListener('click', () => goToPrevStep());
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button';
+    prevBtn.textContent = 'Anterior';
+    prevBtn.disabled = tutorialState.stepIndex === 0;
+    prevBtn.addEventListener('click', () => goToPrevStep());
 
-  const nextBtn = document.createElement('button');
-  nextBtn.type = 'button';
-  const isLast = tutorialState.stepIndex === script.steps.length - 1;
-  nextBtn.textContent = isLast ? (script.nextTutorial ? 'Próximo tutorial' : 'Concluir') : 'Próximo';
-  nextBtn.addEventListener('click', () => goToNextStep());
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    const isLast = tutorialState.stepIndex === script.steps.length - 1;
+    nextBtn.textContent = isLast ? (script.nextTutorial ? 'Próximo tutorial' : 'Concluir') : 'Próximo';
+    if (isLast && script.nextTutorial) {
+      nextBtn.classList.add('tutorial-next');
+    }
+    nextBtn.addEventListener('click', () => goToNextStep());
 
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
