@@ -40,6 +40,23 @@ export class WiringManager {
   }
 
   registerWorkspaceEvents() {
+    this.workspace.addEventListener(
+      'pointerdown',
+      (event) => {
+        if (event.button !== undefined && event.button !== 0) return;
+        const target = event.target;
+        if (!target?.closest?.('.wire')) return;
+        if (target?.closest?.('.wire-anchor-handle')) return;
+        const point = this.getWorkspaceCoordinates(event);
+        const nearestPin = this.findNearestPin(point, 10);
+        if (!nearestPin) return;
+        event.preventDefault();
+        event.stopPropagation();
+        this.handlePinClick(nearestPin);
+      },
+      true,
+    );
+
     this.workspace.addEventListener('mousemove', (event) => {
       if (this.isWiring()) {
         this.updateTempWire(event);
@@ -344,6 +361,28 @@ export class WiringManager {
       x: elementRect.left + elementRect.width / 2 - containerRect.left,
       y: elementRect.top + elementRect.height / 2 - containerRect.top,
     };
+  }
+
+  findNearestPin(point, maxDistancePx = 10) {
+    const maxDistanceSq = maxDistancePx * maxDistancePx;
+    let nearest = null;
+    let bestDistSq = maxDistanceSq;
+
+    for (const pins of this.pinRegistry.values()) {
+      for (const pin of pins) {
+        if (!pin || pin.classList.contains('pin-hidden')) continue;
+        const pos = this.getPinPosition(pin);
+        const dx = pos.x - point.x;
+        const dy = pos.y - point.y;
+        const distSq = dx * dx + dy * dy;
+        if (distSq <= bestDistSq) {
+          bestDistSq = distSq;
+          nearest = pin;
+        }
+      }
+    }
+
+    return nearest;
   }
 
   handlePinClick(pinElement) {
