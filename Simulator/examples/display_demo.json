@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "savedAt": "2025-12-03T19:48:46.906Z",
+  "circuit": {
+    "components": [
+      {
+        "id": "comp-1",
+        "type": "amado-board",
+        "x": 72.5868,
+        "y": 263,
+        "props": {},
+        "transform": {
+          "rotation": 0,
+          "flipped": false
+        }
+      },
+      {
+        "id": "comp-2",
+        "type": "oled-display",
+        "x": 270.707,
+        "y": 354.132,
+        "props": {},
+        "transform": {
+          "rotation": 0,
+          "flipped": false
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "wire-8",
+        "color": "#1f2937",
+        "from": {
+          "componentId": "comp-1",
+          "pinIndex": 27
+        },
+        "to": {
+          "componentId": "comp-2",
+          "pinIndex": 1
+        },
+        "anchors": [
+          {
+            "x": 341.4963436928702,
+            "y": 326.6475284443913
+          }
+        ]
+      },
+      {
+        "id": "wire-9",
+        "color": "#ef4444",
+        "from": {
+          "componentId": "comp-1",
+          "pinIndex": 33
+        },
+        "to": {
+          "componentId": "comp-2",
+          "pinIndex": 0
+        },
+        "anchors": [
+          {
+            "x": 328.2751371115174,
+            "y": 333.3162705667276
+          }
+        ]
+      },
+      {
+        "id": "wire-10",
+        "color": "#0ea5e9",
+        "from": {
+          "componentId": "comp-1",
+          "pinIndex": 16
+        },
+        "to": {
+          "componentId": "comp-2",
+          "pinIndex": 2
+        },
+        "anchors": [
+          {
+            "x": 358.4600216379113,
+            "y": 340.3400365630713
+          }
+        ]
+      },
+      {
+        "id": "wire-11",
+        "color": "#0ea5e9",
+        "from": {
+          "componentId": "comp-1",
+          "pinIndex": 17
+        },
+        "to": {
+          "componentId": "comp-2",
+          "pinIndex": 3
+        },
+        "anchors": [
+          {
+            "x": 372.8967093235832,
+            "y": 347.363802559415
+          }
+        ]
+      }
+    ]
+  },
+  "blockly": {
+    "format": "json",
+    "data": {
+      "blocks": {
+        "languageVersion": 0,
+        "blocks": [
+          {
+            "type": "oled_display_init",
+            "id": ")Niw){tCQM`lGUsbq?8|",
+            "x": 50,
+            "y": 70,
+            "inputs": {
+              "I2C": {
+                "shadow": {
+                  "type": "math_number",
+                  "id": "i5TF9b6MegbrvQ{SB47f",
+                  "fields": {
+                    "NUM": 1
+                  }
+                }
+              },
+              "SCL": {
+                "shadow": {
+                  "type": "amado_pin_selector",
+                  "id": "hDA)!O?ZvxT-Q]Ez6%[$",
+                  "fields": {
+                    "PIN": "D22 / SCL"
+                  }
+                }
+              },
+              "SDA": {
+                "shadow": {
+                  "type": "amado_pin_selector",
+                  "id": "%~ybgm};AzQB*)v.EU5g",
+                  "fields": {
+                    "PIN": "D21 / SDA"
+                  }
+                }
+              }
+            },
+            "next": {
+              "block": {
+                "type": "oled_display_clear",
+                "id": "pbp+31-!vKL%IV!l9$e4",
+                "next": {
+                  "block": {
+                    "type": "oled_display_write_text",
+                    "id": "q`:vGYW[[!}?LcyR@vkK",
+                    "inputs": {
+                      "X": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "8jBH=3|CQ6L/6[CT51cc",
+                          "fields": {
+                            "NUM": 40
+                          }
+                        }
+                      },
+                      "Y": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "QB5rTvvHf(Fw7D{-QD*z",
+                          "fields": {
+                            "NUM": 40
+                          }
+                        }
+                      },
+                      "TEXT": {
+                        "shadow": {
+                          "type": "text",
+                          "id": "i]yK*~{`J}?zyVAG%RC0",
+                          "fields": {
+                            "TEXT": "Ola Mundo"
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "oled_display_show",
+                        "id": "XHZvb)wxl#EGTH?3g,VZ"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

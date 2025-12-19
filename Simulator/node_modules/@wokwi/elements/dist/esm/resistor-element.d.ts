@@ -1,0 +1,16 @@
+import { LitElement } from 'lit';
+import { ElementPin } from './pin';
+/**
+ * Renders an axial-lead resistor with 4 color bands.
+ */
+export declare class ResistorElement extends LitElement {
+    /**
+     * Resitance value, in ohms. The value is reflected in the color of the bands, according to
+     * standard [electronic color code](https://en.wikipedia.org/wiki/Electronic_color_code#Resistors).
+     */
+    value: string;
+    readonly pinInfo: ElementPin[];
+    static get styles(): import("lit").CSSResult;
+    private breakValue;
+    render(): import("lit-html").TemplateResult<1>;
+}

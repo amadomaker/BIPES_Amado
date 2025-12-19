@@ -147,6 +147,7 @@ document.body.appendChild(el);
         <div id="tab_mqtt" class="taboff" onclick="abrirEasyMQTT()">EasyMQTT</div>
         <div id="tab_databoard" class="taboff">Databoard</div>
         <div id="tab_sound" class="taboff" style="display: none;">Música</div>
+        <div id="tab_simulator" class="taboff">Simulador</div>
       </div>
       <button id="toolbarButton" class="notext icon medium" title="..."></button>
       <div class="toolbar">
@@ -401,6 +402,12 @@ function abrirEasyMQTT() {
 }
 </script>
 
+
+<!-- ################################################## -->
+
+<div id="content_simulator" class="content" style="padding: 0;">
+  <iframe id="simulator_iframe" src="../Simulator/index.html" width="100%" height="100%" frameBorder="0"></iframe>
+</div>
 
 <!-- ################################################## -->
 
@@ -900,7 +907,6 @@ function eraseCookieModal(name) {
 
 
 </html>
-
 
 
 

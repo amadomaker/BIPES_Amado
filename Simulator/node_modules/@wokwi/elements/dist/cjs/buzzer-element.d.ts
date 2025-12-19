@@ -1,0 +1,16 @@
+import { LitElement } from 'lit';
+import { ElementPin } from './pin';
+/**
+ * Renders a piezo electric buzzer.
+ */
+export declare class BuzzerElement extends LitElement {
+    /**
+     * Boolean representing if an electric signal is coming in the buzzer
+     * If true a music note will be displayed on top of the buzzer
+     */
+    hasSignal: boolean;
+    readonly pinInfo: ElementPin[];
+    static get styles(): import("lit").CSSResult;
+    renderSVG(): import("lit-html").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
+}

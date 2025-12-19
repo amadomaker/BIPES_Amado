@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const vitest_1 = require("vitest");
+const nano_rp2040_connect_element_1 = require("./nano-rp2040-connect-element");
+const test_utils_1 = require("./utils/test-utils");
+(0, vitest_1.describe)('NanoRP2040ConnectElement', () => {
+    (0, vitest_1.it)('should render to svg', async () => {
+        const pngData = await (0, test_utils_1.renderToPng)(new nano_rp2040_connect_element_1.NanoRP2040ConnectElement());
+        await (0, test_utils_1.savePng)('wokwi-nano-rp2040-connect', pngData);
+    });
+});
