@@ -158,6 +158,41 @@ body {
   padding: 0;
 }
 
+#toolbar .wire-color-button {
+  height: 34px;
+  min-width: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 8px;
+  border: 1px solid #cbd3e6;
+  border-radius: 6px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+#toolbar .wire-color-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+#toolbar .wire-color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: #1f2937;
+}
+
+#toolbar .wire-color-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid #1f2937;
+}
+
 #toolbar button.toolbar-icon svg {
   width: 18px;
   height: 18px;

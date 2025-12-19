@@ -19,6 +19,7 @@ export class WiringManager {
     this.selectedPin = null;
     this.selectedWire = null;
     this.nextWireId = 1;
+    this.preferredWireColor = null;
     this.tempWireAnchors = [];
     this.tempWireCursor = null;
     this.editingConnection = null;
@@ -386,7 +387,8 @@ export class WiringManager {
     path.dataset.pin1 = `${pin1.dataset.componentId}-${pin1.dataset.pinIndex}`;
     path.dataset.pin2 = `${pin2.dataset.componentId}-${pin2.dataset.pinIndex}`;
 
-    const color = this.getWireColor(pin1.dataset.pinType, pin2.dataset.pinType);
+    const color =
+      this.preferredWireColor || this.getWireColor(pin1.dataset.pinType, pin2.dataset.pinType);
     path.setAttribute('stroke', color);
     path.setAttribute('stroke-width', '3');
     path.setAttribute('fill', 'none');
@@ -451,18 +453,6 @@ export class WiringManager {
       event.stopPropagation();
       this.selectWire(connection);
       showWireContextMenu(event.clientX, event.clientY, {
-        onChangeColor: () => {
-          showColorPicker(event.clientX, event.clientY, {
-            initialColor: connection.color,
-            onSelect: (newColor) => {
-              connection.color = newColor;
-              connection.line.setAttribute('stroke', newColor);
-              if (this.selectedWire?.id === connection.id) {
-                this.displayWireProperties(connection);
-              }
-            },
-          });
-        },
         onDelete: () => this.removeConnection(connection.id),
       });
     });
@@ -490,6 +480,7 @@ export class WiringManager {
     connection.line.classList.add('wire-selected');
     this.displayWireProperties(connection);
     this.startEditingConnection(connection);
+    this.emitWireSelectionChange(connection);
   }
 
   deselectWire() {
@@ -500,6 +491,34 @@ export class WiringManager {
     if (!this.canvasManager.selectedComponentId) {
       clearPropertiesPanel();
     }
+    this.emitWireSelectionChange(null);
+  }
+
+  emitWireSelectionChange(connection) {
+    window.dispatchEvent(
+      new CustomEvent('simulator-wire-selection-change', {
+        detail: connection
+          ? { selected: true, color: connection.color, wireId: connection.id }
+          : { selected: false, color: null, wireId: null },
+      }),
+    );
+  }
+
+  applyWireColor(connection, newColor) {
+    if (!connection || !newColor) return;
+    connection.color = newColor;
+    connection.line.setAttribute('stroke', newColor);
+    if (this.selectedWire?.id === connection.id) {
+      this.displayWireProperties(connection);
+    }
+    this.emitWireSelectionChange(connection);
+    this.canvasManager.notifyInteraction();
+  }
+
+  setPreferredWireColor(newColor) {
+    if (!newColor) return;
+    this.preferredWireColor = newColor;
+    this.emitWireSelectionChange(this.selectedWire);
   }
 
   deleteSelectedWire() {

@@ -330,7 +330,12 @@ export class CanvasManager {
     container.id = componentId;
     container.dataset.componentType = definition.id;
     container.style.position = 'absolute';
-    container.style.zIndex = definition.id === 'protoboard-half' ? '0' : '1';
+    const baseZIndex = definition.id === 'protoboard-half' ? 0 : 1;
+    const resolvedZIndex =
+      typeof options.zIndex === 'number' && Number.isFinite(options.zIndex)
+        ? options.zIndex
+        : baseZIndex;
+    container.style.zIndex = definition.id === 'protoboard-half' ? '0' : String(resolvedZIndex);
     container.style.left = `${x}px`;
     container.style.top = `${y}px`;
     container.style.cursor = 'move';
@@ -505,9 +510,23 @@ export class CanvasManager {
       }
       this.selectComponent(id);
       showComponentContextMenu(event.clientX, event.clientY, {
+        onBringToFront:
+          component.type === 'protoboard-half' ? null : () => this.bringComponentToFront(id),
         onDelete: () => this.removeComponent(id),
       });
     });
+  }
+
+  bringComponentToFront(componentId) {
+    const component = this.getComponentById(componentId);
+    if (!component || component.type === 'protoboard-half') return;
+    const maxZ = this.components.reduce((currentMax, entry) => {
+      if (entry.type === 'protoboard-half') return currentMax;
+      const value = Number.parseInt(entry.container.style.zIndex, 10);
+      return Number.isFinite(value) ? Math.max(currentMax, value) : currentMax;
+    }, 1);
+    component.container.style.zIndex = String(maxZ + 1);
+    this.notifyInteraction();
   }
 
   snapComponentToProtoboard(component) {
@@ -852,6 +871,7 @@ export class CanvasManager {
         type: component.type,
         x: parseFloat(component.container.style.left) || 0,
         y: parseFloat(component.container.style.top) || 0,
+        zIndex: Number.parseInt(component.container.style.zIndex, 10) || 0,
         props: component.props,
         transform: {
           rotation: component.transform?.rotation ?? 0,
@@ -876,6 +896,7 @@ export class CanvasManager {
         id: componentData.id,
         props: componentData.props,
         transform: componentData.transform,
+        zIndex: componentData.zIndex,
       });
 
       const numericSuffix = Number(componentData.id?.split('-')[1]);

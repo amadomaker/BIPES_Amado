@@ -15,6 +15,8 @@ let monitorButton;
 let rotateButton;
 let flipButton;
 let tutorialButton;
+let wireColorButton;
+let wireColorSwatch;
 
 let currentToolbarHandlers = {
   onPlayPause: null,
@@ -24,6 +26,7 @@ let currentToolbarHandlers = {
   onToggleSerialMonitor: null,
   onRotateComponent: null,
   onFlipComponent: null,
+  onWireColorPicker: null,
 };
 
 let contextMenu;
@@ -142,6 +145,11 @@ function renderToolbar() {
   flipButton.disabled = true;
   flipButton.title = 'Inverter componente selecionado';
 
+  wireColorButton = createWireColorButton(() => {
+    currentToolbarHandlers.onWireColorPicker?.();
+  });
+  wireColorButton.title = 'Cor do fio selecionado';
+
   const undoButton = createToolbarIconButton('undo', () => {
     currentToolbarHandlers.onUndo?.();
   }, 'btn-undo');
@@ -173,6 +181,7 @@ function renderToolbar() {
     deleteButton,
     rotateButton,
     flipButton,
+    wireColorButton,
     tutorialButton,
   );
 
@@ -202,6 +211,26 @@ function createToolbarIconButton(iconName, handler, id) {
     button.innerHTML = TOOLBAR_ICON_SVGS[iconName];
   }
 
+  return button;
+}
+
+function createWireColorButton(handler) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'wire-color-button';
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    handler();
+  });
+
+  wireColorSwatch = document.createElement('span');
+  wireColorSwatch.className = 'wire-color-swatch';
+  wireColorSwatch.style.backgroundColor = '#1f2937';
+
+  const arrow = document.createElement('span');
+  arrow.className = 'wire-color-arrow';
+
+  button.append(wireColorSwatch, arrow);
   return button;
 }
 
@@ -365,10 +394,15 @@ export function clearPropertiesPanel() {
   lastPropertiesAnchor = null;
 }
 
-export function showComponentContextMenu(x, y, { onDelete } = {}) {
-  displayContextMenu(x, y, [
-    { label: 'Excluir componente', action: onDelete },
-  ]);
+export function showComponentContextMenu(x, y, { onDelete, onBringToFront } = {}) {
+  const items = [];
+  if (onBringToFront) {
+    items.push({ label: 'Trazer para frente', action: onBringToFront });
+  }
+  if (onDelete) {
+    items.push({ label: 'Excluir componente', action: onDelete });
+  }
+  displayContextMenu(x, y, items);
 }
 
 export function showWireContextMenu(x, y, { onDelete, onChangeColor } = {}) {
@@ -500,6 +534,13 @@ export function setTransformControlsState(state = {}) {
   }
   if (flipButton) {
     flipButton.disabled = !canFlip;
+  }
+}
+
+export function setWireColorControlState({ enabled = false, color = null } = {}) {
+  if (!wireColorButton) return;
+  if (wireColorSwatch && color) {
+    wireColorSwatch.style.backgroundColor = color;
   }
 }
 
@@ -693,6 +734,10 @@ export function hideColorPicker() {
     colorPickerPopover.parentElement.removeChild(colorPickerPopover);
   }
   colorPickerPopover = null;
+}
+
+export function isColorPickerOpen() {
+  return Boolean(colorPickerPopover);
 }
 
 export function showAlert(message, duration = 4000) {

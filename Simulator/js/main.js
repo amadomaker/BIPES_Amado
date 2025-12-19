@@ -10,6 +10,10 @@ import {
   appendSerialLog,
   clearSerialMonitor,
   setTransformControlsState,
+  setWireColorControlState,
+  showColorPicker,
+  hideColorPicker,
+  isColorPickerOpen,
   clearPropertiesPanel,
 } from './ui.js';
 import { simulation } from './simulation.js';
@@ -97,6 +101,7 @@ window.addEventListener('DOMContentLoaded', () => {
     onOpenBlockly: handleOpenBlockly,
     onRotateComponent: handleRotateSelectedComponent,
     onFlipComponent: handleFlipSelectedComponent,
+    onWireColorPicker: handleWireColorPicker,
     onUndo: () => {
       Promise.resolve(performUndo()).catch(() => {});
     },
@@ -594,6 +599,30 @@ function handleFlipSelectedComponent() {
   canvasManager?.flipSelectedComponent?.();
 }
 
+function handleWireColorPicker() {
+  const wiringManager = canvasManager?.wiringManager;
+  if (isColorPickerOpen()) {
+    hideColorPicker();
+    return;
+  }
+  const wire = wiringManager?.selectedWire ?? null;
+  const initialColor = wire?.color ?? wiringManager?.preferredWireColor ?? '#0ea5e9';
+  const button = document.querySelector('.wire-color-button');
+  const rect = button?.getBoundingClientRect?.();
+  const anchorX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+  const anchorY = rect ? rect.bottom + 6 : window.innerHeight / 2;
+  showColorPicker(anchorX, anchorY, {
+    initialColor,
+    onSelect: (newColor) => {
+      if (wire) {
+        wiringManager.applyWireColor?.(wire, newColor);
+      }
+      wiringManager?.setPreferredWireColor?.(newColor);
+      setWireColorControlState({ enabled: true, color: newColor });
+    },
+  });
+}
+
 function handleSerialLog(entry) {
   appendSerialLog(entry);
 }
@@ -603,6 +632,23 @@ window.addEventListener('simulator-selection-change', (event) => {
   setTransformControlsState({
     canRotate: Boolean(detail.canRotate),
     canFlip: Boolean(detail.canFlip),
+  });
+  if (detail.componentId) {
+    setWireColorControlState({
+      enabled: true,
+      color: canvasManager?.wiringManager?.preferredWireColor ?? '#0ea5e9',
+    });
+  }
+});
+
+window.addEventListener('simulator-wire-selection-change', (event) => {
+  const detail = event.detail ?? {};
+  setWireColorControlState({
+    enabled: true,
+    color:
+      detail.color ??
+      canvasManager?.wiringManager?.preferredWireColor ??
+      '#0ea5e9',
   });
 });
 
