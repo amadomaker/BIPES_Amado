@@ -97,6 +97,7 @@ window.addEventListener('DOMContentLoaded', () => {
     onClear: handleClearWorkspace,
     onSave: handleSaveWorkspace,
     onLoad: handleLoadWorkspace,
+    onExportImage: handleExportImage,
     onToggleSerialMonitor: handleToggleSerialMonitor,
     onOpenBlockly: handleOpenBlockly,
     onRotateComponent: handleRotateSelectedComponent,
@@ -599,6 +600,21 @@ function handleFlipSelectedComponent() {
   canvasManager?.flipSelectedComponent?.();
 }
 
+async function handleExportImage() {
+  if (!canvasManager) return;
+  try {
+    const blob = await exportWorkspaceImage(canvasManager);
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'diagrama.png';
+    anchor.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    showAlert('Não foi possível exportar a imagem do diagrama.');
+  }
+}
+
 function handleWireColorPicker() {
   const wiringManager = canvasManager?.wiringManager;
   if (isColorPickerOpen()) {
@@ -689,6 +705,403 @@ function persistAppState() {
   } catch (error) {
     // Falha silenciosa (ex.: storage cheio ou indisponível)
   }
+}
+
+function exportWorkspaceImage(manager) {
+  const bounds = collectDiagramBounds(manager);
+  if (!bounds) {
+    return Promise.reject(new Error('Nenhum componente para exportar.'));
+  }
+
+  const padding = 20;
+  const width = Math.ceil(bounds.maxX - bounds.minX + padding * 2);
+  const height = Math.ceil(bounds.maxY - bounds.minY + padding * 2);
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return Promise.reject(new Error('Canvas indisponível.'));
+  }
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+
+  const cssText = collectDocumentStyles();
+  return renderComponentsToCanvas(ctx, manager, bounds, padding, cssText)
+    .then(() => renderWiresToCanvas(ctx, manager, bounds, padding, width, height))
+    .then(() =>
+      new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Falha ao gerar imagem.'));
+            return;
+          }
+          resolve(blob);
+        }, 'image/png');
+      }),
+    );
+}
+
+function collectDiagramBounds(manager) {
+  const wiringManager = manager?.wiringManager;
+  if (!manager || !wiringManager) return null;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  const addPoint = (x, y) => {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  };
+
+  manager.components.forEach((component) => {
+    const wrapper = component.visualWrapper ?? component.container;
+    if (!wrapper) return;
+    const rect = wrapper.getBoundingClientRect();
+    const topLeft = manager.clientToWorkspace(rect.left, rect.top);
+    const bottomRight = manager.clientToWorkspace(rect.right, rect.bottom);
+    addPoint(topLeft.x, topLeft.y);
+    addPoint(bottomRight.x, bottomRight.y);
+  });
+
+  wiringManager.connections.forEach((connection) => {
+    const points = wiringManager.getConnectionPoints(connection);
+    points.forEach((point) => addPoint(point.x, point.y));
+  });
+
+  if (!Number.isFinite(minX) || !Number.isFinite(minY)) {
+    return null;
+  }
+
+  return { minX, minY, maxX, maxY };
+}
+
+function collectDocumentStyles() {
+  let cssText = '';
+  const sheets = Array.from(document.styleSheets || []);
+  sheets.forEach((sheet) => {
+    try {
+      const rules = sheet.cssRules;
+      if (!rules) return;
+      Array.from(rules).forEach((rule) => {
+        cssText += `${rule.cssText}\n`;
+      });
+    } catch {
+      // Ignora folhas de estilo inacessíveis
+    }
+  });
+  return cssText;
+}
+
+function svgToDataUrl(svgElement) {
+  if (!svgElement) return null;
+  const clone = svgElement.cloneNode(true);
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  const serializer = new XMLSerializer();
+  const svgText = serializer.serializeToString(clone);
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+}
+
+function getShadowSvgDataUrl(element, { stripFilters = false, fixRotating = false } = {}) {
+  const shadow = element?.shadowRoot;
+  if (!shadow) return null;
+  const svg = shadow.querySelector('svg');
+  if (!svg) return null;
+  const clone = svg.cloneNode(true);
+  const styles = shadow.querySelectorAll('style');
+  if (styles.length) {
+    const styleNode = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    const combined = Array.from(styles)
+      .map((style) => style.textContent || '')
+      .join('\n');
+    let filtered = combined;
+    if (stripFilters) {
+      filtered = filtered.replace(/filter:\s*url\([^)]*\);?/g, '');
+    }
+    if (fixRotating) {
+      filtered = filtered.replace(/#rotating\s*\{[^}]*\}/g, (match) =>
+        match
+          .replace(/transform-origin:[^;]*;?/g, '')
+          .replace(/transform:[^;]*;?/g, ''),
+      );
+    }
+    styleNode.textContent = filtered;
+    clone.insertBefore(styleNode, clone.firstChild);
+  }
+  if (stripFilters) {
+    clone.querySelectorAll('filter').forEach((node) => node.remove());
+    clone.querySelectorAll('[filter]').forEach((node) => node.removeAttribute('filter'));
+  }
+  if (fixRotating) {
+    const originalRotating = shadow.querySelector('#rotating');
+    const cloneRotating = clone.querySelector('#rotating');
+    if (originalRotating && cloneRotating) {
+      const computed = window.getComputedStyle(originalRotating);
+      const transform = computed.transform;
+      if (transform && transform !== 'none') {
+        cloneRotating.style.transform = transform.replace(/matrix\(([^)]+)\)/, (full, vals) => {
+          const normalized = vals.split(',').map((value) => value.trim()).join(' ');
+          return `matrix(${normalized})`;
+        });
+        if (computed.transformOrigin) {
+          cloneRotating.style.transformOrigin = computed.transformOrigin;
+        }
+      }
+    }
+  }
+  return svgToDataUrl(clone);
+}
+
+function resolveComponentImageSource(component) {
+  const element = component.element;
+  const wrapper = component.visualWrapper ?? component.container;
+
+  const shadowSvg = getShadowSvgDataUrl(element, {
+    stripFilters: component.type === 'potentiometer',
+    fixRotating: component.type === 'potentiometer',
+  });
+  if (shadowSvg) return shadowSvg;
+
+  const shadowImg = element?.shadowRoot?.querySelector?.('img');
+  if (shadowImg?.src) return shadowImg.src;
+
+  if (element?.tagName === 'IMG' && element.src) {
+    return element.src;
+  }
+
+  const img = wrapper?.querySelector?.('img');
+  if (img?.src) return img.src;
+
+  const svg = wrapper?.querySelector?.('svg');
+  if (svg) {
+    return svgToDataUrl(svg);
+  }
+
+  return null;
+}
+
+function buildPotentiometerSvgDataUrl(component, width, height) {
+  const element = component?.element;
+  const shadow = element?.shadowRoot;
+  const svg = shadow?.querySelector?.('svg');
+  if (!svg) return null;
+
+  const clone = svg.cloneNode(true);
+  const viewBox = clone.getAttribute('viewBox') || '0 0 20 20';
+  clone.setAttribute('width', String(width));
+  clone.setAttribute('height', String(height));
+  clone.setAttribute('viewBox', viewBox);
+
+  clone.querySelectorAll('filter').forEach((node) => node.remove());
+  clone.querySelectorAll('[filter]').forEach((node) => node.removeAttribute('filter'));
+
+  clone.querySelectorAll('style').forEach((style) => {
+    style.textContent = (style.textContent || '')
+      .replace(/filter:\s*url\([^)]*\);?/g, '')
+      .replace(/#rotating\s*\{[^}]*\}/g, '');
+  });
+
+  const min = Number(element?.min ?? 0);
+  const max = Number(element?.max ?? 1023);
+  const rawValue =
+    Number(element?.value ?? element?.getAttribute?.('value')) ||
+    Number(component?.props?.value ?? 0);
+  const safeMax = Number.isFinite(max) && max !== min ? max : 1023;
+  const safeMin = Number.isFinite(min) ? min : 0;
+  const percent = Math.max(0, Math.min(1, (rawValue - safeMin) / (safeMax - safeMin)));
+  const startDeg = Number(element?.startDegree ?? -135);
+  const endDeg = Number(element?.endDegree ?? 135);
+  const knobDeg = (endDeg - startDeg) * percent + startDeg;
+
+  const styleNode = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+  styleNode.textContent = `#rotating{transform-origin:10px 8px;transform:rotate(${knobDeg}deg);}`;
+  clone.insertBefore(styleNode, clone.firstChild);
+
+  return svgToDataUrl(clone);
+}
+
+function renderHtmlElementToImage(element, width, height, cssText, margin = 12) {
+  return new Promise((resolve) => {
+    if (!element || !width || !height) {
+      resolve(null);
+      return;
+    }
+
+    const paddedWidth = Math.max(1, width + margin * 2);
+    const paddedHeight = Math.max(1, height + margin * 2);
+
+    const root = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+    root.style.width = `${paddedWidth}px`;
+    root.style.height = `${paddedHeight}px`;
+    root.style.position = 'relative';
+    root.style.overflow = 'visible';
+    root.style.padding = `${margin}px`;
+    root.style.boxSizing = 'border-box';
+
+    const styleTag = document.createElement('style');
+    styleTag.textContent = cssText;
+
+    const clone = element.cloneNode(true);
+    if (clone.style) {
+      clone.style.transform = 'none';
+      clone.style.position = 'relative';
+      clone.style.left = '0';
+      clone.style.top = '0';
+      clone.style.margin = '0';
+    }
+
+    root.append(styleTag, clone);
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.setAttribute('width', String(paddedWidth));
+    svg.setAttribute('height', String(paddedHeight));
+    svg.setAttribute('viewBox', `0 0 ${paddedWidth} ${paddedHeight}`);
+
+    const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+    foreignObject.setAttribute('x', '0');
+    foreignObject.setAttribute('y', '0');
+    foreignObject.setAttribute('width', String(paddedWidth));
+    foreignObject.setAttribute('height', String(paddedHeight));
+    foreignObject.appendChild(root);
+    svg.appendChild(foreignObject);
+
+    const dataUrl = svgToDataUrl(svg);
+    if (!dataUrl) {
+      resolve(null);
+      return;
+    }
+
+    loadImage(dataUrl)
+      .then((img) => resolve({ img, width: paddedWidth, height: paddedHeight }))
+      .catch(() => resolve(null));
+  });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    if (!src) {
+      reject(new Error('Fonte de imagem inválida.'));
+      return;
+    }
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+async function renderComponentsToCanvas(ctx, manager, bounds, padding, cssText) {
+  const components = [...manager.components].sort((a, b) => {
+    const zA = Number.parseInt(a.container?.style?.zIndex ?? '0', 10) || 0;
+    const zB = Number.parseInt(b.container?.style?.zIndex ?? '0', 10) || 0;
+    return zA - zB;
+  });
+
+  for (const component of components) {
+    const wrapper = component.visualWrapper ?? component.container;
+    if (!wrapper) continue;
+    const rect = wrapper.getBoundingClientRect();
+    if (!rect.width || !rect.height) continue;
+
+    const topLeft = manager.clientToWorkspace(rect.left, rect.top);
+    const bottomRight = manager.clientToWorkspace(rect.right, rect.bottom);
+    const width = bottomRight.x - topLeft.x;
+    const height = bottomRight.y - topLeft.y;
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+      continue;
+    }
+
+    let img = null;
+    let drawWidth = width;
+    let drawHeight = height;
+    let applyContain = false;
+    if (component.type === 'potentiometer') {
+      const potSrc = buildPotentiometerSvgDataUrl(component, drawWidth, drawHeight);
+      if (potSrc) {
+        img = await loadImage(potSrc).catch(() => null);
+        applyContain = false;
+      }
+    }
+    if (!img) {
+      const src = resolveComponentImageSource(component);
+      if (src) {
+        img = await loadImage(src).catch(() => null);
+        applyContain = Boolean(img);
+      }
+    }
+    if (!img) {
+      const rendered = await renderHtmlElementToImage(component.element, width, height, cssText);
+      if (rendered?.img) {
+        img = rendered.img;
+        drawWidth = rendered.width;
+        drawHeight = rendered.height;
+        applyContain = false;
+      }
+    }
+    if (!img) continue;
+
+    if (
+      applyContain &&
+      typeof img.naturalWidth === 'number' &&
+      typeof img.naturalHeight === 'number' &&
+      img.naturalWidth &&
+      img.naturalHeight
+    ) {
+      const imgAspect = img.naturalWidth / img.naturalHeight;
+      const boxAspect = drawWidth / drawHeight;
+      if (boxAspect > imgAspect) {
+        drawHeight = drawHeight;
+        drawWidth = drawHeight * imgAspect;
+      } else {
+        drawWidth = drawWidth;
+        drawHeight = drawWidth / imgAspect;
+      }
+    }
+
+    const centerX = topLeft.x + width / 2;
+    const centerY = topLeft.y + height / 2;
+    const rotation = (component.transform?.rotation ?? 0) * (Math.PI / 180);
+    const flipped = Boolean(component.transform?.flipped);
+
+    ctx.save();
+    ctx.translate(centerX - bounds.minX + padding, centerY - bounds.minY + padding);
+    if (rotation) {
+      ctx.rotate(rotation);
+    }
+    if (flipped) {
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+    ctx.restore();
+  }
+}
+
+async function renderWiresToCanvas(ctx, manager, bounds, padding, width, height) {
+  const wiringManager = manager?.wiringManager;
+  if (!wiringManager || !wiringManager.connections.length) return;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('width', String(width));
+  svg.setAttribute('height', String(height));
+  svg.setAttribute(
+    'viewBox',
+    `${bounds.minX - padding} ${bounds.minY - padding} ${width} ${height}`,
+  );
+  wiringManager.connections.forEach((connection) => {
+    svg.appendChild(connection.line.cloneNode(true));
+  });
+  const svgUrl = svgToDataUrl(svg);
+  if (!svgUrl) return;
+  const img = await loadImage(svgUrl).catch(() => null);
+  if (!img) return;
+  ctx.drawImage(img, 0, 0, width, height);
 }
 
 function captureBlocklyState() {

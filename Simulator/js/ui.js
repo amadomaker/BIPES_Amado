@@ -23,6 +23,7 @@ let currentToolbarHandlers = {
   onClear: null,
   onSave: null,
   onLoad: null,
+  onExportImage: null,
   onToggleSerialMonitor: null,
   onRotateComponent: null,
   onFlipComponent: null,
@@ -128,6 +129,11 @@ function renderToolbar() {
     currentToolbarHandlers.onLoad?.();
   }, 'btn-load');
 
+  const exportButton = createToolbarButton('🖼️ Imagem', () => {
+    currentToolbarHandlers.onExportImage?.();
+  }, 'btn-export-image');
+  exportButton.title = 'Salvar diagrama como imagem';
+
   monitorButton = createToolbarButton('🖥 Console', () => {
     currentToolbarHandlers.onToggleSerialMonitor?.();
   }, 'btn-console');
@@ -175,6 +181,7 @@ function renderToolbar() {
     clearButton,
     saveButton,
     loadButton,
+    exportButton,
     monitorButton,
     undoButton,
     redoButton,
