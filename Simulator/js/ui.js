@@ -121,7 +121,7 @@ function renderToolbar() {
     currentToolbarHandlers.onClear?.();
   }, 'btn-clear');
 
-  saveButton = createToolbarButton('💾 Salvar', () => {
+  saveButton = createToolbarButton('💾 Salvar projeto', () => {
     currentToolbarHandlers.onSave?.();
   }, 'btn-save');
 
@@ -129,7 +129,7 @@ function renderToolbar() {
     currentToolbarHandlers.onLoad?.();
   }, 'btn-load');
 
-  const exportButton = createToolbarButton('🖼️ Imagem', () => {
+  const exportButton = createToolbarButton('🖼️ Salvar diagrama', () => {
     currentToolbarHandlers.onExportImage?.();
   }, 'btn-export-image');
   exportButton.title = 'Salvar diagrama como imagem';
