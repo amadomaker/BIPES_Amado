@@ -1,7 +1,6 @@
 [submodule "ui/freeboard"]
     path = ui/freeboard
     url = https://github.com/BIPES/freeboard.git
-    ignore = all
 [submodule "databoard"]
     path = databoard
     url = https://github.com/BIPES/databoard.git
