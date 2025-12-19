@@ -861,11 +861,14 @@ function renderComponentPalette(filterText = componentSearchTerm) {
   const groups = getPaletteGroups();
 
   groups.forEach((group) => {
+    const isExampleGroup = group.id === EXAMPLE_GROUP.id;
+    if (componentFilterGroup === 'all' && isExampleGroup) {
+      return;
+    }
     if (componentFilterGroup !== 'all' && componentFilterGroup !== group.id) {
       return;
     }
 
-    const isExampleGroup = group.id === EXAMPLE_GROUP.id;
     const items = isExampleGroup
       ? examplesList
       : availableComponents.filter(
