@@ -1,0 +1,263 @@
+{
+  "version": 1,
+  "savedAt": "2025-12-12T18:09:54.458Z",
+  "circuit": {
+    "components": [
+      {
+        "id": "comp-2",
+        "type": "amado-board",
+        "x": -156.852,
+        "y": 362.444,
+        "props": {},
+        "transform": {
+          "rotation": 0,
+          "flipped": false
+        }
+      },
+      {
+        "id": "comp-3",
+        "type": "dht-sensor",
+        "x": -234,
+        "y": 371.481,
+        "props": {
+          "model": "DHT11",
+          "temperature": "27",
+          "humidity": 60
+        },
+        "transform": {
+          "rotation": 0,
+          "flipped": false
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "wire-1",
+        "color": "#1f2937",
+        "from": {
+          "componentId": "comp-3",
+          "pinIndex": 2
+        },
+        "to": {
+          "componentId": "comp-2",
+          "pinIndex": 14
+        },
+        "anchors": [
+          {
+            "x": -172.98033793590787,
+            "y": 486.8476842538109
+          }
+        ]
+      },
+      {
+        "id": "wire-2",
+        "color": "#ef4444",
+        "from": {
+          "componentId": "comp-3",
+          "pinIndex": 0
+        },
+        "to": {
+          "componentId": "comp-2",
+          "pinIndex": 37
+        },
+        "anchors": [
+          {
+            "x": -209.43866784571617,
+            "y": 518.846956916041
+          }
+        ]
+      },
+      {
+        "id": "wire-4",
+        "color": "#0ea5e9",
+        "from": {
+          "componentId": "comp-3",
+          "pinIndex": 1
+        },
+        "to": {
+          "componentId": "comp-2",
+          "pinIndex": 19
+        },
+        "anchors": [
+          {
+            "x": -197.68519338299618,
+            "y": 497.611373833301
+          }
+        ]
+      }
+    ]
+  },
+  "blockly": {
+    "format": "json",
+    "data": {
+      "blocks": {
+        "languageVersion": 0,
+        "blocks": [
+          {
+            "type": "dht_init",
+            "id": "QUT.0E-UCtmR.s=XEyY!",
+            "x": 90,
+            "y": 110,
+            "fields": {
+              "MODEL": "DHT11"
+            },
+            "inputs": {
+              "PIN": {
+                "shadow": {
+                  "type": "amado_pin_selector",
+                  "id": "~s.li?-H3UDpVI-1.}T~",
+                  "fields": {
+                    "PIN": "D18 / CLK"
+                  }
+                }
+              }
+            },
+            "next": {
+              "block": {
+                "type": "controls_whileUntil",
+                "id": "9!Vc*GOE!V5]6jeb(m~6",
+                "fields": {
+                  "MODE": "WHILE"
+                },
+                "inputs": {
+                  "BOOL": {
+                    "block": {
+                      "type": "variable_boolean_const",
+                      "id": "c3/N/3{qOEo@lL4T)-{J",
+                      "fields": {
+                        "BOOL": "TRUE"
+                      }
+                    }
+                  },
+                  "DO": {
+                    "block": {
+                      "type": "dht_update",
+                      "id": "Kun)}lT_)A{OV_E~+Ny`",
+                      "next": {
+                        "block": {
+                          "type": "variables_set",
+                          "id": "?v[lhNxCEdhtMI2v$sGg",
+                          "fields": {
+                            "VAR": {
+                              "id": "uU0Htr1,=L)*gPLW.;os"
+                            }
+                          },
+                          "inputs": {
+                            "VALUE": {
+                              "block": {
+                                "type": "dht_temperature",
+                                "id": "dK!7)vNXUo0uLHa:!|q4"
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "variables_set",
+                              "id": "#$oTd!R2G{-;hN%NxCWv",
+                              "fields": {
+                                "VAR": {
+                                  "id": "YH28Fl3b_haH{(JKlR/f"
+                                }
+                              },
+                              "inputs": {
+                                "VALUE": {
+                                  "block": {
+                                    "type": "dht_humidity",
+                                    "id": "dF^x$w};bNgZuaIx1?wr"
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "amado_serial_log",
+                                  "id": ";CkE$,f8mTKMYZ(9d878",
+                                  "inputs": {
+                                    "VALUE": {
+                                      "shadow": {
+                                        "type": "text",
+                                        "id": "1/hR~UslX;6V+2)QQ_$B",
+                                        "fields": {
+                                          "TEXT": "Mensagem"
+                                        }
+                                      },
+                                      "block": {
+                                        "type": "variables_get",
+                                        "id": "WX`w3clE^Gk#(.zJs/mx",
+                                        "fields": {
+                                          "VAR": {
+                                            "id": "uU0Htr1,=L)*gPLW.;os"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "amado_serial_log",
+                                      "id": "kU7L-1;$kCF64V]Y5^lX",
+                                      "inputs": {
+                                        "VALUE": {
+                                          "shadow": {
+                                            "type": "text",
+                                            "id": "1/hR~UslX;6V+2)QQ_$B",
+                                            "fields": {
+                                              "TEXT": "Mensagem"
+                                            }
+                                          },
+                                          "block": {
+                                            "type": "variables_get",
+                                            "id": "o%v-,0$g)F[1;:#u,q8#",
+                                            "fields": {
+                                              "VAR": {
+                                                "id": "YH28Fl3b_haH{(JKlR/f"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "amado_wait",
+                                          "id": "K{hlX527P1?8m{IC2Of`",
+                                          "inputs": {
+                                            "MS": {
+                                              "shadow": {
+                                                "type": "math_number",
+                                                "id": "@J]pt,_;GeceZZKk*3E_",
+                                                "fields": {
+                                                  "NUM": 1000
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "variables": [
+        {
+          "name": "temperatura",
+          "id": "uU0Htr1,=L)*gPLW.;os"
+        },
+        {
+          "name": "Umidade",
+          "id": "YH28Fl3b_haH{(JKlR/f"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Eletrônica - Estilo Tinkercad</title>
+  
+  <!-- Wokwi Elements LOCAL -->
+  <script src="node_modules/@wokwi/elements/dist/wokwi-elements.bundle.js"></script>
+  <!-- Blockly -->
+  <script src="node_modules/blockly/blockly.min.js"></script>
+  
+  <!-- Seus estilos -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Paleta de componentes (lado esquerdo) -->
+    <aside id="component-palette">
+      <h2>Componentes</h2>
+      <div class="component-controls">
+        <div class="component-filter">
+          <label for="component-filter-select">Categoria</label>
+          <select id="component-filter-select"></select>
+        </div>
+        <div class="component-view-toggle" role="group" aria-label="Visualização">
+          <button type="button" class="view-toggle-button active" data-view="grid">Grade</button>
+          <button type="button" class="view-toggle-button" data-view="list">Lista</button>
+        </div>
+      </div>
+      <div class="component-search">
+        <input type="text" id="component-search-input" placeholder="Buscar componentes..." aria-label="Buscar componentes">
+      </div>
+      <div class="components-list"></div>
+    </aside>
+    
+    <!-- Área de trabalho (centro) -->
+    <main id="canvas-area">
+      <div id="toolbar"></div>
+      <div id="workspace"></div>
+      <button type="button" id="blockly-open-trigger" class="blockly-toggle-bar" aria-expanded="false">
+        <img src="examples/previews/icon-blockly.png" alt="" aria-hidden="true" class="blockly-toggle-icon">
+        <span class="blockly-toggle-label">Código</span>
+      </button>
+      <section id="blockly-panel" aria-label="Editor Blockly">
+        <header class="blockly-panel-header">
+          <h3>Blocos</h3>
+          <button type="button" id="blockly-toggle-button" aria-label="Fechar Blockly">
+            Minimizar
+          </button>
+        </header>
+        <div id="blockly-container"></div>
+      </section>
+    </main>
+  </div>
+  <div id="alert-container"></div>
+  <section id="serial-monitor" class="serial-monitor" aria-hidden="true">
+    <header class="serial-monitor-header">
+      <h3>Console</h3>
+      <div class="serial-monitor-actions">
+        <button type="button" id="serial-monitor-clear" class="serial-monitor-button">
+          Limpar
+        </button>
+        <button type="button" id="serial-monitor-close" class="serial-monitor-button">
+          Fechar
+        </button>
+      </div>
+    </header>
+    <div
+      id="serial-monitor-output"
+      class="serial-monitor-output"
+      role="log"
+      aria-live="polite"
+    ></div>
+  </section>
+
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

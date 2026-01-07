@@ -1,0 +1,162 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+import { html, LitElement, svg } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+let DipSwitch8Element = class DipSwitch8Element extends LitElement {
+    constructor() {
+        super(...arguments);
+        this.values = [0, 0, 0, 0, 0, 0, 0, 0];
+        this.pinInfo = [
+            { name: '1a', number: 1, y: 51.3, x: 8.1, signals: [] },
+            { name: '2a', number: 2, y: 51.3, x: 17.7, signals: [] },
+            { name: '3a', number: 3, y: 51.3, x: 27.3, signals: [] },
+            { name: '4a', number: 4, y: 51.3, x: 36.9, signals: [] },
+            { name: '5a', number: 5, y: 51.3, x: 46.5, signals: [] },
+            { name: '6a', number: 6, y: 51.3, x: 56.1, signals: [] },
+            { name: '7a', number: 7, y: 51.3, x: 65.7, signals: [] },
+            { name: '8a', number: 8, y: 51.3, x: 75.3, signals: [] },
+            { name: '8b', number: 9, y: 3, x: 75.3, signals: [] },
+            { name: '7b', number: 10, y: 3, x: 65.7, signals: [] },
+            { name: '6b', number: 11, y: 3, x: 56.1, signals: [] },
+            { name: '5b', number: 12, y: 3, x: 46.5, signals: [] },
+            { name: '4b', number: 13, y: 3, x: 36.9, signals: [] },
+            { name: '3b', number: 14, y: 3, x: 27.3, signals: [] },
+            { name: '2b', number: 15, y: 3, x: 17.7, signals: [] },
+            { name: '1b', number: 16, y: 3, x: 8.1, signals: [] },
+        ];
+    }
+    /**
+     * Change switch state
+     * @param index Which switch to change
+     */
+    toggleSwitch(index) {
+        this.values[index] = this.values[index] ? 0 : 1;
+        this.dispatchEvent(new InputEvent('switch-change', { detail: index }));
+        this.requestUpdate(); // force lit to render again
+    }
+    /** Change switch state by keyboard 1-8 press */
+    onKeyDown(e) {
+        e.stopPropagation(); // stop storybook reacting to the key press
+        const keys = ['1', '2', '3', '4', '5', '6', '7', '8'];
+        const keyIndex = keys.indexOf(e.key);
+        if (keyIndex !== -1) {
+            this.toggleSwitch(keyIndex);
+        }
+    }
+    drawSwitch(index, x) {
+        return svg ` 
+        <rect
+        @click=${() => this.toggleSwitch(index)}
+        x="${x + 4.693}"
+        y="21.2"
+        width="5.8168"
+        height="13"
+      />
+      <use
+        @click=${() => this.toggleSwitch(index)}
+        xlink:href="#switch"
+        x="${x}"
+        y=${this.values[index] ? -7.2 : 0}
+      />`;
+    }
+    preventTextSelection(e) {
+        if (e.detail > 1) {
+            // On double click
+            e.preventDefault();
+        }
+    }
+    render() {
+        return html `
+      <svg
+        tabindex="0"
+        @keydown=${this.onKeyDown}
+        @mousedown=${this.preventTextSelection}
+        width="82.87"
+        height="55.355"
+        version="1.1"
+        viewBox="0 0 82.87 55.355"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+      >
+        <defs>
+          <path
+            id="switch"
+            transform="translate(-66.856 -41.367)"
+            fill="#fffef4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width=".77094"
+            d="m72.096 69.764s1.3376 0.38247 2.1066 0.39196c0.76893 0.0095 2.44-0.39196 2.44-0.39196 0.39596-0.06361 0.72389 0.32286 0.72389 0.72389v4.3678c0 0.40104-0.52337 0.72389-0.72389 0.72389s-1.6592-0.41225-2.4288-0.40316c-0.76958 0.0091-2.1177 0.40316-2.1177 0.40316-0.39396 0.075-0.72389-0.32286-0.72389-0.72389v-4.3678c0-0.40104 0.32286-0.72389 0.72389-0.72389z"
+          />
+        </defs>
+
+        <!-- Pins -->
+        <g
+          transform="translate(-66.856 -41.367)"
+          fill="#454837"
+          fill-opacity=".49194"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width=".76744"
+        >
+          <rect x="73" y="87" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="82.6" y="87" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="92.2" y="87" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="101.8" y="87" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="111.4" y="87" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="121" y="87" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="130.6" y="87" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="140.2" y="87" width="2" height="6.5" rx=".7" ry=".7" />
+
+          <rect x="73" y="44.4" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="82.6" y="44.4" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="92.2" y="44.4" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="101.8" y="44.4" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="111.4" y="44.4" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="121" y="44.4" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="130.6" y="44.4" width="2" height="6.5" rx=".7" ry=".7" />
+          <rect x="140.2" y="44.4" width="2" height="6.5" rx=".7" ry=".7" />
+        </g>
+
+        <!-- Board -->
+        <rect x="0" y="8.5" width="90.5" height="38.0831" fill="#d72c2c" />
+
+        <!-- Text -->
+        <text fill="#fffef4" font-family="sans-serif" font-size="7.66px" style="line-height:1.25">
+          <tspan x="6.340" y="18.03">ON</tspan>
+          <tspan x="4.35" y="43.28">1</tspan>
+          <tspan x="14.485" y="43.28">2</tspan>
+          <tspan x="23.956" y="43.28">3</tspan>
+          <tspan x="33.57" y="43.28">4</tspan>
+          <tspan x="43.05" y="43.28">5</tspan>
+          <tspan x="52.36" y="43.28">6</tspan>
+          <tspan x="62.45" y="43.28">7</tspan>
+          <tspan x="71.92" y="43.28">8</tspan>
+        </text>
+
+        <!-- Switches -->
+        <g fill="#917c6f" stroke-width=".77094">
+          ${this.drawSwitch(0, 0)}<!-- -->
+          ${this.drawSwitch(1, 9.6)}<!-- -->
+          ${this.drawSwitch(2, 19.4)}<!-- -->
+          ${this.drawSwitch(3, 29.1)}<!-- -->
+          ${this.drawSwitch(4, 38.5)}<!-- -->
+          ${this.drawSwitch(5, 48.1)}<!-- -->
+          ${this.drawSwitch(6, 57.7)}<!-- -->
+          ${this.drawSwitch(7, 67.3)}<!-- -->
+        </g>
+      </svg>
+    `;
+    }
+};
+__decorate([
+    property({ type: Array })
+], DipSwitch8Element.prototype, "values", void 0);
+DipSwitch8Element = __decorate([
+    customElement('wokwi-dip-switch-8')
+], DipSwitch8Element);
+export { DipSwitch8Element };
