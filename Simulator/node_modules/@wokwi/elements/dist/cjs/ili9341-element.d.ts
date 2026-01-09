@@ -1,0 +1,14 @@
+import { LitElement } from 'lit';
+import { ElementPin } from './pin';
+export declare class ILI9341Element extends LitElement {
+    readonly screenWidth = 240;
+    readonly screenHeight = 320;
+    flipHorizontal: boolean;
+    flipVertical: boolean;
+    readonly pinInfo: ElementPin[];
+    static get styles(): import("lit").CSSResult;
+    get canvas(): HTMLCanvasElement | null | undefined;
+    firstUpdated(): void;
+    renderSVG(): import("lit-html").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
+}

@@ -1,29 +1,75 @@
 <?php
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
-if(!isset($_GET['session']) || empty($_GET['session']) || !isset($_GET['topic']) || empty($_GET['topic']) || !isset($_GET['value']))
-{
-    echo(json_encode(array("success" => False, "result" => "Invalid Parameters")));
-    die();
+
+// Validação dos parâmetros
+if (
+    !isset($_GET['session']) || empty($_GET['session']) ||
+    !isset($_GET['topic'])   || empty($_GET['topic'])   ||
+    !isset($_GET['value'])
+) {
+    echo json_encode([
+        "success" => false,
+        "result"  => "Invalid Parameters"
+    ]);
+    exit;
 }
 
+// Sanitização dos parâmetros
 $session = htmlspecialchars($_GET["session"]);
-$topic = htmlspecialchars($_GET["topic"]);
-$value = htmlspecialchars($_GET["value"]);
+$topic   = htmlspecialchars($_GET["topic"]);
+$value   = htmlspecialchars($_GET["value"]);
 
-if (!is_numeric($value)){
-	$return = array("success" => False, "result" => "Error publishing value '".$value."' to topic '".$topic."'. Non-numeric input value!");
+if (!is_numeric($value)) {
+    $return = [
+        "success" => false,
+        "result"  => "Error publishing value '{$value}' to topic '{$topic}'. Non-numeric input value!"
+    ];
+} else {
+    // Encaminha para a Cloud Function HTTP de publicação
+    $publisherUrl = getenv('PUBLISHER_URL');
+    if (!$publisherUrl) {
+        // Detecta ambiente baseado na URL atual para fallback inteligente
+        $currentHost = $_SERVER['HTTP_HOST'] ?? '';
+        if (strpos($currentHost, 'staging') !== false) {
+            $publisherUrl = 'https://mqtt-publisher-staging-tgtka7akja-uc.a.run.app';
+        } else {
+            $publisherUrl = 'https://mqtt-publisher-tgtka7akja-uc.a.run.app';
+        }
+    }
 
-}else{
-	$ret;
-	$out;
+    $url = $publisherUrl . '?session=' . urlencode($session) . '&topic=' . urlencode($topic) . '&value=' . urlencode($value);
 
-	$err=exec("python3 server/publish.py ".$session."/".$topic." ".$value,$out,$ret);
-	if ($ret == 0)
-		$return = array("success" => True, "result" => "Value '".$value."' published to topic '".$topic."' successfully!");
-	else
-		$return = array("success" => False, "result" => "Error publishing value '".$value."' to topic '".$topic."'. ".$err);
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $response = curl_exec($ch);
+    $curlErr  = curl_error($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($response === false) {
+        $return = [
+            'success' => false,
+            'result'  => "Error publishing value '{$value}' to topic '{$topic}'. CURL error: {$curlErr}"
+        ];
+    } else {
+        $decoded = json_decode($response, true);
+        if (is_array($decoded) && isset($decoded['success'])) {
+            $return = $decoded;
+        } else if ($httpCode >= 200 && $httpCode < 300) {
+            $return = [
+                'success' => true,
+                'result'  => "Value '{$value}' published to topic '{$topic}' successfully!"
+            ];
+        } else {
+            $return = [
+                'success' => false,
+                'result'  => "Error publishing value '{$value}' to topic '{$topic}'. HTTP {$httpCode}: {$response}"
+            ];
+        }
+    }
 }
 
-echo(json_encode($return));
-?>
+echo json_encode($return);

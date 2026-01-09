@@ -144,9 +144,10 @@ document.body.appendChild(el);
         <div id="tab_programs" class="taboff">...</div>
         <div id="tab_device" class="taboff">...</div>
         <div id="tab_iot" class="taboff">IOT</div>
-        <div id="tab_mqtt" class="taboff" onclick='document.getElementById("easymqtt_iframe").contentWindow.startEasyMQTT(window.easyMQTT_session);'>EasyMQTT</div>
+        <div id="tab_mqtt" class="taboff" onclick="abrirEasyMQTT()">EasyMQTT</div>
         <div id="tab_databoard" class="taboff">Databoard</div>
         <div id="tab_sound" class="taboff" style="display: none;">Música</div>
+        <div id="tab_simulator" class="taboff">Simulador</div>
       </div>
       <button id="toolbarButton" class="notext icon medium" title="..."></button>
       <div class="toolbar">
@@ -369,7 +370,43 @@ document.body.appendChild(el);
 <!-- ################################################## -->
 
 <div id="content_mqtt" class="content" style="padding: 0;">
-  <iframe id="easymqtt_iframe" src="../easymqtt/index.html" width="100%" height="100%" frameBorder="0"></iframe>
+  <iframe id="easymqtt_iframe" width="100%" height="100%" frameBorder="0"></iframe>
+</div>
+<script>
+function abrirEasyMQTT() {
+    const session = window.easyMQTT_session;
+    const iframe = document.getElementById('easymqtt_iframe');
+    
+    // Detecta automaticamente o ambiente baseado na URL atual
+    const currentHost = window.location.hostname;
+    let apiUrl;
+    
+    if (currentHost.includes('staging')) {
+        // Se a UI for staging, usar API staging
+        apiUrl = 'https://bipes-api-staging-tgtka7akja-uc.a.run.app';
+    } else if (currentHost.includes('localhost') || currentHost.includes('127.0.0.1')) {
+        // Para desenvolvimento local, usar staging como padrão
+        apiUrl = 'https://bipes-api-staging-tgtka7akja-uc.a.run.app';
+    } else {
+        // Para production ou qualquer outro ambiente
+        apiUrl = 'https://bipes-api-tgtka7akja-uc.a.run.app';
+    }
+
+    if (session) {
+        iframe.src = `${apiUrl}/?session=${session}`;
+    } else {
+        iframe.src = `${apiUrl}/`;
+        console.warn('Sessão não definida. Abrindo EasyMQTT sem sessão.');
+    }
+    
+}
+</script>
+
+
+<!-- ################################################## -->
+
+<div id="content_simulator" class="content" style="padding: 0;">
+  <iframe id="simulator_iframe" src="../Simulator/index.html" width="100%" height="100%" frameBorder="0"></iframe>
 </div>
 
 <!-- ################################################## -->
@@ -870,6 +907,9 @@ function eraseCookieModal(name) {
 
 
 </html>
+
+
+
 
 
 

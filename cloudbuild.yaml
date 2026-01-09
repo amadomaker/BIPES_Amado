@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/publisher:v1',
+      '-f', 'easymqtt/publisher/Dockerfile',
+      '.'
+    ]
+
+images:
+  - 'us-central1-docker.pkg.dev/erudite-nation-440421-p7/dblocks/publisher:v1'

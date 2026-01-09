@@ -1,19 +1,43 @@
 <?php
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
-if(!isset($_GET['session']) || empty($_GET['session']))
-{
-    echo(json_encode(array("success" => False, "result" => "Invalid Parameters")));
-    die();
-}
-require("vendor/autoload.php");
 
-$client = new MongoDB\Client("mongodb://localhost:27017");
+// Validação do parâmetro obrigatório
+if (!isset($_GET['session']) || empty($_GET['session'])) {
+    echo json_encode([
+        "success" => false,
+        "result"  => "Invalid Parameters"
+    ]);
+    exit;
+}
+
 $session = htmlspecialchars($_GET["session"]);
 
-$client->dropDatabase($session);
-$return = array("success" => True, "result" => "Session '" . $session . "' cleaned");
+// Pega a URI do Mongo a partir da variável de ambiente
+// $mongoUri = getenv('MONGO_URI');
+// if (!$mongoUri) {
+//     echo json_encode([
+//         "success" => false,
+//         "result"  => "Mongo URI is not set in environment"
+//     ]);
+//     exit;
+// }
 
-echo(json_encode($return));
+$mongoUri = "mongodb+srv://ti:HjrjfpzWT4cdDJqc@bipes-db.wlo1lu9.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db";
+$manager = new MongoDB\Driver\Manager($mongoUri);
 
-?>
+// Comando para remover (dropar) todo o banco de dados da sessão
+$cmd = new MongoDB\Driver\Command(['dropDatabase' => 1]);
+
+try {
+    $manager->executeCommand($session, $cmd);
+    echo json_encode([
+        "success" => true,
+        "result"  => "Session '{$session}' cleaned"
+    ]);
+} catch (MongoDB\Driver\Exception\Exception $e) {
+    echo json_encode([
+        "success" => false,
+        "result"  => "Error dropping session '{$session}': " . $e->getMessage()
+    ]);
+}
