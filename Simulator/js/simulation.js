@@ -2218,7 +2218,12 @@ class Simulation {
     buzzerResults.forEach((result) => {
       this.setBuzzerState(result.component, result.active);
       if (!result.active) {
-        const reasons = result.reasons?.filter((reason) => reason && !/Sem alimentação suficiente/i.test(reason));
+        const reasons = result.reasons?.filter(
+          (reason) =>
+            reason &&
+            !/Sem alimentação suficiente/i.test(reason) &&
+            !/Buzzer sem alimentação/i.test(reason),
+        );
         if (reasons && reasons.length) {
           this.listeners.onLog?.({
             message: `Buzzer ${result.component.id}: ${reasons.join(', ')}`,
