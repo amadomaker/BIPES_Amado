@@ -2246,7 +2246,12 @@ class Simulation {
       const controlledByProgram = Boolean(result.controllerName);
       if (!result.active && result.reasons?.length) {
         if (!controlledByProgram) {
-          errorMessages.push(`Motor ${result.component.id}: ${result.reasons.join(', ')}`);
+          const reasons = result.reasons.filter(
+            (reason) => !/Diferença de tensão insuficiente/i.test(reason),
+          );
+          if (reasons.length) {
+            errorMessages.push(`Motor ${result.component.id}: ${reasons.join(', ')}`);
+          }
         }
       }
     });
@@ -2455,7 +2460,8 @@ class Simulation {
   normalizeMotorName(name) {
     return String(name ?? '')
       .trim()
-      .toLowerCase();
+      .toLowerCase()
+      .replace(/\s+/g, '');
   }
 
   normalizeBoardPinName(pinName) {
@@ -2907,7 +2913,7 @@ class Simulation {
   async handleMotorDcInit(boardComponentId, rawName, pwmPin, dir1Pin, dir2Pin) {
     const name = String(rawName ?? '').trim();
     if (!name) {
-      throw new Error('Defina um nome para o motor DC (por exemplo, "Motor A").');
+      throw new Error('Defina um nome para o motor DC (por exemplo, "MotorA").');
     }
 
     const pwm = this.normalizeBoardPinName(pwmPin);

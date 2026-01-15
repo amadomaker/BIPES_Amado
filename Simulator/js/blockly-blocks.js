@@ -93,7 +93,7 @@ function buildPinOptions() {
   return labels;
 }
 
-function createMotorNameField(Blockly, defaultValue = 'Motor A') {
+function createMotorNameField(Blockly, defaultValue = 'MotorA') {
   const FieldTextInput = Blockly.FieldTextInput ?? Blockly.FieldInput ?? null;
   if (!FieldTextInput) {
     return null;
@@ -727,7 +727,7 @@ export function registerAmadoBlocks(Blockly) {
       const powerInput = this.appendValueInput('POWER').setCheck('Number');
 
       this.appendDummyInput()
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+        .appendField(createMotorNameField(Blockly) ?? 'MotorA', 'NAME');
 
       this.setInputsInline(true);
       this.setPreviousStatement(true);
@@ -754,7 +754,7 @@ export function registerAmadoBlocks(Blockly) {
         .setAlign(Blockly.ALIGN_RIGHT);
 
       this.appendDummyInput()
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+        .appendField(createMotorNameField(Blockly) ?? 'MotorA', 'NAME');
 
       this.setInputsInline(true);
       this.setPreviousStatement(true);
@@ -797,7 +797,7 @@ export function registerAmadoBlocks(Blockly) {
 
       this.appendDummyInput()
         .appendField('Nome do motor:')
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+        .appendField(createMotorNameField(Blockly) ?? 'MotorA', 'NAME');
 
       pwmInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
       dir1Input?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
@@ -816,7 +816,7 @@ export function registerAmadoBlocks(Blockly) {
     init() {
       this.appendDummyInput()
         .appendField('Parar motor DC')
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+        .appendField(createMotorNameField(Blockly) ?? 'MotorA', 'NAME');
 
       this.setPreviousStatement(true);
       this.setNextStatement(true);
