@@ -1342,6 +1342,106 @@ export const availableComponents = [
     ],
   },
   {
+    id: 'lab-prop',
+    name: 'Elemento visual',
+    element: null,
+    description: 'Elemento visual para personalizar o laboratorio.',
+    group: 'lab',
+    defaultProps: {
+      label: 'Elemento visual',
+      src: '',
+      width: 220,
+      height: 220,
+      opacity: 1,
+    },
+    pins: [],
+    createInstance: ({ props }) => {
+      const container = document.createElement('div');
+      container.className = 'lab-prop-shell';
+      const image = document.createElement('img');
+      image.className = 'lab-prop-image';
+      image.alt = props?.label ?? 'Elemento visual';
+      image.draggable = false;
+      container.appendChild(image);
+
+      const applyProps = (nextProps = {}) => {
+        const label = nextProps.label ?? 'Elemento visual';
+        const width = Number(nextProps.width);
+        const height = Number(nextProps.height);
+        const opacity = Number(nextProps.opacity);
+        const src = nextProps.src ?? nextProps.image ?? nextProps.url ?? '';
+        if (src) {
+          image.src = src;
+        }
+        image.alt = label;
+        container.title = label;
+        container.style.width = `${Number.isFinite(width) ? width : 220}px`;
+        container.style.height = `${Number.isFinite(height) ? height : 220}px`;
+        container.style.opacity = `${Number.isFinite(opacity) ? Math.max(0, Math.min(1, opacity)) : 1}`;
+      };
+
+      applyProps(props ?? {});
+      return { element: container, applyProps };
+    },
+    createPreview: () => {
+      const container = document.createElement('div');
+      container.className = 'lab-prop-shell lab-prop-preview';
+      const image = document.createElement('div');
+      image.className = 'lab-prop-placeholder';
+      image.textContent = 'LAB';
+      container.appendChild(image);
+      return container;
+    },
+    propertyControls: [
+      {
+        label: 'Nome',
+        control: {
+          type: 'text',
+          propKey: 'label',
+          placeholder: 'Elemento visual',
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+      },
+      {
+        label: 'Largura (px)',
+        control: {
+          type: 'number',
+          propKey: 'width',
+          min: 20,
+          max: 2000,
+          step: 1,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+      },
+      {
+        label: 'Altura (px)',
+        control: {
+          type: 'number',
+          propKey: 'height',
+          min: 20,
+          max: 2000,
+          step: 1,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+      },
+      {
+        label: 'Opacidade',
+        control: {
+          type: 'number',
+          propKey: 'opacity',
+          min: 0,
+          max: 1,
+          step: 0.05,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+      },
+    ],
+  },
+  {
     id: 'buzzer',
     name: 'Buzzer',
     element: 'wokwi-buzzer',

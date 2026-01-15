@@ -17,6 +17,7 @@ let flipButton;
 let tutorialButton;
 let wireColorButton;
 let wireColorSwatch;
+let labButton;
 
 let currentToolbarHandlers = {
   onPlayPause: null,
@@ -28,6 +29,7 @@ let currentToolbarHandlers = {
   onRotateComponent: null,
   onFlipComponent: null,
   onWireColorPicker: null,
+  onToggleLab: null,
 };
 
 let contextMenu;
@@ -176,6 +178,12 @@ function renderToolbar() {
   }, 'btn-tutorial');
   tutorialButton.title = 'Abrir tutorial guiado';
 
+  labButton = createToolbarButton('🧪 Laboratorio', () => {
+    currentToolbarHandlers.onToggleLab?.();
+  }, 'btn-lab');
+  labButton.title = 'Abrir laboratorio visual';
+  labButton.setAttribute('aria-pressed', 'false');
+
   toolbarElement.append(
     playPauseButton,
     clearButton,
@@ -190,6 +198,7 @@ function renderToolbar() {
     flipButton,
     wireColorButton,
     tutorialButton,
+    labButton,
   );
 
   setTransformControlsState({ canRotate: false, canFlip: false });
@@ -542,6 +551,12 @@ export function setTransformControlsState(state = {}) {
   if (flipButton) {
     flipButton.disabled = !canFlip;
   }
+}
+
+export function setLabButtonState(isActive) {
+  if (!labButton) return;
+  labButton.classList.toggle('active', Boolean(isActive));
+  labButton.setAttribute('aria-pressed', String(Boolean(isActive)));
 }
 
 export function setWireColorControlState({ enabled = false, color = null } = {}) {

@@ -479,6 +479,13 @@ export class CanvasManager {
         container.removeEventListener('pointercancel', handlePointerUp);
 
         if (moved) {
+          if (component.type === 'lab-prop') {
+            window.dispatchEvent(
+              new CustomEvent('simulator-pattern-interaction', {
+                detail: { source: 'lab-prop' },
+              }),
+            );
+          }
           this.snapComponentToProtoboard(component);
           this.notifyInteraction();
           if (component.type === 'photoresistor') {

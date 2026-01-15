@@ -10,6 +10,7 @@ import {
   appendSerialLog,
   clearSerialMonitor,
   setTransformControlsState,
+  setLabButtonState,
   setWireColorControlState,
   showColorPicker,
   hideColorPicker,
@@ -38,6 +39,67 @@ let undoStack = [];
 let redoStack = [];
 let lastSnapshot = null;
 let lastSnapshotHash = null;
+let labModeEnabled = false;
+let labPanel = null;
+let labLibraryList = null;
+let labUploadInput = null;
+
+function svgTextToDataUrl(svgText) {
+  const cleaned = String(svgText ?? '').trim();
+  return `data:image/svg+xml;utf8,${encodeURIComponent(cleaned)}`;
+}
+
+function getLabLibraryItems() {
+  return [
+    {
+      id: 'traffic-light',
+      name: 'Semaforo',
+      subtitle: 'Semaforo basico',
+      width: 120,
+      height: 280,
+      src: svgTextToDataUrl(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="160" height="320" viewBox="0 0 160 320">
+          <rect x="40" y="12" width="80" height="212" rx="12" fill="#1f2937"/>
+          <circle cx="80" cy="60" r="22" fill="#e5e7eb"/>
+          <circle cx="80" cy="120" r="22" fill="#e5e7eb"/>
+          <circle cx="80" cy="180" r="22" fill="#e5e7eb"/>
+          <rect x="70" y="230" width="20" height="70" fill="#374151"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'house',
+      name: 'Casa',
+      subtitle: 'Estrutura simples',
+      width: 220,
+      height: 180,
+      src: svgTextToDataUrl(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="220" height="180" viewBox="0 0 220 180">
+          <polygon points="110,18 18,86 202,86" fill="#ef4444"/>
+          <rect x="40" y="80" width="140" height="88" fill="#f5c27b" stroke="#d97706" stroke-width="4"/>
+          <rect x="96" y="112" width="28" height="50" fill="#7c2d12"/>
+          <rect x="60" y="100" width="26" height="26" fill="#93c5fd"/>
+          <rect x="134" y="100" width="26" height="26" fill="#93c5fd"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'tank',
+      name: 'Reservatorio',
+      subtitle: 'Tanque de agua',
+      width: 200,
+      height: 160,
+      src: svgTextToDataUrl(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="160" viewBox="0 0 200 160">
+          <rect x="20" y="40" width="160" height="90" rx="12" fill="#38bdf8"/>
+          <rect x="20" y="30" width="160" height="24" rx="10" fill="#0284c7"/>
+          <rect x="48" y="130" width="104" height="16" rx="8" fill="#0f172a"/>
+        </svg>
+      `),
+    },
+  ];
+}
+
 let isApplyingHistory = false;
 let historySuspended = false;
 let examplesList = [];
@@ -103,6 +165,7 @@ window.addEventListener('DOMContentLoaded', () => {
     onRotateComponent: handleRotateSelectedComponent,
     onFlipComponent: handleFlipSelectedComponent,
     onWireColorPicker: handleWireColorPicker,
+    onToggleLab: toggleLabMode,
     onUndo: () => {
       Promise.resolve(performUndo()).catch(() => {});
     },
@@ -130,6 +193,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setupDropZone();
   setupKeyboardShortcuts();
   attachSimulationInteractionBypass();
+  setupLabPanel();
   blocklyWorkspace = initBlocklyWorkspace();
   setupBlocklyPanelControls();
   attachBlocklyAutoSave();
@@ -637,6 +701,140 @@ function handleWireColorPicker() {
       setWireColorControlState({ enabled: true, color: newColor });
     },
   });
+}
+
+function setLabMode(isEnabled) {
+  labModeEnabled = Boolean(isEnabled);
+  document.body.classList.toggle('lab-mode', labModeEnabled);
+  if (labPanel) {
+    labPanel.setAttribute('aria-hidden', labModeEnabled ? 'false' : 'true');
+  }
+  if (!labModeEnabled && canvasManager?.selectedComponentId) {
+    const selected = canvasManager.getComponentById?.(canvasManager.selectedComponentId);
+    if (selected?.type === 'lab-prop') {
+      clearSimulationSelection();
+    }
+  }
+  setLabButtonState(labModeEnabled);
+}
+
+function toggleLabMode() {
+  setLabMode(!labModeEnabled);
+}
+
+function getWorkspaceCenterPosition() {
+  if (!canvasManager?.workspace) return { x: 0, y: 0 };
+  const rect = canvasManager.workspace.getBoundingClientRect();
+  return canvasManager.clientToWorkspace(rect.left + rect.width / 2, rect.top + rect.height / 2);
+}
+
+async function addLabProp({ name, src, width = 200, height = 200 } = {}) {
+  if (!canvasManager || !src) return;
+  const center = getWorkspaceCenterPosition();
+  const posX = center.x - width / 2;
+  const posY = center.y - height / 2;
+  await canvasManager.addComponent('lab-prop', posX, posY, {
+    props: {
+      label: name ?? 'Elemento visual',
+      src,
+      width,
+      height,
+      opacity: 1,
+    },
+    zIndex: 2,
+  });
+  setLabMode(true);
+}
+
+function renderLabLibrary() {
+  if (!labLibraryList) return;
+  const items = getLabLibraryItems();
+  labLibraryList.innerHTML = '';
+  items.forEach((item) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'lab-item-card';
+    card.addEventListener('click', () => {
+      addLabProp({
+        name: item.name,
+        src: item.src,
+        width: item.width,
+        height: item.height,
+      });
+    });
+
+    const preview = document.createElement('div');
+    preview.className = 'lab-item-preview';
+    const img = document.createElement('img');
+    img.src = item.src;
+    img.alt = item.name;
+    preview.appendChild(img);
+
+    const info = document.createElement('div');
+    info.className = 'lab-item-info';
+    const title = document.createElement('div');
+    title.className = 'lab-item-title';
+    title.textContent = item.name;
+    const subtitle = document.createElement('div');
+    subtitle.className = 'lab-item-subtitle';
+    subtitle.textContent = item.subtitle ?? 'Elemento visual';
+    info.append(title, subtitle);
+
+    card.append(preview, info);
+    labLibraryList.appendChild(card);
+  });
+}
+
+function ensureLabUploadInput() {
+  if (labUploadInput) return labUploadInput;
+  labUploadInput = document.createElement('input');
+  labUploadInput.type = 'file';
+  labUploadInput.accept = 'image/*,.svg';
+  labUploadInput.style.display = 'none';
+  document.body.appendChild(labUploadInput);
+  return labUploadInput;
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error ?? new Error('Falha ao ler arquivo.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function handleLabUpload() {
+  const input = ensureLabUploadInput();
+  input.value = '';
+  input.onchange = async (event) => {
+    const [file] = event.target.files ?? [];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showAlert('Selecione um arquivo de imagem valido.');
+      return;
+    }
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      const name = file.name.replace(/\.[^.]+$/, '') || 'Imagem';
+      await addLabProp({ name, src: dataUrl, width: 240, height: 240 });
+    } catch {
+      showAlert('Nao foi possivel carregar a imagem.');
+    }
+  };
+  input.click();
+}
+
+function setupLabPanel() {
+  labPanel = document.getElementById('lab-panel');
+  if (!labPanel) return;
+  labLibraryList = labPanel.querySelector('.lab-library-list');
+  const closeButton = labPanel.querySelector('#lab-panel-close');
+  const uploadButton = labPanel.querySelector('#lab-upload-button');
+  closeButton?.addEventListener('click', () => setLabMode(false));
+  uploadButton?.addEventListener('click', handleLabUpload);
+  renderLabLibrary();
+  setLabMode(false);
 }
 
 function handleSerialLog(entry) {
