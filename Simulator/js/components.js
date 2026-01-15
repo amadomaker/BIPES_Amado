@@ -1323,6 +1323,8 @@ export const availableComponents = [
           min: -20,
           max: 80,
           step: 0.5,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
         },
       },
       {
@@ -1333,6 +1335,8 @@ export const availableComponents = [
           min: 0,
           max: 100,
           step: 1,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
         },
       },
     ],
