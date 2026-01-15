@@ -51,7 +51,7 @@ function createLevelSelectorShadow(Blockly) {
   return shadow;
 }
 
-function createServoNameField(Blockly, defaultValue = 'Servo 1') {
+function createServoNameField(Blockly, defaultValue = 'servo1') {
   const FieldTextInput = Blockly.FieldTextInput ?? Blockly.FieldInput ?? null;
   if (!FieldTextInput) {
     return null;
@@ -881,7 +881,7 @@ export function registerAmadoBlocks(Blockly) {
     init() {
       this.appendDummyInput()
         .appendField('mover servo')
-        .appendField(createServoNameField(Blockly, 'Servo 1') ?? 'Servo 1', 'NAME');
+        .appendField(createServoNameField(Blockly, 'servo1') ?? 'servo1', 'NAME');
 
       const angleInput = this.appendValueInput('ANGLE')
         .setCheck('Number')
