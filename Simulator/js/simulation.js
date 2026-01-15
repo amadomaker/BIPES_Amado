@@ -4115,7 +4115,18 @@ class Simulation {
 
     this.requireSignalPinElement(componentId, pinName);
 
+    const canonicalPin = this.canonicalPinName(pinName);
     const analogCandidate = this.tryParseAnalogLevel(level);
+    if (this.isInputOnlyPin(canonicalPin)) {
+      if (analogCandidate !== null) {
+        throw new Error(`O pino ${canonicalPin} é apenas entrada e não suporta saída digital.`);
+      }
+      const normalizedInput = this.normalizePinLevel(level);
+      if (normalizedInput !== 'floating') {
+        throw new Error(`O pino ${canonicalPin} é apenas entrada e não suporta saída digital.`);
+      }
+    }
+
     if (analogCandidate !== null) {
       const result = this.setBoardPinAnalogLevel(componentId, pinName, analogCandidate);
       this.updateBoardIndicator(componentId, pinName, analogCandidate > 0);
@@ -4125,7 +4136,6 @@ class Simulation {
 
     const normalized = this.normalizePinLevel(level);
     const key = this.getBoardPinKey(componentId, pinName);
-
     if (normalized === 'floating') {
       this.boardPinStates.delete(key);
       this.boardAnalogLevels.delete(key);
