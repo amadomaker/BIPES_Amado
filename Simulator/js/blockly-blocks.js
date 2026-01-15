@@ -1408,9 +1408,21 @@ export function registerAmadoBlocks(Blockly) {
     let branch = javascriptGenerator.statementToCode(block, 'DO');
     branch = javascriptGenerator.addLoopTrap(branch, block.id);
     branch = appendLoopYield(branch);
-    const code =
-      `for (let ${variable} = ${from}; ${variable} <= ${to}; ${variable} += ${by}) {\n${branch}}\n`;
-    return code;
+    const start = javascriptGenerator.nameDB_.getDistinctName('for_start', Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE');
+    const end = javascriptGenerator.nameDB_.getDistinctName('for_end', Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE');
+    const step = javascriptGenerator.nameDB_.getDistinctName('for_step', Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE');
+    return (
+      `{\n` +
+      `  const ${start} = ${from};\n` +
+      `  const ${end} = ${to};\n` +
+      `  const ${step} = ${by};\n` +
+      `  if (${step} > 0) {\n` +
+      `    for (let ${variable} = ${start}; ${variable} <= ${end}; ${variable} += ${step}) {\n${branch}}\n` +
+      `  } else if (${step} < 0) {\n` +
+      `    for (let ${variable} = ${start}; ${variable} >= ${end}; ${variable} += ${step}) {\n${branch}}\n` +
+      `  }\n` +
+      `}\n`
+    );
   };
 
   javascriptGenerator.forBlock.controls_forEach = function controlsForEach(block) {
