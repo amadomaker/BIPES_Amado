@@ -1901,8 +1901,59 @@ class CircuitSnapshot {
       }
     }
 
+    if (component.type === 'rain-module') {
+      if (normalizedPin === 'AO') {
+        const level = this.getRainSensorLevelForModule(componentId);
+        if (Number.isFinite(level)) {
+          const analog = Math.round((Math.max(0, Math.min(100, level)) / 100) * ADC_MAX_VALUE);
+          this.boardAnalogLevels.set(key, analog);
+          this.boardPinStates.set(key, analog <= 0 ? 'low' : 'high');
+          return analog;
+        }
+      }
+    }
+
     const stored = this.boardAnalogLevels.get(key);
     return Number.isFinite(stored) ? stored : null;
+  }
+
+  getRainSensorLevelForModule(moduleComponentId) {
+    if (!this.canvasManager?.wiringManager) return null;
+    const module = this.canvasManager.getComponentById(moduleComponentId);
+    if (!module) return null;
+
+    const connections = this.canvasManager.wiringManager.connections ?? [];
+    const isModuleSensorPin = (pinElement) => {
+      if (!pinElement?.dataset) return false;
+      if (pinElement.dataset.componentId !== moduleComponentId) return false;
+      const name = String(pinElement.dataset.pinName ?? '').toUpperCase();
+      return name === 'S1' || name === 'S2';
+    };
+
+    let sensorComponent = null;
+    for (const connection of connections) {
+      const pin1 = connection?.pin1;
+      const pin2 = connection?.pin2;
+      if (isModuleSensorPin(pin1) && pin2?.dataset?.componentId) {
+        const other = this.canvasManager.getComponentById(pin2.dataset.componentId);
+        if (other?.type === 'rain-sensor') {
+          sensorComponent = other;
+          break;
+        }
+      }
+      if (isModuleSensorPin(pin2) && pin1?.dataset?.componentId) {
+        const other = this.canvasManager.getComponentById(pin1.dataset.componentId);
+        if (other?.type === 'rain-sensor') {
+          sensorComponent = other;
+          break;
+        }
+      }
+    }
+
+    if (!sensorComponent) return null;
+    const level = Number(sensorComponent.props?.rainLevel ?? sensorComponent.state?.rainLevel);
+    if (!Number.isFinite(level)) return null;
+    return Math.max(0, Math.min(100, level));
   }
 
   getComponentPinVoltageOverride(component, pinName) {
@@ -1939,6 +1990,18 @@ class CircuitSnapshot {
           return ratio >= 0.5 ? 'high' : 'low';
         }
         return 'low';
+      }
+    }
+    if (type === 'rain-module') {
+      const pin = String(pinName).toUpperCase();
+      if (pin === 'DO' || pin === 'DIGITAL') {
+        const level = this.getRainSensorLevelForModule(component.id);
+        const threshold = Number(component.props?.digitalThreshold ?? 50);
+        const resolvedThreshold = Number.isFinite(threshold)
+          ? Math.max(0, Math.min(100, threshold))
+          : 50;
+        if (!Number.isFinite(level)) return 'low';
+        return level >= resolvedThreshold ? 'high' : 'low';
       }
     }
     return null;

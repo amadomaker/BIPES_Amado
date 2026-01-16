@@ -1236,6 +1236,102 @@ export const availableComponents = [
     createPreview: () => createWokwiPreview('wokwi-photoresistor-sensor', {}),
   },
   {
+    id: 'rain-sensor',
+    name: 'Sensor de chuva',
+    element: null,
+    description: 'Placa sensora de chuva para uso com modulo.',
+    group: 'sensors',
+    defaultProps: { rainLevel: 50 },
+    pins: [
+      { name: 'S1', type: 'signal', position: { xPercent: 46, yPercent: 92 } },
+      { name: 'S2', type: 'signal', position: { xPercent: 54, yPercent: 92 } },
+    ],
+    createInstance: () => {
+      const container = document.createElement('div');
+      container.className = 'rain-sensor-shell';
+      const image = document.createElement('img');
+      image.src = 'css/components/sensor_chuva.svg';
+      image.alt = 'Sensor de chuva';
+      image.draggable = false;
+      container.appendChild(image);
+      return { element: container };
+    },
+    createPreview: () => {
+      const container = document.createElement('div');
+      container.className = 'rain-sensor-shell rain-sensor-preview';
+      const image = document.createElement('img');
+      image.src = 'css/components/sensor_chuva.svg';
+      image.alt = 'Sensor de chuva';
+      image.draggable = false;
+      container.appendChild(image);
+      return container;
+    },
+    propertyControls: [
+      {
+        label: 'Chuva (%)',
+        control: {
+          type: 'number',
+          propKey: 'rainLevel',
+          min: 0,
+          max: 100,
+          step: 1,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+      },
+    ],
+  },
+  {
+    id: 'rain-module',
+    name: 'Modulo do sensor de chuva',
+    element: null,
+    description: 'Modulo de leitura para o sensor de chuva.',
+    group: 'sensors',
+    defaultProps: { digitalThreshold: 50 },
+    pins: [
+      { name: 'S1', type: 'signal', position: { xPercent: 24, yPercent: 90 } },
+      { name: 'S2', type: 'signal', position: { xPercent: 34, yPercent: 90 } },
+      { name: 'VCC', type: 'power', position: { xPercent: 52, yPercent: 90 } },
+      { name: 'AO', type: 'signal', position: { xPercent: 62, yPercent: 90 } },
+      { name: 'DO', type: 'signal', position: { xPercent: 72, yPercent: 90 } },
+      { name: 'GND', type: 'ground', position: { xPercent: 82, yPercent: 90 } },
+    ],
+    createInstance: () => {
+      const container = document.createElement('div');
+      container.className = 'rain-module-shell';
+      const image = document.createElement('img');
+      image.src = 'css/components/modulo_sensores_svg.svg';
+      image.alt = 'Modulo sensor de chuva';
+      image.draggable = false;
+      container.appendChild(image);
+      return { element: container };
+    },
+    createPreview: () => {
+      const container = document.createElement('div');
+      container.className = 'rain-module-shell rain-module-preview';
+      const image = document.createElement('img');
+      image.src = 'css/components/modulo_sensores_svg.svg';
+      image.alt = 'Modulo sensor de chuva';
+      image.draggable = false;
+      container.appendChild(image);
+      return container;
+    },
+    propertyControls: [
+      {
+        label: 'Limite digital (%)',
+        control: {
+          type: 'number',
+          propKey: 'digitalThreshold',
+          min: 0,
+          max: 100,
+          step: 1,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+      },
+    ],
+  },
+  {
     id: 'ultrasonic-sensor',
     name: 'Sensor Ultrassônico HC-SR04',
     element: null,

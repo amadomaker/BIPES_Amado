@@ -2123,6 +2123,47 @@ body.lab-mode .lab-panel {
   transform-origin: center;
 }
 
+.rain-sensor-shell,
+.rain-module-shell {
+  position: relative;
+  display: inline-flex;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  pointer-events: none;
+  user-select: none;
+}
+
+.rain-sensor-shell img {
+  position: relative;
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+  pointer-events: auto;
+  display: block;
+}
+
+.rain-module-shell img {
+  position: relative;
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+  pointer-events: auto;
+  display: block;
+}
+
+.rain-sensor-preview {
+  transform: translateY(1px) scale(0.6);
+  transform-origin: center;
+}
+
+.rain-module-preview {
+  transform: translateY(1px) scale(0.55);
+  transform-origin: center;
+}
+
 .tutorial-overlay {
   position: fixed;
   inset: 0;
