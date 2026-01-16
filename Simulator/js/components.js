@@ -1350,8 +1350,11 @@ export const availableComponents = [
     defaultProps: {
       label: 'Elemento visual',
       src: '',
+      baseWidth: 220,
+      baseHeight: 220,
       width: 220,
       height: 220,
+      scale: 100,
     },
     pins: [],
     createInstance: ({ props }) => {
@@ -1367,14 +1370,20 @@ export const availableComponents = [
         const label = nextProps.label ?? 'Elemento visual';
         const width = Number(nextProps.width);
         const height = Number(nextProps.height);
+        const baseWidth = Number(nextProps.baseWidth ?? width);
+        const baseHeight = Number(nextProps.baseHeight ?? height);
+        const scale = Number(nextProps.scale ?? 100);
         const src = nextProps.src ?? nextProps.image ?? nextProps.url ?? '';
         if (src) {
           image.src = src;
         }
         image.alt = label;
         container.title = label;
-        container.style.width = `${Number.isFinite(width) ? width : 220}px`;
-        container.style.height = `${Number.isFinite(height) ? height : 220}px`;
+        const resolvedBaseWidth = Number.isFinite(baseWidth) ? baseWidth : 220;
+        const resolvedBaseHeight = Number.isFinite(baseHeight) ? baseHeight : 220;
+        const resolvedScale = Number.isFinite(scale) ? Math.max(10, Math.min(400, scale)) : 100;
+        container.style.width = `${resolvedBaseWidth * (resolvedScale / 100)}px`;
+        container.style.height = `${resolvedBaseHeight * (resolvedScale / 100)}px`;
       };
 
       applyProps(props ?? {});
@@ -1401,25 +1410,13 @@ export const availableComponents = [
         },
       },
       {
-        label: 'Largura (px)',
+        label: 'Tamanho (%)',
         control: {
           type: 'number',
-          propKey: 'width',
-          min: 20,
-          max: 2000,
-          step: 1,
-          dispatchInteractionEvent: true,
-          interactionEventDetail: { source: 'component-property' },
-        },
-      },
-      {
-        label: 'Altura (px)',
-        control: {
-          type: 'number',
-          propKey: 'height',
-          min: 20,
-          max: 2000,
-          step: 1,
+          propKey: 'scale',
+          min: 10,
+          max: 400,
+          step: 5,
           dispatchInteractionEvent: true,
           interactionEventDetail: { source: 'component-property' },
         },

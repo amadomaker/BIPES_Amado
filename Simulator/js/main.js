@@ -856,8 +856,11 @@ async function addLabProp({ name, src, width = 200, height = 200 } = {}) {
     props: {
       label: name ?? 'Elemento visual',
       src,
+      baseWidth: width,
+      baseHeight: height,
       width,
       height,
+      scale: 100,
     },
     zIndex: 2,
   });
