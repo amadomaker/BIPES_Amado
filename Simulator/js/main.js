@@ -43,6 +43,7 @@ let labModeEnabled = false;
 let labPanel = null;
 let labLibraryList = null;
 let labUploadInput = null;
+let labPanelVisible = true;
 
 function svgTextToDataUrl(svgText) {
   const cleaned = String(svgText ?? '').trim();
@@ -64,6 +65,110 @@ function getLabLibraryItems() {
           <circle cx="80" cy="120" r="22" fill="#e5e7eb"/>
           <circle cx="80" cy="180" r="22" fill="#e5e7eb"/>
           <rect x="70" y="230" width="20" height="70" fill="#374151"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'traffic-pole',
+      name: 'Poste semaforo',
+      subtitle: 'Poste com braco',
+      width: 220,
+      height: 180,
+      src: svgTextToDataUrl(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="220" height="180" viewBox="0 0 220 180">
+          <rect x="30" y="20" width="16" height="140" fill="#475569"/>
+          <rect x="30" y="24" width="120" height="12" fill="#64748b"/>
+          <rect x="142" y="24" width="40" height="64" rx="8" fill="#1f2937"/>
+          <circle cx="162" cy="40" r="10" fill="#e5e7eb"/>
+          <circle cx="162" cy="60" r="10" fill="#e5e7eb"/>
+          <rect x="22" y="158" width="40" height="8" fill="#111827"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'traffic-pole-3',
+      name: 'Poste semaforo (3)',
+      subtitle: 'Poste com 3 espacos',
+      width: 220,
+      height: 200,
+      src: svgTextToDataUrl(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="220" height="200" viewBox="0 0 220 200">
+          <rect x="30" y="24" width="16" height="160" fill="#475569"/>
+          <rect x="30" y="28" width="120" height="12" fill="#64748b"/>
+          <rect x="142" y="28" width="40" height="104" rx="8" fill="#1f2937"/>
+          <circle cx="162" cy="48" r="10" fill="#e5e7eb"/>
+          <circle cx="162" cy="78" r="10" fill="#e5e7eb"/>
+          <circle cx="162" cy="108" r="10" fill="#e5e7eb"/>
+          <rect x="22" y="184" width="40" height="8" fill="#111827"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'gate',
+      name: 'Portao',
+      subtitle: 'Portao automatico',
+      width: 220,
+      height: 140,
+      src: svgTextToDataUrl(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="220" height="140" viewBox="0 0 220 140">
+          <rect x="20" y="30" width="180" height="80" rx="8" fill="#1f2937"/>
+          <rect x="26" y="36" width="168" height="68" fill="#334155"/>
+          <rect x="34" y="46" width="18" height="48" fill="#94a3b8"/>
+          <rect x="62" y="46" width="18" height="48" fill="#94a3b8"/>
+          <rect x="90" y="46" width="18" height="48" fill="#94a3b8"/>
+          <rect x="118" y="46" width="18" height="48" fill="#94a3b8"/>
+          <rect x="146" y="46" width="18" height="48" fill="#94a3b8"/>
+          <rect x="174" y="46" width="18" height="48" fill="#94a3b8"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'solar-panel',
+      name: 'Painel solar',
+      subtitle: 'Energia solar',
+      width: 220,
+      height: 160,
+      src: svgTextToDataUrl(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="220" height="160" viewBox="0 0 220 160">
+          <polygon points="30,40 190,20 200,120 40,140" fill="#1e3a8a"/>
+          <line x1="60" y1="44" x2="180" y2="30" stroke="#93c5fd" stroke-width="2"/>
+          <line x1="56" y1="64" x2="186" y2="50" stroke="#93c5fd" stroke-width="2"/>
+          <line x1="52" y1="84" x2="192" y2="70" stroke="#93c5fd" stroke-width="2"/>
+          <line x1="48" y1="104" x2="198" y2="90" stroke="#93c5fd" stroke-width="2"/>
+          <rect x="96" y="120" width="8" height="22" fill="#334155"/>
+          <rect x="120" y="116" width="8" height="26" fill="#334155"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'robot-base',
+      name: 'Robo base',
+      subtitle: 'Chassi simples',
+      width: 200,
+      height: 140,
+      src: svgTextToDataUrl(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="140" viewBox="0 0 200 140">
+          <rect x="30" y="40" width="140" height="60" rx="12" fill="#0f172a"/>
+          <circle cx="50" cy="110" r="18" fill="#1f2937"/>
+          <circle cx="150" cy="110" r="18" fill="#1f2937"/>
+          <rect x="70" y="50" width="60" height="20" rx="6" fill="#38bdf8"/>
+          <rect x="90" y="30" width="20" height="14" fill="#64748b"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'siren',
+      name: 'Sirene',
+      subtitle: 'Luz de alerta',
+      width: 160,
+      height: 140,
+      src: svgTextToDataUrl(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="160" height="140" viewBox="0 0 160 140">
+          <rect x="50" y="70" width="60" height="40" rx="8" fill="#ef4444"/>
+          <rect x="60" y="40" width="40" height="34" rx="12" fill="#f87171"/>
+          <rect x="46" y="112" width="68" height="10" rx="5" fill="#1f2937"/>
+          <line x1="24" y1="50" x2="40" y2="44" stroke="#f97316" stroke-width="6"/>
+          <line x1="136" y1="50" x2="120" y2="44" stroke="#f97316" stroke-width="6"/>
         </svg>
       `),
     },
@@ -707,7 +812,11 @@ function setLabMode(isEnabled) {
   labModeEnabled = Boolean(isEnabled);
   document.body.classList.toggle('lab-mode', labModeEnabled);
   if (labPanel) {
+    labPanel.classList.toggle('is-hidden', !labModeEnabled);
     labPanel.setAttribute('aria-hidden', labModeEnabled ? 'false' : 'true');
+    if (labModeEnabled) {
+      setLabPanelVisible(labPanelVisible);
+    }
   }
   if (!labModeEnabled && canvasManager?.selectedComponentId) {
     const selected = canvasManager.getComponentById?.(canvasManager.selectedComponentId);
@@ -720,6 +829,16 @@ function setLabMode(isEnabled) {
 
 function toggleLabMode() {
   setLabMode(!labModeEnabled);
+}
+
+function setLabPanelVisible(isVisible) {
+  labPanelVisible = Boolean(isVisible);
+  if (!labPanel || !labModeEnabled) return;
+  labPanel.classList.toggle('is-collapsed', !labPanelVisible);
+  const openButton = labPanel.querySelector('#lab-panel-open');
+  if (openButton) {
+    openButton.setAttribute('aria-expanded', labPanelVisible ? 'true' : 'false');
+  }
 }
 
 function getWorkspaceCenterPosition() {
@@ -739,7 +858,6 @@ async function addLabProp({ name, src, width = 200, height = 200 } = {}) {
       src,
       width,
       height,
-      opacity: 1,
     },
     zIndex: 2,
   });
@@ -830,8 +948,10 @@ function setupLabPanel() {
   if (!labPanel) return;
   labLibraryList = labPanel.querySelector('.lab-library-list');
   const closeButton = labPanel.querySelector('#lab-panel-close');
+  const openButton = labPanel.querySelector('#lab-panel-open');
   const uploadButton = labPanel.querySelector('#lab-upload-button');
-  closeButton?.addEventListener('click', () => setLabMode(false));
+  closeButton?.addEventListener('click', () => setLabPanelVisible(false));
+  openButton?.addEventListener('click', () => setLabPanelVisible(true));
   uploadButton?.addEventListener('click', handleLabUpload);
   renderLabLibrary();
   setLabMode(false);

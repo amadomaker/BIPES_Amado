@@ -185,6 +185,41 @@ body.lab-mode .lab-panel {
   display: flex;
 }
 
+.lab-panel.is-hidden {
+  display: none !important;
+}
+
+.lab-panel.is-collapsed {
+  width: 190px;
+}
+
+.lab-panel.is-collapsed .lab-panel-header,
+.lab-panel.is-collapsed .lab-panel-actions,
+.lab-panel.is-collapsed .lab-library-list {
+  display: none;
+}
+
+.lab-panel-collapsed {
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.lab-panel.is-collapsed .lab-panel-collapsed {
+  display: flex;
+}
+
+.lab-panel-open {
+  width: 100%;
+  border: 1px solid #cbd3e6;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .lab-panel-header {
   display: flex;
   align-items: center;

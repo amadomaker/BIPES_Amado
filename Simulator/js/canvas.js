@@ -519,6 +519,8 @@ export class CanvasManager {
       showComponentContextMenu(event.clientX, event.clientY, {
         onBringToFront:
           component.type === 'protoboard-half' ? null : () => this.bringComponentToFront(id),
+        onSendToBack:
+          component.type === 'protoboard-half' ? null : () => this.sendComponentToBack(id),
         onDelete: () => this.removeComponent(id),
       });
     });
@@ -533,6 +535,40 @@ export class CanvasManager {
       return Number.isFinite(value) ? Math.max(currentMax, value) : currentMax;
     }, 1);
     component.container.style.zIndex = String(maxZ + 1);
+    this.notifyInteraction();
+  }
+
+  sendComponentToBack(componentId) {
+    const component = this.getComponentById(componentId);
+    if (!component || component.type === 'protoboard-half') return;
+
+    const otherComponents = this.components.filter(
+      (entry) => entry.type !== 'protoboard-half' && entry.id !== componentId,
+    );
+    if (!otherComponents.length) {
+      component.container.style.zIndex = '1';
+      this.notifyInteraction();
+      return;
+    }
+
+    const zIndices = otherComponents.map((entry) => {
+      const value = Number.parseInt(entry.container.style.zIndex, 10);
+      return Number.isFinite(value) ? value : 1;
+    });
+    const minZ = Math.min(...zIndices);
+
+    if (minZ <= 1) {
+      otherComponents.forEach((entry) => {
+        const value = Number.parseInt(entry.container.style.zIndex, 10);
+        if (!Number.isFinite(value) || value <= 1) {
+          entry.container.style.zIndex = '2';
+        }
+      });
+      component.container.style.zIndex = '1';
+    } else {
+      component.container.style.zIndex = String(minZ - 1);
+    }
+
     this.notifyInteraction();
   }
 

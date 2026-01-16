@@ -1352,7 +1352,6 @@ export const availableComponents = [
       src: '',
       width: 220,
       height: 220,
-      opacity: 1,
     },
     pins: [],
     createInstance: ({ props }) => {
@@ -1368,7 +1367,6 @@ export const availableComponents = [
         const label = nextProps.label ?? 'Elemento visual';
         const width = Number(nextProps.width);
         const height = Number(nextProps.height);
-        const opacity = Number(nextProps.opacity);
         const src = nextProps.src ?? nextProps.image ?? nextProps.url ?? '';
         if (src) {
           image.src = src;
@@ -1377,7 +1375,6 @@ export const availableComponents = [
         container.title = label;
         container.style.width = `${Number.isFinite(width) ? width : 220}px`;
         container.style.height = `${Number.isFinite(height) ? height : 220}px`;
-        container.style.opacity = `${Number.isFinite(opacity) ? Math.max(0, Math.min(1, opacity)) : 1}`;
       };
 
       applyProps(props ?? {});
@@ -1423,18 +1420,6 @@ export const availableComponents = [
           min: 20,
           max: 2000,
           step: 1,
-          dispatchInteractionEvent: true,
-          interactionEventDetail: { source: 'component-property' },
-        },
-      },
-      {
-        label: 'Opacidade',
-        control: {
-          type: 'number',
-          propKey: 'opacity',
-          min: 0,
-          max: 1,
-          step: 0.05,
           dispatchInteractionEvent: true,
           interactionEventDetail: { source: 'component-property' },
         },

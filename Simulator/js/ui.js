@@ -410,10 +410,17 @@ export function clearPropertiesPanel() {
   lastPropertiesAnchor = null;
 }
 
-export function showComponentContextMenu(x, y, { onDelete, onBringToFront } = {}) {
+export function showComponentContextMenu(
+  x,
+  y,
+  { onDelete, onBringToFront, onSendToBack } = {},
+) {
   const items = [];
   if (onBringToFront) {
     items.push({ label: 'Trazer para frente', action: onBringToFront });
+  }
+  if (onSendToBack) {
+    items.push({ label: 'Enviar para tras', action: onSendToBack });
   }
   if (onDelete) {
     items.push({ label: 'Excluir componente', action: onDelete });
