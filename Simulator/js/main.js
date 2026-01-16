@@ -173,6 +173,14 @@ function getLabLibraryItems() {
       `),
     },
     {
+      id: 'conveyor',
+      name: 'Esteira',
+      subtitle: 'Esteira industrial',
+      width: 260,
+      height: 120,
+      src: 'css/components/esteira_biblioteca.png',
+    },
+    {
       id: 'house',
       name: 'Casa',
       subtitle: 'Estrutura simples',
