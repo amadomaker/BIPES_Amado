@@ -713,6 +713,23 @@ body.lab-mode .lab-panel {
   line-height: 1.4;
 }
 
+.properties-popover-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.properties-popover-range-input {
+  width: 120px;
+}
+
+.properties-popover-range-value {
+  min-width: 28px;
+  text-align: right;
+  font-size: 12px;
+  color: #64748b;
+}
+
 /* Estilos dos componentes no canvas */
 .canvas-component {
   padding: 0;

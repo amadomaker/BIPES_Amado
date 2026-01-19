@@ -398,6 +398,62 @@ function buildControl(control) {
       }
       return input;
     }
+    case 'range': {
+      const wrapper = document.createElement('span');
+      wrapper.className = 'properties-popover-range';
+
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.className = 'properties-popover-range-input';
+      if (control.min !== undefined) {
+        input.min = String(control.min);
+      }
+      if (control.max !== undefined) {
+        input.max = String(control.max);
+      }
+      if (control.step !== undefined) {
+        input.step = String(control.step);
+      }
+      if (control.value !== undefined && control.value !== null) {
+        input.value = String(control.value);
+      }
+
+      const valueSpan = document.createElement('span');
+      valueSpan.className = 'properties-popover-range-value';
+      valueSpan.textContent =
+        control.value !== undefined && control.value !== null ? String(control.value) : '';
+
+      const syncValue = (value) => {
+        valueSpan.textContent = String(value);
+        control.onChange?.(value);
+      };
+
+      const syncInputValue = (value) => {
+        valueSpan.textContent = String(value);
+        control.onInput?.(value);
+      };
+
+      const setValueFromPointer = (event) => {
+        const rect = input.getBoundingClientRect();
+        if (!rect.width) return;
+        const min = Number(input.min ?? 0);
+        const max = Number(input.max ?? 100);
+        const step = Number(input.step ?? 1);
+        const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+        const raw = min + ratio * (max - min);
+        const snapped = step > 0 ? Math.round(raw / step) * step : raw;
+        const nextValue = Math.min(max, Math.max(min, snapped));
+        input.value = String(nextValue);
+        syncInputValue(nextValue);
+      };
+
+      input.addEventListener('input', (event) => syncInputValue(event.target.value));
+      input.addEventListener('change', (event) => syncValue(event.target.value));
+      input.addEventListener('pointerdown', setValueFromPointer);
+
+      wrapper.append(input, valueSpan);
+      return wrapper;
+    }
     default:
       return document.createTextNode(control.value ?? '');
   }

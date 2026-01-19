@@ -956,7 +956,7 @@ export class CanvasManager {
     this.focusViewportOnContent();
   }
 
-  updateComponentProps(componentId, newProps = {}) {
+  updateComponentProps(componentId, newProps = {}, options = {}) {
     const component = this.getComponentById(componentId);
     if (!component) return;
 
@@ -980,7 +980,7 @@ export class CanvasManager {
 
     this.wiringManager.updateAllConnections();
 
-    if (this.selectedComponentId === componentId) {
+    if (!options.skipRender && this.selectedComponentId === componentId) {
       this.renderPropertiesForComponent(component);
     }
 
@@ -1527,6 +1527,33 @@ export class CanvasManager {
       const interactionDetail =
         controlConfig?.control?.interactionEventDetail ?? { source: 'component-property' };
 
+      const isRange = controlConfig?.control?.type === 'range';
+      const onChange = (value) => {
+        if (shouldDispatchInteraction) {
+          window.dispatchEvent(
+            new CustomEvent('simulator-pattern-interaction', {
+              detail: interactionDetail,
+            }),
+          );
+        }
+        if (propKey) {
+          this.updateComponentProps(component.id, { [propKey]: value });
+        }
+      };
+      const onInput = (value) => {
+        if (!isRange) return;
+        if (shouldDispatchInteraction) {
+          window.dispatchEvent(
+            new CustomEvent('simulator-pattern-interaction', {
+              detail: interactionDetail,
+            }),
+          );
+        }
+        if (propKey) {
+          this.updateComponentProps(component.id, { [propKey]: value }, { skipRender: true });
+        }
+      };
+
       fields.push({
         label: controlConfig.label,
         value: controlConfig.formatValue
@@ -1536,18 +1563,8 @@ export class CanvasManager {
           type: controlConfig.control?.type,
           options: controlConfig.control?.options,
           value: rawValue,
-          onChange: (value) => {
-            if (shouldDispatchInteraction) {
-              window.dispatchEvent(
-                new CustomEvent('simulator-pattern-interaction', {
-                  detail: interactionDetail,
-                }),
-              );
-            }
-            if (propKey) {
-              this.updateComponentProps(component.id, { [propKey]: value });
-            }
-          },
+          onChange,
+          onInput,
         },
       });
     });

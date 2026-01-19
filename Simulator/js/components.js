@@ -1270,7 +1270,7 @@ export const availableComponents = [
       {
         label: 'Chuva (%)',
         control: {
-          type: 'number',
+          type: 'range',
           propKey: 'rainLevel',
           min: 0,
           max: 100,
