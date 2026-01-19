@@ -1475,7 +1475,7 @@ export class CanvasManager {
     );
 
     const getConnectedRainModuleMode = () => {
-      if (component.type !== 'rain-sensor') return null;
+      if (component.type !== 'rain-sensor' && component.type !== 'soil-sensor') return null;
       const connections = this.wiringManager?.connections ?? [];
       for (const connection of connections) {
         const pin1 = connection?.pin1;

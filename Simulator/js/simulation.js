@@ -1936,14 +1936,14 @@ class CircuitSnapshot {
       const pin2 = connection?.pin2;
       if (isModuleSensorPin(pin1) && pin2?.dataset?.componentId) {
         const other = this.canvasManager.getComponentById(pin2.dataset.componentId);
-        if (other?.type === 'rain-sensor') {
+        if (other?.type === 'rain-sensor' || other?.type === 'soil-sensor') {
           sensorComponent = other;
           break;
         }
       }
       if (isModuleSensorPin(pin2) && pin1?.dataset?.componentId) {
         const other = this.canvasManager.getComponentById(pin1.dataset.componentId);
-        if (other?.type === 'rain-sensor') {
+        if (other?.type === 'rain-sensor' || other?.type === 'soil-sensor') {
           sensorComponent = other;
           break;
         }
@@ -1957,7 +1957,10 @@ class CircuitSnapshot {
   getRainSensorLevelForModule(moduleComponentId) {
     const sensorComponent = this.getRainSensorForModule(moduleComponentId);
     if (!sensorComponent) return null;
-    const level = Number(sensorComponent.props?.rainLevel ?? sensorComponent.state?.rainLevel);
+    const level =
+      sensorComponent.type === 'soil-sensor'
+        ? Number(sensorComponent.props?.moistureLevel ?? sensorComponent.state?.moistureLevel)
+        : Number(sensorComponent.props?.rainLevel ?? sensorComponent.state?.rainLevel);
     if (!Number.isFinite(level)) return null;
     return Math.max(0, Math.min(100, level));
   }

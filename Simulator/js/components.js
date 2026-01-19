@@ -1297,6 +1297,67 @@ export const availableComponents = [
     ],
   },
   {
+    id: 'soil-sensor',
+    name: 'Sensor de umidade do solo',
+    element: null,
+    description: 'Placa sensora de umidade do solo para uso com modulo.',
+    group: 'sensors',
+    defaultProps: { moistureLevel: 50, digitalState: 'dry' },
+    pins: [
+      { name: 'S1', type: 'signal', position: { xPercent: 47, yPercent: 5.5 } },
+      { name: 'S2', type: 'signal', position: { xPercent: 53, yPercent: 5.5 } },
+    ],
+    createInstance: () => {
+      const container = document.createElement('div');
+      container.className = 'soil-sensor-shell';
+      const image = document.createElement('img');
+      image.src = 'css/components/sensor_solo_higrometro_svg.svg';
+      image.alt = 'Sensor de umidade do solo';
+      image.draggable = false;
+      container.appendChild(image);
+      return { element: container };
+    },
+    createPreview: () => {
+      const container = document.createElement('div');
+      container.className = 'soil-sensor-shell soil-sensor-preview';
+      const image = document.createElement('img');
+      image.src = 'css/components/sensor_solo_higrometro_svg.svg';
+      image.alt = 'Sensor de umidade do solo';
+      image.draggable = false;
+      container.appendChild(image);
+      return container;
+    },
+    propertyControls: [
+      {
+        label: 'Umidade (%)',
+        control: {
+          type: 'range',
+          propKey: 'moistureLevel',
+          min: 0,
+          max: 100,
+          step: 1,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+        visibleWhen: { connectedRainModuleMode: 'analog' },
+      },
+      {
+        label: 'Umidade detectada',
+        control: {
+          type: 'select',
+          propKey: 'digitalState',
+          options: [
+            { label: 'Nao', value: 'dry' },
+            { label: 'Sim', value: 'wet' },
+          ],
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+        visibleWhen: { connectedRainModuleMode: 'digital' },
+      },
+    ],
+  },
+  {
     id: 'rain-module',
     name: 'Modulo do sensor de chuva',
     element: null,

@@ -2146,6 +2146,7 @@ body.lab-mode .lab-panel {
 }
 
 .rain-sensor-shell,
+.soil-sensor-shell,
 .rain-module-shell {
   position: relative;
   display: inline-flex;
@@ -2167,6 +2168,15 @@ body.lab-mode .lab-panel {
   display: block;
 }
 
+.soil-sensor-shell img {
+  position: relative;
+  width: 60px;
+  height: auto;
+  object-fit: contain;
+  pointer-events: auto;
+  display: block;
+}
+
 .rain-module-shell img {
   position: relative;
   width: 50px;
@@ -2178,6 +2188,11 @@ body.lab-mode .lab-panel {
 
 .rain-sensor-preview {
   transform: translateY(1px) scale(0.6);
+  transform-origin: center;
+}
+
+.soil-sensor-preview {
+  transform: translateY(1px) scale(0.5);
   transform-origin: center;
 }
 
