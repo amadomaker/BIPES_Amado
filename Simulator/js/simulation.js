@@ -1917,7 +1917,7 @@ class CircuitSnapshot {
     return Number.isFinite(stored) ? stored : null;
   }
 
-  getRainSensorLevelForModule(moduleComponentId) {
+  getRainSensorForModule(moduleComponentId) {
     if (!this.canvasManager?.wiringManager) return null;
     const module = this.canvasManager.getComponentById(moduleComponentId);
     if (!module) return null;
@@ -1950,6 +1950,12 @@ class CircuitSnapshot {
       }
     }
 
+    if (!sensorComponent) return null;
+    return sensorComponent;
+  }
+
+  getRainSensorLevelForModule(moduleComponentId) {
+    const sensorComponent = this.getRainSensorForModule(moduleComponentId);
     if (!sensorComponent) return null;
     const level = Number(sensorComponent.props?.rainLevel ?? sensorComponent.state?.rainLevel);
     if (!Number.isFinite(level)) return null;
@@ -1996,12 +2002,16 @@ class CircuitSnapshot {
       const pin = String(pinName).toUpperCase();
       if (pin === 'DO' || pin === 'DIGITAL') {
         const level = this.getRainSensorLevelForModule(component.id);
-        const threshold = Number(component.props?.digitalThreshold ?? 50);
-        const resolvedThreshold = Number.isFinite(threshold)
-          ? Math.max(0, Math.min(100, threshold))
-          : 50;
-        if (!Number.isFinite(level)) return 'low';
-        return level >= resolvedThreshold ? 'high' : 'low';
+        const sensorComponent = this.getRainSensorForModule(component.id);
+        if (!sensorComponent) return 'low';
+        const rawState = sensorComponent.props?.digitalState ?? sensorComponent.state?.digitalState;
+        if (typeof rawState === 'boolean') return rawState ? 'high' : 'low';
+        if (typeof rawState === 'number') return rawState > 0 ? 'high' : 'low';
+        const normalized = String(rawState ?? '').toLowerCase();
+        if (['high', '1', 'on', 'sim', 'wet'].includes(normalized)) return 'high';
+        if (['low', '0', 'off', 'nao', 'dry'].includes(normalized)) return 'low';
+        if (Number.isFinite(level)) return level > 0 ? 'high' : 'low';
+        return 'low';
       }
     }
     return null;
@@ -3741,6 +3751,11 @@ class Simulation {
         }
         try {
           this.requireSignalPinElement(programState.boardComponentId, pinName);
+          if (!this.isDigitalPin(pinName)) {
+            throw new Error(
+              'Leitura digital permitida apenas nos pinos digitais (exceto 34, 35, 36 ou 39).',
+            );
+          }
           const state = this.getBoardPinVoltageState(programState.boardComponentId, pinName);
           return state === 'high';
         } catch (error) {

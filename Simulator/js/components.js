@@ -1241,7 +1241,7 @@ export const availableComponents = [
     element: null,
     description: 'Placa sensora de chuva para uso com modulo.',
     group: 'sensors',
-    defaultProps: { rainLevel: 50 },
+    defaultProps: { rainLevel: 50, digitalState: 'dry' },
     pins: [
       { name: 'S1', type: 'signal', position: { xPercent: 46, yPercent: 92 } },
       { name: 'S2', type: 'signal', position: { xPercent: 54, yPercent: 92 } },
@@ -1278,6 +1278,21 @@ export const availableComponents = [
           dispatchInteractionEvent: true,
           interactionEventDetail: { source: 'component-property' },
         },
+        visibleWhen: { connectedRainModuleMode: 'analog' },
+      },
+      {
+        label: 'Chuva detectada',
+        control: {
+          type: 'select',
+          propKey: 'digitalState',
+          options: [
+            { label: 'Nao', value: 'dry' },
+            { label: 'Sim', value: 'wet' },
+          ],
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+        visibleWhen: { connectedRainModuleMode: 'digital' },
       },
     ],
   },
@@ -1287,7 +1302,7 @@ export const availableComponents = [
     element: null,
     description: 'Modulo de leitura para o sensor de chuva.',
     group: 'sensors',
-    defaultProps: { digitalThreshold: 50 },
+    defaultProps: { outputMode: 'analog' },
     pins: [
       { name: 'S1', type: 'signal', position: { xPercent: 24, yPercent: 90 } },
       { name: 'S2', type: 'signal', position: { xPercent: 34, yPercent: 90 } },
@@ -1318,15 +1333,14 @@ export const availableComponents = [
     },
     propertyControls: [
       {
-        label: 'Limite digital (%)',
+        label: 'Modo',
         control: {
-          type: 'number',
-          propKey: 'digitalThreshold',
-          min: 0,
-          max: 100,
-          step: 1,
-          dispatchInteractionEvent: true,
-          interactionEventDetail: { source: 'component-property' },
+          type: 'select',
+          propKey: 'outputMode',
+          options: [
+            { label: 'Analogico (AO)', value: 'analog' },
+            { label: 'Digital (DO)', value: 'digital' },
+          ],
         },
       },
     ],

@@ -1474,7 +1474,49 @@ export class CanvasManager {
         .filter(Boolean),
     );
 
+    const getConnectedRainModuleMode = () => {
+      if (component.type !== 'rain-sensor') return null;
+      const connections = this.wiringManager?.connections ?? [];
+      for (const connection of connections) {
+        const pin1 = connection?.pin1;
+        const pin2 = connection?.pin2;
+        const pin1ComponentId = pin1?.dataset?.componentId;
+        const pin2ComponentId = pin2?.dataset?.componentId;
+        if (pin1ComponentId === component.id && pin2ComponentId) {
+          const other = this.getComponentById(pin2ComponentId);
+          if (other?.type === 'rain-module') {
+            return other.props?.outputMode ?? 'analog';
+          }
+        }
+        if (pin2ComponentId === component.id && pin1ComponentId) {
+          const other = this.getComponentById(pin1ComponentId);
+          if (other?.type === 'rain-module') {
+            return other.props?.outputMode ?? 'analog';
+          }
+        }
+      }
+      return null;
+    };
+
+    const isControlVisible = (controlConfig) => {
+      const rule = controlConfig?.visibleWhen;
+      if (!rule) return true;
+      if (rule.connectedRainModuleMode) {
+        const mode = getConnectedRainModuleMode() ?? 'analog';
+        return mode === rule.connectedRainModuleMode;
+      }
+      const propValue = rule.prop ? component.props?.[rule.prop] : undefined;
+      if (Object.prototype.hasOwnProperty.call(rule, 'equals')) {
+        return propValue === rule.equals;
+      }
+      if (Object.prototype.hasOwnProperty.call(rule, 'notEquals')) {
+        return propValue !== rule.notEquals;
+      }
+      return true;
+    };
+
     (definition.propertyControls ?? []).forEach((controlConfig) => {
+      if (!isControlVisible(controlConfig)) return;
       const propKey = controlConfig?.control?.propKey;
       const rawValue =
         (propKey && component.props[propKey]) ??
