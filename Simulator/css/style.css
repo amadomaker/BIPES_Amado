@@ -876,6 +876,11 @@ body.lab-mode .lab-panel {
   transition: all 0.2s;
 }
 
+.canvas-component[data-component-type="rain-module"] .pin {
+  width: 6.5px;
+  height: 6.5px;
+}
+
 .pin-power {
   background-color: #ef4444;
 }
@@ -2147,7 +2152,7 @@ body.lab-mode .lab-panel {
 
 .rain-module-shell img {
   position: relative;
-  width: 140px;
+  width: 50px;
   height: auto;
   object-fit: contain;
   pointer-events: auto;

@@ -1243,8 +1243,8 @@ export const availableComponents = [
     group: 'sensors',
     defaultProps: { rainLevel: 50, digitalState: 'dry' },
     pins: [
-      { name: 'S1', type: 'signal', position: { xPercent: 46, yPercent: 92 } },
-      { name: 'S2', type: 'signal', position: { xPercent: 54, yPercent: 92 } },
+      { name: 'S1', type: 'signal', position: { xPercent: 47, yPercent: 5.5 } },
+      { name: 'S2', type: 'signal', position: { xPercent: 53, yPercent: 5.5 } },
     ],
     createInstance: () => {
       const container = document.createElement('div');
@@ -1304,12 +1304,12 @@ export const availableComponents = [
     group: 'sensors',
     defaultProps: { outputMode: 'analog' },
     pins: [
-      { name: 'S1', type: 'signal', position: { xPercent: 24, yPercent: 90 } },
-      { name: 'S2', type: 'signal', position: { xPercent: 34, yPercent: 90 } },
-      { name: 'VCC', type: 'power', position: { xPercent: 52, yPercent: 90 } },
-      { name: 'AO', type: 'signal', position: { xPercent: 62, yPercent: 90 } },
-      { name: 'DO', type: 'signal', position: { xPercent: 72, yPercent: 90 } },
-      { name: 'GND', type: 'ground', position: { xPercent: 82, yPercent: 90 } },
+      { name: 'S1', type: 'signal', position: { xPercent: 45.5, yPercent: 6 } },
+      { name: 'S2', type: 'signal', position: { xPercent: 60.5, yPercent: 6 } },
+      { name: 'VCC', type: 'power', position: { xPercent: 73, yPercent: 95 } },
+      { name: 'AO', type: 'signal', position: { xPercent: 20, yPercent: 95 } },
+      { name: 'DO', type: 'signal', position: { xPercent: 38, yPercent: 95 } },
+      { name: 'GND', type: 'ground', position: { xPercent: 55, yPercent: 95 } },
     ],
     createInstance: () => {
       const container = document.createElement('div');
