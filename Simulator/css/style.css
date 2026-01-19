@@ -898,6 +898,11 @@ body.lab-mode .lab-panel {
   height: 6.5px;
 }
 
+.canvas-component[data-component-type="soil-sensor"] .pin {
+  width: 7px;
+  height: 7px;
+}
+
 .pin-power {
   background-color: #ef4444;
 }
@@ -2187,13 +2192,18 @@ body.lab-mode .lab-panel {
 }
 
 .rain-sensor-preview {
-  transform: translateY(1px) scale(0.6);
+  transform: translateY(1px) scale(0.49);
   transform-origin: center;
 }
 
 .soil-sensor-preview {
-  transform: translateY(1px) scale(0.5);
+  transform: translateY(1px) scale(0.26);
   transform-origin: center;
+}
+
+.rain-sensor-preview img,
+.soil-sensor-preview img {
+  width: 84px;
 }
 
 .rain-module-preview {

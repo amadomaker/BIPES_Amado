@@ -1304,8 +1304,8 @@ export const availableComponents = [
     group: 'sensors',
     defaultProps: { moistureLevel: 50, digitalState: 'dry' },
     pins: [
-      { name: 'S1', type: 'signal', position: { xPercent: 47, yPercent: 5.5 } },
-      { name: 'S2', type: 'signal', position: { xPercent: 53, yPercent: 5.5 } },
+      { name: 'S1', type: 'signal', position: { xPercent: 42.5, yPercent: 3 } },
+      { name: 'S2', type: 'signal', position: { xPercent: 57, yPercent: 3 } },
     ],
     createInstance: () => {
       const container = document.createElement('div');
