@@ -3754,11 +3754,6 @@ class Simulation {
         }
         try {
           this.requireSignalPinElement(programState.boardComponentId, pinName);
-          if (!this.isDigitalPin(pinName)) {
-            throw new Error(
-              'Leitura digital permitida apenas nos pinos digitais (exceto 34, 35, 36 ou 39).',
-            );
-          }
           const state = this.getBoardPinVoltageState(programState.boardComponentId, pinName);
           return state === 'high';
         } catch (error) {
