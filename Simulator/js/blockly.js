@@ -522,6 +522,15 @@ export function initBlocklyWorkspace({
       colour: '#3e3e42',
       snap: true,
     },
+    zoom: {
+      controls: false,
+      wheel: true,
+      pinch: true,
+      startScale: 1,
+      maxScale: 3,
+      minScale: 0.3,
+      scaleSpeed: 1.1,
+    },
     move: {
       scrollbars: true,
       drag: true,
