@@ -1236,6 +1236,177 @@ export const availableComponents = [
     createPreview: () => createWokwiPreview('wokwi-photoresistor-sensor', {}),
   },
   {
+    id: 'rain-sensor',
+    name: 'Sensor de chuva',
+    element: null,
+    description: 'Placa sensora de chuva para uso com modulo.',
+    group: 'sensors',
+    defaultProps: { rainLevel: 50, digitalState: 'dry' },
+    pins: [
+      { name: 'S1', type: 'signal', position: { xPercent: 47, yPercent: 5.5 } },
+      { name: 'S2', type: 'signal', position: { xPercent: 53, yPercent: 5.5 } },
+    ],
+    createInstance: () => {
+      const container = document.createElement('div');
+      container.className = 'rain-sensor-shell';
+      const image = document.createElement('img');
+      image.src = 'css/components/sensor_chuva.svg';
+      image.alt = 'Sensor de chuva';
+      image.draggable = false;
+      container.appendChild(image);
+      return { element: container };
+    },
+    createPreview: () => {
+      const container = document.createElement('div');
+      container.className = 'rain-sensor-shell rain-sensor-preview';
+      const image = document.createElement('img');
+      image.src = 'css/components/sensor_chuva.svg';
+      image.alt = 'Sensor de chuva';
+      image.draggable = false;
+      container.appendChild(image);
+      return container;
+    },
+    propertyControls: [
+      {
+        label: 'Chuva (%)',
+        control: {
+          type: 'range',
+          propKey: 'rainLevel',
+          min: 0,
+          max: 100,
+          step: 1,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+        visibleWhen: { connectedRainModuleMode: 'analog' },
+      },
+      {
+        label: 'Chuva detectada',
+        control: {
+          type: 'select',
+          propKey: 'digitalState',
+          options: [
+            { label: 'Nao', value: 'dry' },
+            { label: 'Sim', value: 'wet' },
+          ],
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+        visibleWhen: { connectedRainModuleMode: 'digital' },
+      },
+    ],
+  },
+  {
+    id: 'soil-sensor',
+    name: 'Sensor de umidade do solo',
+    element: null,
+    description: 'Placa sensora de umidade do solo para uso com modulo.',
+    group: 'sensors',
+    defaultProps: { moistureLevel: 50, digitalState: 'dry' },
+    pins: [
+      { name: 'S1', type: 'signal', position: { xPercent: 42.5, yPercent: 3 } },
+      { name: 'S2', type: 'signal', position: { xPercent: 57, yPercent: 3 } },
+    ],
+    createInstance: () => {
+      const container = document.createElement('div');
+      container.className = 'soil-sensor-shell';
+      const image = document.createElement('img');
+      image.src = 'css/components/sensor_solo_higrometro_svg.svg';
+      image.alt = 'Sensor de umidade do solo';
+      image.draggable = false;
+      container.appendChild(image);
+      return { element: container };
+    },
+    createPreview: () => {
+      const container = document.createElement('div');
+      container.className = 'soil-sensor-shell soil-sensor-preview';
+      const image = document.createElement('img');
+      image.src = 'css/components/sensor_solo_higrometro_svg.svg';
+      image.alt = 'Sensor de umidade do solo';
+      image.draggable = false;
+      container.appendChild(image);
+      return container;
+    },
+    propertyControls: [
+      {
+        label: 'Umidade (%)',
+        control: {
+          type: 'range',
+          propKey: 'moistureLevel',
+          min: 0,
+          max: 100,
+          step: 1,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+        visibleWhen: { connectedRainModuleMode: 'analog' },
+      },
+      {
+        label: 'Umidade detectada',
+        control: {
+          type: 'select',
+          propKey: 'digitalState',
+          options: [
+            { label: 'Nao', value: 'dry' },
+            { label: 'Sim', value: 'wet' },
+          ],
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+        visibleWhen: { connectedRainModuleMode: 'digital' },
+      },
+    ],
+  },
+  {
+    id: 'rain-module',
+    name: 'Modulo do sensor de chuva',
+    element: null,
+    description: 'Modulo de leitura para o sensor de chuva.',
+    group: 'sensors',
+    defaultProps: { outputMode: 'analog' },
+    pins: [
+      { name: 'S1', type: 'signal', position: { xPercent: 45.5, yPercent: 6 } },
+      { name: 'S2', type: 'signal', position: { xPercent: 60.5, yPercent: 6 } },
+      { name: 'VCC', type: 'power', position: { xPercent: 73, yPercent: 95 } },
+      { name: 'AO', type: 'signal', position: { xPercent: 20, yPercent: 95 } },
+      { name: 'DO', type: 'signal', position: { xPercent: 38, yPercent: 95 } },
+      { name: 'GND', type: 'ground', position: { xPercent: 55, yPercent: 95 } },
+    ],
+    createInstance: () => {
+      const container = document.createElement('div');
+      container.className = 'rain-module-shell';
+      const image = document.createElement('img');
+      image.src = 'css/components/modulo_sensores_svg.svg';
+      image.alt = 'Modulo sensor de chuva';
+      image.draggable = false;
+      container.appendChild(image);
+      return { element: container };
+    },
+    createPreview: () => {
+      const container = document.createElement('div');
+      container.className = 'rain-module-shell rain-module-preview';
+      const image = document.createElement('img');
+      image.src = 'css/components/modulo_sensores_svg.svg';
+      image.alt = 'Modulo sensor de chuva';
+      image.draggable = false;
+      container.appendChild(image);
+      return container;
+    },
+    propertyControls: [
+      {
+        label: 'Modo',
+        control: {
+          type: 'select',
+          propKey: 'outputMode',
+          options: [
+            { label: 'Analogico (AO)', value: 'analog' },
+            { label: 'Digital (DO)', value: 'digital' },
+          ],
+        },
+      },
+    ],
+  },
+  {
     id: 'ultrasonic-sensor',
     name: 'Sensor Ultrassônico HC-SR04',
     element: null,
@@ -1323,6 +1494,8 @@ export const availableComponents = [
           min: -20,
           max: 80,
           step: 0.5,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
         },
       },
       {
@@ -1333,6 +1506,90 @@ export const availableComponents = [
           min: 0,
           max: 100,
           step: 1,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+      },
+    ],
+  },
+  {
+    id: 'lab-prop',
+    name: 'Elemento visual',
+    element: null,
+    description: 'Elemento visual para personalizar o laboratorio.',
+    group: 'lab',
+    defaultProps: {
+      label: 'Elemento visual',
+      src: '',
+      baseWidth: 220,
+      baseHeight: 220,
+      width: 220,
+      height: 220,
+      scale: 100,
+    },
+    pins: [],
+    createInstance: ({ props }) => {
+      const container = document.createElement('div');
+      container.className = 'lab-prop-shell';
+      const image = document.createElement('img');
+      image.className = 'lab-prop-image';
+      image.alt = props?.label ?? 'Elemento visual';
+      image.draggable = false;
+      container.appendChild(image);
+
+      const applyProps = (nextProps = {}) => {
+        const label = nextProps.label ?? 'Elemento visual';
+        const width = Number(nextProps.width);
+        const height = Number(nextProps.height);
+        const baseWidth = Number(nextProps.baseWidth ?? width);
+        const baseHeight = Number(nextProps.baseHeight ?? height);
+        const scale = Number(nextProps.scale ?? 100);
+        const src = nextProps.src ?? nextProps.image ?? nextProps.url ?? '';
+        if (src) {
+          image.src = src;
+        }
+        image.alt = label;
+        container.title = label;
+        const resolvedBaseWidth = Number.isFinite(baseWidth) ? baseWidth : 220;
+        const resolvedBaseHeight = Number.isFinite(baseHeight) ? baseHeight : 220;
+        const resolvedScale = Number.isFinite(scale) ? Math.max(10, Math.min(400, scale)) : 100;
+        container.style.width = `${resolvedBaseWidth * (resolvedScale / 100)}px`;
+        container.style.height = `${resolvedBaseHeight * (resolvedScale / 100)}px`;
+      };
+
+      applyProps(props ?? {});
+      return { element: container, applyProps };
+    },
+    createPreview: () => {
+      const container = document.createElement('div');
+      container.className = 'lab-prop-shell lab-prop-preview';
+      const image = document.createElement('div');
+      image.className = 'lab-prop-placeholder';
+      image.textContent = 'LAB';
+      container.appendChild(image);
+      return container;
+    },
+    propertyControls: [
+      {
+        label: 'Nome',
+        control: {
+          type: 'text',
+          propKey: 'label',
+          placeholder: 'Elemento visual',
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
+        },
+      },
+      {
+        label: 'Tamanho (%)',
+        control: {
+          type: 'number',
+          propKey: 'scale',
+          min: 10,
+          max: 400,
+          step: 5,
+          dispatchInteractionEvent: true,
+          interactionEventDetail: { source: 'component-property' },
         },
       },
     ],

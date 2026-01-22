@@ -27,6 +27,7 @@ export class WiringManager {
     this.activeAnchorHandle = null;
     this.connectionDragState = null;
     this.connectionRefreshHandle = null;
+    this.pinPositionCache = new Map();
 
     this.createSVGLayer();
     this.createTempWire();
@@ -1274,6 +1275,16 @@ export class WiringManager {
     });
   }
 
+  refreshPinPositionCache() {
+    this.pinRegistry.forEach((pins) => {
+      if (!Array.isArray(pins)) return;
+      pins.forEach((pin) => {
+        const pos = this.getPinPosition(pin);
+        if (pos && pos.valid === false) return;
+      });
+    });
+  }
+
   cancelScheduledConnectionRefresh() {
     const handle = this.connectionRefreshHandle;
     if (!handle) return;
@@ -1522,16 +1533,32 @@ export class WiringManager {
     if (!pin) {
       return { x: 0, y: 0 };
     }
+    const cacheKey = pin.dataset?.componentId
+      ? `${pin.dataset.componentId}:${pin.dataset.pinIndex ?? ''}`
+      : null;
+    if (pin.offsetParent === null) {
+      const cached = cacheKey ? this.pinPositionCache.get(cacheKey) : null;
+      if (cached) return cached;
+      return { x: 0, y: 0, valid: false };
+    }
     const rect = pin.getBoundingClientRect();
-    return (
+    if (rect.width === 0 && rect.height === 0) {
+      const cached = cacheKey ? this.pinPositionCache.get(cacheKey) : null;
+      if (cached) return cached;
+      return { x: 0, y: 0, valid: false };
+    }
+    const position =
       this.canvasManager?.clientToWorkspace(
         rect.left + rect.width / 2,
         rect.top + rect.height / 2,
       ) ?? {
         x: rect.left + rect.width / 2,
         y: rect.top + rect.height / 2,
-      }
-    );
+      };
+    if (cacheKey) {
+      this.pinPositionCache.set(cacheKey, position);
+    }
+    return position;
   }
 
   getWireColor(type1, type2) {

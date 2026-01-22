@@ -85,7 +85,16 @@ const DEFAULT_TOOLBOX = {
           kind: 'category',
           name: 'Temporização',
           colour: '#d9a600',
-          contents: [{ kind: 'block', type: 'amado_wait' }],
+          contents: [
+            {
+              kind: 'block',
+              type: 'amado_wait',
+              fields: { UNIT: 's' },
+              inputs: {
+                MS: { shadow: { type: 'math_number', fields: { NUM: 1 } } },
+              },
+            },
+          ],
         },
       ],
     },
@@ -203,7 +212,20 @@ const DEFAULT_TOOLBOX = {
       kind: 'category',
       name: 'Funções',
       colour: '#995ba5',
-      custom: 'PROCEDURE',
+      contents: [
+        {
+          kind: 'category',
+          name: 'Funções criadas',
+          colour: '#995ba5',
+          custom: 'PROCEDURE',
+        },
+        {
+          kind: 'category',
+          name: 'BIPES',
+          colour: '#995ba5',
+          contents: [{ kind: 'block', type: 'amado_project_info' }],
+        },
+      ],
     },
     {
       kind: 'category',
@@ -214,39 +236,15 @@ const DEFAULT_TOOLBOX = {
         { kind: 'block', type: 'amado_set_pin' },
         { kind: 'block', type: 'amado_read_digital' },
         { kind: 'block', type: 'amado_read_analog' },
-        /* Blocos PWM desativados temporariamente
         {
           kind: 'block',
           type: 'amado_pwm_setup',
           inputs: {
             PIN: { shadow: { type: 'amado_pin_selector' } },
             FREQ: { shadow: { type: 'math_number', fields: { NUM: 1000 } } },
-            DUTY: { shadow: { type: 'math_number', fields: { NUM: 50 } } },
+            DUTY: { shadow: { type: 'math_number', fields: { NUM: 512 } } },
           },
         },
-        {
-          kind: 'block',
-          type: 'amado_pwm_set_frequency',
-          inputs: {
-            FREQ: { shadow: { type: 'math_number', fields: { NUM: 1000 } } },
-          },
-        },
-        {
-          kind: 'block',
-          type: 'amado_pwm_set_duty',
-          inputs: {
-            DUTY: { shadow: { type: 'math_number', fields: { NUM: 50 } } },
-          },
-        },
-        {
-          kind: 'block',
-          type: 'amado_pwm_start',
-          inputs: {
-            PIN: { shadow: { type: 'amado_pin_selector' } },
-          },
-        },
-        { kind: 'block', type: 'amado_pwm_stop' },
-        */
       ],
     },
     {
@@ -320,6 +318,41 @@ const DEFAULT_TOOLBOX = {
       name: 'Saídas e atuadores',
       colour: '#708090',
       contents: [
+        {
+          kind: 'category',
+          name: 'Campainha',
+          colour: '#708090',
+          contents: [
+            {
+              kind: 'block',
+              type: 'rtttl_play',
+              inputs: {
+                PIN: { shadow: { type: 'amado_pin_selector' } },
+                SONG: { shadow: { type: 'amado_rtttl_song' } },
+              },
+            },
+            {
+              kind: 'block',
+              type: 'amado_buzzer_play',
+              inputs: {
+                PIN: { shadow: { type: 'amado_pin_selector' } },
+                FREQ: { shadow: { type: 'math_number', fields: { NUM: 1200 } } },
+                DURATION: { shadow: { type: 'math_number', fields: { NUM: -1 } } },
+              },
+            },
+            {
+              kind: 'block',
+              type: 'amado_buzzer_play_note',
+              inputs: {
+                PIN: { shadow: { type: 'amado_pin_selector' } },
+                NOTE: { shadow: { type: 'amado_buzzer_note' } },
+                DURATION: { shadow: { type: 'math_number', fields: { NUM: -1 } } },
+              },
+            },
+            { kind: 'block', type: 'amado_buzzer_note' },
+            { kind: 'block', type: 'amado_rtttl_song' },
+          ],
+        },
         {
           kind: 'category',
           name: 'Servo motor',
@@ -488,6 +521,15 @@ export function initBlocklyWorkspace({
       length: 3,
       colour: '#3e3e42',
       snap: true,
+    },
+    zoom: {
+      controls: false,
+      wheel: true,
+      pinch: true,
+      startScale: 1,
+      maxScale: 3,
+      minScale: 0.3,
+      scaleSpeed: 1.1,
     },
     move: {
       scrollbars: true,

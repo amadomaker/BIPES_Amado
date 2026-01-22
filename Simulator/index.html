@@ -9,15 +9,16 @@
   <script src="node_modules/@wokwi/elements/dist/wokwi-elements.bundle.js"></script>
   <!-- Blockly -->
   <script src="node_modules/blockly/blockly.min.js"></script>
+  <script src="node_modules/blockly/msg/pt-br.js"></script>
   
   <!-- Seus estilos -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div id="app">
+    <div id="toolbar"></div>
     <!-- Paleta de componentes (lado esquerdo) -->
     <aside id="component-palette">
-      <h2>Componentes</h2>
       <div class="component-controls">
         <div class="component-filter">
           <label for="component-filter-select">Categoria</label>
@@ -36,7 +37,6 @@
     
     <!-- Área de trabalho (centro) -->
     <main id="canvas-area">
-      <div id="toolbar"></div>
       <div id="workspace"></div>
       <button type="button" id="blockly-open-trigger" class="blockly-toggle-bar" aria-expanded="false">
         <img src="examples/previews/icon-blockly.png" alt="" aria-hidden="true" class="blockly-toggle-icon">
@@ -51,6 +51,19 @@
         </header>
         <div id="blockly-container"></div>
       </section>
+      <aside id="lab-panel" class="lab-panel" aria-hidden="true">
+        <div class="lab-panel-collapsed">
+          <button type="button" id="lab-panel-open" class="lab-panel-open">Abrir biblioteca</button>
+        </div>
+        <header class="lab-panel-header">
+          <h3>Laboratorio visual</h3>
+          <button type="button" id="lab-panel-close" class="lab-panel-close">Fechar</button>
+        </header>
+        <div class="lab-panel-actions">
+          <button type="button" id="lab-upload-button">Importar imagem</button>
+        </div>
+        <div class="lab-library-list"></div>
+      </aside>
     </main>
   </div>
   <div id="alert-container"></div>
