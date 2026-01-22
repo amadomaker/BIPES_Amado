@@ -1388,6 +1388,13 @@ class CircuitSnapshot {
         if (boardSupply === null) return null;
         return boardSupply;
       }
+      if (node.pinType === 'signal' && key) {
+        const analogLevel = this.boardAnalogLevels.get(key);
+        if (Number.isFinite(analogLevel)) {
+          if (boardSupply === null) return null;
+          return (analogLevel / ADC_MAX_VALUE) * boardSupply;
+        }
+      }
       const state = key ? this.boardPinStates.get(key) : null;
       if (state === 'high') return boardSupply;
       if (state === 'low') return 0;
@@ -2582,7 +2589,7 @@ class Simulation {
     if (!Number.isFinite(num)) {
       throw new Error('Ciclo de trabalho PWM inválido.');
     }
-    return Math.max(0, Math.min(100, num));
+    return Math.max(0, Math.min(1023, num));
   }
 
   clampPwmFrequency(freq) {
@@ -2608,7 +2615,7 @@ class Simulation {
 
   setPwmAnalogLevel(boardComponentId, entry) {
     if (!entry?.pin) return;
-    const analog = Math.round((entry.duty / 100) * ADC_MAX_VALUE);
+    const analog = Math.round((entry.duty / 1023) * ADC_MAX_VALUE);
     this.setBoardPinAnalogLevel(boardComponentId, entry.pin, analog);
   }
 

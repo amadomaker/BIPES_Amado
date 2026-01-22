@@ -685,7 +685,7 @@ export function registerAmadoBlocks(Blockly) {
 
       pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
       freqInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '1000'));
-      dutyInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '50'));
+      dutyInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '512'));
     },
   };
 
@@ -718,10 +718,10 @@ export function registerAmadoBlocks(Blockly) {
       this.setPreviousStatement(true);
       this.setNextStatement(true);
       this.setColour('#708090');
-      this.setTooltip('Ajusta o ciclo de trabalho (duty) de um canal PWM (0 a 100%).');
+      this.setTooltip('Ajusta o ciclo de trabalho (duty) de um canal PWM (0 a 1023).');
       this.setHelpUrl('');
 
-      dutyInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '50'));
+      dutyInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '512'));
     },
   };
 

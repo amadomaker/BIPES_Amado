@@ -236,39 +236,15 @@ const DEFAULT_TOOLBOX = {
         { kind: 'block', type: 'amado_set_pin' },
         { kind: 'block', type: 'amado_read_digital' },
         { kind: 'block', type: 'amado_read_analog' },
-        /* Blocos PWM desativados temporariamente
         {
           kind: 'block',
           type: 'amado_pwm_setup',
           inputs: {
             PIN: { shadow: { type: 'amado_pin_selector' } },
             FREQ: { shadow: { type: 'math_number', fields: { NUM: 1000 } } },
-            DUTY: { shadow: { type: 'math_number', fields: { NUM: 50 } } },
+            DUTY: { shadow: { type: 'math_number', fields: { NUM: 512 } } },
           },
         },
-        {
-          kind: 'block',
-          type: 'amado_pwm_set_frequency',
-          inputs: {
-            FREQ: { shadow: { type: 'math_number', fields: { NUM: 1000 } } },
-          },
-        },
-        {
-          kind: 'block',
-          type: 'amado_pwm_set_duty',
-          inputs: {
-            DUTY: { shadow: { type: 'math_number', fields: { NUM: 50 } } },
-          },
-        },
-        {
-          kind: 'block',
-          type: 'amado_pwm_start',
-          inputs: {
-            PIN: { shadow: { type: 'amado_pin_selector' } },
-          },
-        },
-        { kind: 'block', type: 'amado_pwm_stop' },
-        */
       ],
     },
     {
