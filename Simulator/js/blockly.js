@@ -85,7 +85,16 @@ const DEFAULT_TOOLBOX = {
           kind: 'category',
           name: 'Temporização',
           colour: '#d9a600',
-          contents: [{ kind: 'block', type: 'amado_wait' }],
+          contents: [
+            {
+              kind: 'block',
+              type: 'amado_wait',
+              fields: { UNIT: 's' },
+              inputs: {
+                MS: { shadow: { type: 'math_number', fields: { NUM: 1 } } },
+              },
+            },
+          ],
         },
       ],
     },
@@ -203,7 +212,20 @@ const DEFAULT_TOOLBOX = {
       kind: 'category',
       name: 'Funções',
       colour: '#995ba5',
-      custom: 'PROCEDURE',
+      contents: [
+        {
+          kind: 'category',
+          name: 'Funções criadas',
+          colour: '#995ba5',
+          custom: 'PROCEDURE',
+        },
+        {
+          kind: 'category',
+          name: 'BIPES',
+          colour: '#995ba5',
+          contents: [{ kind: 'block', type: 'amado_project_info' }],
+        },
+      ],
     },
     {
       kind: 'category',

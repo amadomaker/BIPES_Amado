@@ -27,13 +27,13 @@ function createNumberShadowBlock(Blockly, defaultValue = '0') {
   return shadow;
 }
 
-function createTextShadowBlock(Blockly) {
+function createTextShadowBlock(Blockly, defaultValue = 'Mensagem', blockType = 'text') {
   const shadow = Blockly.utils.xml.createElement('shadow');
-  shadow.setAttribute('type', 'text');
+  shadow.setAttribute('type', blockType);
 
   const field = Blockly.utils.xml.createElement('field');
   field.setAttribute('name', 'TEXT');
-  field.textContent = 'Mensagem';
+  field.textContent = String(defaultValue);
 
   shadow.appendChild(field);
   return shadow;
@@ -504,15 +504,55 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  Blockly.Blocks.amado_project_text = {
+    init() {
+      this.appendDummyInput().appendField(new Blockly.FieldTextInput(''), 'TEXT');
+      this.setOutput(true, 'String');
+      this.setColour('#f472b6');
+      this.setTooltip('Texto do projeto.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_project_info = {
+    init() {
+      this.appendDummyInput().appendField('Dados do projeto');
+      const authorInput = this.appendValueInput('AUTHOR')
+        .setCheck('String')
+        .appendField('Autor');
+      const descriptionInput = this.appendValueInput('DESCRIPTION')
+        .setCheck('String')
+        .appendField('Descrição');
+      this.setInputsInline(false);
+      this.setColour('#995ba5');
+      this.setTooltip('Define informacoes do projeto para uso ao salvar.');
+      this.setHelpUrl('');
+
+      authorInput?.connection?.setShadowDom(
+        createTextShadowBlock(Blockly, '', 'amado_project_text'),
+      );
+      descriptionInput?.connection?.setShadowDom(
+        createTextShadowBlock(Blockly, '', 'amado_project_text'),
+      );
+    },
+  };
+
   Blockly.Blocks.amado_wait = {
     init() {
       const input = this.appendValueInput('MS').setCheck('Number').appendField('aguardar');
-      this.appendDummyInput().appendField('ms');
+      this.appendDummyInput().appendField(
+        new Blockly.FieldDropdown([
+          ['milissegundos', 'ms'],
+          ['segundos', 's'],
+          ['microsegundos', 'us'],
+        ]),
+        'UNIT',
+      );
       this.setInputsInline(true);
       this.setPreviousStatement(true);
       this.setNextStatement(true);
       this.setColour('#d9a600');
-      this.setTooltip('Pausa a execução do programa pelo tempo indicado (em milissegundos).');
+      this.setTooltip('Pausa a execução do programa pelo tempo indicado.');
       this.setHelpUrl('');
 
       const connection = input?.connection;
@@ -1240,7 +1280,10 @@ export function registerAmadoBlocks(Blockly) {
     const value =
       javascriptGenerator.valueToCode(block, 'MS', javascriptGenerator.ORDER_NONE) ||
       '0';
-    return `await api.wait(${value});\n`;
+    const unit = String(block.getFieldValue('UNIT') ?? 's');
+    const multiplier =
+      unit === 's' ? '1000' : unit === 'us' ? '(1 / 1000)' : '1';
+    return `await api.wait((${value}) * ${multiplier});\n`;
   };
 
   javascriptGenerator.forBlock.amado_read_digital = function amadoReadDigital(block) {
@@ -1314,6 +1357,15 @@ export function registerAmadoBlocks(Blockly) {
     const value =
       javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_NONE) ?? "''";
     return `await api.log(${value});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_project_text = function amadoProjectText(block) {
+    const text = block.getFieldValue('TEXT') ?? '';
+    return [javascriptGenerator.quote_(text), orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.amado_project_info = function amadoProjectInfo() {
+    return '';
   };
 
   javascriptGenerator.forBlock.amado_pin_selector = function amadoPinSelector(block) {
@@ -1510,5 +1562,79 @@ export function registerAmadoBlocks(Blockly) {
 
   javascriptGenerator.forBlock.oled_display_clear = function oledDisplayClear() {
     return 'await api.oledClear();\n';
+  };
+
+  // Procedimentos (Funções) com suporte a async/await
+  const getProcedureName = (block) =>
+    javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('NAME'),
+      Blockly.PROCEDURE_CATEGORY_NAME || 'PROCEDURE',
+    );
+
+  const getProcedureArgs = (block) =>
+    block
+      .getVars()
+      .map((arg) =>
+        javascriptGenerator.nameDB_.getName(
+          arg,
+          Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE',
+        ),
+      );
+
+  javascriptGenerator.forBlock.procedures_defnoreturn = function proceduresDefNoReturn(block) {
+    const funcName = getProcedureName(block);
+    const args = getProcedureArgs(block);
+    let branch = javascriptGenerator.statementToCode(block, 'STACK');
+    branch = javascriptGenerator.addLoopTrap(branch, block.id);
+    const code = `async function ${funcName}(${args.join(', ')}) {\n${branch}}\n`;
+    javascriptGenerator.definitions_[funcName] = code;
+    return null;
+  };
+
+  javascriptGenerator.forBlock.procedures_defreturn = function proceduresDefReturn(block) {
+    const funcName = getProcedureName(block);
+    const args = getProcedureArgs(block);
+    let branch = javascriptGenerator.statementToCode(block, 'STACK');
+    branch = javascriptGenerator.addLoopTrap(branch, block.id);
+    const returnValue =
+      javascriptGenerator.valueToCode(block, 'RETURN', orderNone) || '';
+    const returnLine = returnValue ? `  return ${returnValue};\n` : '';
+    const code = `async function ${funcName}(${args.join(', ')}) {\n${branch}${returnLine}}\n`;
+    javascriptGenerator.definitions_[funcName] = code;
+    return null;
+  };
+
+  javascriptGenerator.forBlock.procedures_callnoreturn = function proceduresCallNoReturn(block) {
+    const funcName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('NAME'),
+      Blockly.PROCEDURE_CATEGORY_NAME || 'PROCEDURE',
+    );
+    const argNames = block.arguments_ ?? block.getVars?.() ?? [];
+    const args =
+      argNames
+        .map((arg, index) => {
+          const argValue =
+            javascriptGenerator.valueToCode(block, `ARG${index}`, orderNone) || 'null';
+          return argValue;
+        })
+        .join(', ') || '';
+    return `await ${funcName}(${args});\n`;
+  };
+
+  javascriptGenerator.forBlock.procedures_callreturn = function proceduresCallReturn(block) {
+    const funcName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('NAME'),
+      Blockly.PROCEDURE_CATEGORY_NAME || 'PROCEDURE',
+    );
+    const argNames = block.arguments_ ?? block.getVars?.() ?? [];
+    const args =
+      argNames
+        .map((arg, index) => {
+          const argValue =
+            javascriptGenerator.valueToCode(block, `ARG${index}`, orderNone) || 'null';
+          return argValue;
+        })
+        .join(', ') || '';
+    return [`await ${funcName}(${args})`, orderAwait];
   };
 }

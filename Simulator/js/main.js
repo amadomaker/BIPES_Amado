@@ -390,6 +390,7 @@ function handleClearWorkspace() {
 
 function handleSaveWorkspace() {
   if (!canvasManager) return;
+  const projectInfo = getProjectInfoFromBlockly();
   const payload = {
     version: 1,
     savedAt: new Date().toISOString(),
@@ -403,7 +404,13 @@ function handleSaveWorkspace() {
 
   const json = JSON.stringify(payload, null, 2);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  triggerDownload(`simulador-${timestamp}.json`, json);
+  const descriptionName = projectInfo?.description
+    ? sanitizeProjectFileName(projectInfo.description)
+    : '';
+  const baseName = descriptionName
+    ? descriptionName.replace(/\.json$/i, '')
+    : `simulador-${timestamp}`;
+  triggerDownload(`${baseName}.json`, json);
 }
 
 function handleLoadWorkspace() {
@@ -970,6 +977,30 @@ function setupLabPanel() {
 
 function handleSerialLog(entry) {
   appendSerialLog(entry);
+}
+
+function getProjectInfoFromBlockly() {
+  if (!blocklyWorkspace) return null;
+  const blocks = blocklyWorkspace.getAllBlocks(false);
+  const infoBlock = blocks.find((block) => block?.type === 'amado_project_info');
+  if (!infoBlock) return null;
+  const author = getProjectInfoInputText(infoBlock, 'AUTHOR');
+  const description = getProjectInfoInputText(infoBlock, 'DESCRIPTION');
+  return { author, description };
+}
+
+function getProjectInfoInputText(infoBlock, inputName) {
+  const inputBlock = infoBlock.getInputTargetBlock?.(inputName);
+  if (!inputBlock?.getFieldValue) return '';
+  const raw = inputBlock.getFieldValue('TEXT');
+  return String(raw ?? '').trim();
+}
+
+function sanitizeProjectFileName(value) {
+  return String(value ?? '')
+    .replace(/[\\/:*?"<>|]+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 window.addEventListener('simulator-selection-change', (event) => {
