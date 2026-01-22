@@ -1,5 +1,6 @@
 import { amadoBoardPins } from './components.js';
 import { showAlert } from './ui.js';
+import { getSongNames } from './songs.js';
 
 let blocksRegistered = false;
 
@@ -61,6 +62,14 @@ function createServoNameField(Blockly, defaultValue = 'servo1') {
     field.setSpellcheck(false);
   }
   return field;
+}
+
+function buildRtttlSongOptions() {
+  const names = getSongNames();
+  if (!names.length) {
+    return [['Nenhuma musica', '']];
+  }
+  return names.map((name) => [name, name]);
 }
 
 function buildPinOptions() {
@@ -823,6 +832,43 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  Blockly.Blocks.amado_rtttl_song = {
+    init() {
+      this.appendDummyInput()
+        .appendField('musica')
+        .appendField(new Blockly.FieldDropdown(buildRtttlSongOptions()), 'SONG');
+      this.setOutput(true, 'String');
+      this.setColour('#708090');
+      this.setTooltip('Seleciona uma musica da biblioteca RTTTL.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.rtttl_play = {
+    init() {
+      this.appendDummyInput().appendField('Reproduzir musica');
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .appendField('pino');
+      const songInput = this.appendValueInput('SONG')
+        .setCheck('String')
+        .appendField('musica');
+      this.setInputsInline(true);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Reproduz uma musica RTTTL no buzzer selecionado.');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      if (songInput?.connection) {
+        const shadow = Blockly.utils.xml.createElement('shadow');
+        shadow.setAttribute('type', 'amado_rtttl_song');
+        songInput.connection.setShadowDom(shadow);
+      }
+    },
+  };
+
   Blockly.Blocks.amado_buzzer_play_note = {
     init() {
       this.appendDummyInput().appendField('Reproduzir buzzer no');
@@ -1458,6 +1504,19 @@ export function registerAmadoBlocks(Blockly) {
   javascriptGenerator.forBlock.amado_buzzer_note = function amadoBuzzerNote(block) {
     const value = Number(block.getFieldValue('NOTE')) || 0;
     return [String(value), orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.amado_rtttl_song = function amadoRtttlSong(block) {
+    const song = block.getFieldValue('SONG') ?? '';
+    return [javascriptGenerator.quote_(song), orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.rtttl_play = function rtttlPlay(block) {
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    const song =
+      javascriptGenerator.valueToCode(block, 'SONG', javascriptGenerator.ORDER_NONE) || "''";
+    return `await api.rtttlPlay(${pin}, ${song});\n`;
   };
 
   javascriptGenerator.forBlock.amado_ultrasonic_init = function amadoUltrasonicInit(block) {

@@ -325,6 +325,14 @@ const DEFAULT_TOOLBOX = {
           contents: [
             {
               kind: 'block',
+              type: 'rtttl_play',
+              inputs: {
+                PIN: { shadow: { type: 'amado_pin_selector' } },
+                SONG: { shadow: { type: 'amado_rtttl_song' } },
+              },
+            },
+            {
+              kind: 'block',
               type: 'amado_buzzer_play',
               inputs: {
                 PIN: { shadow: { type: 'amado_pin_selector' } },
@@ -342,6 +350,7 @@ const DEFAULT_TOOLBOX = {
               },
             },
             { kind: 'block', type: 'amado_buzzer_note' },
+            { kind: 'block', type: 'amado_rtttl_song' },
           ],
         },
         {

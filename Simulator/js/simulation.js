@@ -1,4 +1,5 @@
 import { getLedColorInfo } from './components.js';
+import { findSongByName } from './songs.js';
 
 const ADC_MAX_VALUE = 4095;
 const DEFAULT_SUPPLY_VOLTAGE = 3.3;
@@ -14,6 +15,21 @@ const VOLTAGE_WARNING_FACTOR = 1.15;
 const VOLTAGE_DANGER_FACTOR = 1.6;
 const PHOTORESISTOR_MIN_OHMS = 500;
 const PHOTORESISTOR_MAX_OHMS = 1_000_000;
+const RTTTL_DEFAULTS = { duration: 4, octave: 6, bpm: 63 };
+const RTTTL_NOTE_OFFSETS = {
+  c: 0,
+  'c#': 1,
+  d: 2,
+  'd#': 3,
+  e: 4,
+  f: 5,
+  'f#': 6,
+  g: 7,
+  'g#': 8,
+  a: 9,
+  'a#': 10,
+  b: 11,
+};
 
 const MOTOR_OUTPUT_CHANNELS = [
   {
@@ -39,6 +55,72 @@ const MULTIMETER_OVERLOAD_CURRENT = 5; // A – acima disso consideramos sobreca
 const MULTIMETER_PARALLEL_VDROP = 0.05; // V – queda acima disso indica ligação em paralelo
 const SOLVER_EPSILON = 1e-9;
 const BATTERY_COMPONENT_TYPES = new Set(['battery', 'battery-9v', 'battery-aaa-pack']);
+
+function rtttlNoteToFrequency(note, octave) {
+  const offset = RTTTL_NOTE_OFFSETS[note];
+  if (offset == null) return 0;
+  const midi = (octave + 1) * 12 + offset;
+  return 440 * 2 ** ((midi - 69) / 12);
+}
+
+function parseRtttlSequence(rtttl) {
+  const raw = String(rtttl ?? '').trim();
+  if (!raw) {
+    throw new Error('Informe uma musica RTTTL valida.');
+  }
+  const parts = raw.split(':');
+  if (parts.length < 3) {
+    throw new Error('Formato RTTTL invalido.');
+  }
+
+  const defaults = { ...RTTTL_DEFAULTS };
+  const defaultsPart = parts[1];
+  defaultsPart.split(',').forEach((entry) => {
+    const [key, value] = entry.split('=').map((item) => String(item || '').trim());
+    if (!key || !value) return;
+    const numeric = Number.parseInt(value, 10);
+    if (!Number.isFinite(numeric)) return;
+    if (key === 'd') defaults.duration = numeric;
+    if (key === 'o') defaults.octave = numeric;
+    if (key === 'b') defaults.bpm = numeric;
+  });
+
+  const bpm = defaults.bpm > 0 ? defaults.bpm : RTTTL_DEFAULTS.bpm;
+  const wholeNoteMs = (60 / bpm) * 4 * 1000;
+  const notesPart = parts.slice(2).join(':');
+  const notes = [];
+
+  notesPart.split(',').forEach((rawToken) => {
+    let token = String(rawToken || '').trim().toLowerCase();
+    if (!token) return;
+
+    const dotted = token.includes('.');
+    token = token.replace(/\./g, '');
+
+    const match = token.match(/^(\d+)?([a-gp])(#?)(\d+)?$/);
+    if (!match) return;
+
+    const durationValue = Number.parseInt(match[1] || defaults.duration, 10);
+    const noteLetter = match[2];
+    const sharp = match[3] === '#';
+    const octaveValue = Number.parseInt(match[4] || defaults.octave, 10);
+    if (!Number.isFinite(durationValue) || durationValue <= 0) return;
+
+    let durationMs = wholeNoteMs / durationValue;
+    if (dotted) durationMs *= 1.5;
+    durationMs = Math.max(1, durationMs);
+
+    let frequency = 0;
+    if (noteLetter !== 'p') {
+      const noteKey = `${noteLetter}${sharp ? '#' : ''}`;
+      frequency = rtttlNoteToFrequency(noteKey, octaveValue);
+    }
+
+    notes.push({ frequency, durationMs });
+  });
+
+  return notes;
+}
 
 function isBatteryComponentType(type) {
   return BATTERY_COMPONENT_TYPES.has(type);
@@ -3947,6 +4029,33 @@ class Simulation {
           if (durationMs > 0) {
             await api.wait(durationMs);
             this.stopBuzzerPin(programState.boardComponentId, pinName);
+          }
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      rtttlPlay: async (pinName, songName) => {
+        if (programState.aborted) return;
+        try {
+          const songKey = String(songName ?? '').trim();
+          if (!songKey) {
+            throw new Error('Selecione uma musica para reproduzir.');
+          }
+          const rtttl =
+            findSongByName(songKey) ?? (songKey.includes(':') ? songKey : null);
+          if (!rtttl) {
+            throw new Error(`Musica "${songKey}" nao encontrada na biblioteca.`);
+          }
+          const notes = parseRtttlSequence(rtttl);
+          for (const note of notes) {
+            if (programState.aborted) return;
+            if (!note.frequency) {
+              await api.wait(note.durationMs);
+            } else {
+              await api.buzzerTone(pinName, note.frequency, note.durationMs / 1000);
+            }
           }
         } catch (error) {
           const message = error?.message ?? String(error);
