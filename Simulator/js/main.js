@@ -44,6 +44,23 @@ let labPanel = null;
 let labLibraryList = null;
 let labUploadInput = null;
 let labPanelVisible = true;
+let pendingWireRefresh = null;
+
+function scheduleWireRefresh() {
+  if (!canvasManager?.wiringManager) return;
+  if (pendingWireRefresh) {
+    window.clearTimeout(pendingWireRefresh);
+  }
+  pendingWireRefresh = window.setTimeout(() => {
+    pendingWireRefresh = null;
+    canvasManager?.wiringManager?.scheduleConnectionRefresh?.({
+      immediate: true,
+      minFrames: 4,
+      durationMs: 240,
+      maxDurationMs: 600,
+    });
+  }, 0);
+}
 
 function svgTextToDataUrl(svgText) {
   const cleaned = String(svgText ?? '').trim();
@@ -314,9 +331,17 @@ window.addEventListener('DOMContentLoaded', () => {
   initializeHistoryBaseline();
   restorePersistedState().finally(() => {
     initializeHistoryBaseline();
+    scheduleWireRefresh();
   });
   loadExamplesList().catch(() => {});
   setPlayState(false);
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      scheduleWireRefresh();
+    }
+  });
+  window.addEventListener('focus', scheduleWireRefresh);
 });
 
 function handlePlayPause() {
