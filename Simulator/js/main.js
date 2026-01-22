@@ -484,6 +484,9 @@ function setupBlocklyPanelControls() {
   }
 
   const setOpen = (isOpen) => {
+    if (isOpen) {
+      canvasManager?.wiringManager?.refreshPinPositionCache?.();
+    }
     canvasArea.classList.toggle('blockly-open', isOpen);
     openButton.setAttribute('aria-expanded', String(isOpen));
     openButton.style.display = isOpen ? 'none' : 'inline-flex';

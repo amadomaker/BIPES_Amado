@@ -1797,6 +1797,7 @@ class CircuitSnapshot {
     boardPinIndexMap.forEach((node) => {
       if (!node?.pinElement) return;
       const pos = wiringManager.getPinPosition(node.pinElement);
+      if (pos && pos.valid === false) return;
       boardNodes.push({ node, pos });
     });
     if (!boardNodes.length) return;
@@ -1811,6 +1812,7 @@ class CircuitSnapshot {
       indexMap.forEach((node) => {
         if (!node?.pinElement) return;
         const pos = wiringManager.getPinPosition(node.pinElement);
+        if (pos && pos.valid === false) return;
         boardNodes.forEach((boardEntry) => {
           const dx = pos.x - boardEntry.pos.x;
           const dy = pos.y - boardEntry.pos.y;
