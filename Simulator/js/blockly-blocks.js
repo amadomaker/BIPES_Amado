@@ -659,6 +659,32 @@ export function registerAmadoBlocks(Blockly) {
   const pwmChannelField = () =>
     new (Blockly.FieldNumber ?? Blockly.FieldInput)(0, 0, 15, 1);
 
+  const buzzerNoteOptions = [
+    ['B1', '61.74'],
+    ['C2', '65.41'],
+    ['D2', '73.42'],
+    ['E2', '82.41'],
+    ['F2', '87.31'],
+    ['G2', '98.00'],
+    ['A2', '110.00'],
+    ['B2', '123.47'],
+    ['C3', '130.81'],
+    ['D3', '146.83'],
+    ['E3', '164.81'],
+    ['F3', '174.61'],
+    ['G3', '196.00'],
+    ['A3', '220.00'],
+    ['B3', '246.94'],
+    ['C4', '261.63'],
+    ['D4', '293.66'],
+    ['E4', '329.63'],
+    ['F4', '349.23'],
+    ['G4', '392.00'],
+    ['A4', '440.00'],
+    ['B4', '493.88'],
+    ['C5', '523.25'],
+  ];
+
   Blockly.Blocks.amado_pwm_setup = {
     init() {
       this.appendDummyInput()
@@ -756,6 +782,78 @@ export function registerAmadoBlocks(Blockly) {
       this.setColour('#708090');
       this.setTooltip('Desativa o canal PWM e desliga a saída.');
       this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_buzzer_play = {
+    init() {
+      this.appendDummyInput().appendField('Reproduzir buzzer no');
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .appendField('pino');
+      const freqInput = this.appendValueInput('FREQ')
+        .setCheck('Number')
+        .appendField('frequência');
+      const durationInput = this.appendValueInput('DURATION')
+        .setCheck('Number')
+        .appendField('duração (s):');
+      this.appendDummyInput().appendField('(0 para duração infinita)');
+      this.setInputsInline(true);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Reproduz o buzzer na frequência indicada.');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      freqInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '1200'));
+      durationInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '-1'));
+    },
+  };
+
+  Blockly.Blocks.amado_buzzer_note = {
+    init() {
+      this.appendDummyInput()
+        .appendField('nota')
+        .appendField(new Blockly.FieldDropdown(buzzerNoteOptions), 'NOTE');
+      this.setOutput(true, 'Number');
+      this.setColour('#708090');
+      this.setTooltip('Nota musical para o buzzer.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_buzzer_play_note = {
+    init() {
+      this.appendDummyInput().appendField('Reproduzir buzzer no');
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .appendField('pino');
+      const noteInput = this.appendValueInput('NOTE')
+        .setCheck('Number')
+        .appendField('nota');
+      const durationInput = this.appendValueInput('DURATION')
+        .setCheck('Number')
+        .appendField('duração (s):');
+      this.appendDummyInput().appendField('(0 para duração infinita)');
+      this.setInputsInline(true);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Reproduz o buzzer usando uma nota musical.');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      if (noteInput?.connection) {
+        const shadow = Blockly.utils.xml.createElement('shadow');
+        shadow.setAttribute('type', 'amado_buzzer_note');
+        const field = Blockly.utils.xml.createElement('field');
+        field.setAttribute('name', 'NOTE');
+        field.textContent = '61.74';
+        shadow.appendChild(field);
+        noteInput.connection.setShadowDom(shadow);
+      }
+      durationInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '-1'));
     },
   };
 
@@ -1335,6 +1433,31 @@ export function registerAmadoBlocks(Blockly) {
   javascriptGenerator.forBlock.amado_pwm_stop = function amadoPwmStop(block) {
     const channel = Number(block.getFieldValue('CHANNEL')) || 0;
     return `await api.pwmStop(${channel});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_buzzer_play = function amadoBuzzerPlay(block) {
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    const freq =
+      javascriptGenerator.valueToCode(block, 'FREQ', javascriptGenerator.ORDER_NONE) || '0';
+    const duration =
+      javascriptGenerator.valueToCode(block, 'DURATION', javascriptGenerator.ORDER_NONE) || '0';
+    return `await api.buzzerTone(${pin}, ${freq}, ${duration});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_buzzer_play_note = function amadoBuzzerPlayNote(block) {
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    const note =
+      javascriptGenerator.valueToCode(block, 'NOTE', javascriptGenerator.ORDER_NONE) || '0';
+    const duration =
+      javascriptGenerator.valueToCode(block, 'DURATION', javascriptGenerator.ORDER_NONE) || '0';
+    return `await api.buzzerTone(${pin}, ${note}, ${duration});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_buzzer_note = function amadoBuzzerNote(block) {
+    const value = Number(block.getFieldValue('NOTE')) || 0;
+    return [String(value), orderAtomic];
   };
 
   javascriptGenerator.forBlock.amado_ultrasonic_init = function amadoUltrasonicInit(block) {

@@ -2124,6 +2124,7 @@ class Simulation {
     this.powerEnabled = false;
     this.audioContext = null;
     this.buzzerAudioNodes = new Map();
+    this.buzzerFrequencies = new Map();
     this.servoMap = new Map();
   }
 
@@ -2140,7 +2141,8 @@ class Simulation {
       indicator.classList.toggle('on', Boolean(isHigh));
     }
     if (isHigh) {
-      this.startBuzzerAudio(buzzerId);
+      const frequency = this.buzzerFrequencies.get(buzzerId) ?? 1000;
+      this.startBuzzerAudio(buzzerId, frequency);
     } else {
       this.stopBuzzerAudio(buzzerId);
     }
@@ -2170,6 +2172,79 @@ class Simulation {
     return String(name || '')
       .trim()
       .toUpperCase();
+  }
+
+  normalizeBuzzerFrequency(frequency) {
+    const numeric = Number(frequency);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+      throw new Error('Frequência do buzzer inválida.');
+    }
+    return Math.max(20, Math.min(20000, numeric));
+  }
+
+  normalizeBuzzerDuration(durationSeconds) {
+    const numeric = Number(durationSeconds);
+    if (!Number.isFinite(numeric)) {
+      throw new Error('Duração do buzzer inválida.');
+    }
+    if (numeric <= 0) return 0;
+    return numeric;
+  }
+
+  findBuzzerComponentsByBoardPin(boardComponentId, pinName, snapshot) {
+    if (!this.canvasManager) return [];
+    const snap = snapshot ?? this.createSnapshot();
+    const boardNode = snap.getNodeByComponentPin(boardComponentId, pinName);
+    if (!boardNode?.netId) return [];
+    const buzzers = this.canvasManager.components?.filter((c) => c?.type === 'buzzer') ?? [];
+    return buzzers.filter((buzzer) => {
+      const pins = snap.getPinsForComponent(buzzer.id) ?? [];
+      if (pins.some((pin) => pin.netId && pin.netId === boardNode.netId)) {
+        return true;
+      }
+      const positiveNode = pins.find((pin) => pin.pinType === 'power')
+        ?? snap.getNodeByComponentPin(buzzer.id, '+')
+        ?? snap.getNodeByComponentPin(buzzer.id, 'VCC');
+      return positiveNode?.netId && positiveNode.netId === boardNode.netId;
+    });
+  }
+
+  applyBuzzerFrequencyForPin(boardComponentId, pinName, frequency, snapshot = null) {
+    const freq = this.normalizeBuzzerFrequency(frequency);
+    const canonical = this.canonicalPinName(pinName);
+    if (canonical === 'D4') {
+      const embeddedId = this.getEmbeddedBuzzerId(boardComponentId);
+      this.buzzerFrequencies.set(embeddedId, freq);
+    }
+    const buzzers = this.findBuzzerComponentsByBoardPin(boardComponentId, pinName, snapshot);
+    buzzers.forEach((component) => {
+      if (!component.state) component.state = {};
+      component.state.buzzerFrequency = freq;
+      this.buzzerFrequencies.set(component.id, freq);
+    });
+  }
+
+  stopBuzzerPin(boardComponentId, pinName) {
+    const pin = this.normalizeBoardPinInput(pinName);
+    if (!pin) return;
+    this.setBoardPinAnalogLevel(boardComponentId, pin, 0);
+  }
+
+  handleBuzzerTone(boardComponentId, pinNameRaw, frequency, durationSeconds) {
+    const pinName = this.normalizeBoardPinInput(pinNameRaw);
+    if (!pinName) {
+      throw new Error('Informe o pino do buzzer.');
+    }
+    if (this.isInputOnlyPin(pinName)) {
+      throw new Error(`O pino ${pinName} é apenas entrada e não suporta buzzer.`);
+    }
+    this.requireSignalPinElement(boardComponentId, pinName);
+    const freq = this.normalizeBuzzerFrequency(frequency);
+    const duration = this.normalizeBuzzerDuration(durationSeconds);
+    this.setBoardPinAnalogLevel(boardComponentId, pinName, ADC_MAX_VALUE);
+    const snapshot = this.createSnapshot();
+    this.applyBuzzerFrequencyForPin(boardComponentId, pinName, freq, snapshot);
+    return duration > 0 ? Math.round(duration * 1000) : 0;
   }
 
   normalizeServoNameFromElement(component) {
@@ -2394,7 +2469,8 @@ class Simulation {
       if ('hasSignal' in element) {
         element.hasSignal = true;
       }
-      this.startBuzzerAudio(component.id);
+      const frequency = this.buzzerFrequencies.get(component.id) ?? 1000;
+      this.startBuzzerAudio(component.id, frequency);
     } else {
       element.removeAttribute('has-signal');
       if ('hasSignal' in element) {
@@ -3425,13 +3501,20 @@ class Simulation {
     };
   }
 
-  startBuzzerAudio(componentId) {
+  startBuzzerAudio(componentId, frequency = 1000) {
     if (!this.isRunning || !this.powerEnabled) return;
     if (this.buzzerAudioNodes.has(componentId)) {
       const node = this.buzzerAudioNodes.get(componentId);
       if (node?.gain && node.ctx) {
         node.gain.gain.cancelScheduledValues(node.ctx.currentTime);
         node.gain.gain.setTargetAtTime(0.05, node.ctx.currentTime, 0.02);
+        if (node.oscillator?.frequency) {
+          node.oscillator.frequency.setTargetAtTime(
+            Number(frequency) || 1000,
+            node.ctx.currentTime,
+            0.02,
+          );
+        }
       }
       return;
     }
@@ -3441,7 +3524,7 @@ class Simulation {
 
     const oscillator = ctx.createOscillator();
     oscillator.type = 'square';
-    oscillator.frequency.value = 1000;
+    oscillator.frequency.value = Number(frequency) || 1000;
     const gain = ctx.createGain();
     gain.gain.value = 0;
     oscillator.connect(gain).connect(ctx.destination);
@@ -3667,6 +3750,7 @@ class Simulation {
     this.dhtLastReading = { temperature: null, humidity: null, timestamp: 0 };
     this.pwmChannels.clear();
     this.servoMap.clear();
+    this.buzzerFrequencies.clear();
     if (this.canvasManager?.components?.length) {
       this.canvasManager.components
         .filter((component) => component.type === 'amado-board')
@@ -3843,6 +3927,25 @@ class Simulation {
         if (programState.aborted) return;
         try {
           await this.handlePwmStop(programState.boardComponentId, channel);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      buzzerTone: async (pinName, frequency, durationSeconds) => {
+        if (programState.aborted) return;
+        try {
+          const durationMs = this.handleBuzzerTone(
+            programState.boardComponentId,
+            pinName,
+            frequency,
+            durationSeconds,
+          );
+          if (durationMs > 0) {
+            await api.wait(durationMs);
+            this.stopBuzzerPin(programState.boardComponentId, pinName);
+          }
         } catch (error) {
           const message = error?.message ?? String(error);
           programState.onProgramError?.(message);

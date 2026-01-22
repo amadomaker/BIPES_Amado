@@ -320,6 +320,32 @@ const DEFAULT_TOOLBOX = {
       contents: [
         {
           kind: 'category',
+          name: 'Campainha',
+          colour: '#708090',
+          contents: [
+            {
+              kind: 'block',
+              type: 'amado_buzzer_play',
+              inputs: {
+                PIN: { shadow: { type: 'amado_pin_selector' } },
+                FREQ: { shadow: { type: 'math_number', fields: { NUM: 1200 } } },
+                DURATION: { shadow: { type: 'math_number', fields: { NUM: -1 } } },
+              },
+            },
+            {
+              kind: 'block',
+              type: 'amado_buzzer_play_note',
+              inputs: {
+                PIN: { shadow: { type: 'amado_pin_selector' } },
+                NOTE: { shadow: { type: 'amado_buzzer_note' } },
+                DURATION: { shadow: { type: 'math_number', fields: { NUM: -1 } } },
+              },
+            },
+            { kind: 'block', type: 'amado_buzzer_note' },
+          ],
+        },
+        {
+          kind: 'category',
           name: 'Servo motor',
           colour: '#708090',
           contents: [
