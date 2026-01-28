@@ -1,4 +1,5 @@
 import { getLedColorInfo } from './components.js';
+import { findSongByName } from './songs.js';
 
 const ADC_MAX_VALUE = 4095;
 const DEFAULT_SUPPLY_VOLTAGE = 3.3;
@@ -14,6 +15,21 @@ const VOLTAGE_WARNING_FACTOR = 1.15;
 const VOLTAGE_DANGER_FACTOR = 1.6;
 const PHOTORESISTOR_MIN_OHMS = 500;
 const PHOTORESISTOR_MAX_OHMS = 1_000_000;
+const RTTTL_DEFAULTS = { duration: 4, octave: 6, bpm: 63 };
+const RTTTL_NOTE_OFFSETS = {
+  c: 0,
+  'c#': 1,
+  d: 2,
+  'd#': 3,
+  e: 4,
+  f: 5,
+  'f#': 6,
+  g: 7,
+  'g#': 8,
+  a: 9,
+  'a#': 10,
+  b: 11,
+};
 
 const MOTOR_OUTPUT_CHANNELS = [
   {
@@ -39,6 +55,72 @@ const MULTIMETER_OVERLOAD_CURRENT = 5; // A – acima disso consideramos sobreca
 const MULTIMETER_PARALLEL_VDROP = 0.05; // V – queda acima disso indica ligação em paralelo
 const SOLVER_EPSILON = 1e-9;
 const BATTERY_COMPONENT_TYPES = new Set(['battery', 'battery-9v', 'battery-aaa-pack']);
+
+function rtttlNoteToFrequency(note, octave) {
+  const offset = RTTTL_NOTE_OFFSETS[note];
+  if (offset == null) return 0;
+  const midi = (octave + 1) * 12 + offset;
+  return 440 * 2 ** ((midi - 69) / 12);
+}
+
+function parseRtttlSequence(rtttl) {
+  const raw = String(rtttl ?? '').trim();
+  if (!raw) {
+    throw new Error('Informe uma musica RTTTL valida.');
+  }
+  const parts = raw.split(':');
+  if (parts.length < 3) {
+    throw new Error('Formato RTTTL invalido.');
+  }
+
+  const defaults = { ...RTTTL_DEFAULTS };
+  const defaultsPart = parts[1];
+  defaultsPart.split(',').forEach((entry) => {
+    const [key, value] = entry.split('=').map((item) => String(item || '').trim());
+    if (!key || !value) return;
+    const numeric = Number.parseInt(value, 10);
+    if (!Number.isFinite(numeric)) return;
+    if (key === 'd') defaults.duration = numeric;
+    if (key === 'o') defaults.octave = numeric;
+    if (key === 'b') defaults.bpm = numeric;
+  });
+
+  const bpm = defaults.bpm > 0 ? defaults.bpm : RTTTL_DEFAULTS.bpm;
+  const wholeNoteMs = (60 / bpm) * 4 * 1000;
+  const notesPart = parts.slice(2).join(':');
+  const notes = [];
+
+  notesPart.split(',').forEach((rawToken) => {
+    let token = String(rawToken || '').trim().toLowerCase();
+    if (!token) return;
+
+    const dotted = token.includes('.');
+    token = token.replace(/\./g, '');
+
+    const match = token.match(/^(\d+)?([a-gp])(#?)(\d+)?$/);
+    if (!match) return;
+
+    const durationValue = Number.parseInt(match[1] || defaults.duration, 10);
+    const noteLetter = match[2];
+    const sharp = match[3] === '#';
+    const octaveValue = Number.parseInt(match[4] || defaults.octave, 10);
+    if (!Number.isFinite(durationValue) || durationValue <= 0) return;
+
+    let durationMs = wholeNoteMs / durationValue;
+    if (dotted) durationMs *= 1.5;
+    durationMs = Math.max(1, durationMs);
+
+    let frequency = 0;
+    if (noteLetter !== 'p') {
+      const noteKey = `${noteLetter}${sharp ? '#' : ''}`;
+      frequency = rtttlNoteToFrequency(noteKey, octaveValue);
+    }
+
+    notes.push({ frequency, durationMs });
+  });
+
+  return notes;
+}
 
 function isBatteryComponentType(type) {
   return BATTERY_COMPONENT_TYPES.has(type);
@@ -1388,6 +1470,13 @@ class CircuitSnapshot {
         if (boardSupply === null) return null;
         return boardSupply;
       }
+      if (node.pinType === 'signal' && key) {
+        const analogLevel = this.boardAnalogLevels.get(key);
+        if (Number.isFinite(analogLevel)) {
+          if (boardSupply === null) return null;
+          return (analogLevel / ADC_MAX_VALUE) * boardSupply;
+        }
+      }
       const state = key ? this.boardPinStates.get(key) : null;
       if (state === 'high') return boardSupply;
       if (state === 'low') return 0;
@@ -1790,6 +1879,7 @@ class CircuitSnapshot {
     boardPinIndexMap.forEach((node) => {
       if (!node?.pinElement) return;
       const pos = wiringManager.getPinPosition(node.pinElement);
+      if (pos && pos.valid === false) return;
       boardNodes.push({ node, pos });
     });
     if (!boardNodes.length) return;
@@ -1804,6 +1894,7 @@ class CircuitSnapshot {
       indexMap.forEach((node) => {
         if (!node?.pinElement) return;
         const pos = wiringManager.getPinPosition(node.pinElement);
+        if (pos && pos.valid === false) return;
         boardNodes.forEach((boardEntry) => {
           const dx = pos.x - boardEntry.pos.x;
           const dy = pos.y - boardEntry.pos.y;
@@ -1901,8 +1992,68 @@ class CircuitSnapshot {
       }
     }
 
+    if (component.type === 'rain-module') {
+      if (normalizedPin === 'AO') {
+        const level = this.getRainSensorLevelForModule(componentId);
+        if (Number.isFinite(level)) {
+          const analog = Math.round((Math.max(0, Math.min(100, level)) / 100) * ADC_MAX_VALUE);
+          this.boardAnalogLevels.set(key, analog);
+          this.boardPinStates.set(key, analog <= 0 ? 'low' : 'high');
+          return analog;
+        }
+      }
+    }
+
     const stored = this.boardAnalogLevels.get(key);
     return Number.isFinite(stored) ? stored : null;
+  }
+
+  getRainSensorForModule(moduleComponentId) {
+    if (!this.canvasManager?.wiringManager) return null;
+    const module = this.canvasManager.getComponentById(moduleComponentId);
+    if (!module) return null;
+
+    const connections = this.canvasManager.wiringManager.connections ?? [];
+    const isModuleSensorPin = (pinElement) => {
+      if (!pinElement?.dataset) return false;
+      if (pinElement.dataset.componentId !== moduleComponentId) return false;
+      const name = String(pinElement.dataset.pinName ?? '').toUpperCase();
+      return name === 'S1' || name === 'S2';
+    };
+
+    let sensorComponent = null;
+    for (const connection of connections) {
+      const pin1 = connection?.pin1;
+      const pin2 = connection?.pin2;
+      if (isModuleSensorPin(pin1) && pin2?.dataset?.componentId) {
+        const other = this.canvasManager.getComponentById(pin2.dataset.componentId);
+        if (other?.type === 'rain-sensor' || other?.type === 'soil-sensor') {
+          sensorComponent = other;
+          break;
+        }
+      }
+      if (isModuleSensorPin(pin2) && pin1?.dataset?.componentId) {
+        const other = this.canvasManager.getComponentById(pin1.dataset.componentId);
+        if (other?.type === 'rain-sensor' || other?.type === 'soil-sensor') {
+          sensorComponent = other;
+          break;
+        }
+      }
+    }
+
+    if (!sensorComponent) return null;
+    return sensorComponent;
+  }
+
+  getRainSensorLevelForModule(moduleComponentId) {
+    const sensorComponent = this.getRainSensorForModule(moduleComponentId);
+    if (!sensorComponent) return null;
+    const level =
+      sensorComponent.type === 'soil-sensor'
+        ? Number(sensorComponent.props?.moistureLevel ?? sensorComponent.state?.moistureLevel)
+        : Number(sensorComponent.props?.rainLevel ?? sensorComponent.state?.rainLevel);
+    if (!Number.isFinite(level)) return null;
+    return Math.max(0, Math.min(100, level));
   }
 
   getComponentPinVoltageOverride(component, pinName) {
@@ -1938,6 +2089,22 @@ class CircuitSnapshot {
             (PHOTORESISTOR_MAX_OHMS - PHOTORESISTOR_MIN_OHMS);
           return ratio >= 0.5 ? 'high' : 'low';
         }
+        return 'low';
+      }
+    }
+    if (type === 'rain-module') {
+      const pin = String(pinName).toUpperCase();
+      if (pin === 'DO' || pin === 'DIGITAL') {
+        const level = this.getRainSensorLevelForModule(component.id);
+        const sensorComponent = this.getRainSensorForModule(component.id);
+        if (!sensorComponent) return 'low';
+        const rawState = sensorComponent.props?.digitalState ?? sensorComponent.state?.digitalState;
+        if (typeof rawState === 'boolean') return rawState ? 'high' : 'low';
+        if (typeof rawState === 'number') return rawState > 0 ? 'high' : 'low';
+        const normalized = String(rawState ?? '').toLowerCase();
+        if (['high', '1', 'on', 'sim', 'wet'].includes(normalized)) return 'high';
+        if (['low', '0', 'off', 'nao', 'dry'].includes(normalized)) return 'low';
+        if (Number.isFinite(level)) return level > 0 ? 'high' : 'low';
         return 'low';
       }
     }
@@ -2041,6 +2208,7 @@ class Simulation {
     this.powerEnabled = false;
     this.audioContext = null;
     this.buzzerAudioNodes = new Map();
+    this.buzzerFrequencies = new Map();
     this.servoMap = new Map();
   }
 
@@ -2057,7 +2225,8 @@ class Simulation {
       indicator.classList.toggle('on', Boolean(isHigh));
     }
     if (isHigh) {
-      this.startBuzzerAudio(buzzerId);
+      const frequency = this.buzzerFrequencies.get(buzzerId) ?? 1000;
+      this.startBuzzerAudio(buzzerId, frequency);
     } else {
       this.stopBuzzerAudio(buzzerId);
     }
@@ -2087,6 +2256,79 @@ class Simulation {
     return String(name || '')
       .trim()
       .toUpperCase();
+  }
+
+  normalizeBuzzerFrequency(frequency) {
+    const numeric = Number(frequency);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+      throw new Error('Frequência do buzzer inválida.');
+    }
+    return Math.max(20, Math.min(20000, numeric));
+  }
+
+  normalizeBuzzerDuration(durationSeconds) {
+    const numeric = Number(durationSeconds);
+    if (!Number.isFinite(numeric)) {
+      throw new Error('Duração do buzzer inválida.');
+    }
+    if (numeric <= 0) return 0;
+    return numeric;
+  }
+
+  findBuzzerComponentsByBoardPin(boardComponentId, pinName, snapshot) {
+    if (!this.canvasManager) return [];
+    const snap = snapshot ?? this.createSnapshot();
+    const boardNode = snap.getNodeByComponentPin(boardComponentId, pinName);
+    if (!boardNode?.netId) return [];
+    const buzzers = this.canvasManager.components?.filter((c) => c?.type === 'buzzer') ?? [];
+    return buzzers.filter((buzzer) => {
+      const pins = snap.getPinsForComponent(buzzer.id) ?? [];
+      if (pins.some((pin) => pin.netId && pin.netId === boardNode.netId)) {
+        return true;
+      }
+      const positiveNode = pins.find((pin) => pin.pinType === 'power')
+        ?? snap.getNodeByComponentPin(buzzer.id, '+')
+        ?? snap.getNodeByComponentPin(buzzer.id, 'VCC');
+      return positiveNode?.netId && positiveNode.netId === boardNode.netId;
+    });
+  }
+
+  applyBuzzerFrequencyForPin(boardComponentId, pinName, frequency, snapshot = null) {
+    const freq = this.normalizeBuzzerFrequency(frequency);
+    const canonical = this.canonicalPinName(pinName);
+    if (canonical === 'D4') {
+      const embeddedId = this.getEmbeddedBuzzerId(boardComponentId);
+      this.buzzerFrequencies.set(embeddedId, freq);
+    }
+    const buzzers = this.findBuzzerComponentsByBoardPin(boardComponentId, pinName, snapshot);
+    buzzers.forEach((component) => {
+      if (!component.state) component.state = {};
+      component.state.buzzerFrequency = freq;
+      this.buzzerFrequencies.set(component.id, freq);
+    });
+  }
+
+  stopBuzzerPin(boardComponentId, pinName) {
+    const pin = this.normalizeBoardPinInput(pinName);
+    if (!pin) return;
+    this.setBoardPinAnalogLevel(boardComponentId, pin, 0);
+  }
+
+  handleBuzzerTone(boardComponentId, pinNameRaw, frequency, durationSeconds) {
+    const pinName = this.normalizeBoardPinInput(pinNameRaw);
+    if (!pinName) {
+      throw new Error('Informe o pino do buzzer.');
+    }
+    if (this.isInputOnlyPin(pinName)) {
+      throw new Error(`O pino ${pinName} é apenas entrada e não suporta buzzer.`);
+    }
+    this.requireSignalPinElement(boardComponentId, pinName);
+    const freq = this.normalizeBuzzerFrequency(frequency);
+    const duration = this.normalizeBuzzerDuration(durationSeconds);
+    this.setBoardPinAnalogLevel(boardComponentId, pinName, ADC_MAX_VALUE);
+    const snapshot = this.createSnapshot();
+    this.applyBuzzerFrequencyForPin(boardComponentId, pinName, freq, snapshot);
+    return duration > 0 ? Math.round(duration * 1000) : 0;
   }
 
   normalizeServoNameFromElement(component) {
@@ -2218,7 +2460,12 @@ class Simulation {
     buzzerResults.forEach((result) => {
       this.setBuzzerState(result.component, result.active);
       if (!result.active) {
-        const reasons = result.reasons?.filter((reason) => reason && !/Sem alimentação suficiente/i.test(reason));
+        const reasons = result.reasons?.filter(
+          (reason) =>
+            reason &&
+            !/Sem alimentação suficiente/i.test(reason) &&
+            !/Buzzer sem alimentação/i.test(reason),
+        );
         if (reasons && reasons.length) {
           this.listeners.onLog?.({
             message: `Buzzer ${result.component.id}: ${reasons.join(', ')}`,
@@ -2241,7 +2488,12 @@ class Simulation {
       const controlledByProgram = Boolean(result.controllerName);
       if (!result.active && result.reasons?.length) {
         if (!controlledByProgram) {
-          errorMessages.push(`Motor ${result.component.id}: ${result.reasons.join(', ')}`);
+          const reasons = result.reasons.filter(
+            (reason) => !/Diferença de tensão insuficiente/i.test(reason),
+          );
+          if (reasons.length) {
+            errorMessages.push(`Motor ${result.component.id}: ${reasons.join(', ')}`);
+          }
         }
       }
     });
@@ -2301,7 +2553,8 @@ class Simulation {
       if ('hasSignal' in element) {
         element.hasSignal = true;
       }
-      this.startBuzzerAudio(component.id);
+      const frequency = this.buzzerFrequencies.get(component.id) ?? 1000;
+      this.startBuzzerAudio(component.id, frequency);
     } else {
       element.removeAttribute('has-signal');
       if ('hasSignal' in element) {
@@ -2450,7 +2703,8 @@ class Simulation {
   normalizeMotorName(name) {
     return String(name ?? '')
       .trim()
-      .toLowerCase();
+      .toLowerCase()
+      .replace(/\s+/g, '');
   }
 
   normalizeBoardPinName(pinName) {
@@ -2495,7 +2749,7 @@ class Simulation {
     if (!Number.isFinite(num)) {
       throw new Error('Ciclo de trabalho PWM inválido.');
     }
-    return Math.max(0, Math.min(100, num));
+    return Math.max(0, Math.min(1023, num));
   }
 
   clampPwmFrequency(freq) {
@@ -2521,7 +2775,7 @@ class Simulation {
 
   setPwmAnalogLevel(boardComponentId, entry) {
     if (!entry?.pin) return;
-    const analog = Math.round((entry.duty / 100) * ADC_MAX_VALUE);
+    const analog = Math.round((entry.duty / 1023) * ADC_MAX_VALUE);
     this.setBoardPinAnalogLevel(boardComponentId, entry.pin, analog);
   }
 
@@ -2902,7 +3156,7 @@ class Simulation {
   async handleMotorDcInit(boardComponentId, rawName, pwmPin, dir1Pin, dir2Pin) {
     const name = String(rawName ?? '').trim();
     if (!name) {
-      throw new Error('Defina um nome para o motor DC (por exemplo, "Motor A").');
+      throw new Error('Defina um nome para o motor DC (por exemplo, "MotorA").');
     }
 
     const pwm = this.normalizeBoardPinName(pwmPin);
@@ -3331,13 +3585,20 @@ class Simulation {
     };
   }
 
-  startBuzzerAudio(componentId) {
+  startBuzzerAudio(componentId, frequency = 1000) {
     if (!this.isRunning || !this.powerEnabled) return;
     if (this.buzzerAudioNodes.has(componentId)) {
       const node = this.buzzerAudioNodes.get(componentId);
       if (node?.gain && node.ctx) {
         node.gain.gain.cancelScheduledValues(node.ctx.currentTime);
         node.gain.gain.setTargetAtTime(0.05, node.ctx.currentTime, 0.02);
+        if (node.oscillator?.frequency) {
+          node.oscillator.frequency.setTargetAtTime(
+            Number(frequency) || 1000,
+            node.ctx.currentTime,
+            0.02,
+          );
+        }
       }
       return;
     }
@@ -3347,7 +3608,7 @@ class Simulation {
 
     const oscillator = ctx.createOscillator();
     oscillator.type = 'square';
-    oscillator.frequency.value = 1000;
+    oscillator.frequency.value = Number(frequency) || 1000;
     const gain = ctx.createGain();
     gain.gain.value = 0;
     oscillator.connect(gain).connect(ctx.destination);
@@ -3573,6 +3834,7 @@ class Simulation {
     this.dhtLastReading = { temperature: null, humidity: null, timestamp: 0 };
     this.pwmChannels.clear();
     this.servoMap.clear();
+    this.buzzerFrequencies.clear();
     if (this.canvasManager?.components?.length) {
       this.canvasManager.components
         .filter((component) => component.type === 'amado-board')
@@ -3749,6 +4011,52 @@ class Simulation {
         if (programState.aborted) return;
         try {
           await this.handlePwmStop(programState.boardComponentId, channel);
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      buzzerTone: async (pinName, frequency, durationSeconds) => {
+        if (programState.aborted) return;
+        try {
+          const durationMs = this.handleBuzzerTone(
+            programState.boardComponentId,
+            pinName,
+            frequency,
+            durationSeconds,
+          );
+          if (durationMs > 0) {
+            await api.wait(durationMs);
+            this.stopBuzzerPin(programState.boardComponentId, pinName);
+          }
+        } catch (error) {
+          const message = error?.message ?? String(error);
+          programState.onProgramError?.(message);
+          throw error;
+        }
+      },
+      rtttlPlay: async (pinName, songName) => {
+        if (programState.aborted) return;
+        try {
+          const songKey = String(songName ?? '').trim();
+          if (!songKey) {
+            throw new Error('Selecione uma musica para reproduzir.');
+          }
+          const rtttl =
+            findSongByName(songKey) ?? (songKey.includes(':') ? songKey : null);
+          if (!rtttl) {
+            throw new Error(`Musica "${songKey}" nao encontrada na biblioteca.`);
+          }
+          const notes = parseRtttlSequence(rtttl);
+          for (const note of notes) {
+            if (programState.aborted) return;
+            if (!note.frequency) {
+              await api.wait(note.durationMs);
+            } else {
+              await api.buzzerTone(pinName, note.frequency, note.durationMs / 1000);
+            }
+          }
         } catch (error) {
           const message = error?.message ?? String(error);
           programState.onProgramError?.(message);
@@ -4115,7 +4423,18 @@ class Simulation {
 
     this.requireSignalPinElement(componentId, pinName);
 
+    const canonicalPin = this.canonicalPinName(pinName);
     const analogCandidate = this.tryParseAnalogLevel(level);
+    if (this.isInputOnlyPin(canonicalPin)) {
+      if (analogCandidate !== null) {
+        throw new Error(`O pino ${canonicalPin} é apenas entrada e não suporta saída digital.`);
+      }
+      const normalizedInput = this.normalizePinLevel(level);
+      if (normalizedInput !== 'floating') {
+        throw new Error(`O pino ${canonicalPin} é apenas entrada e não suporta saída digital.`);
+      }
+    }
+
     if (analogCandidate !== null) {
       const result = this.setBoardPinAnalogLevel(componentId, pinName, analogCandidate);
       this.updateBoardIndicator(componentId, pinName, analogCandidate > 0);
@@ -4125,7 +4444,6 @@ class Simulation {
 
     const normalized = this.normalizePinLevel(level);
     const key = this.getBoardPinKey(componentId, pinName);
-
     if (normalized === 'floating') {
       this.boardPinStates.delete(key);
       this.boardAnalogLevels.delete(key);

@@ -1,5 +1,6 @@
 import { amadoBoardPins } from './components.js';
 import { showAlert } from './ui.js';
+import { getSongNames } from './songs.js';
 
 let blocksRegistered = false;
 
@@ -27,13 +28,13 @@ function createNumberShadowBlock(Blockly, defaultValue = '0') {
   return shadow;
 }
 
-function createTextShadowBlock(Blockly) {
+function createTextShadowBlock(Blockly, defaultValue = 'Mensagem', blockType = 'text') {
   const shadow = Blockly.utils.xml.createElement('shadow');
-  shadow.setAttribute('type', 'text');
+  shadow.setAttribute('type', blockType);
 
   const field = Blockly.utils.xml.createElement('field');
   field.setAttribute('name', 'TEXT');
-  field.textContent = 'Mensagem';
+  field.textContent = String(defaultValue);
 
   shadow.appendChild(field);
   return shadow;
@@ -51,7 +52,7 @@ function createLevelSelectorShadow(Blockly) {
   return shadow;
 }
 
-function createServoNameField(Blockly, defaultValue = 'Servo 1') {
+function createServoNameField(Blockly, defaultValue = 'servo1') {
   const FieldTextInput = Blockly.FieldTextInput ?? Blockly.FieldInput ?? null;
   if (!FieldTextInput) {
     return null;
@@ -61,6 +62,14 @@ function createServoNameField(Blockly, defaultValue = 'Servo 1') {
     field.setSpellcheck(false);
   }
   return field;
+}
+
+function buildRtttlSongOptions() {
+  const names = getSongNames();
+  if (!names.length) {
+    return [['Nenhuma musica', '']];
+  }
+  return names.map((name) => [name, name]);
 }
 
 function buildPinOptions() {
@@ -93,7 +102,7 @@ function buildPinOptions() {
   return labels;
 }
 
-function createMotorNameField(Blockly, defaultValue = 'Motor A') {
+function createMotorNameField(Blockly, defaultValue = 'MotorA') {
   const FieldTextInput = Blockly.FieldTextInput ?? Blockly.FieldInput ?? null;
   if (!FieldTextInput) {
     return null;
@@ -504,15 +513,55 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  Blockly.Blocks.amado_project_text = {
+    init() {
+      this.appendDummyInput().appendField(new Blockly.FieldTextInput(''), 'TEXT');
+      this.setOutput(true, 'String');
+      this.setColour('#f472b6');
+      this.setTooltip('Texto do projeto.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_project_info = {
+    init() {
+      this.appendDummyInput().appendField('Dados do projeto');
+      const authorInput = this.appendValueInput('AUTHOR')
+        .setCheck('String')
+        .appendField('Autor');
+      const descriptionInput = this.appendValueInput('DESCRIPTION')
+        .setCheck('String')
+        .appendField('Descrição');
+      this.setInputsInline(false);
+      this.setColour('#995ba5');
+      this.setTooltip('Define informacoes do projeto para uso ao salvar.');
+      this.setHelpUrl('');
+
+      authorInput?.connection?.setShadowDom(
+        createTextShadowBlock(Blockly, '', 'amado_project_text'),
+      );
+      descriptionInput?.connection?.setShadowDom(
+        createTextShadowBlock(Blockly, '', 'amado_project_text'),
+      );
+    },
+  };
+
   Blockly.Blocks.amado_wait = {
     init() {
       const input = this.appendValueInput('MS').setCheck('Number').appendField('aguardar');
-      this.appendDummyInput().appendField('ms');
+      this.appendDummyInput().appendField(
+        new Blockly.FieldDropdown([
+          ['milissegundos', 'ms'],
+          ['segundos', 's'],
+          ['microsegundos', 'us'],
+        ]),
+        'UNIT',
+      );
       this.setInputsInline(true);
       this.setPreviousStatement(true);
       this.setNextStatement(true);
       this.setColour('#d9a600');
-      this.setTooltip('Pausa a execução do programa pelo tempo indicado (em milissegundos).');
+      this.setTooltip('Pausa a execução do programa pelo tempo indicado.');
       this.setHelpUrl('');
 
       const connection = input?.connection;
@@ -619,6 +668,32 @@ export function registerAmadoBlocks(Blockly) {
   const pwmChannelField = () =>
     new (Blockly.FieldNumber ?? Blockly.FieldInput)(0, 0, 15, 1);
 
+  const buzzerNoteOptions = [
+    ['B1', '61.74'],
+    ['C2', '65.41'],
+    ['D2', '73.42'],
+    ['E2', '82.41'],
+    ['F2', '87.31'],
+    ['G2', '98.00'],
+    ['A2', '110.00'],
+    ['B2', '123.47'],
+    ['C3', '130.81'],
+    ['D3', '146.83'],
+    ['E3', '164.81'],
+    ['F3', '174.61'],
+    ['G3', '196.00'],
+    ['A3', '220.00'],
+    ['B3', '246.94'],
+    ['C4', '261.63'],
+    ['D4', '293.66'],
+    ['E4', '329.63'],
+    ['F4', '349.23'],
+    ['G4', '392.00'],
+    ['A4', '440.00'],
+    ['B4', '493.88'],
+    ['C5', '523.25'],
+  ];
+
   Blockly.Blocks.amado_pwm_setup = {
     init() {
       this.appendDummyInput()
@@ -645,7 +720,7 @@ export function registerAmadoBlocks(Blockly) {
 
       pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
       freqInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '1000'));
-      dutyInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '50'));
+      dutyInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '512'));
     },
   };
 
@@ -678,10 +753,10 @@ export function registerAmadoBlocks(Blockly) {
       this.setPreviousStatement(true);
       this.setNextStatement(true);
       this.setColour('#708090');
-      this.setTooltip('Ajusta o ciclo de trabalho (duty) de um canal PWM (0 a 100%).');
+      this.setTooltip('Ajusta o ciclo de trabalho (duty) de um canal PWM (0 a 1023).');
       this.setHelpUrl('');
 
-      dutyInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '50'));
+      dutyInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '512'));
     },
   };
 
@@ -719,6 +794,115 @@ export function registerAmadoBlocks(Blockly) {
     },
   };
 
+  Blockly.Blocks.amado_buzzer_play = {
+    init() {
+      this.appendDummyInput().appendField('Reproduzir buzzer no');
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .appendField('pino');
+      const freqInput = this.appendValueInput('FREQ')
+        .setCheck('Number')
+        .appendField('frequência');
+      const durationInput = this.appendValueInput('DURATION')
+        .setCheck('Number')
+        .appendField('duração (s):');
+      this.appendDummyInput().appendField('(0 para duração infinita)');
+      this.setInputsInline(true);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Reproduz o buzzer na frequência indicada.');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      freqInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '1200'));
+      durationInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '-1'));
+    },
+  };
+
+  Blockly.Blocks.amado_buzzer_note = {
+    init() {
+      this.appendDummyInput()
+        .appendField('nota')
+        .appendField(new Blockly.FieldDropdown(buzzerNoteOptions), 'NOTE');
+      this.setOutput(true, 'Number');
+      this.setColour('#708090');
+      this.setTooltip('Nota musical para o buzzer.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.amado_rtttl_song = {
+    init() {
+      this.appendDummyInput()
+        .appendField('musica')
+        .appendField(new Blockly.FieldDropdown(buildRtttlSongOptions()), 'SONG');
+      this.setOutput(true, 'String');
+      this.setColour('#708090');
+      this.setTooltip('Seleciona uma musica da biblioteca RTTTL.');
+      this.setHelpUrl('');
+    },
+  };
+
+  Blockly.Blocks.rtttl_play = {
+    init() {
+      this.appendDummyInput().appendField('Reproduzir musica');
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .appendField('pino');
+      const songInput = this.appendValueInput('SONG')
+        .setCheck('String')
+        .appendField('musica');
+      this.setInputsInline(true);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Reproduz uma musica RTTTL no buzzer selecionado.');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      if (songInput?.connection) {
+        const shadow = Blockly.utils.xml.createElement('shadow');
+        shadow.setAttribute('type', 'amado_rtttl_song');
+        songInput.connection.setShadowDom(shadow);
+      }
+    },
+  };
+
+  Blockly.Blocks.amado_buzzer_play_note = {
+    init() {
+      this.appendDummyInput().appendField('Reproduzir buzzer no');
+      const pinInput = this.appendValueInput('PIN')
+        .setCheck('String')
+        .appendField('pino');
+      const noteInput = this.appendValueInput('NOTE')
+        .setCheck('Number')
+        .appendField('nota');
+      const durationInput = this.appendValueInput('DURATION')
+        .setCheck('Number')
+        .appendField('duração (s):');
+      this.appendDummyInput().appendField('(0 para duração infinita)');
+      this.setInputsInline(true);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour('#708090');
+      this.setTooltip('Reproduz o buzzer usando uma nota musical.');
+      this.setHelpUrl('');
+
+      pinInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
+      if (noteInput?.connection) {
+        const shadow = Blockly.utils.xml.createElement('shadow');
+        shadow.setAttribute('type', 'amado_buzzer_note');
+        const field = Blockly.utils.xml.createElement('field');
+        field.setAttribute('name', 'NOTE');
+        field.textContent = '61.74';
+        shadow.appendChild(field);
+        noteInput.connection.setShadowDom(shadow);
+      }
+      durationInput?.connection?.setShadowDom(createNumberShadowBlock(Blockly, '-1'));
+    },
+  };
+
   Blockly.Blocks.motor_dc_set_power = {
     init() {
       this.appendDummyInput()
@@ -727,7 +911,7 @@ export function registerAmadoBlocks(Blockly) {
       const powerInput = this.appendValueInput('POWER').setCheck('Number');
 
       this.appendDummyInput()
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+        .appendField(createMotorNameField(Blockly) ?? 'MotorA', 'NAME');
 
       this.setInputsInline(true);
       this.setPreviousStatement(true);
@@ -754,7 +938,7 @@ export function registerAmadoBlocks(Blockly) {
         .setAlign(Blockly.ALIGN_RIGHT);
 
       this.appendDummyInput()
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+        .appendField(createMotorNameField(Blockly) ?? 'MotorA', 'NAME');
 
       this.setInputsInline(true);
       this.setPreviousStatement(true);
@@ -797,7 +981,7 @@ export function registerAmadoBlocks(Blockly) {
 
       this.appendDummyInput()
         .appendField('Nome do motor:')
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+        .appendField(createMotorNameField(Blockly) ?? 'MotorA', 'NAME');
 
       pwmInput?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
       dir1Input?.connection?.setShadowDom(createPinSelectorShadow(Blockly));
@@ -816,7 +1000,7 @@ export function registerAmadoBlocks(Blockly) {
     init() {
       this.appendDummyInput()
         .appendField('Parar motor DC')
-        .appendField(createMotorNameField(Blockly) ?? 'Motor A', 'NAME');
+        .appendField(createMotorNameField(Blockly) ?? 'MotorA', 'NAME');
 
       this.setPreviousStatement(true);
       this.setNextStatement(true);
@@ -881,7 +1065,7 @@ export function registerAmadoBlocks(Blockly) {
     init() {
       this.appendDummyInput()
         .appendField('mover servo')
-        .appendField(createServoNameField(Blockly, 'Servo 1') ?? 'Servo 1', 'NAME');
+        .appendField(createServoNameField(Blockly, 'servo1') ?? 'servo1', 'NAME');
 
       const angleInput = this.appendValueInput('ANGLE')
         .setCheck('Number')
@@ -1240,7 +1424,10 @@ export function registerAmadoBlocks(Blockly) {
     const value =
       javascriptGenerator.valueToCode(block, 'MS', javascriptGenerator.ORDER_NONE) ||
       '0';
-    return `await api.wait(${value});\n`;
+    const unit = String(block.getFieldValue('UNIT') ?? 's');
+    const multiplier =
+      unit === 's' ? '1000' : unit === 'us' ? '(1 / 1000)' : '1';
+    return `await api.wait((${value}) * ${multiplier});\n`;
   };
 
   javascriptGenerator.forBlock.amado_read_digital = function amadoReadDigital(block) {
@@ -1294,6 +1481,44 @@ export function registerAmadoBlocks(Blockly) {
     return `await api.pwmStop(${channel});\n`;
   };
 
+  javascriptGenerator.forBlock.amado_buzzer_play = function amadoBuzzerPlay(block) {
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    const freq =
+      javascriptGenerator.valueToCode(block, 'FREQ', javascriptGenerator.ORDER_NONE) || '0';
+    const duration =
+      javascriptGenerator.valueToCode(block, 'DURATION', javascriptGenerator.ORDER_NONE) || '0';
+    return `await api.buzzerTone(${pin}, ${freq}, ${duration});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_buzzer_play_note = function amadoBuzzerPlayNote(block) {
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    const note =
+      javascriptGenerator.valueToCode(block, 'NOTE', javascriptGenerator.ORDER_NONE) || '0';
+    const duration =
+      javascriptGenerator.valueToCode(block, 'DURATION', javascriptGenerator.ORDER_NONE) || '0';
+    return `await api.buzzerTone(${pin}, ${note}, ${duration});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_buzzer_note = function amadoBuzzerNote(block) {
+    const value = Number(block.getFieldValue('NOTE')) || 0;
+    return [String(value), orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.amado_rtttl_song = function amadoRtttlSong(block) {
+    const song = block.getFieldValue('SONG') ?? '';
+    return [javascriptGenerator.quote_(song), orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.rtttl_play = function rtttlPlay(block) {
+    const pin =
+      javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_NONE) || "''";
+    const song =
+      javascriptGenerator.valueToCode(block, 'SONG', javascriptGenerator.ORDER_NONE) || "''";
+    return `await api.rtttlPlay(${pin}, ${song});\n`;
+  };
+
   javascriptGenerator.forBlock.amado_ultrasonic_init = function amadoUltrasonicInit(block) {
     const trig =
       javascriptGenerator.valueToCode(block, 'TRIG', javascriptGenerator.ORDER_NONE) || "''";
@@ -1314,6 +1539,15 @@ export function registerAmadoBlocks(Blockly) {
     const value =
       javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_NONE) ?? "''";
     return `await api.log(${value});\n`;
+  };
+
+  javascriptGenerator.forBlock.amado_project_text = function amadoProjectText(block) {
+    const text = block.getFieldValue('TEXT') ?? '';
+    return [javascriptGenerator.quote_(text), orderAtomic];
+  };
+
+  javascriptGenerator.forBlock.amado_project_info = function amadoProjectInfo() {
+    return '';
   };
 
   javascriptGenerator.forBlock.amado_pin_selector = function amadoPinSelector(block) {
@@ -1408,9 +1642,21 @@ export function registerAmadoBlocks(Blockly) {
     let branch = javascriptGenerator.statementToCode(block, 'DO');
     branch = javascriptGenerator.addLoopTrap(branch, block.id);
     branch = appendLoopYield(branch);
-    const code =
-      `for (let ${variable} = ${from}; ${variable} <= ${to}; ${variable} += ${by}) {\n${branch}}\n`;
-    return code;
+    const start = javascriptGenerator.nameDB_.getDistinctName('for_start', Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE');
+    const end = javascriptGenerator.nameDB_.getDistinctName('for_end', Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE');
+    const step = javascriptGenerator.nameDB_.getDistinctName('for_step', Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE');
+    return (
+      `{\n` +
+      `  const ${start} = ${from};\n` +
+      `  const ${end} = ${to};\n` +
+      `  const ${step} = ${by};\n` +
+      `  if (${step} > 0) {\n` +
+      `    for (let ${variable} = ${start}; ${variable} <= ${end}; ${variable} += ${step}) {\n${branch}}\n` +
+      `  } else if (${step} < 0) {\n` +
+      `    for (let ${variable} = ${start}; ${variable} >= ${end}; ${variable} += ${step}) {\n${branch}}\n` +
+      `  }\n` +
+      `}\n`
+    );
   };
 
   javascriptGenerator.forBlock.controls_forEach = function controlsForEach(block) {
@@ -1498,5 +1744,79 @@ export function registerAmadoBlocks(Blockly) {
 
   javascriptGenerator.forBlock.oled_display_clear = function oledDisplayClear() {
     return 'await api.oledClear();\n';
+  };
+
+  // Procedimentos (Funções) com suporte a async/await
+  const getProcedureName = (block) =>
+    javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('NAME'),
+      Blockly.PROCEDURE_CATEGORY_NAME || 'PROCEDURE',
+    );
+
+  const getProcedureArgs = (block) =>
+    block
+      .getVars()
+      .map((arg) =>
+        javascriptGenerator.nameDB_.getName(
+          arg,
+          Blockly.VARIABLE_CATEGORY_NAME || 'VARIABLE',
+        ),
+      );
+
+  javascriptGenerator.forBlock.procedures_defnoreturn = function proceduresDefNoReturn(block) {
+    const funcName = getProcedureName(block);
+    const args = getProcedureArgs(block);
+    let branch = javascriptGenerator.statementToCode(block, 'STACK');
+    branch = javascriptGenerator.addLoopTrap(branch, block.id);
+    const code = `async function ${funcName}(${args.join(', ')}) {\n${branch}}\n`;
+    javascriptGenerator.definitions_[funcName] = code;
+    return null;
+  };
+
+  javascriptGenerator.forBlock.procedures_defreturn = function proceduresDefReturn(block) {
+    const funcName = getProcedureName(block);
+    const args = getProcedureArgs(block);
+    let branch = javascriptGenerator.statementToCode(block, 'STACK');
+    branch = javascriptGenerator.addLoopTrap(branch, block.id);
+    const returnValue =
+      javascriptGenerator.valueToCode(block, 'RETURN', orderNone) || '';
+    const returnLine = returnValue ? `  return ${returnValue};\n` : '';
+    const code = `async function ${funcName}(${args.join(', ')}) {\n${branch}${returnLine}}\n`;
+    javascriptGenerator.definitions_[funcName] = code;
+    return null;
+  };
+
+  javascriptGenerator.forBlock.procedures_callnoreturn = function proceduresCallNoReturn(block) {
+    const funcName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('NAME'),
+      Blockly.PROCEDURE_CATEGORY_NAME || 'PROCEDURE',
+    );
+    const argNames = block.arguments_ ?? block.getVars?.() ?? [];
+    const args =
+      argNames
+        .map((arg, index) => {
+          const argValue =
+            javascriptGenerator.valueToCode(block, `ARG${index}`, orderNone) || 'null';
+          return argValue;
+        })
+        .join(', ') || '';
+    return `await ${funcName}(${args});\n`;
+  };
+
+  javascriptGenerator.forBlock.procedures_callreturn = function proceduresCallReturn(block) {
+    const funcName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('NAME'),
+      Blockly.PROCEDURE_CATEGORY_NAME || 'PROCEDURE',
+    );
+    const argNames = block.arguments_ ?? block.getVars?.() ?? [];
+    const args =
+      argNames
+        .map((arg, index) => {
+          const argValue =
+            javascriptGenerator.valueToCode(block, `ARG${index}`, orderNone) || 'null';
+          return argValue;
+        })
+        .join(', ') || '';
+    return [`await ${funcName}(${args})`, orderAwait];
   };
 }

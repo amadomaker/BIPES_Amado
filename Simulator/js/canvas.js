@@ -479,6 +479,13 @@ export class CanvasManager {
         container.removeEventListener('pointercancel', handlePointerUp);
 
         if (moved) {
+          if (component.type === 'lab-prop') {
+            window.dispatchEvent(
+              new CustomEvent('simulator-pattern-interaction', {
+                detail: { source: 'lab-prop' },
+              }),
+            );
+          }
           this.snapComponentToProtoboard(component);
           this.notifyInteraction();
           if (component.type === 'photoresistor') {
@@ -512,6 +519,8 @@ export class CanvasManager {
       showComponentContextMenu(event.clientX, event.clientY, {
         onBringToFront:
           component.type === 'protoboard-half' ? null : () => this.bringComponentToFront(id),
+        onSendToBack:
+          component.type === 'protoboard-half' ? null : () => this.sendComponentToBack(id),
         onDelete: () => this.removeComponent(id),
       });
     });
@@ -526,6 +535,40 @@ export class CanvasManager {
       return Number.isFinite(value) ? Math.max(currentMax, value) : currentMax;
     }, 1);
     component.container.style.zIndex = String(maxZ + 1);
+    this.notifyInteraction();
+  }
+
+  sendComponentToBack(componentId) {
+    const component = this.getComponentById(componentId);
+    if (!component || component.type === 'protoboard-half') return;
+
+    const otherComponents = this.components.filter(
+      (entry) => entry.type !== 'protoboard-half' && entry.id !== componentId,
+    );
+    if (!otherComponents.length) {
+      component.container.style.zIndex = '1';
+      this.notifyInteraction();
+      return;
+    }
+
+    const zIndices = otherComponents.map((entry) => {
+      const value = Number.parseInt(entry.container.style.zIndex, 10);
+      return Number.isFinite(value) ? value : 1;
+    });
+    const minZ = Math.min(...zIndices);
+
+    if (minZ <= 1) {
+      otherComponents.forEach((entry) => {
+        const value = Number.parseInt(entry.container.style.zIndex, 10);
+        if (!Number.isFinite(value) || value <= 1) {
+          entry.container.style.zIndex = '2';
+        }
+      });
+      component.container.style.zIndex = '1';
+    } else {
+      component.container.style.zIndex = String(minZ - 1);
+    }
+
     this.notifyInteraction();
   }
 
@@ -913,7 +956,7 @@ export class CanvasManager {
     this.focusViewportOnContent();
   }
 
-  updateComponentProps(componentId, newProps = {}) {
+  updateComponentProps(componentId, newProps = {}, options = {}) {
     const component = this.getComponentById(componentId);
     if (!component) return;
 
@@ -937,7 +980,7 @@ export class CanvasManager {
 
     this.wiringManager.updateAllConnections();
 
-    if (this.selectedComponentId === componentId) {
+    if (!options.skipRender && this.selectedComponentId === componentId) {
       this.renderPropertiesForComponent(component);
     }
 
@@ -1431,7 +1474,49 @@ export class CanvasManager {
         .filter(Boolean),
     );
 
+    const getConnectedRainModuleMode = () => {
+      if (component.type !== 'rain-sensor' && component.type !== 'soil-sensor') return null;
+      const connections = this.wiringManager?.connections ?? [];
+      for (const connection of connections) {
+        const pin1 = connection?.pin1;
+        const pin2 = connection?.pin2;
+        const pin1ComponentId = pin1?.dataset?.componentId;
+        const pin2ComponentId = pin2?.dataset?.componentId;
+        if (pin1ComponentId === component.id && pin2ComponentId) {
+          const other = this.getComponentById(pin2ComponentId);
+          if (other?.type === 'rain-module') {
+            return other.props?.outputMode ?? 'analog';
+          }
+        }
+        if (pin2ComponentId === component.id && pin1ComponentId) {
+          const other = this.getComponentById(pin1ComponentId);
+          if (other?.type === 'rain-module') {
+            return other.props?.outputMode ?? 'analog';
+          }
+        }
+      }
+      return null;
+    };
+
+    const isControlVisible = (controlConfig) => {
+      const rule = controlConfig?.visibleWhen;
+      if (!rule) return true;
+      if (rule.connectedRainModuleMode) {
+        const mode = getConnectedRainModuleMode() ?? 'analog';
+        return mode === rule.connectedRainModuleMode;
+      }
+      const propValue = rule.prop ? component.props?.[rule.prop] : undefined;
+      if (Object.prototype.hasOwnProperty.call(rule, 'equals')) {
+        return propValue === rule.equals;
+      }
+      if (Object.prototype.hasOwnProperty.call(rule, 'notEquals')) {
+        return propValue !== rule.notEquals;
+      }
+      return true;
+    };
+
     (definition.propertyControls ?? []).forEach((controlConfig) => {
+      if (!isControlVisible(controlConfig)) return;
       const propKey = controlConfig?.control?.propKey;
       const rawValue =
         (propKey && component.props[propKey]) ??
@@ -1442,6 +1527,33 @@ export class CanvasManager {
       const interactionDetail =
         controlConfig?.control?.interactionEventDetail ?? { source: 'component-property' };
 
+      const isRange = controlConfig?.control?.type === 'range';
+      const onChange = (value) => {
+        if (shouldDispatchInteraction) {
+          window.dispatchEvent(
+            new CustomEvent('simulator-pattern-interaction', {
+              detail: interactionDetail,
+            }),
+          );
+        }
+        if (propKey) {
+          this.updateComponentProps(component.id, { [propKey]: value });
+        }
+      };
+      const onInput = (value) => {
+        if (!isRange) return;
+        if (shouldDispatchInteraction) {
+          window.dispatchEvent(
+            new CustomEvent('simulator-pattern-interaction', {
+              detail: interactionDetail,
+            }),
+          );
+        }
+        if (propKey) {
+          this.updateComponentProps(component.id, { [propKey]: value }, { skipRender: true });
+        }
+      };
+
       fields.push({
         label: controlConfig.label,
         value: controlConfig.formatValue
@@ -1451,18 +1563,8 @@ export class CanvasManager {
           type: controlConfig.control?.type,
           options: controlConfig.control?.options,
           value: rawValue,
-          onChange: (value) => {
-            if (shouldDispatchInteraction) {
-              window.dispatchEvent(
-                new CustomEvent('simulator-pattern-interaction', {
-                  detail: interactionDetail,
-                }),
-              );
-            }
-            if (propKey) {
-              this.updateComponentProps(component.id, { [propKey]: value });
-            }
-          },
+          onChange,
+          onInput,
         },
       });
     });

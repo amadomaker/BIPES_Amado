@@ -5,6 +5,7 @@ on:
     branches: [master, staging]
     paths:
       - "ui/**"
+      - "Simulator/**"
       - "Dockerfile"
       - ".github/workflows/deploy-ui.yml"
   workflow_dispatch:
