@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle por Gestos — dblocks</title>
+  <link rel="stylesheet" href="gesture-control.css">
+</head>
+<body>
+
+  <!-- Loading overlay (shown while MediaPipe initialises) -->
+  <div id="loadingOverlay" class="hidden">
+    <div class="spinner"></div>
+    <span id="loadingMsg">Carregando...</span>
+  </div>
+
+  <!-- ── Config bar ── -->
+  <div class="config-bar">
+    <label for="ipInput">IP do ESP32:</label>
+    <input type="text" id="ipInput" placeholder="ex: 192.168.1.100" autocomplete="off" spellcheck="false">
+    <button class="btn btn-light" id="btnSaveIp">Salvar</button>
+
+    <div class="camera-controls">
+      <span id="statusDot" class="status-dot" title="Status da câmera"></span>
+      <button class="btn btn-success" id="btnStart">&#9654; Ligar Câmera</button>
+      <button class="btn btn-danger"  id="btnStop"  disabled>&#9632; Desligar</button>
+    </div>
+  </div>
+
+  <!-- ── Main ── -->
+  <div class="main-content">
+
+    <!-- Video panel -->
+    <div class="video-panel">
+      <video id="videoElement" autoplay muted playsinline></video>
+
+      <div class="gesture-display">
+        <span class="gesture-label">Gesto detectado</span>
+        <span class="gesture-name none" id="gestureName">—</span>
+        <span class="gesture-confidence" id="gestureConf"></span>
+      </div>
+
+      <div style="color:#777; font-size:11px; padding: 0 2px;">
+        Apenas gestos com confiança &ge; 75% disparam comandos.
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel">
+
+      <!-- Gesture mapping table -->
+      <div class="mapping-section">
+        <h3>Mapeamento de Gestos &rarr; Comandos HTTP</h3>
+        <table class="gesture-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Gesto</th>
+              <th>Endpoint HTTP (ex: /led/on)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="mappingBody">
+            <!-- preenchido por JS -->
+          </tbody>
+        </table>
+        <p style="margin-top:0.75rem; color:#888; font-size:12px;">
+          O comando enviado será: <code>GET http://&lt;IP&gt;&lt;endpoint&gt;</code><br>
+          Deixe o campo vazio para ignorar o gesto.
+        </p>
+      </div>
+
+      <!-- Log -->
+      <div class="log-section">
+        <h4>Log de comandos</h4>
+        <div id="logContainer"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="gesture-control.js"></script>
+</body>
+</html>

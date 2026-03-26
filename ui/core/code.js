@@ -180,7 +180,7 @@ Code.LANG = Code.getLang();
  * @private
  */
 
-Code.TABS_ = ['blocks', 'console', 'files', 'device', 'programs', 'databoard', 'mqtt', 'iot', 'sound', 'simulator'];
+Code.TABS_ = ['blocks', 'console', 'files', 'device', 'programs', 'databoard', 'mqtt', 'iot', 'sound', 'simulator', 'gestures'];
 
 Code.current = ["blocks", "",""]
 
@@ -351,6 +351,8 @@ Code.renderContent = (_navigation) => {
     case "programs":
     case "iot":
     case "mqtt":
+    case "simulator":
+    case "gestures":
       break
   }
   content.focus()
@@ -395,6 +397,12 @@ Code.deinitContent = (_navigation) => {
     Code.workspace.setVisible(false);
     Code.auto_mode = false;
     break
+  case "gestures": {
+    let gIframe = document.getElementById('gestures_iframe')
+    if (gIframe && gIframe.contentWindow && typeof gIframe.contentWindow.stopCamera === 'function')
+      gIframe.contentWindow.stopCamera()
+    break
+  }
   }
 }
 
