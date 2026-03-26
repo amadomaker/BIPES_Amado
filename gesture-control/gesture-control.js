@@ -1,143 +1,156 @@
 /**
  * Controle por Gestos — BIPES/dblocks
- * Usa MediaPipe GestureRecognizer para detectar gestos pela câmera
- * e enviar comandos HTTP para um ESP32 via WiFi.
+ * Detecta gestos via MediaPipe e envia comandos HTTP ao ESP32.
+ * A câmera permanece ativa ao trocar de aba.
  */
 
 const GESTURES = [
-  { key: 'Closed_Fist', label: 'Punho Fechado', icon: '✊' },
-  { key: 'Open_Palm',   label: 'Mão Aberta',    icon: '🖐' },
-  { key: 'Pointing_Up', label: 'Apontar',        icon: '☝' },
-  { key: 'Thumb_Up',    label: 'Polegar ↑',      icon: '👍' },
-  { key: 'Thumb_Down',  label: 'Polegar ↓',      icon: '👎' },
-  { key: 'Victory',     label: 'Vitória ✌',      icon: '✌' },
-  { key: 'ILoveYou',   label: 'Eu te amo',       icon: '🤟' },
+  { key: 'Closed_Fist', label: 'Punho Fechado', emoji: '✊' },
+  { key: 'Open_Palm',   label: 'Mão Aberta',    emoji: '🖐' },
+  { key: 'Pointing_Up', label: 'Apontar',        emoji: '☝' },
+  { key: 'Thumb_Up',    label: 'Polegar ↑',      emoji: '👍' },
+  { key: 'Thumb_Down',  label: 'Polegar ↓',      emoji: '👎' },
+  { key: 'Victory',     label: 'Vitória',         emoji: '✌' },
+  { key: 'ILoveYou',   label: 'Eu te amo',       emoji: '🤟' },
 ];
 
-const STORAGE_KEY_IP       = 'gesture_esp32_ip';
-const STORAGE_KEY_MAPPINGS = 'gesture_mappings';
-const DEBOUNCE_MS = 700;
-const LOG_MAX = 60;
-const CONFIDENCE_THRESHOLD = 0.75;
+const KEY_IP       = 'gesture_esp32_ip';
+const KEY_MAPPINGS = 'gesture_mappings';
+const DEBOUNCE_MS  = 700;
+const CONFIDENCE   = 0.75;
+const MEDIAPIPE_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs';
 
-let recognizer = null;
-let cameraStream = null;
-let animFrameId = null;
-let isRunning = false;
-
+let recognizer  = null;
+let stream      = null;
+let rafId       = null;
+let isRunning   = false;
 let lastGesture = '';
-let lastSentTime = 0;
+let lastSentAt  = 0;
 
-// ─── DOM refs ────────────────────────────────────────────────
-const video         = document.getElementById('videoElement');
-const ipInput       = document.getElementById('ipInput');
-const btnSaveIp     = document.getElementById('btnSaveIp');
-const btnStart      = document.getElementById('btnStart');
-const btnStop       = document.getElementById('btnStop');
-const gestureNameEl = document.getElementById('gestureName');
-const gestureConfEl = document.getElementById('gestureConf');
-const statusDot     = document.getElementById('statusDot');
-const logContainer  = document.getElementById('logContainer');
-const loadingOverlay= document.getElementById('loadingOverlay');
-const loadingMsg    = document.getElementById('loadingMsg');
+// ── DOM ──────────────────────────────────────────────────────
+const ipInput     = document.getElementById('ipInput');
+const btnSave     = document.getElementById('btnSave');
+const btnStart    = document.getElementById('btnStart');
+const btnStop     = document.getElementById('btnStop');
+const statusChip  = document.getElementById('statusChip');
+const statusText  = document.getElementById('statusText');
+const videoEl     = document.getElementById('videoEl');
+const placeholder = document.getElementById('placeholder');
+const liveEmoji   = document.getElementById('liveEmoji');
+const liveName    = document.getElementById('liveName');
+const liveConf    = document.getElementById('liveConf');
+const sendFlash   = document.getElementById('sendFlash');
+const cardsGrid   = document.getElementById('cardsGrid');
+const overlay     = document.getElementById('overlay');
+const overlayMsg  = document.getElementById('overlayMsg');
 
-// ─── Init ─────────────────────────────────────────────────────
-async function init() {
-  loadSavedState();
-  renderMappingTable();
+// ── Init ─────────────────────────────────────────────────────
+function init() {
+  ipInput.value = localStorage.getItem(KEY_IP) || '';
+  updateStatus();
+  buildCards();
+
+  btnSave.addEventListener('click', saveIp);
   btnStart.addEventListener('click', startCamera);
   btnStop.addEventListener('click', stopCamera);
-  btnSaveIp.addEventListener('click', saveIp);
-}
-
-function loadSavedState() {
-  const ip = localStorage.getItem(STORAGE_KEY_IP) || '';
-  ipInput.value = ip;
+  ipInput.addEventListener('change', saveIp);
 }
 
 function saveIp() {
-  localStorage.setItem(STORAGE_KEY_IP, ipInput.value.trim());
-  btnSaveIp.textContent = 'Salvo!';
-  setTimeout(() => { btnSaveIp.textContent = 'Salvar'; }, 1200);
+  localStorage.setItem(KEY_IP, ipInput.value.trim());
+  updateStatus();
+  btnSave.textContent = '✓ Salvo';
+  setTimeout(() => { btnSave.textContent = 'Salvar'; }, 1200);
 }
 
+function updateStatus() {
+  const ip = ipInput.value.trim();
+  statusChip.className = 'status-chip';
+  if (!ip) {
+    statusText.textContent = 'IP não configurado';
+    return;
+  }
+  statusText.textContent = ip;
+  statusChip.classList.add('warn');
+}
+
+function setStatus(state, msg) {
+  statusChip.className = 'status-chip ' + (state || '');
+  statusText.textContent = msg;
+}
+
+// ── Cards ─────────────────────────────────────────────────────
 function getMappings() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY_MAPPINGS) || '{}');
-  } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(KEY_MAPPINGS) || '{}'); }
+  catch { return {}; }
 }
 
-function setMapping(key, value) {
+function setMapping(key, val) {
   const m = getMappings();
-  m[key] = value;
-  localStorage.setItem(STORAGE_KEY_MAPPINGS, JSON.stringify(m));
+  m[key] = val;
+  localStorage.setItem(KEY_MAPPINGS, JSON.stringify(m));
 }
 
-// ─── Table ────────────────────────────────────────────────────
-function renderMappingTable() {
+function buildCards() {
   const mappings = getMappings();
-  const tbody = document.getElementById('mappingBody');
-  tbody.innerHTML = '';
-
+  cardsGrid.innerHTML = '';
   GESTURES.forEach(g => {
-    const tr = document.createElement('tr');
-    tr.id = `row_${g.key}`;
+    const card = document.createElement('div');
+    card.className = 'g-card' + (mappings[g.key] ? '' : ' empty-hint');
+    card.id = 'card_' + g.key;
 
-    const tdIcon = document.createElement('td');
-    tdIcon.innerHTML = `<span class="gesture-icon">${g.icon}</span>`;
+    const badge = document.createElement('span');
+    badge.className = 'g-card-badge';
+    badge.id = 'badge_' + g.key;
+    badge.textContent = '✓ enviado';
 
-    const tdLabel = document.createElement('td');
-    tdLabel.textContent = g.label;
+    const emoji = document.createElement('div');
+    emoji.className = 'g-card-emoji';
+    emoji.textContent = g.emoji;
 
-    const tdInput = document.createElement('td');
+    const name = document.createElement('div');
+    name.className = 'g-card-name';
+    name.textContent = g.label;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'g-card-input-wrap';
+
     const input = document.createElement('input');
     input.type = 'text';
-    input.placeholder = '/endpoint';
+    input.placeholder = '/comando';
     input.value = mappings[g.key] || '';
-    input.dataset.key = g.key;
-    input.addEventListener('change', (e) => {
+    input.title = 'Endpoint HTTP — ex: /led/on';
+    input.addEventListener('change', e => {
       setMapping(g.key, e.target.value.trim());
+      card.classList.toggle('empty-hint', !e.target.value.trim());
     });
-    tdInput.appendChild(input);
 
-    const tdBadge = document.createElement('td');
-    tdBadge.style.width = '50px';
-    const badge = document.createElement('span');
-    badge.className = 'send-badge';
-    badge.id = `badge_${g.key}`;
-    badge.textContent = 'enviado';
-    tdBadge.appendChild(badge);
-
-    tr.append(tdIcon, tdLabel, tdInput, tdBadge);
-    tbody.appendChild(tr);
+    wrap.appendChild(input);
+    card.append(badge, emoji, name, wrap);
+    cardsGrid.appendChild(card);
   });
 }
 
-// ─── Camera & MediaPipe ───────────────────────────────────────
-const MEDIAPIPE_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs';
-
-let _mpModule = null;
-async function loadMediaPipe() {
-  if (_mpModule) return _mpModule;
-  _mpModule = await import(MEDIAPIPE_CDN);
-  return _mpModule;
+// ── Camera & MediaPipe ────────────────────────────────────────
+let _mp = null;
+async function loadMP() {
+  if (_mp) return _mp;
+  _mp = await import(MEDIAPIPE_URL);
+  return _mp;
 }
 
 async function startCamera() {
   if (isRunning) return;
-
-  showLoading('Carregando MediaPipe...');
   btnStart.disabled = true;
-  btnStop.disabled  = false;
 
   try {
-    const { GestureRecognizer, FilesetResolver } = await loadMediaPipe();
+    showOverlay('Carregando MediaPipe...');
+    const { GestureRecognizer, FilesetResolver } = await loadMP();
 
-    showLoading('Inicializando reconhecedor...');
+    showOverlay('Inicializando reconhecedor...');
     const vision = await FilesetResolver.forVisionTasks(
       'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm'
     );
-
     recognizer = await GestureRecognizer.createFromOptions(vision, {
       baseOptions: {
         modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task',
@@ -147,170 +160,136 @@ async function startCamera() {
       numHands: 1,
     });
 
-    showLoading('Acessando câmera...');
-    cameraStream = await navigator.mediaDevices.getUserMedia({
+    showOverlay('Acessando câmera...');
+    stream = await navigator.mediaDevices.getUserMedia({
       video: { width: 640, height: 480, facingMode: 'user' },
     });
-    video.srcObject = cameraStream;
-    await new Promise(res => { video.onloadeddata = res; });
-    video.play();
+    videoEl.srcObject = stream;
+    await new Promise(r => { videoEl.onloadeddata = r; });
+    videoEl.play();
 
+    placeholder.style.display = 'none';
+    videoEl.style.display     = 'block';
+    btnStop.disabled = false;
     isRunning = true;
-    statusDot.classList.add('active');
-    hideLoading();
+
+    hideOverlay();
     detectLoop();
 
+    const ip = ipInput.value.trim();
+    if (ip) setStatus('ok', ip + ' — câmera ativa');
+
   } catch (err) {
-    hideLoading();
+    hideOverlay();
     btnStart.disabled = false;
-    btnStop.disabled  = true;
-    logEntry(`Erro ao iniciar: ${err.message}`, 'err');
+    setStatus('err', 'Erro: ' + err.message);
     console.error(err);
   }
 }
 
+// Exposta globalmente — pode ser chamada externamente se necessário,
+// mas NÃO é chamada ao trocar de aba (câmera fica ativa em background).
+window.stopCamera = function stopCamera() {
+  isRunning = false;
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  if (recognizer) { recognizer.close(); recognizer = null; }
+
+  videoEl.srcObject = null;
+  videoEl.style.display     = 'none';
+  placeholder.style.display = 'flex';
+  btnStart.disabled = false;
+  btnStop.disabled  = true;
+
+  updateGestureUI('None', 0);
+  updateStatus();
+};
+
 function detectLoop() {
   if (!isRunning || !recognizer) return;
 
-  if (video.readyState >= 2) {
-    const nowMs = performance.now();
-    const results = recognizer.recognizeForVideo(video, nowMs);
-
-    if (results.gestures && results.gestures.length > 0) {
+  if (videoEl.readyState >= 2) {
+    const results = recognizer.recognizeForVideo(videoEl, performance.now());
+    if (results.gestures?.length) {
       const top = results.gestures[0][0];
-      const name = top.categoryName;
-      const conf = top.score;
-
-      updateGestureDisplay(name, conf);
-
-      if (name !== 'None' && conf >= CONFIDENCE_THRESHOLD) {
-        maybeDispatch(name, conf);
-      }
+      updateGestureUI(top.categoryName, top.score);
+      if (top.categoryName !== 'None' && top.score >= CONFIDENCE)
+        maybeDispatch(top.categoryName);
     } else {
-      updateGestureDisplay('None', 0);
+      updateGestureUI('None', 0);
     }
   }
 
-  animFrameId = requestAnimationFrame(detectLoop);
+  rafId = requestAnimationFrame(detectLoop);
 }
 
-function updateGestureDisplay(name, conf) {
-  const g = GESTURES.find(x => x.key === name);
-  if (name === 'None' || !g) {
-    gestureNameEl.textContent = '—';
-    gestureNameEl.className = 'gesture-name none';
-    gestureConfEl.textContent = '';
+// ── Gesture UI ────────────────────────────────────────────────
+function updateGestureUI(key, conf) {
+  const g = GESTURES.find(x => x.key === key);
+
+  // Live panel
+  if (!g) {
+    liveEmoji.textContent = '—';
+    liveName.textContent  = 'Aguardando...';
+    liveName.className    = 'live-name none';
+    liveConf.textContent  = '';
   } else {
-    gestureNameEl.textContent = `${g.icon} ${g.label}`;
-    gestureNameEl.className = 'gesture-name';
-    gestureConfEl.textContent = `Confiança: ${Math.round(conf * 100)}%`;
+    liveEmoji.textContent = g.emoji;
+    liveName.textContent  = g.label;
+    liveName.className    = 'live-name';
+    liveConf.textContent  = 'Confiança: ' + Math.round(conf * 100) + '%';
   }
 
-  // Highlight active row
-  document.querySelectorAll('.gesture-table tr').forEach(r => r.classList.remove('active-gesture'));
-  if (g) {
-    const row = document.getElementById(`row_${name}`);
-    if (row) row.classList.add('active-gesture');
-  }
+  // Cards highlight
+  document.querySelectorAll('.g-card').forEach(c => c.classList.remove('active'));
+  if (g) document.getElementById('card_' + key)?.classList.add('active');
 }
 
-function maybeDispatch(gesture, conf) {
+// ── HTTP dispatch ─────────────────────────────────────────────
+function maybeDispatch(gesture) {
   const now = Date.now();
-  if (gesture === lastGesture && now - lastSentTime < DEBOUNCE_MS) return;
+  if (gesture === lastGesture && now - lastSentAt < DEBOUNCE_MS) return;
   lastGesture = gesture;
-  lastSentTime = now;
-  sendCommand(gesture, conf);
+  lastSentAt  = now;
+  sendCommand(gesture);
 }
 
-function sendCommand(gesture, conf) {
-  const ip = ipInput.value.trim();
-  const mappings = getMappings();
-  const endpoint = mappings[gesture] || '';
+function sendCommand(gesture) {
+  const ip      = ipInput.value.trim();
+  const mapping = getMappings()[gesture] || '';
 
-  if (!endpoint) {
-    logEntry(`${gesture} → sem endpoint configurado`, 'skip');
-    return;
-  }
-  if (!ip) {
-    logEntry('IP do ESP32 não configurado', 'err');
-    return;
-  }
+  if (!mapping) return;
+  if (!ip) { setStatus('err', 'Configure o IP do ESP32'); return; }
 
-  const url = `http://${ip}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  const endpoint = mapping.startsWith('/') ? mapping : '/' + mapping;
+  const url = 'http://' + ip + endpoint;
 
   fetch(url, { method: 'GET', mode: 'no-cors', cache: 'no-store' })
     .then(() => {
-      logEntry(`GET ${url}`, 'ok');
-      flashBadge(gesture);
+      setStatus('ok', ip + ' — último: ' + endpoint);
+      flashCard(gesture);
     })
     .catch(err => {
-      logEntry(`GET ${url} → ${err.message}`, 'err');
+      setStatus('err', 'Sem resposta do ESP32');
     });
 }
 
-function flashBadge(gesture) {
-  const badge = document.getElementById(`badge_${gesture}`);
+function flashCard(key) {
+  const badge = document.getElementById('badge_' + key);
   if (!badge) return;
   badge.classList.remove('show');
-  void badge.offsetWidth; // reflow to restart animation
+  void badge.offsetWidth;
   badge.classList.add('show');
+
+  sendFlash.textContent = '↗ Comando enviado!';
+  sendFlash.classList.remove('show');
+  void sendFlash.offsetWidth;
+  sendFlash.classList.add('show');
 }
 
-// Exposed globally so that code.js can call it when switching tabs
-window.stopCamera = function stopCamera() {
-  isRunning = false;
-  statusDot.classList.remove('active');
+// ── Overlay ───────────────────────────────────────────────────
+function showOverlay(msg) { overlayMsg.textContent = msg; overlay.classList.remove('hidden'); }
+function hideOverlay()    { overlay.classList.add('hidden'); }
 
-  if (animFrameId) {
-    cancelAnimationFrame(animFrameId);
-    animFrameId = null;
-  }
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(t => t.stop());
-    cameraStream = null;
-    video.srcObject = null;
-  }
-  if (recognizer) {
-    recognizer.close();
-    recognizer = null;
-  }
-
-  btnStart.disabled = false;
-  btnStop.disabled  = true;
-  updateGestureDisplay('None', 0);
-  logEntry('Câmera desligada.', 'skip');
-};
-
-// ─── Helpers ──────────────────────────────────────────────────
-function showLoading(msg) {
-  loadingMsg.textContent = msg;
-  loadingOverlay.classList.remove('hidden');
-}
-
-function hideLoading() {
-  loadingOverlay.classList.add('hidden');
-}
-
-let logCount = 0;
-function logEntry(msg, type) {
-  const now = new Date();
-  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-
-  const el = document.createElement('div');
-  el.className = 'log-entry';
-  el.innerHTML = `<span class="log-time">${time}</span><span class="log-${type}">${escapeHtml(msg)}</span>`;
-  logContainer.prepend(el);
-
-  logCount++;
-  if (logCount > LOG_MAX) {
-    logContainer.lastElementChild?.remove();
-    logCount--;
-  }
-}
-
-function escapeHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ─── Boot ─────────────────────────────────────────────────────
+// ── Boot ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', init);

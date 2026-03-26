@@ -397,12 +397,6 @@ Code.deinitContent = (_navigation) => {
     Code.workspace.setVisible(false);
     Code.auto_mode = false;
     break
-  case "gestures": {
-    let gIframe = document.getElementById('gestures_iframe')
-    if (gIframe && gIframe.contentWindow && typeof gIframe.contentWindow.stopCamera === 'function')
-      gIframe.contentWindow.stopCamera()
-    break
-  }
   }
 }
 

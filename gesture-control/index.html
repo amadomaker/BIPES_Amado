@@ -3,80 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle por Gestos — dblocks</title>
+  <title>Controle por Gestos</title>
   <link rel="stylesheet" href="gesture-control.css">
 </head>
 <body>
 
-  <!-- Loading overlay (shown while MediaPipe initialises) -->
-  <div id="loadingOverlay" class="hidden">
+  <div id="overlay" class="hidden">
     <div class="spinner"></div>
-    <span id="loadingMsg">Carregando...</span>
+    <span id="overlayMsg">Carregando...</span>
   </div>
 
-  <!-- ── Config bar ── -->
-  <div class="config-bar">
-    <label for="ipInput">IP do ESP32:</label>
-    <input type="text" id="ipInput" placeholder="ex: 192.168.1.100" autocomplete="off" spellcheck="false">
-    <button class="btn btn-light" id="btnSaveIp">Salvar</button>
+  <!-- ── Top bar ── -->
+  <div class="topbar">
+    <span class="topbar-title">🤖 Controle por Gestos</span>
 
-    <div class="camera-controls">
-      <span id="statusDot" class="status-dot" title="Status da câmera"></span>
-      <button class="btn btn-success" id="btnStart">&#9654; Ligar Câmera</button>
-      <button class="btn btn-danger"  id="btnStop"  disabled>&#9632; Desligar</button>
+    <div class="ip-group">
+      <label for="ipInput">ESP32 IP:</label>
+      <input type="text" id="ipInput" placeholder="192.168.1.100" autocomplete="off" spellcheck="false">
+      <button class="btn btn-save" id="btnSave">Salvar</button>
     </div>
+
+    <div id="statusChip" class="status-chip">
+      <span class="dot"></span>
+      <span id="statusText">Não configurado</span>
+    </div>
+
+    <div class="spacer"></div>
+
+    <button class="btn btn-cam-on"  id="btnStart">▶ Ligar Câmera</button>
+    <button class="btn btn-cam-off" id="btnStop" disabled>■ Desligar</button>
   </div>
 
   <!-- ── Main ── -->
-  <div class="main-content">
+  <div class="main">
 
-    <!-- Video panel -->
+    <!-- Painel de vídeo -->
     <div class="video-panel">
-      <video id="videoElement" autoplay muted playsinline></video>
-
-      <div class="gesture-display">
-        <span class="gesture-label">Gesto detectado</span>
-        <span class="gesture-name none" id="gestureName">—</span>
-        <span class="gesture-confidence" id="gestureConf"></span>
+      <div class="camera-placeholder" id="placeholder">
+        <span class="cam-icon">📷</span>
+        <p>Clique em <strong>Ligar Câmera</strong> para começar</p>
       </div>
+      <video id="videoEl" autoplay muted playsinline style="display:none;"></video>
 
-      <div style="color:#777; font-size:11px; padding: 0 2px;">
-        Apenas gestos com confiança &ge; 75% disparam comandos.
+      <div class="gesture-live">
+        <div class="live-label">Gesto detectado</div>
+        <span class="live-emoji" id="liveEmoji">—</span>
+        <div class="live-name none" id="liveName">Aguardando...</div>
+        <div class="live-conf" id="liveConf"></div>
+        <div class="sending-flash" id="sendFlash"></div>
       </div>
     </div>
 
-    <!-- Right panel -->
-    <div class="right-panel">
-
-      <!-- Gesture mapping table -->
-      <div class="mapping-section">
-        <h3>Mapeamento de Gestos &rarr; Comandos HTTP</h3>
-        <table class="gesture-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Gesto</th>
-              <th>Endpoint HTTP (ex: /led/on)</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="mappingBody">
-            <!-- preenchido por JS -->
-          </tbody>
-        </table>
-        <p style="margin-top:0.75rem; color:#888; font-size:12px;">
-          O comando enviado será: <code>GET http://&lt;IP&gt;&lt;endpoint&gt;</code><br>
-          Deixe o campo vazio para ignorar o gesto.
-        </p>
+    <!-- Cards de gestos -->
+    <div class="cards-panel">
+      <div class="cards-header">Mapeie cada gesto a um comando HTTP do seu ESP32</div>
+      <div class="cards-grid" id="cardsGrid">
+        <!-- preenchido por JS -->
       </div>
-
-      <!-- Log -->
-      <div class="log-section">
-        <h4>Log de comandos</h4>
-        <div id="logContainer"></div>
-      </div>
-
     </div>
+
   </div>
 
   <script type="module" src="gesture-control.js"></script>
