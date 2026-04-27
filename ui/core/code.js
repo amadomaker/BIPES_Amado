@@ -523,6 +523,18 @@ Code.generateXML = function (workspace = Code.workspace) {
 /**
  * Initialize Blockly.  Called on page load.
  */
+fetch('/ui/version.json')
+  .then(r => r.json())
+  .then(v => {
+    console.log(
+      `%c dblocks ${v.version} %c ${v.env} %c ${v.commit} — ${v.date} `,
+      'background:#4B0082;color:#fff;font-weight:bold;padding:2px 6px;border-radius:3px 0 0 3px',
+      'background:#6d28d9;color:#fff;padding:2px 6px',
+      'background:#1f2937;color:#d1d5db;padding:2px 6px;border-radius:0 3px 3px 0'
+    );
+  })
+  .catch(() => {});
+
 Code.init = function() {
   Code.initLanguage();
 
