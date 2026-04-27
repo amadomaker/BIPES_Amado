@@ -63,6 +63,7 @@ const hudMappedEl   = document.getElementById('hudMapped');
 const gcWrap        = document.getElementById('gcWrap');
 const confBar       = document.getElementById('confBar');
 const recIndicator  = document.getElementById('recIndicator');
+const btnPing       = document.getElementById('btnPing');
 const modalBackdrop = document.getElementById('modalBackdrop');
 const btnMappings   = document.getElementById('btnMappings');
 const btnCloseModal = document.getElementById('btnCloseModal');
@@ -78,6 +79,7 @@ function init() {
   btnStop.addEventListener('click', window.stopCamera);
   ipInput.addEventListener('change', saveIp);
 
+  btnPing.addEventListener('click', pingESP32);
   btnMappings.addEventListener('click', openModal);
   btnCloseModal.addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', e => {
@@ -85,6 +87,11 @@ function init() {
   });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeModal();
+  });
+
+  // Libera câmera ao fechar/navegar
+  window.addEventListener('beforeunload', () => {
+    if (isRunning) window.stopCamera();
   });
 
   // Atualiza canvas quando a janela for redimensionada
@@ -189,6 +196,31 @@ function buildCards() {
   });
 }
 
+// ── Ping ESP32 ────────────────────────────────────────────────
+async function pingESP32() {
+  const ip = ipInput.value.trim();
+  if (!ip) { setStatus('err', 'Configure o IP primeiro'); return; }
+
+  btnPing.disabled    = true;
+  btnPing.textContent = '...';
+  setStatus('', 'Verificando ' + ip + '...');
+
+  try {
+    await fetch('http://' + ip + '/', {
+      method: 'GET',
+      mode: 'no-cors',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(3000),
+    });
+    setStatus('ok', ip + ' — acessível');
+  } catch (_) {
+    setStatus('err', ip + ' — sem resposta');
+  } finally {
+    btnPing.disabled    = false;
+    btnPing.textContent = '⚡ Testar';
+  }
+}
+
 // ── Canvas: sincroniza com o tamanho real do wrapper ──────────
 function syncCanvasSize() {
   canvasEl.width  = videoWrapper.clientWidth;
@@ -228,14 +260,21 @@ async function startCamera() {
     const vision = await FilesetResolver.forVisionTasks(
       'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm'
     );
-    recognizer = await GestureRecognizer.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task',
-        delegate: 'GPU',
-      },
-      runningMode: 'VIDEO',
-      numHands: 1,
-    });
+    const modelAssetPath = 'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task';
+    try {
+      recognizer = await GestureRecognizer.createFromOptions(vision, {
+        baseOptions: { modelAssetPath, delegate: 'GPU' },
+        runningMode: 'VIDEO',
+        numHands: 1,
+      });
+    } catch (_) {
+      showOverlay('GPU indisponível, usando CPU...');
+      recognizer = await GestureRecognizer.createFromOptions(vision, {
+        baseOptions: { modelAssetPath, delegate: 'CPU' },
+        runningMode: 'VIDEO',
+        numHands: 1,
+      });
+    }
 
     showOverlay('Acessando câmera...');
     stream = await navigator.mediaDevices.getUserMedia({
