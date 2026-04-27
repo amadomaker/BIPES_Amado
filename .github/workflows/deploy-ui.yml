@@ -60,9 +60,26 @@ jobs:
 
           if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
             echo "ENV_SUFFIX=" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=production" >> $GITHUB_ENV
           else
             echo "ENV_SUFFIX=-staging" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
           fi
+
+      - name: Generate version.json
+        run: |
+          VERSION=$(cat VERSION 2>/dev/null || echo "1.0.0")
+          COMMIT="${GITHUB_SHA:0:8}"
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          cat > ui/version.json << EOF
+          {
+            "version": "$VERSION",
+            "env": "${{ env.DEPLOY_ENV }}",
+            "commit": "$COMMIT",
+            "branch": "${{ github.ref_name }}",
+            "date": "$DATE"
+          }
+          EOF
 
       - name: Build and Push Docker Image
         run: |

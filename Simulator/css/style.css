@@ -154,6 +154,12 @@ body {
   transition: background-color 0.2s, border-color 0.2s;
 }
 
+#toolbar button.toolbar-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 #toolbar button.toolbar-icon {
   width: 34px;
   height: 34px;

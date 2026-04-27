@@ -558,6 +558,7 @@ class files {
 
         let decoderUint8 = new TextDecoder()
           .decode(this.put_file_data)
+          .replaceAll(/\\/g, "\\\\")
           .replaceAll(/(\r\n|\r|\n)/g, "\\r")
           .replaceAll(/'/g, "\\'")
           .replaceAll(/"/g, '\\"')

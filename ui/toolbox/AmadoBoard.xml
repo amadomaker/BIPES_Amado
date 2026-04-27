@@ -2103,6 +2103,7 @@ _
       <label text="%{BKY_HTTP_SERVER_IOT_LEGEND}" />
 
       <button text="%{BKY_LOAD_EXAMPLE_LEGEND}: webserver" callbackKey="loadExample"></button>
+      <button text="%{BKY_LOAD_EXAMPLE_LEGEND}: led_webserver" callbackKey="loadExample"></button>
       <button text="%{BKY_DOCUMENTATION_LEGEND}: webserver" callbackKey="loadDoc"></button>
 
     <block type="net_http_server_start">

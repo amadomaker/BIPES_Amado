@@ -115,28 +115,28 @@ function renderToolbar() {
   if (!toolbarElement) return;
   toolbarElement.innerHTML = '';
 
-  playPauseButton = createToolbarButton('▶ Play', () => {
+  playPauseButton = createToolbarButton('<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Play', () => {
     currentToolbarHandlers.onPlayPause?.();
   }, 'btn-play');
 
-  clearButton = createToolbarButton('🗑️ Limpar tudo', () => {
+  clearButton = createToolbarButton('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg> Limpar tudo', () => {
     currentToolbarHandlers.onClear?.();
   }, 'btn-clear');
 
-  saveButton = createToolbarButton('💾 Salvar projeto', () => {
+  saveButton = createToolbarButton('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar projeto', () => {
     currentToolbarHandlers.onSave?.();
   }, 'btn-save');
 
-  loadButton = createToolbarButton('📂 Carregar', () => {
+  loadButton = createToolbarButton('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg> Carregar', () => {
     currentToolbarHandlers.onLoad?.();
   }, 'btn-load');
 
-  const exportButton = createToolbarButton('🖼️ Salvar diagrama', () => {
+  const exportButton = createToolbarButton('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Salvar diagrama', () => {
     currentToolbarHandlers.onExportImage?.();
   }, 'btn-export-image');
   exportButton.title = 'Salvar diagrama como imagem';
 
-  monitorButton = createToolbarButton('🖥 Console', () => {
+  monitorButton = createToolbarButton('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg> Console', () => {
     currentToolbarHandlers.onToggleSerialMonitor?.();
   }, 'btn-console');
   monitorButton.setAttribute('aria-pressed', 'false');
@@ -173,12 +173,12 @@ function renderToolbar() {
   }, 'btn-delete');
   deleteButton.title = 'Excluir seleção (Delete)';
 
-  tutorialButton = createToolbarButton('📘 Tutorial', () => {
+  tutorialButton = createToolbarButton('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg> Tutorial', () => {
     startTutorial('onboarding');
   }, 'btn-tutorial');
   tutorialButton.title = 'Abrir tutorial guiado';
 
-  labButton = createToolbarButton('🧪 Laboratorio', () => {
+  labButton = createToolbarButton('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M9 3v6L4.5 18a1 1 0 00.9 1.5h13.2a1 1 0 00.9-1.5L15 9V3"/></svg> Laboratorio', () => {
     currentToolbarHandlers.onToggleLab?.();
   }, 'btn-lab');
   labButton.title = 'Abrir laboratorio visual';
@@ -207,7 +207,8 @@ function renderToolbar() {
 function createToolbarButton(label, handler, id) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.textContent = label;
+  button.classList.add('toolbar-text');
+  button.innerHTML = label;
   if (id) button.id = id;
   button.addEventListener('click', handler);
   return button;
@@ -299,7 +300,9 @@ function positionPropertiesPopover(anchor) {
 
 export function setPlayState(isRunning) {
   if (!playPauseButton) return;
-  playPauseButton.textContent = isRunning ? '⏸ Pause' : '▶ Play';
+  playPauseButton.innerHTML = isRunning
+    ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause'
+    : '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Play';
 }
 
 export function updatePropertiesPanel({ title, fields, anchor } = {}) {

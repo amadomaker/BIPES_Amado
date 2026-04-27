@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle por Gestos</title>
+  <link rel="stylesheet" href="gesture-control.css">
+</head>
+<body>
+
+  <div id="overlay" class="hidden">
+    <div class="spinner"></div>
+    <span id="overlayMsg">Carregando...</span>
+  </div>
+
+  <!-- ── Top bar ── -->
+  <div class="topbar">
+
+    <div class="ip-group">
+      <label for="ipInput">ESP32 IP:</label>
+      <input type="text" id="ipInput" placeholder="192.168.1.100" autocomplete="off" spellcheck="false">
+      <button class="btn btn-save" id="btnSave">Salvar</button>
+      <button class="btn btn-ping" id="btnPing">⚡ Testar</button>
+    </div>
+
+    <div id="statusChip" class="status-chip">
+      <span class="dot"></span>
+      <span id="statusText">Não configurado</span>
+    </div>
+
+    <div class="rec-indicator hidden" id="recIndicator">
+      <span class="rec-dot"></span>
+      <span>AO VIVO</span>
+    </div>
+
+    <div class="spacer"></div>
+
+    <button class="btn btn-cam-on"  id="btnStart">▶ Ligar Câmera</button>
+    <button class="btn btn-cam-off" id="btnStop" disabled>■ Desligar</button>
+  </div>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <div class="video-panel">
+
+      <!-- Placeholder (câmera desligada) -->
+      <div class="camera-placeholder" id="placeholder">
+        <span class="cam-icon">📷</span>
+        <p>Clique em <strong>Ligar Câmera</strong> para começar</p>
+      </div>
+
+      <!-- Wrapper fill total (câmera ligada) -->
+      <div class="video-wrapper" id="videoWrapper">
+        <video id="videoEl" autoplay muted playsinline></video>
+        <canvas id="canvasEl"></canvas>
+
+        <!-- ── HUD ── -->
+        <div class="hud">
+
+          <!-- Vinheta nas bordas -->
+          <div class="hud-vignette"></div>
+
+          <!-- Scanline -->
+          <div class="hud-scanline"></div>
+
+          <!-- Cornetas do frame -->
+          <div class="hfc hfc-tl"></div>
+          <div class="hfc hfc-tr"></div>
+
+          <!-- Topo-direito: botão definir gestos -->
+          <button class="hud-btn-gestos" id="btnMappings">⚙ Definir Gestos</button>
+          <div class="hfc hfc-bl"></div>
+          <div class="hfc hfc-br"></div>
+
+          <!-- Topo-esquerdo: status ESP32 -->
+          <div class="hud-panel hud-tl">
+            <div class="hp-label">ESP32</div>
+            <div class="hp-value" id="hudIp">—</div>
+            <div class="hp-sub" id="hudCmd"></div>
+            <div class="hp-divider"></div>
+            <div class="hp-sys" id="hudSys">SISTEMA INATIVO</div>
+            <div class="hp-mapped" id="hudMapped"></div>
+          </div>
+
+          <!-- Baixo-esquerdo: gesto detectado (círculo) -->
+          <div class="hud-gesture-block">
+            <div class="gc-wrap" id="gcWrap">
+              <!-- SVG ring animado -->
+              <svg class="gc-svg" viewBox="0 0 120 120">
+                <circle class="gc-bg"     cx="60" cy="60" r="52"/>
+                <circle class="gc-dash"   cx="60" cy="60" r="52"/>
+                <circle class="gc-arc"    cx="60" cy="60" r="52"/>
+              </svg>
+              <span class="live-emoji" id="liveEmoji">—</span>
+            </div>
+            <div class="live-name none" id="liveName">AGUARDANDO</div>
+            <div class="live-conf"     id="liveConf"></div>
+            <div class="conf-bar-wrap"><div class="conf-bar" id="confBar"></div></div>
+            <div class="sending-flash" id="sendFlash"></div>
+          </div>
+
+        </div><!-- /hud -->
+      </div><!-- /video-wrapper -->
+
+    </div><!-- /video-panel -->
+  </div><!-- /main -->
+
+  <!-- ── Modal de mapeamentos ── -->
+  <div class="modal-backdrop hidden" id="modalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">⚙ Mapeamento de Gestos</span>
+        <button class="modal-close" id="btnCloseModal">✕</button>
+      </div>
+      <p class="modal-desc">Configure o endpoint HTTP enviado ao ESP32 para cada gesto reconhecido.</p>
+      <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+  </div>
+
+  <script type="module" src="gesture-control.js"></script>
+</body>
+</html>

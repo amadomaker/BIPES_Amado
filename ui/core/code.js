@@ -180,7 +180,7 @@ Code.LANG = Code.getLang();
  * @private
  */
 
-Code.TABS_ = ['blocks', 'console', 'files', 'device', 'programs', 'databoard', 'mqtt', 'iot', 'sound', 'simulator'];
+Code.TABS_ = ['blocks', 'console', 'files', 'device', 'programs', 'databoard', 'mqtt', 'iot', 'sound', 'simulator', 'gestures'];
 
 Code.current = ["blocks", "",""]
 
@@ -351,7 +351,13 @@ Code.renderContent = (_navigation) => {
     case "programs":
     case "iot":
     case "mqtt":
+    case "simulator":
       break
+    case "gestures": {
+      const gf = document.getElementById('gestures_iframe')
+      if (!gf.src) gf.src = '../gesture-control/index.html'
+      break
+    }
   }
   content.focus()
 };
@@ -517,6 +523,18 @@ Code.generateXML = function (workspace = Code.workspace) {
 /**
  * Initialize Blockly.  Called on page load.
  */
+fetch('/ui/version.json')
+  .then(r => r.json())
+  .then(v => {
+    console.log(
+      `%c dblocks ${v.version} %c ${v.env} %c ${v.commit} — ${v.date} `,
+      'background:#4B0082;color:#fff;font-weight:bold;padding:2px 6px;border-radius:3px 0 0 3px',
+      'background:#6d28d9;color:#fff;padding:2px 6px',
+      'background:#1f2937;color:#d1d5db;padding:2px 6px;border-radius:0 3px 3px 0'
+    );
+  })
+  .catch(() => {});
+
 Code.init = function() {
   Code.initLanguage();
 
@@ -573,7 +591,7 @@ Code.init = function() {
 
 
   Code.bindClick('forumButton',
-    function () {window.open("https://github.com/BIPES/BIPES/discussions",'_blank')}
+    function () {window.open("https://guia.dblocks.com.br/",'_blank')}
   )
   
   Code.bindClick('micropythonButton',
@@ -656,7 +674,7 @@ print("Instalação da biblioteca ${lib} concluída.")
 	var tmp = button.text_.split(":")[1];
 	var lib = tmp.replace(/\s/g,'');
 
-        var msgCon = "This will load Example: " + lib + ". Internet is required for this operation. Important: all blocks on workspace will be lost and replaced by the example blocks. Do you want to continue?";
+        var msgCon = (Blockly.Msg['load_example_confirm'] || "This will load Example: ") + lib + (Blockly.Msg['load_example_confirm_suffix'] || ". Internet is required for this operation. Important: all blocks on workspace will be lost and replaced by the example blocks. Do you want to continue?");
 
 	if (confirm(msgCon)) {
 		//console.log('Thing was saved to the database.');
