@@ -1,0 +1,226 @@
+<xml xmlns="https://bipes.net.br">
+  <workspace>
+    <field name="DEVICE">AmadoBoard</field>
+    <field name="TIMESTAMP">1777314259520</field>
+    <freeboard><![CDATA[{"version":1,"allow_edit":true,"plugins":[],"panes":[],"datasources":[],"columns":3}]]></freeboard>
+    <databoard><![CDATA[]]></databoard> 
+  </workspace>
+  <block type="project_metadata" id="bS@O|?goX]E37nsd`DVp" x="-163" y="-137">
+    <value name="project_author">
+      <shadow type="text" id=";U~|ZW_Qk[#_CG2_j:oE">
+        <field name="TEXT">João</field>
+      </shadow>
+    </value>
+    <value name="project_iot_id">
+      <shadow type="math_number" id="/kIw.ji=1^qzq?(U75+F">
+        <field name="NUM">0</field>
+      </shadow>
+    </value>
+    <value name="project_description">
+      <shadow type="text" id="K#dOuIMpd6$#H9*N0#xL">
+        <field name="TEXT">Controlar led via servidor web</field>
+      </shadow>
+    </value>
+  </block>
+  <block type="wifi_client_connect" id="2?En8oCKa=dxjKs+ZQ3/" x="-163" y="13">
+    <field name="NAME">conectar na rede wifi</field>
+    <field name="WIFI_CLIENT_NET_NAME">nome da rede</field>
+    <field name="WIFI_CLIENT_NET_KEY">senha/chave</field>
+    <value name="wifi_client_essid">
+      <shadow xmlns="https://bipes.net.br" type="text">
+        <field name="TEXT">linksys</field>
+      </shadow>
+      <block type="text" id="}^=d|mCGf:96.okvlO9a">
+        <field name="TEXT">nome da rede wifi</field>
+      </block>
+    </value>
+    <value name="wifi_client_key">
+      <shadow xmlns="https://bipes.net.br" type="text">
+        <field name="TEXT"></field>
+      </shadow>
+      <block type="text" id="x_{kk.l*M7GdAcq./6g!">
+        <field name="TEXT">Senha da rede</field>
+      </block>
+    </value>
+    <next>
+      <block type="net_http_server_start" id=")T7~Cg(TU.CPCbZyph2X">
+        <value name="port">
+          <shadow type="math_number" id="WH}FqxRlE9KgoH+gEcua">
+            <field name="NUM">80</field>
+          </shadow>
+        </value>
+        <next>
+          <block type="text_print" id="t]Y:+H*+JEW1zatyU9ns">
+            <value name="TEXT">
+              <shadow xmlns="https://bipes.net.br" type="text" id="c(?R^@LcCT_Ggwc*R7-!">
+                <field name="TEXT">abc</field>
+              </shadow>
+              <block type="net_ifconfig" id="zmhu}.8QKmaw=Vq:?=e~">
+                <field name="NET_IFCONFIG">Endereço IP Atual</field>
+              </block>
+            </value>
+            <next>
+              <block type="controls_whileUntil" id="E6H-WE1gWI$qFGkRso[`">
+                <field name="MODE">WHILE</field>
+                <value name="BOOL">
+                  <block type="logic_boolean" id=")I3.xzAou`=3c=VepUv[">
+                    <field name="BOOL">TRUE</field>
+                  </block>
+                </value>
+                <statement name="DO">
+                  <block type="net_http_server_accept" id="5]7k/q8=2IqiEWJj,@[v">
+                    <next>
+                      <block type="text_print" id="g)IbYA!$1-aSgxtEeb4_">
+                        <value name="TEXT">
+                          <shadow xmlns="https://bipes.net.br" type="text">
+                            <field name="TEXT">abc</field>
+                          </shadow>
+                          <block type="text_join" id="c[XW2R|EOR9m,7OTrb|@">
+                            <mutation items="2"></mutation>
+                            <value name="ADD0">
+                              <block type="text" id="HCKzKcN46W8cPm=~om}B">
+                                <field name="TEXT">Pagina solicitada:</field>
+                              </block>
+                            </value>
+                            <value name="ADD1">
+                              <block type="net_http_server_requested_page" id="2IR.udfnb?(B-4Rb8)8L"></block>
+                            </value>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="controls_if" id="AJ+RS84BsOIZxlc6m6MJ">
+                            <value name="IF0">
+                              <block type="logic_compare" id="R@_`QoYiK?M@~UyIGw}M">
+                                <field name="OP">EQ</field>
+                                <value name="A">
+                                  <block type="net_http_server_requested_page" id="i#vGTSMEH:hYZX?_9HTV"></block>
+                                </value>
+                                <value name="B">
+                                  <block type="text" id="BxaZ+n/H0*~)0_o7g1K}">
+                                    <field name="TEXT">on</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                            <statement name="DO0">
+                              <block type="text_print" id="F;gu;z8:skos:Oq]?6E=">
+                                <value name="TEXT">
+                                  <shadow xmlns="https://bipes.net.br" type="text">
+                                    <field name="TEXT">abc</field>
+                                  </shadow>
+                                  <block type="text" id=";C*:b93CCdIrDIi4eUt/">
+                                    <field name="TEXT">Ligando LED</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="gpio_set" id="/NPjJH)bnKgee#I*N*7/">
+                                    <value name="pin">
+                                      <shadow type="pinout" id="GLI!.?L+7x.?(!`JcvF#">
+                                        <field name="DEVICE">AmadoBoard</field>
+                                        <field name="PIN">2</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="value">
+                                      <shadow type="logic_boolean" id="Q2-T{Y|8/T:hd.88UpRJ">
+                                        <field name="BOOL">TRUE</field>
+                                      </shadow>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                            <next>
+                              <block type="controls_if" id="|vB-2+A4kQ2EMLv)JOFg">
+                                <value name="IF0">
+                                  <block type="logic_compare" id="kJeV])nCY^o(+b?+o+:]">
+                                    <field name="OP">EQ</field>
+                                    <value name="A">
+                                      <block type="net_http_server_requested_page" id="DT}!ep1SA9-94mD(;{ax"></block>
+                                    </value>
+                                    <value name="B">
+                                      <block type="text" id="!%Q~z*Y7E`eeX9@J#!pY">
+                                        <field name="TEXT">off</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </value>
+                                <statement name="DO0">
+                                  <block type="text_print" id="7{Rk+|Z~/2~,m7sDE)KZ">
+                                    <value name="TEXT">
+                                      <shadow xmlns="https://bipes.net.br" type="text">
+                                        <field name="TEXT">abc</field>
+                                      </shadow>
+                                      <block type="text" id="^QEcORx#yd:m7fD##4n,">
+                                        <field name="TEXT">Desligando LED</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="gpio_set" id="?b4YArNH,INh@b^6OlBg">
+                                        <value name="pin">
+                                          <shadow type="pinout" id="fi07F[)jtu%Ym`-ah_iD">
+                                            <field name="DEVICE">AmadoBoard</field>
+                                            <field name="PIN">2</field>
+                                          </shadow>
+                                        </value>
+                                        <value name="value">
+                                          <shadow type="logic_boolean" id=":+:xHlnR9MD]YE5$szO7">
+                                            <field name="BOOL">FALSE</field>
+                                          </shadow>
+                                        </value>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </statement>
+                                <next>
+                                  <block type="net_http_server_send_response" id="}Ac!#AqEC?!WT6rhA?Zg">
+                                    <value name="html">
+                                      <shadow xmlns="https://bipes.net.br" type="text" id="l*_0|f1-pk/})p6jkLX`">
+                                        <field name="TEXT">You reached BIPES WebServer!</field>
+                                      </shadow>
+                                      <block type="text_join" id=".#9M]U/g.v$|fmNtDkML">
+                                        <mutation items="5"></mutation>
+                                        <value name="ADD0">
+                                          <block type="text" id=",lB.D+7]*vOQ2N_t5T$2">
+                                            <field name="TEXT">Bem vindo ao servidor Web Dblocks  + AmadoBoard</field>
+                                          </block>
+                                        </value>
+                                        <value name="ADD1">
+                                          <block type="text" id="|{^`Y?XP~U3HwSH@vSYl">
+                                            <field name="TEXT">&lt;BR&gt;&lt;BR&gt;</field>
+                                          </block>
+                                        </value>
+                                        <value name="ADD2">
+                                          <block type="text" id="Yr_YpxL=5+%AVKOSzhT$">
+                                            <field name="TEXT">&lt;a href=/on&gt;Ligar LED &lt;/a&gt;</field>
+                                          </block>
+                                        </value>
+                                        <value name="ADD3">
+                                          <block type="text" id="0e{NO`p/:3iu[D?^AI[3">
+                                            <field name="TEXT">&lt;BR&gt;&lt;BR&gt;</field>
+                                          </block>
+                                        </value>
+                                        <value name="ADD4">
+                                          <block type="text" id=";:wiUuvwkf}PE.-CToBv">
+                                            <field name="TEXT">&lt;a href=/off&gt;Desligar LED &lt;/a&gt;</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+</xml>
