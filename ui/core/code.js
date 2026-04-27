@@ -662,7 +662,7 @@ print("Instalação da biblioteca ${lib} concluída.")
 	var tmp = button.text_.split(":")[1];
 	var lib = tmp.replace(/\s/g,'');
 
-        var msgCon = "This will load Example: " + lib + ". Internet is required for this operation. Important: all blocks on workspace will be lost and replaced by the example blocks. Do you want to continue?";
+        var msgCon = (Blockly.Msg['load_example_confirm'] || "This will load Example: ") + lib + (Blockly.Msg['load_example_confirm_suffix'] || ". Internet is required for this operation. Important: all blocks on workspace will be lost and replaced by the example blocks. Do you want to continue?");
 
 	if (confirm(msgCon)) {
 		//console.log('Thing was saved to the database.');

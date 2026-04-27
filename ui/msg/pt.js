@@ -395,6 +395,8 @@ Blockly.Msg["EASYMQTT_TAB_LEGEND"] =
   "Acompanhar os resultados no separador EasyMQTT.";
 Blockly.Msg["DOCUMENTATION_LEGEND"] = "Documentação";
 Blockly.Msg["LOAD_EXAMPLE_LEGEND"] = "Carregar exemplo";
+Blockly.Msg["load_example_confirm"] = "Isso vai carregar o exemplo: ";
+Blockly.Msg["load_example_confirm_suffix"] = ". É necessário conexão com a internet. Atenção: todos os blocos do workspace serão substituídos pelos blocos do exemplo. Deseja continuar?";
 Blockly.Msg["REQUIRED_LIBRARY_LEGEND"] = "Biblioteca necessária";
 
 Blockly.Msg["CONTROL_HUE"] = "#D9A600";
