@@ -14,39 +14,58 @@ const GESTURES = [
   { key: 'ILoveYou',   label: 'Eu te amo',       emoji: '🤟' },
 ];
 
-const KEY_IP       = 'gesture_esp32_ip';
-const KEY_MAPPINGS = 'gesture_mappings';
-const DEBOUNCE_MS  = 700;
-const CONFIDENCE   = 0.75;
+// Conexões padrão da mão no MediaPipe (21 landmarks)
+const HAND_CONNECTIONS = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],
+  [13,17],[0,17],[17,18],[18,19],[19,20],
+];
+
+const KEY_IP        = 'gesture_esp32_ip';
+const KEY_MAPPINGS  = 'gesture_mappings';
+const DEBOUNCE_MS   = 700;
+const CONFIDENCE    = 0.75;
 const MEDIAPIPE_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs';
 
-let recognizer    = null;
-let stream        = null;
-let rafId         = null;
-let isRunning     = false;
-let lastGesture   = '';
-let lastSentAt    = 0;
-let drawingUtils  = null;
+let recognizer           = null;
+let stream               = null;
+let rafId                = null;
+let isRunning            = false;
+let lastGesture          = '';
+let lastSentAt           = 0;
 let GestureRecognizerClass = null;
 
 // ── DOM ──────────────────────────────────────────────────────
-const ipInput     = document.getElementById('ipInput');
-const btnSave     = document.getElementById('btnSave');
-const btnStart    = document.getElementById('btnStart');
-const btnStop     = document.getElementById('btnStop');
-const statusChip  = document.getElementById('statusChip');
-const statusText  = document.getElementById('statusText');
-const videoEl     = document.getElementById('videoEl');
-const placeholder = document.getElementById('placeholder');
-const liveEmoji   = document.getElementById('liveEmoji');
-const liveName    = document.getElementById('liveName');
-const liveConf    = document.getElementById('liveConf');
-const sendFlash   = document.getElementById('sendFlash');
-const cardsGrid   = document.getElementById('cardsGrid');
-const overlay     = document.getElementById('overlay');
-const overlayMsg  = document.getElementById('overlayMsg');
-const canvasEl    = document.getElementById('canvasEl');
-const ctx         = canvasEl.getContext('2d');
+const ipInput       = document.getElementById('ipInput');
+const btnSave       = document.getElementById('btnSave');
+const btnStart      = document.getElementById('btnStart');
+const btnStop       = document.getElementById('btnStop');
+const statusChip    = document.getElementById('statusChip');
+const statusText    = document.getElementById('statusText');
+const videoEl       = document.getElementById('videoEl');
+const videoWrapper  = document.getElementById('videoWrapper');
+const placeholder   = document.getElementById('placeholder');
+const liveEmoji     = document.getElementById('liveEmoji');
+const liveName      = document.getElementById('liveName');
+const liveConf      = document.getElementById('liveConf');
+const sendFlash     = document.getElementById('sendFlash');
+const cardsGrid     = document.getElementById('cardsGrid');
+const overlay       = document.getElementById('overlay');
+const overlayMsg    = document.getElementById('overlayMsg');
+const canvasEl      = document.getElementById('canvasEl');
+const ctx           = canvasEl.getContext('2d');
+const hudIpEl       = document.getElementById('hudIp');
+const hudCmdEl      = document.getElementById('hudCmd');
+const hudSysEl      = document.getElementById('hudSys');
+const hudMappedEl   = document.getElementById('hudMapped');
+const gcWrap        = document.getElementById('gcWrap');
+const confBar       = document.getElementById('confBar');
+const recIndicator  = document.getElementById('recIndicator');
+const modalBackdrop = document.getElementById('modalBackdrop');
+const btnMappings   = document.getElementById('btnMappings');
+const btnCloseModal = document.getElementById('btnCloseModal');
 
 // ── Init ─────────────────────────────────────────────────────
 function init() {
@@ -56,8 +75,20 @@ function init() {
 
   btnSave.addEventListener('click', saveIp);
   btnStart.addEventListener('click', startCamera);
-  btnStop.addEventListener('click', stopCamera);
+  btnStop.addEventListener('click', window.stopCamera);
   ipInput.addEventListener('change', saveIp);
+
+  btnMappings.addEventListener('click', openModal);
+  btnCloseModal.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', e => {
+    if (e.target === modalBackdrop) closeModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Atualiza canvas quando a janela for redimensionada
+  new ResizeObserver(syncCanvasSize).observe(videoWrapper);
 }
 
 function saveIp() {
@@ -70,6 +101,8 @@ function saveIp() {
 function updateStatus() {
   const ip = ipInput.value.trim();
   statusChip.className = 'status-chip';
+  hudIpEl.textContent  = ip || '—';
+
   if (!ip) {
     statusText.textContent = 'IP não configurado';
     return;
@@ -79,9 +112,23 @@ function updateStatus() {
 }
 
 function setStatus(state, msg) {
-  statusChip.className = 'status-chip ' + (state || '');
+  statusChip.className   = 'status-chip ' + (state || '');
   statusText.textContent = msg;
+
+  const ip = ipInput.value.trim();
+  hudIpEl.textContent = ip || '—';
+
+  if (state === 'ok') {
+    const m = msg.match(/último:\s*(.+)/);
+    if (m) hudCmdEl.textContent = '▸ ' + m[1];
+  } else if (state === 'err') {
+    hudCmdEl.textContent = '⚠ sem resposta';
+  }
 }
+
+// ── Modal ─────────────────────────────────────────────────────
+function openModal()  { modalBackdrop.classList.remove('hidden'); }
+function closeModal() { modalBackdrop.classList.add('hidden'); }
 
 // ── Cards ─────────────────────────────────────────────────────
 function getMappings() {
@@ -93,11 +140,18 @@ function setMapping(key, val) {
   const m = getMappings();
   m[key] = val;
   localStorage.setItem(KEY_MAPPINGS, JSON.stringify(m));
+  updateMappedCount();
+}
+
+function updateMappedCount() {
+  const count = Object.values(getMappings()).filter(v => v).length;
+  hudMappedEl.textContent = count + '/' + GESTURES.length + ' gestos mapeados';
 }
 
 function buildCards() {
   const mappings = getMappings();
   cardsGrid.innerHTML = '';
+  updateMappedCount();
   GESTURES.forEach(g => {
     const card = document.createElement('div');
     card.className = 'g-card' + (mappings[g.key] ? '' : ' empty-hint');
@@ -135,13 +189,30 @@ function buildCards() {
   });
 }
 
+// ── Canvas: sincroniza com o tamanho real do wrapper ──────────
+function syncCanvasSize() {
+  canvasEl.width  = videoWrapper.clientWidth;
+  canvasEl.height = videoWrapper.clientHeight;
+}
+
+// Calcula o rect real do vídeo dentro do wrapper (object-fit: cover)
+function getCoverRect() {
+  const cw = canvasEl.width;
+  const ch = canvasEl.height;
+  const vw = videoEl.videoWidth  || 640;
+  const vh = videoEl.videoHeight || 480;
+  const scale = Math.min(cw / vw, ch / vh);
+  const rw = vw * scale;
+  const rh = vh * scale;
+  return { ox: (cw - rw) / 2, oy: (ch - rh) / 2, rw, rh };
+}
+
 // ── Camera & MediaPipe ────────────────────────────────────────
 let _mp = null;
 async function loadMP() {
   if (_mp) return _mp;
   _mp = await import(MEDIAPIPE_URL);
   GestureRecognizerClass = _mp.GestureRecognizer;
-  drawingUtils = new _mp.DrawingUtils(ctx);
   return _mp;
 }
 
@@ -174,19 +245,23 @@ async function startCamera() {
     await new Promise(r => { videoEl.onloadeddata = r; });
     videoEl.play();
 
-    canvasEl.width  = videoEl.videoWidth;
-    canvasEl.height = videoEl.videoHeight;
+    placeholder.style.display  = 'none';
+    videoWrapper.style.display = 'block';
+    syncCanvasSize();
 
-    placeholder.style.display = 'none';
-    videoEl.style.display     = 'block';
-    canvasEl.style.display    = 'block';
     btnStop.disabled = false;
     isRunning = true;
+
+    hudSysEl.textContent = 'SISTEMA ATIVO';
+    hudSysEl.classList.add('active');
+    hudCmdEl.textContent = '';
+    recIndicator.classList.remove('hidden');
 
     hideOverlay();
     detectLoop();
 
     const ip = ipInput.value.trim();
+    hudIpEl.textContent = ip || '—';
     if (ip) setStatus('ok', ip + ' — câmera ativa');
 
   } catch (err) {
@@ -197,8 +272,6 @@ async function startCamera() {
   }
 }
 
-// Exposta globalmente — pode ser chamada externamente se necessário,
-// mas NÃO é chamada ao trocar de aba (câmera fica ativa em background).
 window.stopCamera = function stopCamera() {
   isRunning = false;
   if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
@@ -206,12 +279,16 @@ window.stopCamera = function stopCamera() {
   if (recognizer) { recognizer.close(); recognizer = null; }
 
   videoEl.srcObject = null;
-  videoEl.style.display     = 'none';
-  canvasEl.style.display    = 'none';
   ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-  placeholder.style.display = 'flex';
+  videoWrapper.style.display = 'none';
+  placeholder.style.display  = 'flex';
   btnStart.disabled = false;
   btnStop.disabled  = true;
+
+  hudSysEl.textContent = 'SISTEMA INATIVO';
+  hudSysEl.classList.remove('active');
+  hudCmdEl.textContent = '';
+  recIndicator.classList.add('hidden');
 
   updateGestureUI('None', 0);
   updateStatus();
@@ -223,7 +300,7 @@ function detectLoop() {
   if (videoEl.readyState >= 2) {
     const results = recognizer.recognizeForVideo(videoEl, performance.now());
     ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-    drawHandLandmarks(results);
+    try { drawHandLandmarks(results); } catch (_) { /* erros de desenho não param o loop */ }
 
     if (results.gestures?.length) {
       const top = results.gestures[0][0];
@@ -238,23 +315,42 @@ function detectLoop() {
   rafId = requestAnimationFrame(detectLoop);
 }
 
+// Desenho manual para alinhar com object-fit: contain
 function drawHandLandmarks(results) {
-  if (!drawingUtils || !results.landmarks?.length) return;
+  if (!results.landmarks?.length) return;
+
+  const { ox, oy, rw, rh } = getCoverRect();
+
+  const toCanvas = lm => ({
+    x: ox + lm.x * rw,
+    y: oy + lm.y * rh,
+  });
+
   for (const landmarks of results.landmarks) {
-    drawingUtils.drawConnectors(
-      landmarks,
-      GestureRecognizerClass.HAND_CONNECTIONS,
-      { color: 'rgba(0,184,148,0.85)', lineWidth: 2 }
-    );
-    drawingUtils.drawLandmarks(landmarks, {
-      color: '#ffffff',
-      fillColor: '#00cec9',
-      lineWidth: 1,
-      radius: (data) => {
-        // Ponta dos dedos maior, demais menores
-        return [4, 8, 12, 16, 20].includes(data.index) ? 5 : 3;
-      },
-    });
+    const pts = landmarks.map(toCanvas);
+
+    // Conexões
+    ctx.strokeStyle = 'rgba(0,184,148,0.85)';
+    ctx.lineWidth   = 2;
+    ctx.lineCap     = 'round';
+    for (const [s, e] of HAND_CONNECTIONS) {
+      ctx.beginPath();
+      ctx.moveTo(pts[s].x, pts[s].y);
+      ctx.lineTo(pts[e].x, pts[e].y);
+      ctx.stroke();
+    }
+
+    // Pontos
+    for (let i = 0; i < pts.length; i++) {
+      const r = [4, 8, 12, 16, 20].includes(i) ? 5 : 3;
+      ctx.beginPath();
+      ctx.arc(pts[i].x, pts[i].y, r, 0, Math.PI * 2);
+      ctx.fillStyle   = '#00cec9';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
   }
 }
 
@@ -262,20 +358,23 @@ function drawHandLandmarks(results) {
 function updateGestureUI(key, conf) {
   const g = GESTURES.find(x => x.key === key);
 
-  // Live panel
   if (!g) {
     liveEmoji.textContent = '—';
-    liveName.textContent  = 'Aguardando...';
+    liveName.textContent  = 'AGUARDANDO';
     liveName.className    = 'live-name none';
     liveConf.textContent  = '';
+    confBar.style.width   = '0%';
+    gcWrap.classList.remove('active');
   } else {
     liveEmoji.textContent = g.emoji;
-    liveName.textContent  = g.label;
+    liveName.textContent  = g.label.toUpperCase();
     liveName.className    = 'live-name';
-    liveConf.textContent  = 'Confiança: ' + Math.round(conf * 100) + '%';
+    liveConf.textContent  = 'CONFIANÇA: ' + Math.round(conf * 100) + '%';
+    confBar.style.width   = Math.round(conf * 100) + '%';
+    confBar.style.background = conf >= CONFIDENCE ? '#00b894' : '#00cec9';
+    gcWrap.classList.add('active');
   }
 
-  // Cards highlight
   document.querySelectorAll('.g-card').forEach(c => c.classList.remove('active'));
   if (g) document.getElementById('card_' + key)?.classList.add('active');
 }
@@ -304,7 +403,7 @@ function sendCommand(gesture) {
       setStatus('ok', ip + ' — último: ' + endpoint);
       flashCard(gesture);
     })
-    .catch(err => {
+    .catch(() => {
       setStatus('err', 'Sem resposta do ESP32');
     });
 }
@@ -316,7 +415,7 @@ function flashCard(key) {
   void badge.offsetWidth;
   badge.classList.add('show');
 
-  sendFlash.textContent = '↗ Comando enviado!';
+  sendFlash.textContent = '↗ ENVIADO!';
   sendFlash.classList.remove('show');
   void sendFlash.offsetWidth;
   sendFlash.classList.add('show');

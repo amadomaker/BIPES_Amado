@@ -3,7 +3,7 @@
 body {
   font-family: 'Segoe UI', 'Roboto', sans-serif;
   font-size: 14px;
-  background: #f0f2f5;
+  background: #000;
   color: #2d3436;
   height: 100vh;
   overflow: hidden;
@@ -11,25 +11,19 @@ body {
   flex-direction: column;
 }
 
-/* ── Top bar ─────────────────────────────────────────── */
+/* ── Top bar (tema claro — combina com a plataforma) ── */
 .topbar {
   background: #fff;
   border-bottom: 1px solid #e0e0e0;
-  padding: 0.6rem 1rem;
+  padding: 0.55rem 1rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
   flex-wrap: wrap;
+  z-index: 10;
 }
 
-.topbar-title {
-  font-weight: 700;
-  font-size: 15px;
-  color: #2d3436;
-  margin-right: 0.5rem;
-  white-space: nowrap;
-}
 
 .ip-group {
   display: flex;
@@ -88,7 +82,6 @@ body {
 
 .spacer { flex: 1; }
 
-/* Buttons */
 .btn {
   padding: 0.35rem 1rem;
   border: none;
@@ -109,231 +102,488 @@ body {
 .btn-save    { background: #f1f3f4; color: #2d3436; border: 1px solid #dfe6e9; }
 .btn-save:hover { background: #e8eaed; }
 
-/* ── Layout ──────────────────────────────────────────── */
+/* Indicador AO VIVO */
+.rec-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #d63031;
+  letter-spacing: .06em;
+}
+.rec-indicator.hidden { display: none; }
+.rec-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #d63031;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* ── Layout ──────────────────────────────────────── */
 .main {
   display: flex;
   flex: 1;
   overflow: hidden;
-  gap: 0;
 }
 
-/* ── Video panel ─────────────────────────────────────── */
+/* ── Video panel ─────────────────────────────────── */
 .video-panel {
-  width: 340px;
-  flex-shrink: 0;
-  background: #1e272e;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem 0.75rem;
-  gap: 0.75rem;
-}
-
-.video-wrapper {
   position: relative;
-  width: 100%;
-}
-
-#videoEl {
-  width: 100%;
-  border-radius: 10px;
+  flex: 1;
   background: #000;
-  aspect-ratio: 4/3;
-  object-fit: cover;
-  transform: scaleX(-1);
-  display: none;
-  block-size: auto;
-}
-
-#canvasEl {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 10px;
-  transform: scaleX(-1);
-  pointer-events: none;
-  display: none;
+  overflow: hidden;
 }
 
 .camera-placeholder {
-  width: 100%;
-  aspect-ratio: 4/3;
-  border-radius: 10px;
-  background: #2d3436;
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  color: #636e72;
+  gap: 0.75rem;
+  background: #111;
+  z-index: 2;
+  color: #555;
 }
 
-.camera-placeholder .cam-icon {
-  font-size: 40px;
-  opacity: .5;
+.camera-placeholder .cam-icon { font-size: 52px; opacity: .4; }
+.camera-placeholder p { font-size: 13px; color: #777; }
+.camera-placeholder strong { color: #bbb; }
+
+/* ── Video wrapper: câmera ocupa todo o painel ────── */
+.video-wrapper {
+  position: absolute;
+  inset: 0;
+  display: none;
 }
 
-.camera-placeholder p {
-  font-size: 12px;
-  text-align: center;
-  max-width: 160px;
-}
-
-/* Gesture live display */
-.gesture-live {
+#videoEl {
   width: 100%;
-  background: rgba(255,255,255,.06);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  text-align: center;
-  color: #fff;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  transform: scaleX(-1);
 }
 
-.gesture-live .live-label {
-  font-size: 11px;
+#canvasEl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1);
+  pointer-events: none;
+}
+
+/* ── HUD ─────────────────────────────────────────── */
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Vinheta (escurece as bordas para destacar o HUD) */
+.hud-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0,0,0,.55) 100%
+  );
+  pointer-events: none;
+}
+
+/* Scanline */
+.hud-scanline {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right,
+    transparent 0%,
+    rgba(0,206,201,.6) 40%,
+    rgba(0,206,201,.6) 60%,
+    transparent 100%
+  );
+  animation: scanMove 6s linear infinite;
+}
+@keyframes scanMove {
+  0%   { top: 0%;   opacity: .7; }
+  80%  { opacity: .7; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Cornetas do frame */
+.hfc {
+  position: absolute;
+  width: 28px; height: 28px;
+  border-color: rgba(0,206,201,.6);
+  border-style: solid;
+}
+.hfc-tl { top: 14px; left: 14px;  border-width: 2px 0 0 2px; }
+.hfc-tr { top: 14px; right: 14px; border-width: 2px 2px 0 0; }
+.hfc-bl { bottom: 14px; left: 14px;  border-width: 0 0 2px 2px; }
+.hfc-br { bottom: 14px; right: 14px; border-width: 0 2px 2px 0; }
+
+/* ── HUD panel (caixas de dados) ─────────────────── */
+.hud-panel {
+  position: absolute;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(0,206,201,.22);
+  backdrop-filter: blur(8px);
+  padding: 0.65rem 0.85rem;
+  font-family: 'Courier New', monospace;
+  min-width: 170px;
+}
+
+.hud-tl { top: 1.2rem; left: 1.2rem; }
+
+/* linha decorativa lateral esquerda */
+.hud-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: -4px;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, #00cec9, transparent);
+  opacity: .6;
+}
+
+.hp-label {
+  font-size: 9px;
+  letter-spacing: .18em;
+  color: #00cec9;
   text-transform: uppercase;
-  letter-spacing: .06em;
-  color: #b2bec3;
   margin-bottom: 4px;
 }
 
-.gesture-live .live-emoji {
-  font-size: 36px;
-  line-height: 1.1;
-  display: block;
-  min-height: 44px;
+.hp-value {
+  font-size: 14px;
+  font-weight: bold;
+  color: #e6edf3;
+  letter-spacing: .03em;
 }
 
-.gesture-live .live-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: #00cec9;
-  margin-top: 2px;
+.hp-sub {
+  font-size: 11px;
+  color: #00b894;
+  margin-top: 3px;
+  min-height: 14px;
 }
 
-.gesture-live .live-name.none { color: #636e72; }
-
-.gesture-live .live-conf {
-  font-size: 12px;
-  color: #b2bec3;
-  margin-top: 2px;
+.hp-divider {
+  height: 1px;
+  background: rgba(0,206,201,.2);
+  margin: 6px 0;
 }
 
-/* Sending flash */
-.sending-flash {
-  font-size: 12px;
-  font-weight: 700;
-  color: #55efc4;
-  min-height: 18px;
-  margin-top: 2px;
-  opacity: 0;
-  transition: opacity .1s;
-}
-.sending-flash.show { opacity: 1; animation: fadeOut .9s forwards; }
-@keyframes fadeOut { 0%{opacity:1} 60%{opacity:1} 100%{opacity:0} }
-
-/* ── Cards panel ─────────────────────────────────────── */
-.cards-panel {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-}
-
-.cards-header {
-  font-size: 12px;
-  font-weight: 700;
+.hp-sys {
+  font-size: 10px;
+  letter-spacing: .1em;
+  color: rgba(0,206,201,.5);
   text-transform: uppercase;
-  letter-spacing: .06em;
-  color: #b2bec3;
-  margin-bottom: 0.75rem;
+}
+.hp-sys.active { color: #00b894; }
+
+.hp-mapped {
+  font-size: 10px;
+  color: rgba(255,255,255,.3);
+  letter-spacing: .05em;
+  margin-top: 2px;
 }
 
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
-  gap: 0.65rem;
-}
 
-/* Individual gesture card */
-.g-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1rem 0.75rem 0.75rem;
+/* ── Botão Definir Gestos (topo-direito do HUD) ─── */
+.hud-btn-gestos {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  pointer-events: auto;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(0,206,201,.45);
+  color: #00cec9;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: .08em;
+  padding: 0.65rem 1.3rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background .15s, border-color .15s, color .15s;
+}
+.hud-btn-gestos:hover {
+  background: rgba(0,206,201,.15);
+  border-color: #00cec9;
+  color: #fff;
+}
+.hud-btn-gestos:active { transform: scale(.97); }
+
+/* ── Bloco de gesto (baixo-esquerdo) ────────────── */
+.hud-gesture-block {
+  position: absolute;
+  bottom: 1.2rem;
+  left: 1.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  border: 2px solid transparent;
-  transition: border-color .15s, box-shadow .15s, transform .1s;
-  cursor: default;
+  gap: 0.35rem;
+  font-family: 'Courier New', monospace;
+}
+
+/* Círculo com ring SVG */
+.gc-wrap {
   position: relative;
+  width: 110px; height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.g-card:hover {
-  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+.gc-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
 }
 
-.g-card.active {
-  border-color: #00b894;
-  box-shadow: 0 0 0 3px rgba(0,184,148,.15), 0 2px 12px rgba(0,0,0,.1);
-  transform: translateY(-2px);
+/* Círculo de fundo */
+.gc-bg {
+  fill: rgba(0,0,0,.5);
+  stroke: rgba(0,206,201,.18);
+  stroke-width: 1;
 }
 
-.g-card.active .g-card-emoji { animation: bounceIn .25s; }
+/* Anel tracejado girante */
+.gc-dash {
+  fill: none;
+  stroke: rgba(0,206,201,.3);
+  stroke-width: 1;
+  stroke-dasharray: 6 14;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dashRotate 12s linear infinite;
+}
+@keyframes dashRotate { to { transform: rotate(360deg); } }
 
+/* Arco ativo girante */
+.gc-arc {
+  fill: none;
+  stroke: rgba(0,206,201,.5);
+  stroke-width: 2;
+  stroke-dasharray: 55 272;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: arcRotate 3s linear infinite;
+  transition: stroke .3s;
+}
+@keyframes arcRotate { to { transform: rotate(360deg); } }
+
+/* Quando gesto detectado: arco fica verde e brilha */
+.gc-wrap.active .gc-arc {
+  stroke: #00b894;
+  stroke-dasharray: 180 272;
+  filter: drop-shadow(0 0 6px rgba(0,184,148,.7));
+}
+.gc-wrap.active .gc-bg {
+  stroke: rgba(0,184,148,.25);
+}
+
+.live-emoji {
+  font-size: 40px;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  transition: transform .2s;
+}
+.gc-wrap.active .live-emoji { animation: bounceIn .25s; }
 @keyframes bounceIn {
   0%  { transform: scale(.8); }
   60% { transform: scale(1.15); }
   100%{ transform: scale(1); }
 }
 
-.g-card-emoji {
-  font-size: 36px;
-  line-height: 1;
+.live-name {
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: .1em;
+  color: #00cec9;
+  text-transform: uppercase;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(0,206,201,.5);
+}
+.live-name.none { color: rgba(255,255,255,.3); text-shadow: none; }
+
+.live-conf {
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  text-align: center;
+  letter-spacing: .05em;
 }
 
-.g-card-name {
+.conf-bar-wrap {
+  width: 88px;
+  height: 2px;
+  background: rgba(255,255,255,.12);
+  border-radius: 1px;
+  margin: 4px auto 0;
+  overflow: hidden;
+}
+.conf-bar {
+  height: 100%;
+  width: 0%;
+  background: #00cec9;
+  border-radius: 1px;
+  transition: width .15s, background .3s;
+}
+.gc-wrap.active ~ * .conf-bar,
+.hud-gesture-block .gc-wrap.active ~ .conf-bar-wrap .conf-bar { background: #00b894; }
+
+.sending-flash {
+  font-size: 11px;
+  font-weight: bold;
+  color: #55efc4;
+  text-align: center;
+  letter-spacing: .06em;
+  min-height: 16px;
+  opacity: 0;
+}
+.sending-flash.show { animation: fadeOut .9s forwards; }
+@keyframes fadeOut { 0%{opacity:1} 60%{opacity:1} 100%{opacity:0} }
+
+
+/* ── Modal ───────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.78);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+}
+.modal-backdrop.hidden { display: none; }
+
+.modal {
+  background: #161b22;
+  border: 1px solid rgba(0,206,201,.28);
+  width: min(700px, 94vw);
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  animation: modalIn .18s ease-out;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid #30363d;
+}
+
+.modal-title {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  letter-spacing: .1em;
+  color: #00cec9;
+  text-transform: uppercase;
+}
+
+.modal-close {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+}
+.modal-close:hover { background: #21262d; color: #e6edf3; }
+
+.modal-desc {
   font-size: 12px;
+  color: #8b949e;
+  margin-bottom: 1.1rem;
+}
+
+/* ── Cards de gestos (dentro do modal) ───────────── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 0.65rem;
+}
+
+.g-card {
+  background: #0d1117;
+  border-radius: 10px;
+  padding: 1rem 0.75rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid #30363d;
+  transition: border-color .15s, box-shadow .15s, transform .1s;
+  cursor: default;
+  position: relative;
+}
+.g-card:hover {
+  border-color: rgba(0,206,201,.4);
+  box-shadow: 0 2px 12px rgba(0,0,0,.4);
+}
+.g-card.active {
+  border-color: #00b894;
+  box-shadow: 0 0 0 2px rgba(0,184,148,.2);
+  transform: translateY(-2px);
+}
+.g-card.active .g-card-emoji { animation: bounceIn .25s; }
+
+.g-card-emoji { font-size: 34px; line-height: 1; }
+
+.g-card-name {
+  font-size: 11px;
   font-weight: 600;
-  color: #636e72;
+  color: #8b949e;
   text-align: center;
   line-height: 1.3;
 }
-
 .g-card.active .g-card-name { color: #00b894; }
 
-.g-card-input-wrap {
-  width: 100%;
-  position: relative;
-}
+.g-card-input-wrap { width: 100%; }
 
 .g-card-input-wrap input {
   width: 100%;
-  border: 1px solid #dfe6e9;
+  background: #161b22;
+  border: 1px solid #30363d;
   border-radius: 6px;
   padding: 0.3rem 0.5rem;
   font-size: 12px;
   font-family: 'Courier New', monospace;
+  color: #e6edf3;
   text-align: center;
   transition: border-color .15s;
-  background: #f8f9fa;
 }
-
 .g-card-input-wrap input:focus {
   outline: none;
-  border-color: #0984e3;
-  background: #fff;
+  border-color: #00cec9;
+  background: #0d1117;
 }
+.g-card-input-wrap input::placeholder { color: #484f58; }
 
-.g-card-input-wrap input::placeholder { color: #b2bec3; }
+.g-card.empty-hint .g-card-input-wrap input { border-style: dashed; }
 
-/* Sent badge on card */
 .g-card-badge {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 6px; right: 6px;
   background: #00b894;
   color: #fff;
   font-size: 10px;
@@ -344,36 +594,33 @@ body {
 }
 .g-card-badge.show { animation: badgePop .9s forwards; }
 @keyframes badgePop {
-  0%  { opacity:1; transform:scale(1); }
+  0%  { opacity:1; }
   70% { opacity:1; }
   100%{ opacity:0; }
 }
 
-/* Empty hint on card */
-.g-card.empty-hint .g-card-input-wrap input {
-  border-style: dashed;
-}
-
-/* ── Loading overlay ─────────────────────────────────── */
+/* ── Loading overlay ─────────────────────────────── */
 #overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.55);
+  background: rgba(0,0,0,.65);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  color: #fff;
-  font-size: 14px;
-  z-index: 50;
+  color: #e6edf3;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: .08em;
+  z-index: 300;
 }
 #overlay.hidden { display: none; }
 
 .spinner {
   width: 34px; height: 34px;
-  border: 4px solid rgba(255,255,255,.2);
-  border-top-color: #00b894;
+  border: 3px solid rgba(255,255,255,.15);
+  border-top-color: #00cec9;
   border-radius: 50%;
   animation: spin .7s linear infinite;
 }
