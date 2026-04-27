@@ -20,12 +20,14 @@ const DEBOUNCE_MS  = 700;
 const CONFIDENCE   = 0.75;
 const MEDIAPIPE_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs';
 
-let recognizer  = null;
-let stream      = null;
-let rafId       = null;
-let isRunning   = false;
-let lastGesture = '';
-let lastSentAt  = 0;
+let recognizer    = null;
+let stream        = null;
+let rafId         = null;
+let isRunning     = false;
+let lastGesture   = '';
+let lastSentAt    = 0;
+let drawingUtils  = null;
+let GestureRecognizerClass = null;
 
 // ── DOM ──────────────────────────────────────────────────────
 const ipInput     = document.getElementById('ipInput');
@@ -43,6 +45,8 @@ const sendFlash   = document.getElementById('sendFlash');
 const cardsGrid   = document.getElementById('cardsGrid');
 const overlay     = document.getElementById('overlay');
 const overlayMsg  = document.getElementById('overlayMsg');
+const canvasEl    = document.getElementById('canvasEl');
+const ctx         = canvasEl.getContext('2d');
 
 // ── Init ─────────────────────────────────────────────────────
 function init() {
@@ -136,6 +140,8 @@ let _mp = null;
 async function loadMP() {
   if (_mp) return _mp;
   _mp = await import(MEDIAPIPE_URL);
+  GestureRecognizerClass = _mp.GestureRecognizer;
+  drawingUtils = new _mp.DrawingUtils(ctx);
   return _mp;
 }
 
@@ -168,8 +174,12 @@ async function startCamera() {
     await new Promise(r => { videoEl.onloadeddata = r; });
     videoEl.play();
 
+    canvasEl.width  = videoEl.videoWidth;
+    canvasEl.height = videoEl.videoHeight;
+
     placeholder.style.display = 'none';
     videoEl.style.display     = 'block';
+    canvasEl.style.display    = 'block';
     btnStop.disabled = false;
     isRunning = true;
 
@@ -197,6 +207,8 @@ window.stopCamera = function stopCamera() {
 
   videoEl.srcObject = null;
   videoEl.style.display     = 'none';
+  canvasEl.style.display    = 'none';
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
   placeholder.style.display = 'flex';
   btnStart.disabled = false;
   btnStop.disabled  = true;
@@ -210,6 +222,9 @@ function detectLoop() {
 
   if (videoEl.readyState >= 2) {
     const results = recognizer.recognizeForVideo(videoEl, performance.now());
+    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    drawHandLandmarks(results);
+
     if (results.gestures?.length) {
       const top = results.gestures[0][0];
       updateGestureUI(top.categoryName, top.score);
@@ -221,6 +236,26 @@ function detectLoop() {
   }
 
   rafId = requestAnimationFrame(detectLoop);
+}
+
+function drawHandLandmarks(results) {
+  if (!drawingUtils || !results.landmarks?.length) return;
+  for (const landmarks of results.landmarks) {
+    drawingUtils.drawConnectors(
+      landmarks,
+      GestureRecognizerClass.HAND_CONNECTIONS,
+      { color: 'rgba(0,184,148,0.85)', lineWidth: 2 }
+    );
+    drawingUtils.drawLandmarks(landmarks, {
+      color: '#ffffff',
+      fillColor: '#00cec9',
+      lineWidth: 1,
+      radius: (data) => {
+        // Ponta dos dedos maior, demais menores
+        return [4, 8, 12, 16, 20].includes(data.index) ? 5 : 3;
+      },
+    });
+  }
 }
 
 // ── Gesture UI ────────────────────────────────────────────────

@@ -43,7 +43,10 @@
         <span class="cam-icon">📷</span>
         <p>Clique em <strong>Ligar Câmera</strong> para começar</p>
       </div>
-      <video id="videoEl" autoplay muted playsinline style="display:none;"></video>
+      <div class="video-wrapper">
+        <video id="videoEl" autoplay muted playsinline></video>
+        <canvas id="canvasEl"></canvas>
+      </div>
 
       <div class="gesture-live">
         <div class="live-label">Gesto detectado</div>
