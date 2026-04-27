@@ -403,7 +403,12 @@ button {
 
 .logo-bipes-image {
   width: 3;
-  height: 3rem; 
+  height: 3rem;
+}
+
+.logo-amado {
+  height: 4.5rem;
+  width: auto;
 }
 
 
