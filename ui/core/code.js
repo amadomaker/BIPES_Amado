@@ -352,8 +352,12 @@ Code.renderContent = (_navigation) => {
     case "iot":
     case "mqtt":
     case "simulator":
-    case "gestures":
       break
+    case "gestures": {
+      const gf = document.getElementById('gestures_iframe')
+      if (!gf.src) gf.src = '../gesture-control/index.html'
+      break
+    }
   }
   content.focus()
 };
