@@ -197,7 +197,7 @@ function buildCards() {
 }
 
 // ── Ping ESP32 ────────────────────────────────────────────────
-async function pingESP32() {
+function pingESP32() {
   const ip = ipInput.value.trim();
   if (!ip) { setStatus('err', 'Configure o IP primeiro'); return; }
 
@@ -205,20 +205,21 @@ async function pingESP32() {
   btnPing.textContent = '...';
   setStatus('', 'Verificando ' + ip + '...');
 
-  try {
-    await fetch('http://' + ip + '/', {
-      method: 'GET',
-      mode: 'no-cors',
-      cache: 'no-store',
-      signal: AbortSignal.timeout(3000),
-    });
-    setStatus('ok', ip + ' — acessível');
-  } catch (_) {
-    setStatus('err', ip + ' — sem resposta');
-  } finally {
+  const controller = new AbortController();
+  // Servidor ESP32 aceita TCP mas não responde HTTP à rota '/':
+  // → AbortError após 3s = porta aberta = servidor ativo
+  // → erro imediato (< 3s) = IP inacessível
+  setTimeout(() => controller.abort(), 3000);
+
+  const finish = (ok) => {
+    setStatus(ok ? 'ok' : 'err', ok ? ip + ' — acessível' : ip + ' — sem resposta');
     btnPing.disabled    = false;
     btnPing.textContent = '⚡ Testar';
-  }
+  };
+
+  fetch('http://' + ip + '/', { method: 'GET', mode: 'no-cors', cache: 'no-store', signal: controller.signal })
+    .then(() => finish(true))
+    .catch(e => finish(e.name === 'AbortError'));
 }
 
 // ── Canvas: sincroniza com o tamanho real do wrapper ──────────
@@ -465,4 +466,8 @@ function showOverlay(msg) { overlayMsg.textContent = msg; overlay.classList.remo
 function hideOverlay()    { overlay.classList.add('hidden'); }
 
 // ── Boot ──────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

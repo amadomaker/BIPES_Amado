@@ -7431,7 +7431,8 @@ Blockly.Python["net_http_server_send_response_jpg"] = function (block) {
 };
 
 Blockly.Python["net_http_server_close"] = function (block) {
-  var code = "cl.close()\n";
+  var code = "cl.send('HTTP/1.0 200 OK\\r\\nContent-Length: 0\\r\\nConnection: close\\r\\n\\r\\n')\n";
+  code += "cl.close()\n";
 
   return code;
 };

@@ -9957,7 +9957,8 @@ Blockly.Blocks['net_http_server_close'] = {
     this.appendDummyInput()
         .appendField(MSG["net_http_server_close_title"]);
 
-    this.setOutput(true);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
     this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_CLOSE_TOOLTIP"]);
   }
 };
