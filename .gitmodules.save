@@ -1,7 +1,0 @@
-[submodule "ui/freeboard"]
-    path = ui/freeboard
-    url = git@github.com:joaodrj/freeboard.git
-[submodule "databoard"]
-    path = databoard
-    url = git@github.com:joaodrj/databoard.git
-
