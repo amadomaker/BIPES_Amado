@@ -1,2 +1,17 @@
 mongodb-compass_1.43.0_amd64.deb
 
+# Backups de editores
+*.save
+*.bak
+*.orig
+*.tmp
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/

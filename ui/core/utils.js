@@ -169,8 +169,17 @@ class Tool {
   /**Send ``\x03\x03`` to stop running a program, see a `ASCII table
    * <https://www.ascii-code.com/>`_ to know more.*/
   static stopPython() {
-    //Send Ctrl+C to stop program
-    mux.bufferPush("\x03\x03");
+    // Drop any code still queued and put Ctrl+C at the FRONT of the buffer.
+    // The previous version used bufferPush(), which appended to the end —
+    // if the queue was stalled (e.g. writer lock held by a failed write),
+    // the interrupt would never reach the device and the user would have
+    // to reset the board to recover.
+    if (mux.connected && mux.connected()) {
+      mux.clearBuffer();
+      mux.bufferUnshift("\x03\x03");
+    } else {
+      mux.bufferPush("\x03\x03");
+    }
   }
   static softReset() {
     if (Channel["websocket"].connected)
