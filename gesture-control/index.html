@@ -35,6 +35,11 @@
 
     <div class="spacer"></div>
 
+    <div class="mode-toggle" role="radiogroup" aria-label="Modo de detecção">
+      <button class="mode-opt is-active" id="modeHands" data-mode="hands" type="button">✋ Mãos</button>
+      <button class="mode-opt"           id="modePose"  data-mode="pose"  type="button">🧍 Corpo</button>
+    </div>
+
     <button class="btn btn-cam-on"  id="btnStart">▶ Ligar Câmera</button>
     <button class="btn btn-cam-off" id="btnStop" disabled>■ Desligar</button>
   </div>
@@ -67,7 +72,7 @@
           <div class="hfc hfc-tl"></div>
           <div class="hfc hfc-tr"></div>
 
-          <!-- Topo-direito: botão definir gestos -->
+          <!-- Topo-direito: botão definir mapeamentos (texto muda conforme modo) -->
           <button class="hud-btn-gestos" id="btnMappings">⚙ Definir Gestos</button>
           <div class="hfc hfc-bl"></div>
           <div class="hfc hfc-br"></div>
@@ -109,10 +114,10 @@
   <div class="modal-backdrop hidden" id="modalBackdrop">
     <div class="modal">
       <div class="modal-header">
-        <span class="modal-title">⚙ Mapeamento de Gestos</span>
+        <span class="modal-title" id="modalTitle">⚙ Mapeamento de Gestos</span>
         <button class="modal-close" id="btnCloseModal">✕</button>
       </div>
-      <p class="modal-desc">Configure o endpoint HTTP enviado ao ESP32 para cada gesto reconhecido.</p>
+      <p class="modal-desc" id="modalDesc">Configure o endpoint HTTP enviado ao ESP32 para cada gesto reconhecido.</p>
       <div class="cards-grid" id="cardsGrid"></div>
     </div>
   </div>

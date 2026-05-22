@@ -12633,6 +12633,54 @@ Blockly.Blocks['create_list_with_repeated'] = {
 };
 
 
+// ── Visão (Pose) ─────────────────────────────────────────────
+// Lista única de poses — mesmas chaves usadas no gerador Python
+// e no motor de detecção (gesture-control.js).
+const POSE_OPTIONS = [
+  ['pose_arms_up',        'arms_up'],
+  ['pose_t_pose',         't_pose'],
+  ['pose_right_arm_up',   'right_arm_up'],
+  ['pose_left_arm_up',    'left_arm_up'],
+  ['pose_hands_on_head',  'hands_on_head'],
+  ['pose_arms_crossed',   'arms_crossed'],
+];
+
+Blockly.Blocks['init_vision_server'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_init_server_title"]);
+    this.appendValueInput("port")
+      .setCheck("Number")
+      .setAlign(Blockly.ALIGN_RIGHT)
+      .appendField(MSG["vision_init_server_port"]);
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_init_server_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setTooltip("Cria um servidor HTTP no ESP32 que recebe os eventos de pose enviados pela aba Visão. Conecte ao Wi-Fi antes deste bloco.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['when_pose_detected'] = {
+  init: function() {
+    const opts = POSE_OPTIONS.map(([msgKey, value]) => [MSG[msgKey], value]);
+    this.appendDummyInput()
+      .appendField(MSG["vision_when_pose_title"])
+      .appendField(new Blockly.FieldDropdown(opts), "POSE");
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_when_pose_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Executa os blocos filhos quando a pose selecionada for detectada pela aba Visão.");
+    this.setHelpUrl("");
+  }
+};
+
+
 
 
 

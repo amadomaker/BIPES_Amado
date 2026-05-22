@@ -2407,6 +2407,20 @@ _
     -->
 </category>
 
+<category name="%{BKY_CAT_VISION}" colour="%{BKY_VISION_HUE}">
+  <label text="Visão por Câmera"></label>
+  <label text="Use os blocos abaixo para reagir a poses corporais detectadas pela aba Visão."></label>
+  <label text="Antes deste bloco, conecte a placa ao Wi-Fi."></label>
+  <block type="init_vision_server">
+    <value name="port">
+      <shadow type="math_number">
+        <field name="NUM">80</field>
+      </shadow>
+    </value>
+  </block>
+  <block type="when_pose_detected"></block>
+</category>
+
 <!--Comentando a categoria Control para PID-->
 <!--
 <category name="%{BKY_CAT_CONTROL}">

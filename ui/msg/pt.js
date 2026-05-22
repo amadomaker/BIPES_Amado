@@ -306,6 +306,19 @@ var MSG = {
   saveAMelody: "Guardar uma melodia",
   importAMelody: "Importar uma melodia",
   exportAMelody: "Exportar uma melodia",
+
+  // Visão / Pose
+  vision_init_server_title: "Iniciar Visão (servidor de poses)",
+  vision_init_server_port: "porta",
+  vision_init_server_do: "tratar poses",
+  vision_when_pose_title: "Quando eu fizer a pose",
+  vision_when_pose_do: "fazer",
+  pose_arms_up: "Braços para cima",
+  pose_t_pose: "Braços abertos (T)",
+  pose_right_arm_up: "Braço direito levantado",
+  pose_left_arm_up: "Braço esquerdo levantado",
+  pose_hands_on_head: "Mãos na cabeça",
+  pose_arms_crossed: "Braços cruzados",
 };
 
 // Categorias da caixa de ferramentas
@@ -335,6 +348,7 @@ Blockly.Msg["CAT_BUZZER"] = "Campainha";
 Blockly.Msg["CAT_WIFI"] = "Wi-Fi";
 Blockly.Msg["CAT_HTTPCLIENT"] = "Cliente HTTP";
 Blockly.Msg["CAT_HTTPSERVER"] = "Servidor HTTP";
+Blockly.Msg["CAT_VISION"] = "Visão";
 Blockly.Msg["INSTALL_LIBRARY"] = "Instalar biblioteca:";
 Blockly.Msg["PINOUT_LEGEND"] = "Pinos de entrada e saída";
 Blockly.Msg["DHT_SENSOR_LEGEND"] = "Sensor de temperatura e humidade DHT11/22";
