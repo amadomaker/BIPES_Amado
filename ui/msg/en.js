@@ -303,9 +303,30 @@ var MSG = {
   export: "Export",
   saveAMelody: "Save a melody", 
   importAMelody: "Import a melody", 
-  exportAMelody: "Export a melody"
-  
+  exportAMelody: "Export a melody",
 
+  // Vision / Pose
+  vision_init_server_title: "Start Vision (server)",
+  vision_init_server_port: "port",
+  vision_init_server_do: "handle events",
+  vision_when_pose_title: "When the pose is",
+  vision_when_pose_do: "do",
+  pose_arms_up: "Arms up",
+  pose_t_pose: "Arms open (T)",
+  pose_right_arm_up: "Right arm raised",
+  pose_left_arm_up: "Left arm raised",
+  pose_hands_on_head: "Hands on head",
+  pose_arms_crossed: "Arms crossed",
+  // Vision / Gesture
+  vision_when_gesture_title: "When the gesture is",
+  vision_when_gesture_do: "do",
+  gesture_closed_fist: "Closed fist",
+  gesture_open_palm: "Open palm",
+  gesture_pointing_up: "Pointing up",
+  gesture_thumb_up: "Thumb up",
+  gesture_thumb_down: "Thumb down",
+  gesture_victory: "Victory",
+  gesture_iloveyou: "I love you"
 };
 
 //Toolbox categories
@@ -334,6 +355,7 @@ Blockly.Msg['CAT_BUZZER'] = "Buzzer";
 Blockly.Msg['CAT_WIFI'] = "Wifi";
 Blockly.Msg['CAT_HTTPCLIENT'] = "HTTP client";
 Blockly.Msg['CAT_HTTPSERVER'] = "HTTP server";
+Blockly.Msg['CAT_VISION'] = "Vision";
 Blockly.Msg['INSTALL_LIBRARY'] = "Install library:"
 Blockly.Msg['PINOUT_LEGEND'] = "Input and Output Pins";
 Blockly.Msg['DHT_SENSOR_LEGEND'] = "DHT11/22 Temperature and Humidity Sensor";
