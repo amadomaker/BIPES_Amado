@@ -311,7 +311,7 @@ var MSG = {
   vision_init_server_title: "Iniciar Visão (servidor de poses)",
   vision_init_server_port: "porta",
   vision_init_server_do: "tratar poses",
-  vision_when_pose_title: "Quando eu fizer a pose",
+  vision_when_pose_title: "Quando fizer a pose",
   vision_when_pose_do: "fazer",
   pose_arms_up: "Braços para cima",
   pose_t_pose: "Braços abertos (T)",

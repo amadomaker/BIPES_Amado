@@ -156,8 +156,8 @@ function applyModeUI() {
     ? '⚙ Mapeamento de Poses'
     : '⚙ Mapeamento de Gestos';
   if (modalDesc) modalDesc.textContent = mode === 'pose'
-    ? 'Configure o endpoint HTTP enviado ao ESP32 para cada pose corporal detectada.'
-    : 'Configure o endpoint HTTP enviado ao ESP32 para cada gesto reconhecido.';
+    ? 'Configure o endpoint HTTP enviado ao AMADOBOARD para cada pose corporal detectada.'
+    : 'Configure o endpoint HTTP enviado ao AMADOBOARD para cada gesto reconhecido.';
 }
 
 async function setMode(next) {
@@ -285,9 +285,9 @@ function buildCards() {
 
     const input = document.createElement('input');
     input.type = 'text';
-    input.placeholder = defaultEndpointFor(g.key) || '/comando';
+    input.placeholder = '/comando';
     input.value = mappings[g.key] || '';
-    input.title = 'Endpoint HTTP — ex: ' + (defaultEndpointFor(g.key) || '/led/on');
+    input.title = 'Endpoint HTTP — ex: /led/on';
     input.addEventListener('change', e => {
       setMapping(g.key, e.target.value.trim());
       card.classList.toggle('empty-hint', !e.target.value.trim());
@@ -696,7 +696,7 @@ function sendCommand(gesture) {
   const mapping = userMapping || defaultEndpointFor(gesture);
 
   if (!mapping) return;
-  if (!ip) { setStatus('err', 'Configure o IP do ESP32'); return; }
+  if (!ip) { setStatus('err', 'Configure o IP do AMADOBOARD'); return; }
 
   const endpoint = mapping.startsWith('/') ? mapping : '/' + mapping;
   const url = 'http://' + ip + endpoint;
@@ -707,7 +707,7 @@ function sendCommand(gesture) {
       flashCard(gesture);
     })
     .catch(() => {
-      setStatus('err', 'Sem resposta do ESP32');
+      setStatus('err', 'Sem resposta do AMADOBOARD');
     });
 }
 

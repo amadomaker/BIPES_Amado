@@ -17,7 +17,7 @@
   <div class="topbar">
 
     <div class="ip-group">
-      <label for="ipInput">ESP32 IP:</label>
+      <label for="ipInput">AMADOBOARD IP:</label>
       <input type="text" id="ipInput" placeholder="192.168.1.100" autocomplete="off" spellcheck="false">
       <button class="btn btn-save" id="btnSave">Salvar</button>
       <button class="btn btn-ping" id="btnPing">⚡ Testar</button>
@@ -77,9 +77,9 @@
           <div class="hfc hfc-bl"></div>
           <div class="hfc hfc-br"></div>
 
-          <!-- Topo-esquerdo: status ESP32 -->
+          <!-- Topo-esquerdo: status AMADOBOARD -->
           <div class="hud-panel hud-tl">
-            <div class="hp-label">ESP32</div>
+            <div class="hp-label">AMADOBOARD</div>
             <div class="hp-value" id="hudIp">—</div>
             <div class="hp-sub" id="hudCmd"></div>
             <div class="hp-divider"></div>
@@ -117,7 +117,7 @@
         <span class="modal-title" id="modalTitle">⚙ Mapeamento de Gestos</span>
         <button class="modal-close" id="btnCloseModal">✕</button>
       </div>
-      <p class="modal-desc" id="modalDesc">Configure o endpoint HTTP enviado ao ESP32 para cada gesto reconhecido.</p>
+      <p class="modal-desc" id="modalDesc">Configure o endpoint HTTP enviado ao AMADOBOARD para cada gesto reconhecido.</p>
       <div class="cards-grid" id="cardsGrid"></div>
     </div>
   </div>
