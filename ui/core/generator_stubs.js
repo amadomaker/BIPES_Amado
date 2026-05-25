@@ -9625,10 +9625,11 @@ Blockly.Python["create_list_with_repeated"] = function (block) {
 };
 
 
-// ── Visão (Pose) ─────────────────────────────────────────────
+// ── Visão (Pose + Gesto) ─────────────────────────────────────
 // init_vision_server: cria socket TCP, loop accept(), parse do path
-// e delega aos blocos filhos (when_pose_detected) — cada filho
-// gera um "if pose_path == 'pose/<key>':" no mesmo escopo.
+// e delega aos blocos filhos (when_pose_detected, when_gesture_detected)
+// — cada filho gera um "if pose_path == 'pose/<key>':" ou
+// "if pose_path == 'gesture/<key>':" no mesmo escopo.
 
 Blockly.Python["init_vision_server"] = function (block) {
   var port = Blockly.Python.valueToCode(
@@ -9688,6 +9689,18 @@ Blockly.Python["when_pose_detected"] = function (block) {
   }
 
   var code = "if pose_path == 'pose/" + poseKey + "':\n";
+  code += actions;
+  return code;
+};
+
+Blockly.Python["when_gesture_detected"] = function (block) {
+  var gestureKey = block.getFieldValue("GESTURE");
+  var actions = Blockly.Python.statementToCode(block, "DO");
+  if (!actions) {
+    actions = Blockly.Python.INDENT + "pass\n";
+  }
+
+  var code = "if pose_path == 'gesture/" + gestureKey + "':\n";
   code += actions;
   return code;
 };

@@ -12633,8 +12633,8 @@ Blockly.Blocks['create_list_with_repeated'] = {
 };
 
 
-// ── Visão (Pose) ─────────────────────────────────────────────
-// Lista única de poses — mesmas chaves usadas no gerador Python
+// ── Visão (Pose + Gesto) ─────────────────────────────────────
+// Listas únicas — mesmas chaves usadas no gerador Python
 // e no motor de detecção (gesture-control.js).
 const POSE_OPTIONS = [
   ['pose_arms_up',        'arms_up'],
@@ -12643,6 +12643,16 @@ const POSE_OPTIONS = [
   ['pose_left_arm_up',    'left_arm_up'],
   ['pose_hands_on_head',  'hands_on_head'],
   ['pose_arms_crossed',   'arms_crossed'],
+];
+
+const GESTURE_OPTIONS = [
+  ['gesture_closed_fist', 'Closed_Fist'],
+  ['gesture_open_palm',   'Open_Palm'],
+  ['gesture_pointing_up', 'Pointing_Up'],
+  ['gesture_thumb_up',    'Thumb_Up'],
+  ['gesture_thumb_down',  'Thumb_Down'],
+  ['gesture_victory',     'Victory'],
+  ['gesture_iloveyou',    'ILoveYou'],
 ];
 
 Blockly.Blocks['init_vision_server'] = {
@@ -12658,7 +12668,7 @@ Blockly.Blocks['init_vision_server'] = {
       .appendField(MSG["vision_init_server_do"]);
     this.setColour("%{BKY_VISION_HUE}");
     this.setPreviousStatement(true, null);
-    this.setTooltip("Cria um servidor HTTP no ESP32 que recebe os eventos de pose enviados pela aba Visão. Conecte ao Wi-Fi antes deste bloco.");
+    this.setTooltip("Cria um servidor HTTP na AMADOBOARD que recebe os eventos de pose ou gesto enviados pela aba Visão. Conecte ao Wi-Fi antes deste bloco.");
     this.setHelpUrl("");
   }
 };
@@ -12676,6 +12686,23 @@ Blockly.Blocks['when_pose_detected'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setTooltip("Executa os blocos filhos quando a pose selecionada for detectada pela aba Visão.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['when_gesture_detected'] = {
+  init: function() {
+    const opts = GESTURE_OPTIONS.map(([msgKey, value]) => [MSG[msgKey], value]);
+    this.appendDummyInput()
+      .appendField(MSG["vision_when_gesture_title"])
+      .appendField(new Blockly.FieldDropdown(opts), "GESTURE");
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_when_gesture_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Executa os blocos filhos quando o gesto de mão selecionado for detectado pela aba Visão.");
     this.setHelpUrl("");
   }
 };

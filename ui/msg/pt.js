@@ -308,9 +308,9 @@ var MSG = {
   exportAMelody: "Exportar uma melodia",
 
   // Visão / Pose
-  vision_init_server_title: "Iniciar Visão (servidor de poses)",
+  vision_init_server_title: "Iniciar Visão (servidor)",
   vision_init_server_port: "porta",
-  vision_init_server_do: "tratar poses",
+  vision_init_server_do: "tratar eventos",
   vision_when_pose_title: "Quando fizer a pose",
   vision_when_pose_do: "fazer",
   pose_arms_up: "Braços para cima",
@@ -319,6 +319,16 @@ var MSG = {
   pose_left_arm_up: "Braço esquerdo levantado",
   pose_hands_on_head: "Mãos na cabeça",
   pose_arms_crossed: "Braços cruzados",
+  // Visão / Gesto
+  vision_when_gesture_title: "Quando fizer o gesto",
+  vision_when_gesture_do: "fazer",
+  gesture_closed_fist: "Punho fechado",
+  gesture_open_palm: "Mão aberta",
+  gesture_pointing_up: "A apontar",
+  gesture_thumb_up: "Polegar para cima",
+  gesture_thumb_down: "Polegar para baixo",
+  gesture_victory: "Vitória",
+  gesture_iloveyou: "Adoro-te",
 };
 
 // Categorias da caixa de ferramentas

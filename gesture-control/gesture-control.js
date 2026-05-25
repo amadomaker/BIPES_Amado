@@ -15,7 +15,8 @@ const GESTURES = [
 ];
 
 // Poses corporais (MediaPipe Pose, 33 landmarks).
-// Chaves batem com `when_pose_detected` no Blockly e com /pose/<key> no ESP32.
+// Chaves batem com `when_pose_detected`/`when_gesture_detected` no Blockly
+// e com /pose/<key> ou /gesture/<key> na AMADOBOARD.
 const POSES = [
   { key: 'arms_up',        label: 'Braços para cima',     emoji: '🙌' },
   { key: 't_pose',         label: 'Braços abertos (T)',   emoji: '🕴' },
@@ -235,7 +236,7 @@ function currentItems() {
 }
 
 function defaultEndpointFor(key) {
-  return mode === 'pose' ? '/pose/' + key : '';
+  return mode === 'pose' ? '/pose/' + key : '/gesture/' + key;
 }
 
 function getMappings() {

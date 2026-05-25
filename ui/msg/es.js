@@ -311,9 +311,9 @@ var MSG = {
   exportAMelody: "Exportar una melodía",
 
   // Visión / Pose
-  vision_init_server_title: "Iniciar Visión (servidor de poses)",
+  vision_init_server_title: "Iniciar Visión (servidor)",
   vision_init_server_port: "puerto",
-  vision_init_server_do: "manejar poses",
+  vision_init_server_do: "manejar eventos",
   vision_when_pose_title: "Cuando haga la pose",
   vision_when_pose_do: "hacer",
   pose_arms_up: "Brazos arriba",
@@ -321,7 +321,17 @@ var MSG = {
   pose_right_arm_up: "Brazo derecho arriba",
   pose_left_arm_up: "Brazo izquierdo arriba",
   pose_hands_on_head: "Manos en la cabeza",
-  pose_arms_crossed: "Brazos cruzados"
+  pose_arms_crossed: "Brazos cruzados",
+  // Visión / Gesto
+  vision_when_gesture_title: "Cuando haga el gesto",
+  vision_when_gesture_do: "hacer",
+  gesture_closed_fist: "Puño cerrado",
+  gesture_open_palm: "Mano abierta",
+  gesture_pointing_up: "Apuntando",
+  gesture_thumb_up: "Pulgar arriba",
+  gesture_thumb_down: "Pulgar abajo",
+  gesture_victory: "Victoria",
+  gesture_iloveyou: "Te amo"
 };
 
 //Toolbox categories
