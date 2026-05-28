@@ -325,6 +325,33 @@ body {
   margin-top: 2px;
 }
 
+/* ── Painel de valores contínuos (topo-direito, modo Mãos) ─── */
+.hud-tr {
+  top: 4.2rem;
+  right: 1.2rem;
+  display: none;
+}
+.hud-tr.show { display: block; }
+
+.hp-cont {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: 11px;
+  color: rgba(255,255,255,.65);
+  letter-spacing: .05em;
+  margin-top: 3px;
+}
+.hp-cont b {
+  font-size: 14px;
+  font-weight: bold;
+  color: #00b894;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.5ch;
+  text-align: right;
+}
+
 
 /* ── Botão Definir Gestos (topo-direito do HUD) ─── */
 .hud-btn-gestos {

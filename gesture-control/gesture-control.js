@@ -61,6 +61,7 @@ const KEY_MODE           = 'vision_mode';   // 'hands' | 'pose'
 const DEBOUNCE_MS        = 700;
 const CONFIDENCE         = 0.75;
 const POSE_HOLD_MS       = 250;             // pose precisa estabilizar antes de disparar
+const STREAM_MS          = 100;             // ~10Hz: taxa de envio do estado contínuo (modo Mãos)
 const MEDIAPIPE_URL      = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs';
 const POSE_MODEL_URL     = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task';
 
@@ -75,6 +76,8 @@ let GestureRecognizerClass = null;
 let mode                 = 'hands';  // 'hands' | 'pose'
 let poseHoldKey          = null;     // pose atualmente "segurada"
 let poseHoldSince        = 0;
+let lastStreamAt         = 0;        // throttle do estado contínuo
+let streamInFlight       = false;    // evita empilhar GETs no servidor listen(1)
 
 // ── DOM ──────────────────────────────────────────────────────
 const ipInput       = document.getElementById('ipInput');
@@ -99,6 +102,10 @@ const hudIpEl       = document.getElementById('hudIp');
 const hudCmdEl      = document.getElementById('hudCmd');
 const hudSysEl      = document.getElementById('hudSys');
 const hudMappedEl   = document.getElementById('hudMapped');
+const hudContPanel  = document.getElementById('hudContPanel');
+const hudHx         = document.getElementById('hudHx');
+const hudHy         = document.getElementById('hudHy');
+const hudPinch      = document.getElementById('hudPinch');
 const gcWrap        = document.getElementById('gcWrap');
 const confBar       = document.getElementById('confBar');
 const recIndicator  = document.getElementById('recIndicator');
@@ -305,6 +312,7 @@ function resetLiveUI() {
   poseHoldKey = null;
   poseHoldSince = 0;
   updateLiveUI(null, 0);
+  updateContinuousHud(null);
 }
 
 // ── Ping ESP32 ────────────────────────────────────────────────
@@ -464,6 +472,7 @@ window.stopCamera = function stopCamera() {
   hudSysEl.textContent = 'SISTEMA INATIVO';
   hudSysEl.classList.remove('active');
   hudCmdEl.textContent = '';
+  updateContinuousHud(null);
   recIndicator.classList.add('hidden');
 
   updateLiveUI(null, 0);
@@ -504,6 +513,11 @@ function detectLoop() {
     } else if (mode === 'hands' && recognizer) {
       const results = recognizer.recognizeForVideo(videoEl, performance.now());
       try { drawHandLandmarks(results); } catch (_) { /* erros de desenho não param o loop */ }
+
+      // F1 — valores contínuos: posição da mão e abertura da pinça.
+      const hlm = results.landmarks?.[0];
+      if (hlm) maybeStreamState(hlm);
+      else updateContinuousHud(null);
 
       if (results.gestures?.length) {
         const top = results.gestures[0][0];
@@ -710,6 +724,53 @@ function sendCommand(gesture) {
     .catch(() => {
       setStatus('err', 'Sem resposta do AMADOBOARD');
     });
+}
+
+// ── Estado contínuo (F1) ──────────────────────────────────────
+// Modo Mãos: deriva valores 0–100 dos landmarks e envia ~10Hz à
+// AMADOBOARD em /vision/state?hx=..&hy=..&pd=.. (lido pelos blocos
+// vision_hand_position / vision_pinch_distance no ESP32).
+//
+// Landmarks da mão (MediaPipe Hands, 21 pontos): 0=pulso, 4=ponta do
+// polegar, 8=ponta do indicador, 9=base do dedo médio.
+function maybeStreamState(lm) {
+  const now = Date.now();
+  if (now - lastStreamAt < STREAM_MS) return;
+  lastStreamAt = now;
+
+  const clamp = v => Math.max(0, Math.min(100, Math.round(v)));
+  const wrist = lm[0];
+  // Espelhado (selfie): mão p/ a direita do aluno = hx maior;
+  // mão p/ cima = hy maior.
+  const hx = clamp((1 - wrist.x) * 100);
+  const hy = clamp((1 - wrist.y) * 100);
+  // Pinça normalizada pelo tamanho da palma (pulso→base do médio) para
+  // ficar menos sensível à distância da câmera. Calibração fina fica
+  // como evolução futura (ver ROADMAP).
+  const ref = Math.hypot(lm[0].x - lm[9].x, lm[0].y - lm[9].y) || 0.1;
+  const pinchRaw = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
+  const pd = clamp((pinchRaw / ref) * 100);
+
+  updateContinuousHud(hx, hy, pd);
+
+  const ip = ipInput.value.trim();
+  if (!ip || streamInFlight) return;
+  streamInFlight = true;
+  fetch('http://' + ip + '/vision/state?hx=' + hx + '&hy=' + hy + '&pd=' + pd,
+        { method: 'GET', mode: 'no-cors', cache: 'no-store' })
+    .finally(() => { streamInFlight = false; });
+}
+
+function updateContinuousHud(hx, hy, pd) {
+  if (!hudContPanel) return;
+  if (hx == null) {
+    hudContPanel.classList.remove('show');
+    return;
+  }
+  hudContPanel.classList.add('show');
+  if (hudHx)    hudHx.textContent    = hx;
+  if (hudHy)    hudHy.textContent    = hy;
+  if (hudPinch) hudPinch.textContent = pd;
 }
 
 function flashCard(key) {

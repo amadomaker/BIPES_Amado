@@ -2420,6 +2420,10 @@ _
   </block>
   <block type="when_pose_detected"></block>
   <block type="when_gesture_detected"></block>
+  <label text="Valores contínuos (modo Mãos): leia a posição da mão e a pinça como número de 0 a 100."></label>
+  <block type="when_vision_updates"></block>
+  <block type="vision_hand_position"></block>
+  <block type="vision_pinch_distance"></block>
 </category>
 
 <!--Comentando a categoria Control para PID-->

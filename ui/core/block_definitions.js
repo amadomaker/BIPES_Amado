@@ -12707,6 +12707,49 @@ Blockly.Blocks['when_gesture_detected'] = {
   }
 };
 
+// ── Visão (Valores contínuos — F1) ───────────────────────────
+// Estado contínuo enviado pela aba Visão (modo Mãos) em /vision/state.
+Blockly.Blocks['when_vision_updates'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_when_update_title"]);
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_when_update_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Executa os blocos filhos toda vez que a aba Visão envia novos valores contínuos (posição da mão e pinça).");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['vision_hand_position'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_hand_pos_title"])
+      .appendField(new Blockly.FieldDropdown([
+        [MSG["vision_axis_x"], "hx"],
+        [MSG["vision_axis_y"], "hy"],
+      ]), "AXIS");
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Number");
+    this.setTooltip("Posição da mão na tela, de 0 a 100. Eixo X: da esquerda para a direita. Eixo Y: de baixo para cima.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['vision_pinch_distance'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_pinch_title"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Number");
+    this.setTooltip("Abertura da pinça entre o polegar e o indicador, de 0 (dedos juntos) a 100 (bem aberta).");
+    this.setHelpUrl("");
+  }
+};
+
 
 
 

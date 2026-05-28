@@ -320,6 +320,13 @@ var MSG = {
   // Vision / Gesture
   vision_when_gesture_title: "When the gesture is",
   vision_when_gesture_do: "do",
+  // Vision / Continuous values (F1)
+  vision_when_update_title: "When the camera updates",
+  vision_when_update_do: "do",
+  vision_hand_pos_title: "hand position axis",
+  vision_axis_x: "X (horizontal)",
+  vision_axis_y: "Y (vertical)",
+  vision_pinch_title: "pinch distance (thumb-index)",
   gesture_closed_fist: "Closed fist",
   gesture_open_palm: "Open palm",
   gesture_pointing_up: "Pointing up",

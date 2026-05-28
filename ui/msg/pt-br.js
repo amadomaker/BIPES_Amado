@@ -322,6 +322,13 @@ var MSG = {
   // Visão / Gesto
   vision_when_gesture_title: "Quando fizer o gesto",
   vision_when_gesture_do: "faça",
+  // Visão / Valores contínuos (F1)
+  vision_when_update_title: "Quando a câmera atualizar",
+  vision_when_update_do: "faça",
+  vision_hand_pos_title: "posição da mão eixo",
+  vision_axis_x: "X (horizontal)",
+  vision_axis_y: "Y (vertical)",
+  vision_pinch_title: "distância da pinça (polegar-indicador)",
   gesture_closed_fist: "Punho fechado",
   gesture_open_palm: "Mão aberta",
   gesture_pointing_up: "Apontando",
