@@ -9747,3 +9747,27 @@ Blockly.Python["vision_hand_position"] = function (block) {
 Blockly.Python["vision_pinch_distance"] = function (block) {
   return ["vision_pinch", Blockly.Python.ORDER_ATOMIC];
 };
+
+// ── Visão (Cor — F3a) ────────────────────────────────────────
+// when_color_detected vira `if pose_path == 'color/' + '<key>': ...`,
+// onde <key> vem do bloco encaixado (color_preset ou color_captured).
+// O server existente (init_vision_server) já encaminha qualquer path
+// como pose_path; não precisa mudar nada estrutural lá.
+Blockly.Python["when_color_detected"] = function (block) {
+  var colorExpr = Blockly.Python.valueToCode(block, "COLOR", Blockly.Python.ORDER_ATOMIC) || "''";
+  var actions = Blockly.Python.statementToCode(block, "DO");
+  if (!actions) actions = Blockly.Python.INDENT + "pass\n";
+  var code = "if pose_path == 'color/' + " + colorExpr + ":\n";
+  code += actions;
+  return code;
+};
+
+Blockly.Python["color_preset"] = function (block) {
+  var key = block.getFieldValue("COLOR");  // 'red' | 'orange' | ...
+  return ["'" + key + "'", Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Python["color_captured"] = function (block) {
+  var slot = block.getFieldValue("SLOT");  // 'c1' | 'c2' | 'c3' | 'c4'
+  return ["'" + slot + "'", Blockly.Python.ORDER_ATOMIC];
+};

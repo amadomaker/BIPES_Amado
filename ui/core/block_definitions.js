@@ -12750,6 +12750,63 @@ Blockly.Blocks['vision_pinch_distance'] = {
   }
 };
 
+// ── Visão (Cor — F3a) ────────────────────────────────────────
+// Trigger aceita um bloco "Color" no slot: color_preset (cor da paleta)
+// ou color_captured (cor capturada pela câmera). O tipo "Color" impede
+// que o aluno encaixe número/texto sem querer.
+Blockly.Blocks['when_color_detected'] = {
+  init: function() {
+    this.appendValueInput("COLOR")
+      .setCheck("Color")
+      .appendField(MSG["vision_when_color_title"]);
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_when_color_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Executa os blocos filhos quando a cor selecionada aparecer em frente à câmera (aba Visão, modo Cor).");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['color_preset'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_color_preset_title"])
+      .appendField(new Blockly.FieldDropdown([
+        [MSG["color_red"],     "red"],
+        [MSG["color_orange"],  "orange"],
+        [MSG["color_yellow"],  "yellow"],
+        [MSG["color_green"],   "green"],
+        [MSG["color_blue"],    "blue"],
+        [MSG["color_magenta"], "magenta"],
+        [MSG["color_black"],   "black"],
+      ]), "COLOR");
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Color");
+    this.setTooltip("Uma das 7 cores prontas detectadas pela câmera.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['color_captured'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_color_captured_title"])
+      .appendField(new Blockly.FieldDropdown([
+        ["1", "c1"],
+        ["2", "c2"],
+        ["3", "c3"],
+        ["4", "c4"],
+      ]), "SLOT");
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Color");
+    this.setTooltip("Uma das 4 cores capturadas pela câmera (configure na aba Visão → modo Cor → Definir Cores).");
+    this.setHelpUrl("");
+  }
+};
+
 
 
 

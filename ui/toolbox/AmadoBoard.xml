@@ -2424,6 +2424,14 @@ _
   <block type="when_vision_updates"></block>
   <block type="vision_hand_position"></block>
   <block type="vision_pinch_distance"></block>
+  <label text="Detecção de cor (modo Cor): encaixe uma cor pronta ou capturada no bloco quando aparecer."></label>
+  <block type="when_color_detected">
+    <value name="COLOR">
+      <block type="color_preset"></block>
+    </value>
+  </block>
+  <block type="color_preset"></block>
+  <block type="color_captured"></block>
 </category>
 
 <!--Comentando a categoria Control para PID-->
