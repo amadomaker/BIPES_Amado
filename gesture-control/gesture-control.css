@@ -661,11 +661,13 @@ body {
 
 .g-card-capture-row {
   display: flex;
+  flex-direction: column;
+  width: 100%;
   gap: 6px;
   margin-bottom: 6px;
 }
 .g-card-capture {
-  flex: 1;
+  width: 100%;
   background: #1f2937;
   color: #cbd5e1;
   border: 1px solid #30363d;
@@ -679,6 +681,7 @@ body {
 .g-card-capture:hover { background: #00b894; color: #fff; border-color: #00b894; }
 
 .g-card-clear {
+  width: 100%;
   background: #1f1418;
   color: #d66262;
   border: 1px solid #4a2d2d;
