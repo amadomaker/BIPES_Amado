@@ -38,6 +38,7 @@
     <div class="mode-toggle" role="radiogroup" aria-label="Modo de detecção">
       <button class="mode-opt is-active" id="modeHands" data-mode="hands" type="button">Mãos</button>
       <button class="mode-opt"           id="modePose"  data-mode="pose"  type="button">Corpo</button>
+      <button class="mode-opt"           id="modeColor" data-mode="color" type="button">Cor</button>
     </div>
 
     <button class="btn btn-cam-on"  id="btnStart">▶ Ligar Câmera</button>
@@ -74,6 +75,12 @@
 
           <!-- Topo-direito: botão definir mapeamentos (texto muda conforme modo) -->
           <button class="hud-btn-gestos" id="btnMappings">⚙ Definir Gestos</button>
+
+          <!-- Banner do modo de captura de cor (F3a) -->
+          <div class="hud-capture-banner hidden" id="captureBanner">
+            <span id="captureBannerText">Clique na câmera para capturar a cor</span>
+            <span class="hud-capture-hint">(ESC cancela)</span>
+          </div>
           <div class="hfc hfc-bl"></div>
           <div class="hfc hfc-br"></div>
 
@@ -85,6 +92,14 @@
             <div class="hp-divider"></div>
             <div class="hp-sys" id="hudSys">SISTEMA INATIVO</div>
             <div class="hp-mapped" id="hudMapped"></div>
+          </div>
+
+          <!-- Topo-direito: valores contínuos (modo Mãos) -->
+          <div class="hud-panel hud-tr" id="hudContPanel">
+            <div class="hp-label">VALORES CONTÍNUOS</div>
+            <div class="hp-cont"><span>Mão X</span><b id="hudHx">0</b></div>
+            <div class="hp-cont"><span>Mão Y</span><b id="hudHy">0</b></div>
+            <div class="hp-cont"><span>Pinça</span><b id="hudPinch">0</b></div>
           </div>
 
           <!-- Baixo-esquerdo: gesto detectado (círculo) -->

@@ -12707,6 +12707,106 @@ Blockly.Blocks['when_gesture_detected'] = {
   }
 };
 
+// ── Visão (Valores contínuos — F1) ───────────────────────────
+// Estado contínuo enviado pela aba Visão (modo Mãos) em /vision/state.
+Blockly.Blocks['when_vision_updates'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_when_update_title"]);
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_when_update_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Executa os blocos filhos toda vez que a aba Visão envia novos valores contínuos (posição da mão e pinça).");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['vision_hand_position'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_hand_pos_title"])
+      .appendField(new Blockly.FieldDropdown([
+        [MSG["vision_axis_x"], "hx"],
+        [MSG["vision_axis_y"], "hy"],
+      ]), "AXIS");
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Number");
+    this.setTooltip("Posição da mão na tela, de 0 a 100. Eixo X: da esquerda para a direita. Eixo Y: de baixo para cima.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['vision_pinch_distance'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_pinch_title"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Number");
+    this.setTooltip("Abertura da pinça entre o polegar e o indicador, de 0 (dedos juntos) a 100 (bem aberta).");
+    this.setHelpUrl("");
+  }
+};
+
+// ── Visão (Cor — F3a) ────────────────────────────────────────
+// Trigger aceita um bloco "Color" no slot: color_preset (cor da paleta)
+// ou color_captured (cor capturada pela câmera). O tipo "Color" impede
+// que o aluno encaixe número/texto sem querer.
+Blockly.Blocks['when_color_detected'] = {
+  init: function() {
+    this.appendValueInput("COLOR")
+      .setCheck("Color")
+      .appendField(MSG["vision_when_color_title"]);
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_when_color_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Executa os blocos filhos quando a cor selecionada aparecer em frente à câmera (aba Visão, modo Cor).");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['color_preset'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_color_preset_title"])
+      .appendField(new Blockly.FieldDropdown([
+        [MSG["color_red"],     "red"],
+        [MSG["color_orange"],  "orange"],
+        [MSG["color_yellow"],  "yellow"],
+        [MSG["color_green"],   "green"],
+        [MSG["color_blue"],    "blue"],
+        [MSG["color_magenta"], "magenta"],
+        [MSG["color_black"],   "black"],
+      ]), "COLOR");
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Color");
+    this.setTooltip("Uma das 7 cores prontas detectadas pela câmera.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['color_captured'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_color_captured_title"])
+      .appendField(new Blockly.FieldDropdown([
+        ["1", "c1"],
+        ["2", "c2"],
+        ["3", "c3"],
+        ["4", "c4"],
+      ]), "SLOT");
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Color");
+    this.setTooltip("Uma das 4 cores capturadas pela câmera (configure na aba Visão → modo Cor → Definir Cores).");
+    this.setHelpUrl("");
+  }
+};
+
 
 
 

@@ -14,6 +14,22 @@ const GESTURES = [
   { key: 'ILoveYou',   label: 'Eu te amo',       emoji: '🤟' },
 ];
 
+// Cores presets (modo Cor). H em graus 0–360, S e V em 0–1.
+// Faixas pensadas pra iluminação típica de sala (não bate fluorescente
+// dura, mas serve pra objeto colorido na mão). Vermelho dá wrap em
+// 348..12; matchesHsv lida com isso quando hMin > hMax. Preto ignora H
+// (sMax/vMax garantem que só pega pixels cinza-escuros, não saturados).
+// Chaves batem com `color_preset` no Blockly e /color/<key> no servidor.
+const COLOR_PRESETS = [
+  { key: 'red',     label: 'Vermelho', hex: '#e74c3c', range: { hMin: 348, hMax: 12,  sMin: 0.45, vMin: 0.35 } },
+  { key: 'orange',  label: 'Laranja',  hex: '#e67e22', range: { hMin: 13,  hMax: 38,  sMin: 0.50, vMin: 0.45 } },
+  { key: 'yellow',  label: 'Amarelo',  hex: '#f1c40f', range: { hMin: 39,  hMax: 70,  sMin: 0.40, vMin: 0.55 } },
+  { key: 'green',   label: 'Verde',    hex: '#2ecc71', range: { hMin: 71,  hMax: 165, sMin: 0.35, vMin: 0.30 } },
+  { key: 'blue',    label: 'Azul',     hex: '#3498db', range: { hMin: 175, hMax: 250, sMin: 0.35, vMin: 0.18 } },
+  { key: 'magenta', label: 'Magenta',  hex: '#9b59b6', range: { hMin: 275, hMax: 347, sMin: 0.35, vMin: 0.35 } },
+  { key: 'black',   label: 'Preto',    hex: '#1a1a1a', range: { hMin: 0,   hMax: 360, sMin: 0,    vMin: 0,    sMax: 0.30, vMax: 0.22 } },
+];
+
 // Poses corporais (MediaPipe Pose, 33 landmarks).
 // Chaves batem com `when_pose_detected`/`when_gesture_detected` no Blockly
 // e com /pose/<key> ou /gesture/<key> na AMADOBOARD.
@@ -57,10 +73,14 @@ const LM = {
 const KEY_IP             = 'gesture_esp32_ip';
 const KEY_MAPPINGS       = 'gesture_mappings';
 const KEY_POSE_MAPPINGS  = 'pose_mappings';
-const KEY_MODE           = 'vision_mode';   // 'hands' | 'pose'
+const KEY_COLOR_MAPPINGS = 'color_mappings';
+const KEY_CAPTURED       = 'vision_captured_colors';   // slots 1..4 com HSV salvo
+const KEY_COLOR_ENABLED  = 'color_enabled';            // { red: true, c1: false, ... }
+const KEY_MODE           = 'vision_mode';   // 'hands' | 'pose' | 'color'
 const DEBOUNCE_MS        = 700;
 const CONFIDENCE         = 0.75;
 const POSE_HOLD_MS       = 250;             // pose precisa estabilizar antes de disparar
+const STREAM_MS          = 100;             // ~10Hz: taxa de envio do estado contínuo (modo Mãos)
 const MEDIAPIPE_URL      = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs';
 const POSE_MODEL_URL     = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task';
 
@@ -72,9 +92,12 @@ let isRunning            = false;
 let lastGesture          = '';     // último gesto OU pose disparado (compartilhado)
 let lastSentAt           = 0;
 let GestureRecognizerClass = null;
-let mode                 = 'hands';  // 'hands' | 'pose'
+let mode                 = 'hands';  // 'hands' | 'pose' | 'color'
 let poseHoldKey          = null;     // pose atualmente "segurada"
 let poseHoldSince        = 0;
+let lastStreamAt         = 0;        // throttle do estado contínuo
+let streamInFlight       = false;    // evita empilhar GETs no servidor listen(1)
+let captureSlot          = 0;        // 0 = sem captura ativa; 1..4 = slot alvo do clique
 
 // ── DOM ──────────────────────────────────────────────────────
 const ipInput       = document.getElementById('ipInput');
@@ -99,6 +122,10 @@ const hudIpEl       = document.getElementById('hudIp');
 const hudCmdEl      = document.getElementById('hudCmd');
 const hudSysEl      = document.getElementById('hudSys');
 const hudMappedEl   = document.getElementById('hudMapped');
+const hudContPanel  = document.getElementById('hudContPanel');
+const hudHx         = document.getElementById('hudHx');
+const hudHy         = document.getElementById('hudHy');
+const hudPinch      = document.getElementById('hudPinch');
 const gcWrap        = document.getElementById('gcWrap');
 const confBar       = document.getElementById('confBar');
 const recIndicator  = document.getElementById('recIndicator');
@@ -110,11 +137,15 @@ const modalTitle    = document.getElementById('modalTitle');
 const modalDesc     = document.getElementById('modalDesc');
 const btnModeHands  = document.getElementById('modeHands');
 const btnModePose   = document.getElementById('modePose');
+const btnModeColor  = document.getElementById('modeColor');
+const captureBanner = document.getElementById('captureBanner');
+const captureBannerText = document.getElementById('captureBannerText');
 
 // ── Init ─────────────────────────────────────────────────────
 function init() {
   ipInput.value = localStorage.getItem(KEY_IP) || '';
-  mode = localStorage.getItem(KEY_MODE) === 'pose' ? 'pose' : 'hands';
+  const storedMode = localStorage.getItem(KEY_MODE);
+  mode = (storedMode === 'pose' || storedMode === 'color') ? storedMode : 'hands';
   applyModeUI();
   updateStatus();
   buildCards();
@@ -131,11 +162,17 @@ function init() {
     if (e.target === modalBackdrop) closeModal();
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') {
+      if (captureSlot) cancelCapture();
+      else             closeModal();
+    }
   });
+
+  videoWrapper.addEventListener('click', onCaptureClick);
 
   btnModeHands.addEventListener('click', () => setMode('hands'));
   btnModePose .addEventListener('click', () => setMode('pose'));
+  btnModeColor.addEventListener('click', () => setMode('color'));
 
   // Libera câmera ao fechar/navegar
   window.addEventListener('beforeunload', () => {
@@ -146,19 +183,25 @@ function init() {
   new ResizeObserver(syncCanvasSize).observe(videoWrapper);
 }
 
-// ── Modo (Mãos/Corpo) ─────────────────────────────────────────
+// ── Modo (Mãos/Corpo/Cor) ─────────────────────────────────────
 function applyModeUI() {
   btnModeHands.classList.toggle('is-active', mode === 'hands');
   btnModePose .classList.toggle('is-active', mode === 'pose');
+  btnModeColor.classList.toggle('is-active', mode === 'color');
 
   // Botão do HUD e cabeçalho do modal refletem o modo
-  btnMappings.textContent = mode === 'pose' ? '⚙ Definir Poses' : '⚙ Definir Gestos';
-  if (modalTitle) modalTitle.textContent = mode === 'pose'
-    ? '⚙ Mapeamento de Poses'
-    : '⚙ Mapeamento de Gestos';
-  if (modalDesc) modalDesc.textContent = mode === 'pose'
-    ? 'Configure o endpoint HTTP enviado ao AMADOBOARD para cada pose corporal detectada.'
-    : 'Configure o endpoint HTTP enviado ao AMADOBOARD para cada gesto reconhecido.';
+  btnMappings.textContent =
+    mode === 'pose'  ? '⚙ Definir Poses'  :
+    mode === 'color' ? '⚙ Definir Cores'  :
+                       '⚙ Definir Gestos';
+  if (modalTitle) modalTitle.textContent =
+    mode === 'pose'  ? '⚙ Mapeamento de Poses'  :
+    mode === 'color' ? '⚙ Mapeamento de Cores'  :
+                       '⚙ Mapeamento de Gestos';
+  if (modalDesc) modalDesc.textContent =
+    mode === 'pose'  ? 'Configure o endpoint HTTP enviado ao AMADOBOARD para cada pose corporal detectada.' :
+    mode === 'color' ? 'Configure o endpoint HTTP por cor — 6 cores prontas + 4 slots de cor capturada pela câmera.' :
+                       'Configure o endpoint HTTP enviado ao AMADOBOARD para cada gesto reconhecido.';
 }
 
 async function setMode(next) {
@@ -168,12 +211,14 @@ async function setMode(next) {
   applyModeUI();
   buildCards();
   resetLiveUI();
+  cancelCapture();   // sair da captura ao trocar de modo
 
   if (!isRunning) return;
 
-  // Câmera ligada: swap de modelo sem desligar a câmera
+  // Câmera ligada: swap de modelo sem desligar a câmera.
+  // Modo Cor não usa MediaPipe — só descarrega os modelos atuais.
   try {
-    showOverlay('Trocando modelo de detecção...');
+    if (mode !== 'color') showOverlay('Trocando modelo de detecção...');
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     if (recognizer)     { recognizer.close();     recognizer     = null; }
     if (poseLandmarker) { poseLandmarker.close(); poseLandmarker = null; }
@@ -226,17 +271,43 @@ function setStatus(state, msg) {
 function openModal()  { modalBackdrop.classList.remove('hidden'); }
 function closeModal() { modalBackdrop.classList.add('hidden'); }
 
-// ── Mapeamentos (gesto OU pose, escolhido pelo modo atual) ────
+// ── Mapeamentos (gesto OU pose OU cor, escolhido pelo modo atual) ────
 function currentMappingKey() {
-  return mode === 'pose' ? KEY_POSE_MAPPINGS : KEY_MAPPINGS;
+  return mode === 'pose'  ? KEY_POSE_MAPPINGS  :
+         mode === 'color' ? KEY_COLOR_MAPPINGS :
+                            KEY_MAPPINGS;
 }
 
 function currentItems() {
-  return mode === 'pose' ? POSES : GESTURES;
+  if (mode === 'pose')  return POSES;
+  if (mode === 'color') return getColorItems();
+  return GESTURES;
+}
+
+// Lista de items pro modo Cor: 6 presets + 4 slots capturados.
+// Slots vazios entram com `empty: true` pro card mostrar "Capturar".
+function getColorItems() {
+  const items = COLOR_PRESETS.map(c => Object.assign({}, c, { capturable: false, empty: false }));
+  const captured = getCapturedColors();
+  for (let i = 1; i <= 4; i++) {
+    const c = captured[i];
+    items.push({
+      key:        'c' + i,
+      label:      'Cor capturada ' + i,
+      hex:        c?.hex || '#3a3a3a',
+      slot:       i,
+      capturable: true,
+      empty:      !c,
+      range:      c?.range || null,
+    });
+  }
+  return items;
 }
 
 function defaultEndpointFor(key) {
-  return mode === 'pose' ? '/pose/' + key : '/gesture/' + key;
+  return mode === 'pose'  ? '/pose/'  + key :
+         mode === 'color' ? '/color/' + key :
+                            '/gesture/' + key;
 }
 
 function getMappings() {
@@ -254,7 +325,10 @@ function setMapping(key, val) {
 function updateMappedCount() {
   const items = currentItems();
   const count = Object.values(getMappings()).filter(v => v).length;
-  const label = mode === 'pose' ? 'poses' : 'gestos';
+  const label =
+    mode === 'pose'  ? 'poses'  :
+    mode === 'color' ? 'cores'  :
+                       'gestos';
   hudMappedEl.textContent = count + '/' + items.length + ' ' + label + ' mapeados';
 }
 
@@ -273,9 +347,16 @@ function buildCards() {
     badge.id = 'badge_' + g.key;
     badge.textContent = '✓ enviado';
 
+    // Cor: swatch redondo. Gesto/pose: emoji.
     const emoji = document.createElement('div');
     emoji.className = 'g-card-emoji';
-    emoji.textContent = g.emoji;
+    if (mode === 'color') {
+      emoji.classList.add('color-swatch');
+      emoji.style.background = g.hex;
+      if (g.empty) emoji.classList.add('is-empty');
+    } else {
+      emoji.textContent = g.emoji;
+    }
 
     const name = document.createElement('div');
     name.className = 'g-card-name';
@@ -283,6 +364,51 @@ function buildCards() {
 
     const wrap = document.createElement('div');
     wrap.className = 'g-card-input-wrap';
+
+    // Cor: toggle "Detectando / Ignorada" pro aluno anular cores que
+    // aparecem na parede sem mexer no resto. Slots vazios não levam
+    // toggle (nada pra ligar/desligar).
+    if (mode === 'color' && !g.empty) {
+      const enabled = isColorEnabled(g.key);
+      if (!enabled) card.classList.add('is-disabled');
+      const tog = document.createElement('button');
+      tog.type = 'button';
+      tog.className = 'g-card-toggle' + (enabled ? '' : ' is-off');
+      tog.textContent = enabled ? '👁 Detectando' : '🚫 Ignorada';
+      tog.addEventListener('click', () => {
+        setColorEnabled(g.key, !isColorEnabled(g.key));
+        buildCards();
+      });
+      wrap.appendChild(tog);
+    }
+
+    // Cor capturada: botão "Capturar" antes do endpoint.
+    // Quando o slot já tem cor, adiciona um botão "Limpar" ao lado
+    // pra esvaziar (volta a ser um slot disponível pra capturar).
+    if (mode === 'color' && g.capturable) {
+      const row = document.createElement('div');
+      row.className = 'g-card-capture-row';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'g-card-capture';
+      btn.textContent = g.empty ? 'Capturar' : 'Recapturar';
+      btn.addEventListener('click', () => startCaptureForSlot(g.slot));
+      row.appendChild(btn);
+      if (!g.empty) {
+        const clr = document.createElement('button');
+        clr.type = 'button';
+        clr.className = 'g-card-clear';
+        clr.textContent = 'Limpar';
+        clr.title = 'Esvazia este slot. Volta a mostrar "Capturar".';
+        clr.addEventListener('click', () => {
+          setCapturedColor(g.slot, null);
+          setColorEnabled(g.key, true);   // reseta toggle pra ligado
+          buildCards();
+        });
+        row.appendChild(clr);
+      }
+      wrap.appendChild(row);
+    }
 
     const input = document.createElement('input');
     input.type = 'text';
@@ -305,6 +431,7 @@ function resetLiveUI() {
   poseHoldKey = null;
   poseHoldSince = 0;
   updateLiveUI(null, 0);
+  updateContinuousHud(null);
 }
 
 // ── Ping ESP32 ────────────────────────────────────────────────
@@ -361,6 +488,9 @@ async function loadMP() {
 }
 
 async function loadDetectorForMode() {
+  // Modo Cor não precisa de MediaPipe — só lê pixels do canvas.
+  if (mode === 'color') return;
+
   const mp = await loadMP();
   const { GestureRecognizer, PoseLandmarker, FilesetResolver } = mp;
   const vision = await FilesetResolver.forVisionTasks(
@@ -464,6 +594,7 @@ window.stopCamera = function stopCamera() {
   hudSysEl.textContent = 'SISTEMA INATIVO';
   hudSysEl.classList.remove('active');
   hudCmdEl.textContent = '';
+  updateContinuousHud(null);
   recIndicator.classList.add('hidden');
 
   updateLiveUI(null, 0);
@@ -505,12 +636,31 @@ function detectLoop() {
       const results = recognizer.recognizeForVideo(videoEl, performance.now());
       try { drawHandLandmarks(results); } catch (_) { /* erros de desenho não param o loop */ }
 
+      // F1 — valores contínuos: posição da mão e abertura da pinça.
+      const hlm = results.landmarks?.[0];
+      if (hlm) maybeStreamState(hlm);
+      else updateContinuousHud(null);
+
       if (results.gestures?.length) {
         const top = results.gestures[0][0];
         updateLiveUI(top.categoryName, top.score);
         if (top.categoryName !== 'None' && top.score >= CONFIDENCE)
           maybeDispatch(top.categoryName);
       } else {
+        updateLiveUI(null, 0);
+      }
+
+    } else if (mode === 'color') {
+      // F3a — detecção de cor: sem MediaPipe, só pixel-scan HSV.
+      // score do detectColors é fração do frame; multiplica pra
+      // encher a barra de confiança (3-10% já dá barra cheia).
+      const result = detectColors();
+      if (result) {
+        drawColorMarker(result);
+        updateLiveUI(result.color.key, Math.min(1, result.score * 10));
+        maybeDispatch(result.color.key);
+      } else {
+        markerHas = false;
         updateLiveUI(null, 0);
       }
     }
@@ -653,19 +803,30 @@ function evaluatePose(lm) {
   return null;
 }
 
-// ── UI ao vivo (compartilhada por gestos e poses) ─────────────
+// ── UI ao vivo (compartilhada por gestos, poses e cores) ──────
 function updateLiveUI(key, conf) {
   const item = currentItems().find(x => x.key === key);
 
   if (!item) {
     liveEmoji.textContent = '—';
+    liveEmoji.style.background = '';
+    liveEmoji.classList.remove('color-swatch');
     liveName.textContent  = 'AGUARDANDO';
     liveName.className    = 'live-name none';
     liveConf.textContent  = '';
     confBar.style.width   = '0%';
     gcWrap.classList.remove('active');
   } else {
-    liveEmoji.textContent = item.emoji;
+    // No modo Cor, troca o emoji por um swatch da cor detectada.
+    if (mode === 'color') {
+      liveEmoji.textContent = '';
+      liveEmoji.style.background = item.hex;
+      liveEmoji.classList.add('color-swatch');
+    } else {
+      liveEmoji.textContent = item.emoji || '—';
+      liveEmoji.style.background = '';
+      liveEmoji.classList.remove('color-swatch');
+    }
     liveName.textContent  = item.label.toUpperCase();
     liveName.className    = 'live-name';
     liveConf.textContent  = 'CONFIANÇA: ' + Math.round(conf * 100) + '%';
@@ -710,6 +871,398 @@ function sendCommand(gesture) {
     .catch(() => {
       setStatus('err', 'Sem resposta do AMADOBOARD');
     });
+}
+
+// ── Estado contínuo (F1) ──────────────────────────────────────
+// Modo Mãos: deriva valores 0–100 dos landmarks e envia ~10Hz à
+// AMADOBOARD em /vision/state?hx=..&hy=..&pd=.. (lido pelos blocos
+// vision_hand_position / vision_pinch_distance no ESP32).
+//
+// Landmarks da mão (MediaPipe Hands, 21 pontos): 0=pulso, 4=ponta do
+// polegar, 8=ponta do indicador, 9=base do dedo médio.
+function maybeStreamState(lm) {
+  const now = Date.now();
+  if (now - lastStreamAt < STREAM_MS) return;
+  lastStreamAt = now;
+
+  const clamp = v => Math.max(0, Math.min(100, Math.round(v)));
+  const wrist = lm[0];
+  // Espelhado (selfie): mão p/ a direita do aluno = hx maior;
+  // mão p/ cima = hy maior.
+  const hx = clamp((1 - wrist.x) * 100);
+  const hy = clamp((1 - wrist.y) * 100);
+  // Pinça normalizada pelo tamanho da palma (pulso→base do médio) para
+  // ficar menos sensível à distância da câmera. Calibração fina fica
+  // como evolução futura (ver ROADMAP).
+  const ref = Math.hypot(lm[0].x - lm[9].x, lm[0].y - lm[9].y) || 0.1;
+  const pinchRaw = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
+  const pd = clamp((pinchRaw / ref) * 100);
+
+  updateContinuousHud(hx, hy, pd);
+
+  const ip = ipInput.value.trim();
+  if (!ip || streamInFlight) return;
+  streamInFlight = true;
+  fetch('http://' + ip + '/vision/state?hx=' + hx + '&hy=' + hy + '&pd=' + pd,
+        { method: 'GET', mode: 'no-cors', cache: 'no-store' })
+    .finally(() => { streamInFlight = false; });
+}
+
+function updateContinuousHud(hx, hy, pd) {
+  if (!hudContPanel) return;
+  if (hx == null) {
+    hudContPanel.classList.remove('show');
+    return;
+  }
+  hudContPanel.classList.add('show');
+  if (hudHx)    hudHx.textContent    = hx;
+  if (hudHy)    hudHy.textContent    = hy;
+  if (hudPinch) hudPinch.textContent = pd;
+}
+
+// ── Captura de cor por clique (F3a) ──────────────────────────
+// Fluxo: usuário clica "Capturar" no slot N do modal → modal fecha,
+// banner aparece, cursor vira crosshair sobre o vídeo. Próximo clique
+// no vídeo amostra HSV de uma vizinhança de 3x3 pixels do canvas de
+// detecção (que já está rodando em 80x60), gera um range com
+// tolerância e salva no slot. ESC cancela.
+function startCaptureForSlot(slot) {
+  if (!isRunning) {
+    setStatus('err', 'Ligue a câmera antes de capturar uma cor');
+    return;
+  }
+  captureSlot = slot;
+  closeModal();
+  captureBannerText.textContent =
+    'Clique na câmera para capturar a Cor capturada ' + slot;
+  captureBanner.classList.remove('hidden');
+  videoWrapper.classList.add('capturing');
+}
+
+function cancelCapture() {
+  captureSlot = 0;
+  captureBanner.classList.add('hidden');
+  videoWrapper.classList.remove('capturing');
+}
+
+function onCaptureClick(e) {
+  if (!captureSlot) return;
+  // Coordenadas relativas ao wrapper → ao retângulo real do vídeo
+  // (que está em object-fit cover dentro do wrapper).
+  // O vídeo é CSS-mirrored (scaleX(-1)); o frame-fonte não é. Flip
+  // horizontal no X pra ler o pixel certo, senão capturava o lado
+  // oposto do que o aluno via.
+  const rect = videoWrapper.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const { ox, oy, rw, rh } = getCoverRect();
+  const relX = 1 - (x - ox) / rw;
+  const relY = (y - oy) / rh;
+  if (relX < 0 || relX > 1 || relY < 0 || relY > 1) return;
+
+  // Amostra 3x3 do _detectCanvas (80x60) em torno do clique.
+  const cx = Math.floor(relX * _detectCanvas.width);
+  const cy = Math.floor(relY * _detectCanvas.height);
+  const sx = Math.max(0, Math.min(_detectCanvas.width  - 3, cx - 1));
+  const sy = Math.max(0, Math.min(_detectCanvas.height - 3, cy - 1));
+  const data = _detectCtx.getImageData(sx, sy, 3, 3).data;
+
+  let r = 0, g = 0, b = 0, n = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    r += data[i]; g += data[i+1]; b += data[i+2]; n++;
+  }
+  r = Math.round(r / n); g = Math.round(g / n); b = Math.round(b / n);
+  const hsv = rgbToHsv(r, g, b);
+
+  // Range com tolerância. Pra cores coloridas: H ± 18°, S/V mínimos
+  // permissivos. Pra cores escuras (V baixo) ou cinzas (S baixo) o H
+  // perde significado — uso sMax/vMax pra travar dentro da "faixa
+  // escura/cinza" sem depender de hue.
+  const isGray = hsv.s < 0.20;
+  const isDark = hsv.v < 0.25;
+  let range;
+  if (isDark && isGray) {
+    // Preto / cinza-muito-escuro: ignora H, exige S baixo e V baixo.
+    range = {
+      hMin: 0, hMax: 360,
+      sMin: 0, sMax: Math.max(0.30, hsv.s + 0.18),
+      vMin: 0, vMax: Math.max(0.25, hsv.v + 0.15),
+    };
+  } else if (isGray) {
+    // Cinza médio/claro: ignora H, S baixo, V em torno do capturado.
+    range = {
+      hMin: 0, hMax: 360,
+      sMin: 0, sMax: 0.30,
+      vMin: Math.max(0.10, hsv.v - 0.22),
+      vMax: Math.min(1.00, hsv.v + 0.22),
+    };
+  } else {
+    const hTol = 18;
+    let hMin = hsv.h - hTol;
+    let hMax = hsv.h + hTol;
+    if (hMin < 0)   hMin += 360;
+    if (hMax > 360) hMax -= 360;
+    range = {
+      hMin, hMax,
+      sMin: Math.max(0.20, hsv.s - 0.30),
+      vMin: Math.max(0.12, hsv.v - 0.30),
+    };
+  }
+
+  const hex = '#' + [r, g, b].map(c => c.toString(16).padStart(2, '0')).join('');
+  setCapturedColor(captureSlot, { hex, range });
+
+  cancelCapture();
+  buildCards();
+  openModal();
+}
+
+// ── Detecção de cor (F3a) ─────────────────────────────────────
+// Estratégia: desenhar o frame de vídeo num canvas off-screen baixo
+// (80x60 ~ 4.8k pixels) e varrer pixel a pixel convertendo pra HSV.
+// Pra cada cor "vigiada" (presets + slots capturados não vazios), conta
+// hits. A cor com maior cobertura acima do limiar (3% do frame) ganha.
+//
+// Por que canvas baixo: detecção de cor não precisa de detalhe, e 80x60
+// roda fácil até em laptop fraco — mantém compatibilidade com a regra
+// de "MediaPipe pesado não roda junto" sem onerar a CPU.
+const _detectCanvas = document.createElement('canvas');
+_detectCanvas.width  = 80;
+_detectCanvas.height = 60;
+const _detectCtx = _detectCanvas.getContext('2d', { willReadFrequently: true });
+const COLOR_THRESHOLD_PCT = 0.005;  // blob da cor ≥ 0.5% do frame conta como "presente"
+
+// EMA pra suavizar a bounding box (evita pisca-pisca em quadro ruidoso)
+let markerBox = null;   // { x0, y0, x1, y1 } em coords normalizadas do detect canvas
+let markerHas = false;
+
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const d = max - min;
+  let h;
+  if (d === 0)       h = 0;
+  else if (max === r) h = ((g - b) / d) % 6;
+  else if (max === g) h = (b - r) / d + 2;
+  else                h = (r - g) / d + 4;
+  h = h * 60;
+  if (h < 0) h += 360;
+  const s = max === 0 ? 0 : d / max;
+  const v = max;
+  return { h, s, v };
+}
+
+function matchesHsv(hsv, range) {
+  if (hsv.s < range.sMin || hsv.v < range.vMin) return false;
+  if (range.sMax != null && hsv.s > range.sMax) return false;
+  if (range.vMax != null && hsv.v > range.vMax) return false;
+  // hMin > hMax indica wrap em 360° (vermelho).
+  return range.hMin <= range.hMax
+    ? (hsv.h >= range.hMin && hsv.h <= range.hMax)
+    : (hsv.h >= range.hMin || hsv.h <= range.hMax);
+}
+
+function getCapturedColors() {
+  try { return JSON.parse(localStorage.getItem(KEY_CAPTURED) || '{}'); }
+  catch { return {}; }
+}
+
+function setCapturedColor(slot, color) {
+  const all = getCapturedColors();
+  if (color) all[slot] = color; else delete all[slot];
+  localStorage.setItem(KEY_CAPTURED, JSON.stringify(all));
+}
+
+// Liga/desliga cores na detecção (default: todas ligadas). Útil pra
+// anular cores que aparecem no fundo da sala sem precisar mexer no
+// código do aluno.
+function getColorEnabledMap() {
+  try { return JSON.parse(localStorage.getItem(KEY_COLOR_ENABLED) || '{}'); }
+  catch { return {}; }
+}
+
+function isColorEnabled(key) {
+  const m = getColorEnabledMap();
+  return m[key] !== false;   // undefined ou true → ligada
+}
+
+function setColorEnabled(key, enabled) {
+  const m = getColorEnabledMap();
+  if (enabled) delete m[key]; else m[key] = false;
+  localStorage.setItem(KEY_COLOR_ENABLED, JSON.stringify(m));
+}
+
+// Lista de cores "vigiadas" agora: presets + slots capturados não vazios,
+// menos as marcadas como "ignoradas" pelo aluno no modal.
+// Slot key vira 'c1'..'c4' pra bater com o bloco color_captured.
+function getActiveColorWatchlist() {
+  const enabled = getColorEnabledMap();
+  const passes = k => enabled[k] !== false;
+  const list = COLOR_PRESETS.filter(c => passes(c.key)).slice();
+  const captured = getCapturedColors();
+  for (let i = 1; i <= 4; i++) {
+    const c = captured[i];
+    const key = 'c' + i;
+    if (c && c.range && passes(key)) list.push({
+      key,
+      label: 'Cor capturada ' + i,
+      hex:   c.hex,
+      range: c.range,
+    });
+  }
+  return list;
+}
+
+// Pra cada cor "vigiada", encontra o MAIOR blob (componente conectado)
+// que NÃO toca a borda do frame. Blob na borda = quase sempre parede/
+// fundo, então é descartado. Vence a cor cujo blob interior é maior.
+function detectColors() {
+  if (!videoEl.videoWidth) return null;
+  const W = _detectCanvas.width, H = _detectCanvas.height;
+  _detectCtx.drawImage(videoEl, 0, 0, W, H);
+  const data = _detectCtx.getImageData(0, 0, W, H).data;
+  const total = W * H;
+  const minHits = total * COLOR_THRESHOLD_PCT;
+
+  const watched = getActiveColorWatchlist();
+  if (!watched.length) return null;
+
+  let bestResult = null;
+  const mask = new Uint8Array(total);
+
+  for (let c = 0; c < watched.length; c++) {
+    // Constrói máscara binária pra essa cor.
+    let any = false;
+    for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+      const hsv = rgbToHsv(data[i], data[i+1], data[i+2]);
+      const hit = matchesHsv(hsv, watched[c].range) ? 1 : 0;
+      mask[j] = hit;
+      if (hit) any = true;
+    }
+    if (!any) continue;
+
+    const blob = largestInteriorBlob(mask, W, H);
+    if (!blob || blob.count < minHits) continue;
+
+    if (!bestResult || blob.count > bestResult.blobCount) {
+      bestResult = {
+        color:     watched[c],
+        score:     blob.count / total,
+        blobCount: blob.count,
+        // bbox em coords normalizadas (0..1)
+        bbox: {
+          x0: blob.minX / W,
+          y0: blob.minY / H,
+          x1: (blob.maxX + 1) / W,
+          y1: (blob.maxY + 1) / H,
+        },
+      };
+    }
+  }
+
+  return bestResult;
+}
+
+// Flood-fill iterativo (4-vizinhos) em mask binária. Retorna o maior
+// componente conectado que NÃO encosta na borda. mask é consumida
+// (pixels visitados viram 2) — chamador descarta depois.
+function largestInteriorBlob(mask, W, H) {
+  let bestCount = 0;
+  let bestMinX = 0, bestMinY = 0, bestMaxX = 0, bestMaxY = 0;
+  const stack = [];
+
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const start = y * W + x;
+      if (mask[start] !== 1) continue;
+
+      stack.length = 0;
+      stack.push(start);
+      mask[start] = 2;
+      let count = 0, touchesEdge = false;
+      let minX = x, minY = y, maxX = x, maxY = y;
+
+      while (stack.length) {
+        const cur = stack.pop();
+        const cx  = cur % W;
+        const cy  = (cur / W) | 0;
+        count++;
+        if (cx === 0 || cx === W - 1 || cy === 0 || cy === H - 1) touchesEdge = true;
+        if (cx < minX) minX = cx;
+        if (cy < minY) minY = cy;
+        if (cx > maxX) maxX = cx;
+        if (cy > maxY) maxY = cy;
+
+        const up = cur - W, dn = cur + W, lf = cur - 1, rt = cur + 1;
+        if (cy > 0     && mask[up] === 1) { mask[up] = 2; stack.push(up); }
+        if (cy < H - 1 && mask[dn] === 1) { mask[dn] = 2; stack.push(dn); }
+        if (cx > 0     && mask[lf] === 1) { mask[lf] = 2; stack.push(lf); }
+        if (cx < W - 1 && mask[rt] === 1) { mask[rt] = 2; stack.push(rt); }
+      }
+
+      if (touchesEdge) continue;
+      if (count > bestCount) {
+        bestCount = count;
+        bestMinX = minX; bestMinY = minY;
+        bestMaxX = maxX; bestMaxY = maxY;
+      }
+    }
+  }
+
+  // Limpa máscara pra próxima cor (2 → 0; 1 que sobrou também → 0)
+  mask.fill(0);
+  return bestCount === 0 ? null : {
+    count: bestCount,
+    minX: bestMinX, minY: bestMinY,
+    maxX: bestMaxX, maxY: bestMaxY,
+  };
+}
+
+// Bounding box em volta do blob detectado, com pad e cantos redondos.
+// O canvas é CSS-mirrored junto com o vídeo, então coords do frame-fonte
+// caem no lugar visual certo. EMA suaviza a transição.
+function drawColorMarker(result) {
+  const { ox, oy, rw, rh } = getCoverRect();
+  const b = result.bbox;
+
+  if (!markerHas) {
+    markerBox = Object.assign({}, b);
+    markerHas = true;
+  } else {
+    const a = 0.65;
+    markerBox.x0 = markerBox.x0 * a + b.x0 * (1 - a);
+    markerBox.y0 = markerBox.y0 * a + b.y0 * (1 - a);
+    markerBox.x1 = markerBox.x1 * a + b.x1 * (1 - a);
+    markerBox.y1 = markerBox.y1 * a + b.y1 * (1 - a);
+  }
+
+  // Padding visual ~10% pra dar respiro.
+  const padX = (markerBox.x1 - markerBox.x0) * 0.10;
+  const padY = (markerBox.y1 - markerBox.y0) * 0.10;
+  const x = ox + (markerBox.x0 - padX) * rw;
+  const y = oy + (markerBox.y0 - padY) * rh;
+  const w = (markerBox.x1 - markerBox.x0 + 2 * padX) * rw;
+  const h = (markerBox.y1 - markerBox.y0 + 2 * padY) * rh;
+  const r = Math.min(12, w / 4, h / 4);
+
+  ctx.save();
+  ctx.strokeStyle = result.color.hex;
+  ctx.lineWidth   = 3;
+  ctx.shadowColor = result.color.hex;
+  ctx.shadowBlur  = 14;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.restore();
 }
 
 function flashCard(key) {
