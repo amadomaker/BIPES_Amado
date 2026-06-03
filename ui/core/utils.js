@@ -273,7 +273,16 @@ class Tool {
         let coordinates = match_[2]
           .split(",")
           .map((item) => (item = parseFloat(item)));
-        window.frames[3].modules.DataStorage.push(match_[1], coordinates);
+        // Envia para o DataStorage do databoard. Mira pelo id (não por window.frames[N],
+        // que quebra ao adicionar/reordenar iframes) e protege com try/catch: este trecho
+        // roda dentro do write() do stream WebSerial — um erro aqui abortaria a leitura da
+        // serial e congelaria o console após o primeiro "$BIPES-DATA:".
+        try {
+          let databoardWin = document.getElementById("databoard_iframe");
+          databoardWin = databoardWin && databoardWin.contentWindow;
+          if (databoardWin && databoardWin.modules && databoardWin.modules.DataStorage)
+            databoardWin.modules.DataStorage.push(match_[1], coordinates);
+        } catch (e) { /* databoard indisponível: ignora para não derrubar a serial */ }
 
         /*STARTDEPRECATED*/
         //Compatibilty layer with the old BIPES-DATA:INDEX,DATA
