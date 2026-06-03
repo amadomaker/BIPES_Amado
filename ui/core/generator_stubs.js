@@ -1187,10 +1187,12 @@ Blockly.Python["easymqtt_init"] = function (block) {
   window.easyMQTT_session = session;
 
   Blockly.Python.definitions_["import_umqtt.robust"] = "import umqtt.robust";
+  Blockly.Python.definitions_["import_machine"] = "import machine";
+  Blockly.Python.definitions_["import_ubinascii"] = "import ubinascii";
   var code =
     'easymqtt_session = "' +
     session +
-    '"; \neasymqtt_client = umqtt.robust.MQTTClient("umqtt_client", server = ' +
+    '"; \neasymqtt_client = umqtt.robust.MQTTClient(b"bipes-"+ubinascii.hexlify(machine.unique_id()), server = ' +
     server +
     ", port = " +
     port +
