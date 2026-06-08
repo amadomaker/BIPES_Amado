@@ -1,0 +1,108 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #1a1a2e;
+  font-family: sans-serif;
+}
+
+body.robot-sim-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.robot-sim-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.sim-btn {
+  background: #0f3460;
+  color: #e0e0e0;
+  border: 1px solid #1a4a8a;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.sim-btn:hover {
+  background: #1a4a8a;
+}
+
+#world-select {
+  background: #0f3460;
+  color: #e0e0e0;
+  border: 1px solid #1a4a8a;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.sim-status {
+  margin-left: auto;
+  color: #7ec8e3;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+#renderCanvas {
+  flex: 1;
+  width: 100%;
+  display: block;
+  outline: none;
+}
+
+.console {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10, 10, 20, 0.85);
+  color: #a0f0a0;
+  font-size: 12px;
+  max-height: 120px;
+  transition: max-height 0.2s;
+  z-index: 20;
+}
+
+.console:not(.open) {
+  max-height: 26px;
+  overflow: hidden;
+}
+
+.console .chevron {
+  padding: 4px 10px;
+  cursor: pointer;
+  user-select: none;
+  color: #7ec8e3;
+  font-size: 12px;
+}
+
+.console .clear {
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  cursor: pointer;
+  color: #e07070;
+  font-size: 13px;
+}
+
+.console .content {
+  margin: 0;
+  padding: 4px 10px 8px;
+  max-height: 90px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

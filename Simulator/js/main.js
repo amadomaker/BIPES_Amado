@@ -335,6 +335,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   loadExamplesList().catch(() => {});
   setPlayState(false);
+  setupRobotSimPanel();
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
@@ -1933,4 +1934,92 @@ function handleDeleteSelection() {
     return true;
   }
   return false;
+}
+
+// === Simulador de Robô Físico ===
+// Lê o RPM dos motores A e B do simulador e envia via postMessage para o iframe do robô.
+
+let robotSimOpen = false;
+let robotMotorPollInterval = null;
+
+// Retorna estado dos dois primeiros motores DC encontrados no canvas.
+// 1º motor = roda esquerda (canal A), 2º motor = roda direita (canal B).
+function getMotorStateByChannel() {
+  if (!canvasManager) return { A: null, B: null };
+  const motors = canvasManager.components.filter(
+    (c) => c?.type === 'dc-motor' && c.state?.motor,
+  );
+  return {
+    A: motors[0]?.state?.motor ?? null,
+    B: motors[1]?.state?.motor ?? null,
+  };
+}
+
+function sendMotorStateToRobotSim() {
+  const frame = document.getElementById('robot-sim-frame');
+  if (!frame?.contentWindow) return;
+
+  const { A, B } = getMotorStateByChannel();
+  frame.contentWindow.postMessage(
+    {
+      type: 'bipes-motor-state',
+      leftRpm: A?.rpm ?? 0,
+      leftDir: A?.direction ?? 0,
+      rightRpm: B?.rpm ?? 0,
+      rightDir: B?.direction ?? 0,
+    },
+    '*',
+  );
+}
+
+function openRobotSim() {
+  const panel = document.getElementById('robot-sim-panel');
+  if (panel) panel.setAttribute('aria-hidden', 'false');
+  robotSimOpen = true;
+  robotMotorPollInterval = setInterval(sendMotorStateToRobotSim, 50);
+}
+
+function closeRobotSim() {
+  const panel = document.getElementById('robot-sim-panel');
+  if (panel) panel.setAttribute('aria-hidden', 'true');
+  robotSimOpen = false;
+  clearInterval(robotMotorPollInterval);
+  robotMotorPollInterval = null;
+}
+
+function updateUltrasonicSensorFromRobot(distanceCm) {
+  if (!canvasManager) return;
+  const sensors = canvasManager.components.filter((c) => c?.type === 'ultrasonic-sensor');
+  for (const sensor of sensors) {
+    if (!sensor.element) continue;
+    const el = sensor.element;
+    el.__distanceCm = distanceCm;
+    // Atualiza o atributo do wokwi-element para refletir visualmente
+    const wokwiEl = el.querySelector('wokwi-hc-sr04, [distance]');
+    if (wokwiEl) wokwiEl.setAttribute('distance', String(distanceCm));
+  }
+}
+
+function setupRobotSimPanel() {
+  const toggleBtn = document.getElementById('robot-sim-toggle');
+  const closeBtn = document.getElementById('robot-sim-close');
+
+  toggleBtn?.addEventListener('click', () => {
+    if (robotSimOpen) {
+      closeRobotSim();
+    } else {
+      openRobotSim();
+    }
+  });
+
+  closeBtn?.addEventListener('click', closeRobotSim);
+
+  // Recebe leituras do sensor do iframe do robô
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (!data || data.type !== 'bipes-sensor-state') return;
+    if (typeof data.ultrasonicCm === 'number') {
+      updateUltrasonicSensorFromRobot(data.ultrasonicCm);
+    }
+  });
 }

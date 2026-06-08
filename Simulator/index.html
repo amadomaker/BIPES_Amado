@@ -38,6 +38,23 @@
     <!-- Área de trabalho (centro) -->
     <main id="canvas-area">
       <div id="workspace"></div>
+
+      <!-- Botão para abrir o simulador de robô físico -->
+      <button type="button" id="robot-sim-toggle" class="robot-sim-toggle-btn" title="Simulador de Robô Físico">
+        🤖 Robô
+      </button>
+
+      <!-- Painel do simulador de robô (iframe) -->
+      <div id="robot-sim-panel" class="robot-sim-panel" aria-hidden="true">
+        <button type="button" id="robot-sim-close" class="robot-sim-close-btn" title="Fechar">✕</button>
+        <iframe
+          id="robot-sim-frame"
+          src="robot/index.html"
+          title="Simulador de Robô"
+          allow="cross-origin-isolated"
+        ></iframe>
+      </div>
+
       <button type="button" id="blockly-open-trigger" class="blockly-toggle-bar" aria-expanded="false">
         <img src="examples/previews/icon-blockly.png" alt="" aria-hidden="true" class="blockly-toggle-icon">
         <span class="blockly-toggle-label">Código</span>

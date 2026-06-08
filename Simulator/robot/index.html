@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="widgets.css">
+  <link rel="stylesheet" href="robot-sim.css">
+
+  <script src="jquery/jquery-3.5.1.slim.min.js"></script>
+  <script src="ammo/ammo-20200613.js"></script>
+  <script src="babylon/4.2.1/babylon.js"></script>
+  <script src="babylon/4.2.1/babylon.gui.min.js"></script>
+  <script src="pep/0.4.3/pep.min.js"></script>
+
+  <script src="js/msg.js"></script>
+  <script src="js/common/widgets.js"></script>
+
+  <title>Simulador de Robô - BIPES</title>
+</head>
+<body class="robot-sim-page">
+
+  <div class="robot-sim-toolbar">
+    <button class="sim-btn" id="btn-run-sim" title="Iniciar/Parar simulação">▶ Iniciar</button>
+    <button class="sim-btn" id="btn-reset-sim" title="Resetar posição do robô">↺ Resetar</button>
+    <select id="world-select" title="Escolher mundo">
+      <option value="grid">Grade</option>
+      <option value="maze">Labirinto</option>
+      <option value="line">Seguidor de linha</option>
+    </select>
+    <button class="sim-btn" id="btn-camera" title="Alternar câmera">📷 Câmera</button>
+    <span class="sim-status" id="sim-status">Aguardando blocos...</span>
+  </div>
+
+  <canvas id="renderCanvas" touch-action="none"></canvas>
+
+  <div class="console">
+    <div class="chevron">▾ Console</div>
+    <div class="clear">✕</div>
+    <pre class="content"></pre>
+  </div>
+
+  <script src="js/worlds/World_Base.js"></script>
+  <script src="js/worlds/world_Grid.js"></script>
+  <script src="js/worlds/world_Maze.js"></script>
+  <script src="js/worlds/world_Arena.js"></script>
+  <script src="js/worlds/world_Custom.js"></script>
+  <script src="js/worlds/world_LineFollowing.js"></script>
+  <script src="js/robotComponents.js"></script>
+  <script src="js/robotTemplates.js"></script>
+  <script src="js/Wheel.js"></script>
+  <script src="js/Robot.js"></script>
+
+  <script>
+    // Instancia o robô com template padrão (carrinho diferencial com 2 rodas)
+    var robots = [];
+    var robot = new Robot();
+    robot.options = robotTemplates[0];
+    robot.player = 0;
+    robots.push(robot);
+
+    // Lista de mundos disponíveis
+    var worlds = [
+      new World_Grid(),
+      new World_Maze(),
+      new World_LineFollowing(),
+    ];
+  </script>
+
+  <script src="js/babylon.js"></script>
+  <script src="js/simPanel.js"></script>
+  <script src="js/bipes-bridge.js"></script>
+
+  <script>
+    window.addEventListener('load', function () {
+      babylon.init();
+      bipesBridge.init();
+
+      document.getElementById('btn-run-sim').addEventListener('click', function () {
+        bipesBridge.toggleSim();
+      });
+
+      document.getElementById('btn-reset-sim').addEventListener('click', function () {
+        bipesBridge.resetSim();
+      });
+
+      document.getElementById('btn-camera').addEventListener('click', function () {
+        if (babylon.cameraMode === 'follow') {
+          babylon.setCameraMode('arc');
+        } else {
+          babylon.setCameraMode('follow');
+        }
+      });
+
+      document.getElementById('world-select').addEventListener('change', function () {
+        var val = this.value;
+        var worldMap = { grid: worlds[0], maze: worlds[1], line: worlds[2] };
+        babylon.world = worldMap[val] || worlds[0];
+        bipesBridge.resetSim();
+      });
+    });
+  </script>
+</body>
+</html>
