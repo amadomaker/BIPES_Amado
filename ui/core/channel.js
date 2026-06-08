@@ -223,6 +223,7 @@ class websocket {
 
       this.connected = true;
       UI ['workspace'].websocket.url.disabled = true;
+      UI ['workspace'].setRunState ('idle');
       this.last4chars = '';
 
       this.ws.onmessage = (event) => {
@@ -311,9 +312,7 @@ class websocket {
           Tool.bipesVerify ();
           this.last4chars = (this.last4chars + event.data).slice(-4);
           if (event.data.includes(">>> ") || this.last4chars.includes(">>> ")) {
-            UI ['workspace'].runButton.status = true;
-            UI ['workspace'].runButton.dom.className = 'icon';
-            UI ['workspace'].toolbarButton.className = 'icon medium';
+            UI ['workspace'].onReplPrompt ();
             if (this.completeBufferCallback.length > 0) {
               try {
                 this.completeBufferCallback [0] ();
@@ -325,8 +324,6 @@ class websocket {
           } else if (event.data.includes("Access denied")) {
             //WebSocket might close before receiving this message, so won't trigger.
             UI ['notify'].send("Wrong board password.");
-          } else if (UI ['workspace'].runButton.status == true) {
-            UI ['workspace'].receiving ();
           }
         }
         Files.received_string = Files.received_string.concat(event.data);
@@ -428,9 +425,7 @@ class webserial {
                 //data comes in chunks, keep last 4 chars to check MicroPython REPL string
                 Channel ['webserial'].last4chars = Channel ['webserial'].last4chars.concat(chunk.substr(-4,4)).substr(-4,4)
                 if (Channel ['webserial'].last4chars.includes(">>> ")) {
-                  UI ['workspace'].runButton.status = true;
-                  UI ['workspace'].runButton.dom.className = 'icon';
-                  UI ['workspace'].toolbarButton.className = 'icon medium';
+                  UI ['workspace'].onReplPrompt ();
                   if (Channel ['webserial'].completeBufferCallback.length > 0) {
                     try {
                       Channel ['webserial'].completeBufferCallback [0] ();
@@ -439,8 +434,6 @@ class webserial {
                     }
                     Channel ['webserial'].completeBufferCallback.shift ();
                   }
-                } else if (UI ['workspace'].runButton.status == true) {
-                  UI ['workspace'].receiving ();
                 }
                 Files.received_string = Files.received_string.concat(chunk);
               }
@@ -477,8 +470,7 @@ class webserial {
     term.on();
     term.write('\x1b[31mConnected using Web Serial API !\x1b[m\r\n');
     this.connected=true;
-    if (UI ['workspace'].runButton.status == true)
-        UI ['workspace'].receiving ();
+    UI ['workspace'].setRunState ('idle');
 
     this.watcher = setInterval(this.watch.bind(this), 50);
   }
@@ -756,8 +748,7 @@ class webbluetooth {
         term.write('\x1b[31mConnected using Web Bluetooth API !\x1b[m\r\n');
         this.connected = true;
         mux.bufferPush ('\r');
-        if (UI ['workspace'].runButton.status == true)
-          UI ['workspace'].receiving ();
+        UI ['workspace'].setRunState ('idle');
         this.watcher = setInterval(this.watch.bind(this), 50);
       }).catch(error => {
         UI ['notify'].log(error);
@@ -808,9 +799,7 @@ class webbluetooth {
     //data comes in chunks, keep last 4 chars to check MicroPython REPL string
     this.last4chars = this.last4chars.concat(chunk.substr(-4,4)).substr(-4,4)
     if (this.last4chars.includes(">>> ")) {
-      UI ['workspace'].runButton.status = true;
-      UI ['workspace'].runButton.dom.className = 'icon';
-      UI ['workspace'].toolbarButton.className = 'icon medium';
+      UI ['workspace'].onReplPrompt ();
       if (this.completeBufferCallback.length > 0) {
         try {
           this.completeBufferCallback [0] ();
@@ -819,8 +808,6 @@ class webbluetooth {
         }
         this.completeBufferCallback.shift ();
       }
-    } else if (UI ['workspace'].runButton.status == true) {
-      UI ['workspace'].receiving ();
     }
     Files.received_string = Files.received_string.concat(chunk);
   }

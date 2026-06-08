@@ -497,6 +497,10 @@ class workspace {
         dom:get('#runButton'),
         status:true
       };
+    /** Authoritative Run/Stop button state, driven by user intent and the
+     * confirmed command lifecycle. One of 'disconnected'|'idle'|'running'|
+     * 'stopping'. See :js:func:`workspace#setRunState`. */
+    this.runState = 'disconnected';
     this.connectButton = get('#connectButton');
     this.saveButton = get('#saveButton');
     this.loadButton = get('#loadXML');
@@ -524,16 +528,90 @@ class workspace {
  * DOM `#runButton`. If not connection, will try to connect then run.
  */
 workspace.prototype.run = function () {
-  if (this.runButton.status) {
-    if(mux.connected ()) {
+  switch (this.runState) {
+    case 'running':
+    case 'stopping':
+      // User asked to stop. stopPython() queues Ctrl+C at the FRONT of the
+      // buffer, then we optimistically return the UI to "ready" right away —
+      // so the button is usable again even if the board is stuck in a loop and
+      // never echoes ">>> ". This is what stops the "have to refresh the page"
+      // freeze.
+      Tool.stopPython();
+      this.setRunState('idle');
+      break;
+    case 'idle':
+      this.setRunState('running');
+      Tool.runPython();
+      break;
+    default: // 'disconnected' (or any unexpected state): connect, then run
+      if (mux.connected ()) {
+        this.setRunState('running');
         Tool.runPython();
-    } else {
-      Channel ['mux'].connect ();
-      setTimeout(() => { if (mux.connected ()) Tool.runPython();}, 2000);
-    }
-  } else {
-    Tool.stopPython();
+      } else {
+        Channel ['mux'].connect ();
+        setTimeout(() => {
+          if (mux.connected ()) {
+            this.setRunState('running');
+            Tool.runPython();
+          }
+        }, 2000);
+      }
+      break;
   }
+}
+
+/**
+ * Single source of truth for the Run/Stop button styling and state. Driven by
+ * user intent and the confirmed command lifecycle — NOT by string-matching the
+ * serial output. Keeps the legacy :js:attr:`workspace#runButton`.status boolean
+ * in sync (true = clicking runs, false = clicking stops) for code that reads it.
+ * @param {('disconnected'|'idle'|'running'|'stopping')} state
+ */
+workspace.prototype.setRunState = function (state) {
+  this.runState = state;
+  switch (state) {
+    case 'idle': // connected, at REPL prompt, ready to run
+      this.runButton.status = true;
+      this.runButton.dom.className = 'icon';
+      this.toolbarButton.className = 'icon medium';
+      this.channel_connect.className = '';
+      this.connectButton.className = 'icon on';
+      this.term.className = 'on';
+      break;
+    case 'running':
+    case 'stopping':
+      this.runButton.status = false;
+      this.runButton.dom.className = 'icon on';
+      this.toolbarButton.className = 'icon medium on';
+      this.channel_connect.className = '';
+      this.connectButton.className = 'icon on';
+      this.term.className = 'on';
+      break;
+    case 'disconnected':
+    default:
+      this.runState = 'disconnected';
+      this.runButton.status = true;
+      this.runButton.dom.className = 'icon';
+      this.toolbarButton.className = 'icon medium';
+      this.channel_connect.className = '';
+      this.connectButton.className = 'icon';
+      this.term.className = '';
+      this.websocket.url.disabled = false;
+      this.connectButton.value = "Connect";
+      break;
+  }
+}
+
+/**
+ * Called by the comms channels when the MicroPython REPL prompt (">>> ") shows
+ * up in the serial output. This is now only a CONFIRMATION that the board is
+ * back at the prompt: it moves a running/stopping program to idle and never
+ * touches an already-idle button. This kills the old yo-yo where boot banners,
+ * prints, or a reset would flip the button on their own.
+ */
+workspace.prototype.onReplPrompt = function () {
+  if (this.runState === 'running' || this.runState === 'stopping')
+    this.setRunState('idle');
 }
 
 /**
@@ -559,26 +637,14 @@ workspace.prototype.connectClick = function () {
  * Switch on styling for connected to device.
  */
 workspace.prototype.receiving = function () {
-  this.channel_connect.className = '';
-  this.runButton.status = false;
-  this.runButton.dom.className = 'icon on';
-  this.toolbarButton.className = 'icon medium on';
-  this.connectButton.className = 'icon on';
-  this.term.className = 'on';
+  this.setRunState('running');
 }
 
 /**
- * Switch off styling for connected to device.
+ * Switch off styling: connection is gone. Routes through the state machine.
  */
 workspace.prototype.runAbort = function () {
-  this.channel_connect.className = '';
-  this.runButton.status = true;
-  this.runButton.dom.className = 'icon';
-  this.toolbarButton.className = 'icon medium';
-  this.connectButton.className = 'icon';
-  this.term.className = '';
-  this.websocket.url.disabled = false;
-  this.connectButton.value = "Connect";
+  this.setRunState('disconnected');
 }
 
 /**
