@@ -37,22 +37,10 @@
   <div id="debug-panel" class="debug-panel hidden">
     <div class="debug-title">📊 Sensores &amp; Motores</div>
     <table class="debug-table">
-      <tr><td>IR Esquerdo</td><td id="dbg-ir-left">--</td></tr>
-      <tr><td>IR Direito</td> <td id="dbg-ir-right">--</td></tr>
-      <tr><td>Motor A (RPM)</td><td id="dbg-rpm-a">--</td></tr>
-      <tr><td>Motor B (RPM)</td><td id="dbg-rpm-b">--</td></tr>
+      <tr><td>IR (centro)</td><td id="dbg-ir-left">--</td></tr>
+      <tr><td>Motor A (PWM)</td><td id="dbg-rpm-a">--</td></tr>
+      <tr><td>Motor B (PWM)</td><td id="dbg-rpm-b">--</td></tr>
       <tr><td>Sensores 3D</td> <td id="dbg-sens-count">--</td></tr>
-    </table>
-    <div class="debug-divider"></div>
-    <div class="debug-title">⚙️ Velocidade do robô</div>
-    <table class="debug-table">
-      <tr>
-        <td>Velocidade</td>
-        <td>
-          <input class="dbg-slider" id="dbg-speed-scale" type="range" min="0.1" max="1" step="0.05" value="0.4">
-          <span id="dbg-speed-val">0.40×</span>
-        </td>
-      </tr>
     </table>
   </div>
 
@@ -77,8 +65,8 @@
     // Instancia o robô com template padrão (carrinho diferencial com 2 rodas)
     var robots = [];
     var robot = new Robot();
-    // doubleFollower: 2 ColorSensors lado a lado (esq x=-2, dir x=+2) para seguidor de linha com 2 IR
-    var tmpl = robotTemplates.find(function(t) { return t.name === 'doubleFollower'; });
+    // singleFollower: 1 ColorSensor no centro (x=0) para seguidor de linha com 1 IR
+    var tmpl = robotTemplates.find(function(t) { return t.name === 'singleFollower'; });
     robot.options = tmpl || robotTemplates[0];
     robot.player = 'single';
     robots.push(robot);
@@ -113,16 +101,6 @@
           babylon.setCameraMode('follow');
         }
       });
-
-      var speedSlider = document.getElementById('dbg-speed-scale');
-      var speedVal = document.getElementById('dbg-speed-val');
-      function applySpeed() {
-        var scale = parseFloat(speedSlider.value) || 0.4;
-        speedVal.textContent = scale.toFixed(2) + '×';
-        bipesBridge.setSpeedScale(scale);
-      }
-      speedSlider.addEventListener('input', applySpeed);
-      applySpeed(); // aplica o valor inicial
 
       document.getElementById('world-select').addEventListener('change', function () {
         var nameMap = { grid: 'grid', maze: 'maze', line: 'lineFollowing' };

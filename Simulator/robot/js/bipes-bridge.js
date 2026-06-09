@@ -11,18 +11,34 @@ var bipesBridge = new function () {
   var rightRpm = 0;
   var leftDir = 0;
   var rightDir = 0;
+  var leftPwm = null;
+  var rightPwm = null;
   var sensorLogTick = 0;
 
   // Gears usa graus/segundo no speed_sp: RPM × 360/60
   var RPM_TO_DEG_S = 360 / 60;
 
-  // Escala de velocidade do carrinho 3D: o robô simulado é mais sensível que o real,
-  // então reduzimos a velocidade física sem mexer no RPM do motor componente.
-  // 1.0 = velocidade cheia; 0.4 = padrão (mais lento, dá pra seguir a linha)
-  var motorSpeedScale = 0.4;
+  // === Modelo de PWM fiel ao motor real ===
+  // O carrinho 3D responde ao PWM (0–1023) que o código comanda, igual ao carrinho físico:
+  // - abaixo de PWM_MIN o motor não gira (zona morta / tensão mínima do motor real)
+  // - exatamente em PWM_MIN o motor já parte de MIN_WHEEL_SPEED (vence o atrito, não fica em 0)
+  // - de PWM_MIN até 1023 a velocidade sobe linear até MAX_WHEEL_SPEED
+  // Ajustar estes números para casar com o carrinho real.
+  var PWM_MIN = 700;            // abaixo disso o carrinho fica parado
+  var PWM_MAX = 1023;
+  var MAX_WHEEL_SPEED = 500;    // graus/segundo na roda em PWM máximo (1023)
+  var MIN_WHEEL_SPEED = 130;    // graus/segundo na roda ao cruzar a zona morta (PWM_MIN)
 
-  this.setSpeedScale = function(scale) {
-    motorSpeedScale = Number(scale) || 0.4;
+  // Converte o PWM comandado em velocidade da roda (deg/s).
+  // Sem PWM (motor ligado direto, sem bloco PWM) → usa o RPM como antes.
+  this.pwmToWheelSpeed = function (pwm, rpmFallback) {
+    if (pwm === null || pwm === undefined) {
+      return Math.abs(Number(rpmFallback) || 0) * RPM_TO_DEG_S * 0.4;
+    }
+    var p = Math.abs(Number(pwm) || 0);
+    if (p < PWM_MIN) return 0;
+    var frac = (p - PWM_MIN) / (PWM_MAX - PWM_MIN); // 0..1
+    return MIN_WHEEL_SPEED + frac * (MAX_WHEEL_SPEED - MIN_WHEEL_SPEED);
   };
 
   this.init = function () {
@@ -145,11 +161,13 @@ var bipesBridge = new function () {
     leftDir  = Math.sign(Number(data.leftDir)  || 0);
     rightRpm = Math.abs(Number(data.rightRpm) || 0);
     rightDir = Math.sign(Number(data.rightDir) || 0);
+    leftPwm  = (data.leftPwm  === null || data.leftPwm  === undefined) ? null : Math.abs(Number(data.leftPwm)  || 0);
+    rightPwm = (data.rightPwm === null || data.rightPwm === undefined) ? null : Math.abs(Number(data.rightPwm) || 0);
 
     var elA = document.getElementById('dbg-rpm-a');
     var elB = document.getElementById('dbg-rpm-b');
-    if (elA) elA.textContent = Math.round(leftRpm) + ' rpm';
-    if (elB) elB.textContent = Math.round(rightRpm) + ' rpm';
+    if (elA) elA.textContent = (leftPwm  === null ? '— (sem PWM)' : Math.round(leftPwm));
+    if (elB) elB.textContent = (rightPwm === null ? '— (sem PWM)' : Math.round(rightPwm));
 
     if (!isRunning) return;
     self.applyMotorState();
@@ -158,17 +176,14 @@ var bipesBridge = new function () {
   this.applyMotorState = function () {
     if (!robot || !robot.leftWheel || !robot.rightWheel) return;
 
-    // Escala a velocidade do carrinho 3D (sem mexer no RPM do motor componente)
-    var effLeft  = leftRpm  * motorSpeedScale;
-    var effRight = rightRpm * motorSpeedScale;
-
-    var leftSpeed  = effLeft  * RPM_TO_DEG_S * (leftDir  || 1);
-    var rightSpeed = effRight * RPM_TO_DEG_S * (rightDir || 1);
+    // Carrinho responde ao PWM comandado (zona morta + velocidade máx fiel ao real)
+    var leftSpeed  = self.pwmToWheelSpeed(leftPwm,  leftRpm)  * (leftDir  || 1);
+    var rightSpeed = self.pwmToWheelSpeed(rightPwm, rightRpm) * (rightDir || 1);
 
     robot.leftWheel.speed_sp  = leftSpeed;
     robot.rightWheel.speed_sp = rightSpeed;
 
-    if (effLeft > 1 || effRight > 1) {
+    if (Math.abs(leftSpeed) > 1 || Math.abs(rightSpeed) > 1) {
       robot.leftWheel.runForever();
       robot.rightWheel.runForever();
     } else {
@@ -210,11 +225,11 @@ var bipesBridge = new function () {
       babylon.scene.render(); // desenha o frame 3D
     });
 
-    // Aplica estado dos motores a cada 50ms
-    driveInterval = setInterval(self.applyMotorState, 50);
+    // Aplica estado dos motores a cada 30ms
+    driveInterval = setInterval(self.applyMotorState, 30);
 
-    // Lê sensor ultrassônico a cada 100ms e envia para o BIPES
-    sensorInterval = setInterval(self.sendSensorState, 100);
+    // Lê os sensores e envia ao BIPES a cada 25ms (~40Hz) — reação rápida
+    sensorInterval = setInterval(self.sendSensorState, 25);
   };
 
   this.stopSim = function () {

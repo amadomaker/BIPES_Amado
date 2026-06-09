@@ -1942,6 +1942,19 @@ function handleDeleteSelection() {
 let robotSimOpen = false;
 let robotMotorPollInterval = null;
 
+// Lê o PWM duty (0–1023) que o código comandou para o motor, via controlador.
+// É o MESMO valor que iria para o carrinho físico — leitura, não altera nada.
+function getMotorPwmById(componentId) {
+  if (!simulation?.motorControllers) return null;
+  for (const controller of simulation.motorControllers.values()) {
+    if (Array.isArray(controller.boundComponentIds) && controller.boundComponentIds.includes(componentId)) {
+      const p = Number(controller.power);
+      return Number.isFinite(p) ? p : null;
+    }
+  }
+  return null;
+}
+
 // Retorna estado dos dois primeiros motores DC encontrados no canvas.
 // 1º motor = roda esquerda (canal A), 2º motor = roda direita (canal B).
 function getMotorStateByChannel() {
@@ -1949,10 +1962,9 @@ function getMotorStateByChannel() {
   const motors = canvasManager.components.filter(
     (c) => c?.type === 'dc-motor' && c.state?.motor,
   );
-  return {
-    A: motors[0]?.state?.motor ?? null,
-    B: motors[1]?.state?.motor ?? null,
-  };
+  const build = (motor) =>
+    motor ? { ...motor.state.motor, pwm: getMotorPwmById(motor.id) } : null;
+  return { A: build(motors[0]), B: build(motors[1]) };
 }
 
 function sendMotorStateToRobotSim() {
@@ -1965,8 +1977,10 @@ function sendMotorStateToRobotSim() {
       type: 'bipes-motor-state',
       leftRpm: A?.rpm ?? 0,
       leftDir: A?.direction ?? 0,
+      leftPwm: A?.pwm ?? null,
       rightRpm: B?.rpm ?? 0,
       rightDir: B?.direction ?? 0,
+      rightPwm: B?.pwm ?? null,
     },
     '*',
   );
@@ -1979,7 +1993,7 @@ function notifyRobotSim(type) {
 
 function startRobotMotorPoll() {
   clearInterval(robotMotorPollInterval);
-  robotMotorPollInterval = setInterval(sendMotorStateToRobotSim, 50);
+  robotMotorPollInterval = setInterval(sendMotorStateToRobotSim, 25);
 }
 
 function stopRobotMotorPoll() {

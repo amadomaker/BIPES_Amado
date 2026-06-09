@@ -95,26 +95,6 @@ body.robot-sim-page {
   text-align: right;
 }
 
-.debug-divider {
-  border-top: 1px solid #0f3460;
-  margin: 8px 0;
-}
-
-.dbg-slider {
-  width: 90px;
-  vertical-align: middle;
-  cursor: pointer;
-}
-
-#dbg-speed-val {
-  display: inline-block;
-  min-width: 42px;
-  text-align: right;
-  color: #7ec8e3;
-  font-weight: bold;
-  font-size: 12px;
-}
-
 #renderCanvas {
   flex: 1;
   width: 100%;

@@ -420,16 +420,17 @@ var robotTemplates = [
         rotation: [0, 0, 0],
         options: null
       },
-      {
-        type: 'GyroSensor',
-        position: [0, 2.5, 2.5],
-        options: null
-      },
-      {
-        type: 'GPSSensor',
-        position: [0, 2.5, 5],
-        options: null
-      },
+      // Giroscópio e GPS ocultos por enquanto (não usados). Reativar = descomentar.
+      // {
+      //   type: 'GyroSensor',
+      //   position: [0, 2.5, 2.5],
+      //   options: null
+      // },
+      // {
+      //   type: 'GPSSensor',
+      //   position: [0, 2.5, 5],
+      //   options: null
+      // },
       {
         type: 'MagnetActuator',
         position: [0, -1, 3],
