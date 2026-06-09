@@ -15,13 +15,13 @@ var babylon = new function() {
     self.scene = self.createScene(); // Call the createScene function
 
     self.world.setOptions().then(function(){
-      self.loadMeshes(self.scene);
+      return self.loadMeshes(self.scene);
+    }).then(function() {
+      // Inicia render loop após o mundo inicial carregar
+      self.engine.runRenderLoop(function () {
+        self.scene.render();
+      });
     });
-
-    // Register a render loop to repeatedly render the scene
-    // self.engine.runRenderLoop(function () {
-    //   self.scene.render();
-    // });
 
     // Watch for browser/canvas resize events
     window.addEventListener('resize', function () {

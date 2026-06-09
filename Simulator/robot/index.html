@@ -22,15 +22,38 @@
 <body class="robot-sim-page">
 
   <div class="robot-sim-toolbar">
-    <button class="sim-btn" id="btn-run-sim" title="Iniciar/Parar simulação">▶ Iniciar</button>
+    <button class="sim-btn" id="btn-run-sim" title="Iniciar/Parar o robô">▶ Iniciar</button>
     <button class="sim-btn" id="btn-reset-sim" title="Resetar posição do robô">↺ Resetar</button>
     <select id="world-select" title="Escolher mundo">
       <option value="grid">Grade</option>
       <option value="maze">Labirinto</option>
       <option value="line">Seguidor de linha</option>
     </select>
+    <button class="sim-btn" id="btn-debug" title="Painel de sensores e motores">📊 Debug</button>
     <button class="sim-btn" id="btn-camera" title="Alternar câmera">📷 Câmera</button>
-    <span class="sim-status" id="sim-status">Aguardando blocos...</span>
+  </div>
+
+  <!-- Painel de debug flutuante -->
+  <div id="debug-panel" class="debug-panel hidden">
+    <div class="debug-title">📊 Sensores &amp; Motores</div>
+    <table class="debug-table">
+      <tr><td>IR Esquerdo</td><td id="dbg-ir-left">--</td></tr>
+      <tr><td>IR Direito</td> <td id="dbg-ir-right">--</td></tr>
+      <tr><td>Motor A (RPM)</td><td id="dbg-rpm-a">--</td></tr>
+      <tr><td>Motor B (RPM)</td><td id="dbg-rpm-b">--</td></tr>
+      <tr><td>Sensores 3D</td> <td id="dbg-sens-count">--</td></tr>
+    </table>
+    <div class="debug-divider"></div>
+    <div class="debug-title">⚙️ Velocidade do robô</div>
+    <table class="debug-table">
+      <tr>
+        <td>Velocidade</td>
+        <td>
+          <input class="dbg-slider" id="dbg-speed-scale" type="range" min="0.1" max="1" step="0.05" value="0.4">
+          <span id="dbg-speed-val">0.40×</span>
+        </td>
+      </tr>
+    </table>
   </div>
 
   <canvas id="renderCanvas" touch-action="none"></canvas>
@@ -44,8 +67,6 @@
   <script src="js/worlds/World_Base.js"></script>
   <script src="js/worlds/world_Grid.js"></script>
   <script src="js/worlds/world_Maze.js"></script>
-  <script src="js/worlds/world_Arena.js"></script>
-  <script src="js/worlds/world_Custom.js"></script>
   <script src="js/worlds/world_LineFollowing.js"></script>
   <script src="js/robotComponents.js"></script>
   <script src="js/robotTemplates.js"></script>
@@ -56,16 +77,12 @@
     // Instancia o robô com template padrão (carrinho diferencial com 2 rodas)
     var robots = [];
     var robot = new Robot();
-    robot.options = robotTemplates[0];
-    robot.player = 0;
+    // doubleFollower: 2 ColorSensors lado a lado (esq x=-2, dir x=+2) para seguidor de linha com 2 IR
+    var tmpl = robotTemplates.find(function(t) { return t.name === 'doubleFollower'; });
+    robot.options = tmpl || robotTemplates[0];
+    robot.player = 'single';
     robots.push(robot);
-
-    // Lista de mundos disponíveis
-    var worlds = [
-      new World_Grid(),
-      new World_Maze(),
-      new World_LineFollowing(),
-    ];
+    // worlds é preenchido automaticamente pelos scripts acima (world_Grid, world_Maze, world_LineFollowing)
   </script>
 
   <script src="js/babylon.js"></script>
@@ -85,6 +102,10 @@
         bipesBridge.resetSim();
       });
 
+      document.getElementById('btn-debug').addEventListener('click', function () {
+        document.getElementById('debug-panel').classList.toggle('hidden');
+      });
+
       document.getElementById('btn-camera').addEventListener('click', function () {
         if (babylon.cameraMode === 'follow') {
           babylon.setCameraMode('arc');
@@ -93,10 +114,20 @@
         }
       });
 
+      var speedSlider = document.getElementById('dbg-speed-scale');
+      var speedVal = document.getElementById('dbg-speed-val');
+      function applySpeed() {
+        var scale = parseFloat(speedSlider.value) || 0.4;
+        speedVal.textContent = scale.toFixed(2) + '×';
+        bipesBridge.setSpeedScale(scale);
+      }
+      speedSlider.addEventListener('input', applySpeed);
+      applySpeed(); // aplica o valor inicial
+
       document.getElementById('world-select').addEventListener('change', function () {
-        var val = this.value;
-        var worldMap = { grid: worlds[0], maze: worlds[1], line: worlds[2] };
-        babylon.world = worldMap[val] || worlds[0];
+        var nameMap = { grid: 'grid', maze: 'maze', line: 'lineFollowing' };
+        var worldName = nameMap[this.value];
+        babylon.world = worlds.find(function(w) { return w.name === worldName; }) || worlds[0];
         bipesBridge.resetSim();
       });
     });

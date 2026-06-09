@@ -11,9 +11,19 @@ var bipesBridge = new function () {
   var rightRpm = 0;
   var leftDir = 0;
   var rightDir = 0;
+  var sensorLogTick = 0;
 
   // Gears usa graus/segundo no speed_sp: RPM × 360/60
   var RPM_TO_DEG_S = 360 / 60;
+
+  // Escala de velocidade do carrinho 3D: o robô simulado é mais sensível que o real,
+  // então reduzimos a velocidade física sem mexer no RPM do motor componente.
+  // 1.0 = velocidade cheia; 0.4 = padrão (mais lento, dá pra seguir a linha)
+  var motorSpeedScale = 0.4;
+
+  this.setSpeedScale = function(scale) {
+    motorSpeedScale = Number(scale) || 0.4;
+  };
 
   this.init = function () {
     window.addEventListener('message', self.onMessage);
@@ -24,53 +34,122 @@ var bipesBridge = new function () {
     $clear.on('click', function () { $('.console .content').text(''); });
 
     self.log('Simulador de robô pronto.');
+
+    // Ticker de diagnóstico: mostra quantos sensores 3D foram encontrados (roda sempre)
+    setInterval(function () {
+      var elC = document.getElementById('dbg-sens-count');
+      if (!elC) return;
+      if (!robot || !robot.components) {
+        elC.textContent = 'robô não carregado';
+        return;
+      }
+      var count = self.findAllSensors(robot.components, 'ColorSensor').length;
+      elC.textContent = count + (isRunning ? '' : '  ⬅ clique Iniciar');
+    }, 800);
   };
 
-  // Busca recursiva do sensor ultrassônico nos componentes do robô
-  this.findUltrasonicSensor = function (components) {
+  // Busca recursiva de sensor por tipo (retorna o primeiro encontrado)
+  this.findSensor = function (components, type) {
     if (!components) return null;
     for (var i = 0; i < components.length; i++) {
       var c = components[i];
-      if (c.type === 'UltrasonicSensor') return c;
+      if (c.type === type) return c;
       if (c.components) {
-        var found = self.findUltrasonicSensor(c.components);
+        var found = self.findSensor(c.components, type);
         if (found) return found;
       }
     }
     return null;
   };
 
-  // Lê o sensor do robô 3D e envia para o BIPES via postMessage
-  this.sendSensorState = function () {
-    if (!robot || !robot.components) return;
-    var sensor = self.findUltrasonicSensor(robot.components);
-    if (!sensor) return;
-
-    var distanceCm = sensor.getDistance();
-    // Gears usa a mesma escala de cm (1 unidade ≈ 1 cm)
-    // HC-SR04 real: 2–400 cm
-    distanceCm = Math.max(2, Math.min(400, distanceCm));
-
-    window.parent.postMessage({
-      type: 'bipes-sensor-state',
-      ultrasonicCm: distanceCm,
-    }, '*');
+  // Busca recursiva de todos os sensores de um tipo
+  this.findAllSensors = function (components, type) {
+    var result = [];
+    if (!components) return result;
+    for (var i = 0; i < components.length; i++) {
+      var c = components[i];
+      if (c.type === type) result.push(c);
+      if (c.components) {
+        result = result.concat(self.findAllSensors(c.components, type));
+      }
+    }
+    return result;
   };
 
-  // Recebe estado dos motores do BIPES
+  // Lê os sensores do robô 3D e envia para o BIPES via postMessage
+  this.sendSensorState = function () {
+    if (!robot || !robot.components) return;
+
+    var msg = { type: 'bipes-sensor-state' };
+
+    // Ultrassônico
+    var ultrasonic = self.findSensor(robot.components, 'UltrasonicSensor');
+    if (ultrasonic) {
+      var distanceCm = Math.max(2, Math.min(400, ultrasonic.getDistance()));
+      msg.ultrasonicCm = distanceCm;
+    }
+
+    // ColorSensors → simulam IR de reflexão para seguidor de linha
+    // Ordenados por posição X local do componente (esquerdo x<0, direito x>0)
+    // getRGB() retorna [r, g, b] em 0-255; brilho 0=preto (linha), 100=branco
+    var colorSensors = self.findAllSensors(robot.components, 'ColorSensor');
+    if (colorSensors.length >= 2) {
+      // a.position é BABYLON.Vector3 com a posição local relativa ao corpo do robô
+      colorSensors.sort(function(a, b) {
+        var ax = a.position ? a.position.x : 0;
+        var bx = b.position ? b.position.x : 0;
+        return ax - bx; // menor x = esquerdo
+      });
+      var rgbL = colorSensors[0].getRGB();
+      var rgbR = colorSensors[1].getRGB();
+      msg.irSensorLeft  = Math.round((rgbL[0] + rgbL[1] + rgbL[2]) / (3 * 2.55));
+      msg.irSensorRight = Math.round((rgbR[0] + rgbR[1] + rgbR[2]) / (3 * 2.55));
+    } else if (colorSensors.length === 1) {
+      var rgb = colorSensors[0].getRGB();
+      var level = Math.round((rgb[0] + rgb[1] + rgb[2]) / (3 * 2.55));
+      msg.irSensorLeft  = level;
+      msg.irSensorRight = level;
+    }
+
+    // Atualiza painel de debug a ~2Hz (a cada 5 chamadas de 100ms)
+    sensorLogTick++;
+    if (sensorLogTick >= 5) {
+      sensorLogTick = 0;
+      var l = msg.irSensorLeft  !== undefined ? msg.irSensorLeft  : '--';
+      var r = msg.irSensorRight !== undefined ? msg.irSensorRight : '--';
+      var elL = document.getElementById('dbg-ir-left');
+      var elR = document.getElementById('dbg-ir-right');
+      var elC = document.getElementById('dbg-sens-count');
+      if (elL) elL.textContent = l + ' %';
+      if (elR) elR.textContent = r + ' %';
+      if (elC) elC.textContent = colorSensors.length;
+    }
+
+    window.parent.postMessage(msg, '*');
+  };
+
+  // Recebe mensagens do BIPES (motor state + comando de parada ao fechar painel)
   this.onMessage = function (event) {
     var data = event.data;
-    if (!data || data.type !== 'bipes-motor-state') return;
+    if (!data) return;
+
+    // BIPES fechou o painel do robô → para os loops do robô
+    if (data.type === 'robot-stop') {
+      if (isRunning) self.stopSim();
+      return;
+    }
+
+    if (data.type !== 'bipes-motor-state') return;
 
     leftRpm  = Math.abs(Number(data.leftRpm)  || 0);
     leftDir  = Math.sign(Number(data.leftDir)  || 0);
     rightRpm = Math.abs(Number(data.rightRpm) || 0);
     rightDir = Math.sign(Number(data.rightDir) || 0);
 
-    var status = document.getElementById('sim-status');
-    if (status) {
-      status.textContent = 'A=' + Math.round(leftRpm) + 'rpm  B=' + Math.round(rightRpm) + 'rpm';
-    }
+    var elA = document.getElementById('dbg-rpm-a');
+    var elB = document.getElementById('dbg-rpm-b');
+    if (elA) elA.textContent = Math.round(leftRpm) + ' rpm';
+    if (elB) elB.textContent = Math.round(rightRpm) + ' rpm';
 
     if (!isRunning) return;
     self.applyMotorState();
@@ -79,13 +158,17 @@ var bipesBridge = new function () {
   this.applyMotorState = function () {
     if (!robot || !robot.leftWheel || !robot.rightWheel) return;
 
-    var leftSpeed  = leftRpm  * RPM_TO_DEG_S * (leftDir  || 1);
-    var rightSpeed = rightRpm * RPM_TO_DEG_S * (rightDir || 1);
+    // Escala a velocidade do carrinho 3D (sem mexer no RPM do motor componente)
+    var effLeft  = leftRpm  * motorSpeedScale;
+    var effRight = rightRpm * motorSpeedScale;
+
+    var leftSpeed  = effLeft  * RPM_TO_DEG_S * (leftDir  || 1);
+    var rightSpeed = effRight * RPM_TO_DEG_S * (rightDir || 1);
 
     robot.leftWheel.speed_sp  = leftSpeed;
     robot.rightWheel.speed_sp = rightSpeed;
 
-    if (leftRpm > 1 || rightRpm > 1) {
+    if (effLeft > 1 || effRight > 1) {
       robot.leftWheel.runForever();
       robot.rightWheel.runForever();
     } else {
@@ -102,12 +185,29 @@ var bipesBridge = new function () {
     if (isRunning) return;
     isRunning = true;
 
-    document.getElementById('btn-run-sim').textContent = '⏹ Parar';
-    document.getElementById('sim-status').textContent = 'Aguardando motores...';
+    var btn = document.getElementById('btn-run-sim');
+    if (btn) btn.textContent = '⏹ Parar';
+    // Avisa o BIPES para começar a enviar o estado dos motores (não toca no Play do BIPES)
+    window.parent.postMessage({ type: 'robot-started' }, '*');
+
     self.log('Simulação iniciada.');
 
+    // Diagnóstico: mostra o que foi encontrado no robot
+    if (!robot || !robot.components) {
+      self.log('AVISO: robot.components vazio ou indefinido!');
+    } else {
+      var found = self.findAllSensors(robot.components, 'ColorSensor');
+      self.log('ColorSensors encontrados: ' + found.length);
+      found.forEach(function(s, i) {
+        var px = s.position ? s.position.x.toFixed(1) : '?';
+        var hasRGB = typeof s.getRGB === 'function';
+        self.log('  [' + i + '] x=' + px + '  getRGB=' + hasRGB);
+      });
+    }
+
     babylon.engine.runRenderLoop(function () {
-      babylon.scene.render();
+      babylon.render();       // atualiza posição da câmera RTT dos sensores (ColorSensor, etc.)
+      babylon.scene.render(); // desenha o frame 3D
     });
 
     // Aplica estado dos motores a cada 50ms
@@ -132,8 +232,11 @@ var bipesBridge = new function () {
       robot.rightWheel.stop();
     }
 
-    document.getElementById('btn-run-sim').textContent = '▶ Iniciar';
-    document.getElementById('sim-status').textContent = 'Simulação parada';
+    var btn = document.getElementById('btn-run-sim');
+    if (btn) btn.textContent = '▶ Iniciar';
+    // Avisa o BIPES para parar de enviar o estado dos motores
+    window.parent.postMessage({ type: 'robot-stopped' }, '*');
+
     self.log('Simulação parada.');
   };
 
@@ -141,17 +244,16 @@ var bipesBridge = new function () {
     var wasRunning = isRunning;
     if (isRunning) self.stopSim();
 
-    try {
-      var result = simPanel.resetSim();
-      if (result && typeof result.then === 'function') {
-        result.then(function () { if (wasRunning) self.startSim(); });
-      } else {
-        if (wasRunning) self.startSim();
-      }
-    } catch (e) {
+    // Labirinto: semente fixa para o mapa não mudar a cada reset
+    var worldOpts = babylon.world.name === 'maze' ? { seed: 42 } : {};
+    babylon.world.setOptions(worldOpts).then(function () {
+      return babylon.resetScene();
+    }).then(function () {
+      if (wasRunning) self.startSim();
+    }).catch(function (e) {
       self.log('Erro ao resetar: ' + e.message);
       if (wasRunning) self.startSim();
-    }
+    });
   };
 
   this.log = function (msg) {

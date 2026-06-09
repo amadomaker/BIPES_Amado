@@ -21,7 +21,9 @@ body.robot-sim-page {
   background: #16213e;
   border-bottom: 1px solid #0f3460;
   flex-shrink: 0;
-  z-index: 10;
+  position: relative;
+  z-index: 100;
+  min-height: 36px;
 }
 
 .sim-btn {
@@ -49,11 +51,68 @@ body.robot-sim-page {
   cursor: pointer;
 }
 
-.sim-status {
-  margin-left: auto;
+.debug-panel {
+  position: absolute;
+  top: 44px;
+  left: 10px;
+  background: rgba(16, 24, 48, 0.95);
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  padding: 10px 14px;
+  z-index: 30;
+  min-width: 200px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.debug-panel.hidden { display: none; }
+
+.debug-title {
   color: #7ec8e3;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.debug-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+.debug-table td {
+  padding: 3px 6px;
+  color: #e0e0e0;
+}
+
+.debug-table td:first-child {
+  color: #a0c8e0;
+  padding-right: 12px;
+}
+
+.debug-table td:last-child {
+  font-weight: bold;
+  color: #7ec8e3;
+  text-align: right;
+}
+
+.debug-divider {
+  border-top: 1px solid #0f3460;
+  margin: 8px 0;
+}
+
+.dbg-slider {
+  width: 90px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+#dbg-speed-val {
+  display: inline-block;
+  min-width: 42px;
+  text-align: right;
+  color: #7ec8e3;
+  font-weight: bold;
   font-size: 12px;
-  white-space: nowrap;
 }
 
 #renderCanvas {
