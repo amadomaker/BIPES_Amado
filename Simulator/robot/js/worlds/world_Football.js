@@ -139,8 +139,8 @@ var world_Football = new function() {
     wallColor: '#6A6A6A',
     groundFriction: 1,
     wallFriction: 0.1,
-    groundRestitution: 0.2,
-    wallRestitution: 1.0,
+    groundRestitution: 0.0,
+    wallRestitution: 0.1,
     startPos: '0',
     timeLimit: true,
     seed: null,
@@ -300,23 +300,7 @@ var world_Football = new function() {
     addScoreZone((fieldLength - backWidth) * 0.5, 'A');
     addScoreZone((fieldLength - backWidth) * -0.5, 'B');
 
-    // invisible fences that keep robots separated
-    self.processedOptions.objects.push({
-      type: 'box',
-      color: '#00a0',
-      position: [0, 0, 20],
-      size: [12, fieldWidth, 40],
-      physicsOptions: {
-        mass: 0,
-        friction: 0,
-        restitution: 0.1,
-        group: 2,
-        mask: 1
-      },
-      laserDetection: 'invisible',
-      ultrasonicDetection: 'invisible',
-      isPickable: false
-    });
+    // (parede central removida — não usamos o modo 2v2 original)
 
     // set time limits
     self.game.TIME_LIMIT = 2 * 60 * 1000;

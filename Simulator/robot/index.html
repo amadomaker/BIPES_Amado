@@ -28,10 +28,34 @@
       <option value="grid">Grade</option>
       <option value="maze">Labirinto</option>
       <option value="line">Seguidor de linha</option>
+      <option value="football">Futebol</option>
     </select>
     <button class="sim-btn" id="btn-debug" title="Painel de sensores e motores">📊 Debug</button>
     <button class="sim-btn" id="btn-camera" title="Alternar câmera">📷 Câmera</button>
   </div>
+
+  <!-- Painel de configuração do mundo Futebol -->
+  <div id="football-panel" class="football-panel hidden">
+    <div class="fb-mode-row">
+      <button id="fb-btn-treino" class="fb-mode-btn active">Treino</button>
+      <button id="fb-btn-jogo" class="fb-mode-btn">Jogo</button>
+    </div>
+    <div class="fb-robot-row" id="fb-row-a">
+      <span class="fb-label">Robo A</span>
+      <input type="text" id="fb-ip-a" placeholder="ex: 192.168.1.100" class="fb-ip-input">
+      <button class="fb-test-btn" id="fb-test-a">Testar</button>
+      <span class="fb-dot" id="fb-status-a">&#9679;</span>
+    </div>
+    <div class="fb-robot-row hidden" id="fb-row-b">
+      <span class="fb-label">Robo B</span>
+      <input type="text" id="fb-ip-b" placeholder="ex: 192.168.1.101" class="fb-ip-input">
+      <button class="fb-test-btn" id="fb-test-b">Testar</button>
+      <span class="fb-dot" id="fb-status-b">&#9679;</span>
+    </div>
+  </div>
+
+  <!-- Placar do mundo Futebol (flutuante sobre o canvas) -->
+  <div id="football-score-panel" class="football-score-panel hidden"></div>
 
   <!-- Painel de debug flutuante -->
   <div id="debug-panel" class="debug-panel hidden">
@@ -46,22 +70,34 @@
 
   <canvas id="renderCanvas" touch-action="none"></canvas>
 
-  <div class="console">
-    <div class="chevron">▾ Console</div>
-    <div class="clear">✕</div>
-    <pre class="content"></pre>
-  </div>
-
   <script src="js/worlds/World_Base.js"></script>
   <script src="js/worlds/world_Grid.js"></script>
   <script src="js/worlds/world_Maze.js"></script>
   <script src="js/worlds/world_LineFollowing.js"></script>
+  <script src="js/worlds/world_Football.js"></script>
   <script src="js/robotComponents.js"></script>
   <script src="js/robotTemplates.js"></script>
   <script src="js/Wheel.js"></script>
   <script src="js/Robot.js"></script>
 
   <script>
+    // Stub para arenaPanel usado pelo world_Football para exibir placar
+    var arenaPanel = {
+      showWorldInfoPanel: function() {
+        document.getElementById('football-score-panel').classList.remove('hidden');
+      },
+      clearWorldInfoPanel: function() {
+        document.getElementById('football-score-panel').innerHTML = '';
+      },
+      drawWorldInfo: function($el) {
+        var el = document.getElementById('football-score-panel');
+        if ($el && $el[0]) el.appendChild($el[0]);
+      },
+      stopSim: function() {
+        if (typeof bipesBridge !== 'undefined') bipesBridge.stopSim();
+      }
+    };
+
     // Instancia o robô com template padrão (carrinho diferencial com 2 rodas)
     var robots = [];
     var robot = new Robot();
@@ -70,7 +106,43 @@
     robot.options = tmpl || robotTemplates[0];
     robot.player = 'single';
     robots.push(robot);
-    // worlds é preenchido automaticamente pelos scripts acima (world_Grid, world_Maze, world_LineFollowing)
+    // worlds é preenchido automaticamente pelos scripts acima
+
+    // Restaura configuração de robô único (grade/labirinto/linha)
+    function setupSingleRobot() {
+      robots.length = 0;
+      robot = new Robot();
+      var t = robotTemplates.find(function(t) { return t.name === 'singleFollower'; });
+      robot.options = t || robotTemplates[0];
+      robot.player = 'single';
+      robots.push(robot);
+      window.robotB = null;
+    }
+
+    // Configura robôs para o modo futebol (modo arena padrão do football).
+    // Robô A = player 0 (esquerda, aponta p/ direita), Robô B = player 2 (direita,
+    // aponta p/ esquerda) — se enfrentam. O travamento do robô A era um bug do
+    // anti-drift (Robot.js), já corrigido — não tinha a ver com lado/rotação.
+    // mode: 'treino' (1 robô) ou 'jogo' (2 robôs)
+    function setupFootballRobots(mode) {
+      robots.length = 0;
+      var t = robotTemplates.find(function(t) { return t.name === 'singleFollower'; }) || robotTemplates[0];
+
+      robot = new Robot();
+      robot.options = t;
+      robot.player = 0;
+      robots.push(robot);
+
+      if (mode === 'jogo') {
+        var rb = new Robot();
+        rb.options = t;
+        rb.player = 2;
+        robots.push(rb);
+        window.robotB = rb;
+      } else {
+        window.robotB = null;
+      }
+    }
   </script>
 
   <script src="js/babylon.js"></script>
@@ -94,19 +166,73 @@
         document.getElementById('debug-panel').classList.toggle('hidden');
       });
 
-      document.getElementById('btn-camera').addEventListener('click', function () {
-        if (babylon.cameraMode === 'follow') {
-          babylon.setCameraMode('arc');
-        } else {
-          babylon.setCameraMode('follow');
-        }
+      // Botão de câmera cicla entre 3 modos, mostrando o atual no rótulo:
+      // Seguir = câmera persegue o robô; Livre = órbita livre (arrasta = girar);
+      // Topo = vista de cima (arrasta com botão esquerdo = mover/pan, ótimo p/ seguidor de linha)
+      var camModes = [
+        { mode: 'follow',   label: '📷 Seguir' },
+        { mode: 'arc',      label: '📷 Livre' },
+        { mode: 'orthoTop', label: '📷 Topo' },
+      ];
+      var camIdx = 0;
+      var btnCamera = document.getElementById('btn-camera');
+      btnCamera.textContent = camModes[0].label;
+      btnCamera.title = 'Trocar câmera (Seguir / Livre / Topo). No Topo, arraste para mover e use a roda para zoom.';
+      btnCamera.addEventListener('click', function () {
+        camIdx = (camIdx + 1) % camModes.length;
+        babylon.setCameraMode(camModes[camIdx].mode);
+        btnCamera.textContent = camModes[camIdx].label;
       });
 
+      var footballMode = 'treino';
+
       document.getElementById('world-select').addEventListener('change', function () {
-        var nameMap = { grid: 'grid', maze: 'maze', line: 'lineFollowing' };
+        var nameMap = { grid: 'grid', maze: 'maze', line: 'lineFollowing', football: 'football' };
         var worldName = nameMap[this.value];
         babylon.world = worlds.find(function(w) { return w.name === worldName; }) || worlds[0];
+
+        var isFootball = this.value === 'football';
+        document.getElementById('football-panel').classList.toggle('hidden', !isFootball);
+        document.getElementById('football-score-panel').classList.toggle('hidden', !isFootball);
+
+        if (isFootball) {
+          setupFootballRobots(footballMode);
+          bipesBridge.setFootballMode(footballMode);
+        } else {
+          setupSingleRobot();
+          bipesBridge.setFootballMode('off');
+        }
         bipesBridge.resetSim();
+      });
+
+      // Botão Treino
+      document.getElementById('fb-btn-treino').addEventListener('click', function() {
+        footballMode = 'treino';
+        this.classList.add('active');
+        document.getElementById('fb-btn-jogo').classList.remove('active');
+        document.getElementById('fb-row-b').classList.add('hidden');
+        setupFootballRobots('treino');
+        bipesBridge.setFootballMode('treino');
+        bipesBridge.resetSim();
+      });
+
+      // Botão Jogo
+      document.getElementById('fb-btn-jogo').addEventListener('click', function() {
+        footballMode = 'jogo';
+        this.classList.add('active');
+        document.getElementById('fb-btn-treino').classList.remove('active');
+        document.getElementById('fb-row-b').classList.remove('hidden');
+        setupFootballRobots('jogo');
+        bipesBridge.setFootballMode('jogo');
+        bipesBridge.resetSim();
+      });
+
+      // Botões Testar conexão
+      document.getElementById('fb-test-a').addEventListener('click', function() {
+        bipesBridge.testEsp32(document.getElementById('fb-ip-a').value.trim(), 'a');
+      });
+      document.getElementById('fb-test-b').addEventListener('click', function() {
+        bipesBridge.testEsp32(document.getElementById('fb-ip-b').value.trim(), 'b');
       });
     });
   </script>

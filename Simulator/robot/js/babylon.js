@@ -23,6 +23,11 @@ var babylon = new function() {
       });
     });
 
+    // Impede o menu de contexto no canvas, pra o botão direito poder mover (pan) a câmera
+    self.canvas.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+    });
+
     // Watch for browser/canvas resize events
     window.addEventListener('resize', function () {
       self.engine.resize();
@@ -180,7 +185,7 @@ var babylon = new function() {
       let target = self.cameraArc.getTarget().clone();
       self.cameraArc.lockedTarget = null;
       self.cameraArc.setTarget(target);
-      self.cameraArc._panningMouseButton = 1;
+      self.cameraArc._panningMouseButton = 2; // botão direito arrasta = mover (pan)
       babylon.cameraArc.mode = BABYLON.Camera.PERSPECTIVE_CAMERA;
       self.cameraArc.inputs.attached.keyboard.attachControl();
       self.cameraArc.angularSensibilityX = self.cameraArc.angularSensibility;
@@ -265,21 +270,24 @@ var babylon = new function() {
     self.marker2.isPickable = false;
     self.marker2.isVisible = false;
 
-    // Load world and robot
-    let loader = [];
-    loader.push(self.world.load(self.scene));
+    // Load world and robots SEQUENCIALMENTE (mundo primeiro, depois cada robô).
+    // Carregar em paralelo (Promise.all) fazia a física de um robô se formar no
+    // meio da criação dos corpos do mundo (bola/paredes do futebol) e o robô
+    // nascia "travado". Em sequência, cada um termina antes do próximo começar.
+    let loadChain = self.world.load(self.scene);
     robots.forEach(function(robot){
-      if (robot.player == 'single') {
-        loader.push(robot.load(self.scene, self.world.robotStart));
-      } else {
+      loadChain = loadChain.then(function() {
+        if (robot.player == 'single') {
+          return robot.load(self.scene, self.world.robotStart);
+        }
         if (robot.disabled == true) {
           return;
         }
-        loader.push(robot.load(self.scene, self.world.arenaStart[robot.player]));
-      }
+        return robot.load(self.scene, self.world.arenaStart[robot.player]);
+      });
     });
 
-    return Promise.all(loader).then(function() {
+    return loadChain.then(function() {
       self.setCameraMode(); // Set after loading mesh as camera may be locked to mesh
 
       // For camera visualization

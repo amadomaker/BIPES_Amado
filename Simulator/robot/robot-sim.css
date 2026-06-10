@@ -145,3 +145,105 @@ body.robot-sim-page {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* ── Painel de Futebol ───────────────────────────── */
+.football-panel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 5px 12px;
+  background: #111827;
+  border-bottom: 1px solid #0f3460;
+  flex-shrink: 0;
+  z-index: 90;
+}
+
+.football-panel.hidden { display: none; }
+
+.fb-mode-row { display: flex; gap: 6px; }
+
+.fb-mode-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.fb-mode-btn.active {
+  background: #1d4ed8;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.fb-robot-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fb-robot-row.hidden { display: none; }
+
+.fb-label {
+  color: #94a3b8;
+  font-size: 12px;
+  min-width: 48px;
+}
+
+.fb-ip-input {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 148px;
+}
+
+.fb-test-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.fb-test-btn:hover { background: #273549; }
+
+.fb-dot {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1;
+}
+
+/* ── Placar do Futebol ───────────────────────────── */
+.football-score-panel {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.72);
+  color: #f0f0f0;
+  padding: 6px 18px;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 80;
+  white-space: pre;
+}
+
+.football-score-panel.hidden { display: none; }
+
+/* estilos que world_Football injeta via jQuery */
+.football-score-panel .mono { display: flex; justify-content: center; gap: 16px; }
+.football-score-panel .row  { margin: 2px 0; }
+.football-score-panel .teamA { color: #60a5fa; font-weight: bold; }
+.football-score-panel .teamB { color: #f87171; font-weight: bold; }
+.football-score-panel .time  { color: #94a3b8; }
+.football-score-panel .shotClock { color: #fbbf24; }
