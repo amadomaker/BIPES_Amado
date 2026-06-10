@@ -207,31 +207,29 @@ function Robot() {
       );
 
       // Hold position if speed is too low (anti-drift).
-      // No modo arena (futebol, vários robôs + bola + paredes) esse anti-drift
-      // congela o robô e ele não arranca — provavelmente pela referência de origin
-      // do Ammo ficar inválida com muitos corpos. Só ativa nos mundos single
-      // (grade/labirinto), onde funciona bem.
-      if (self.player == 'single') {
-        var lastOrigin = (function() {
-          var o = body.physicsImpostor.physicsBody.getWorldTransform().getOrigin();
-          return [o.x(), o.y(), o.z()];
-        })();
+      // IMPORTANTE: getWorldTransform().getOrigin() do Ammo retorna um objeto
+      // temporário COMPARTILHADO. Guardar a referência fora do callback faz com que,
+      // ao criar outros corpos (2º robô, bola, paredes), o ponteiro passe a apontar
+      // pro corpo errado → o robô errado fica "congelado". Reobtemos DENTRO do callback.
+      var lastOrigin = (function() {
+        var o = body.physicsImpostor.physicsBody.getWorldTransform().getOrigin();
+        return [o.x(), o.y(), o.z()];
+      })();
 
-        body.physicsImpostor.registerBeforePhysicsStep(function(){
-          var origin = body.physicsImpostor.physicsBody.getWorldTransform().getOrigin();
-          if (body.physicsImpostor.getLinearVelocity().lengthSquared() < 0.1) {
-            origin.setX(lastOrigin[0]);
-            origin.setY(lastOrigin[1]);
-            origin.setZ(lastOrigin[2]);
-          } else {
-            lastOrigin = [
-              origin.x(),
-              origin.y(),
-              origin.z()
-            ];
-          }
-        });
-      }
+      body.physicsImpostor.registerBeforePhysicsStep(function(){
+        var origin = body.physicsImpostor.physicsBody.getWorldTransform().getOrigin();
+        if (body.physicsImpostor.getLinearVelocity().lengthSquared() < 0.1) {
+          origin.setX(lastOrigin[0]);
+          origin.setY(lastOrigin[1]);
+          origin.setZ(lastOrigin[2]);
+        } else {
+          lastOrigin = [
+            origin.x(),
+            origin.y(),
+            origin.z()
+          ];
+        }
+      });
 
       // Add joints
       self.loadJoints(self.components);

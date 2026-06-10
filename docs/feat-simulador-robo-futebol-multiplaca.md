@@ -1,7 +1,32 @@
 # Modo Futebol multi-placa (simulador de robô)
 
-Status: **EM ANDAMENTO — bug não resolvido** (robô não anda no mundo Futebol).
+Status: **BUG PRINCIPAL RESOLVIDO** (robô do futebol não engasga mais).
 Branch: `275-feat-simulator-with-robot-movel`.
+
+## ✅ CAUSA RAIZ E SOLUÇÃO (resolvido)
+
+**Sintoma real:** o robô NÃO travava parado — ele **andava engasgando** (acelerava e
+quase parava, repetidamente). Só o `robotB` (lado B) andava liso; o robô A (lado A)
+sempre engasgava, independente de placa/IP/ordem/posição.
+
+**Causa:** o robô A é a variável global `robot`, que era comandada por DOIS controles
+ao mesmo tempo:
+1. o controle do futebol via HTTP (`applyFbState`, a cada 30ms), e
+2. o controle antigo por blocos do BIPES (`bipes-motor-state` → `applyMotorState`),
+   que o BIPES-pai voltava a enviar assim que o robô era iniciado (`robot-started`).
+
+Os dois escreviam no mesmo `robot.leftWheel.speed_sp` e brigavam → engasgo. O `robotB`
+nunca engasgava porque o `applyMotorState` só mexe na global `robot` (A), não no B.
+Por isso, no grid/labirinto também é liso (lá só existe o controle por blocos).
+
+**Solução (1 linha, isolada no futebol):** em `bipes-bridge.js` `onMessage`, quando
+`fbMode !== 'off'` faz `return` antes de aplicar o `motor-state`. No futebol o robô é
+controlado 100% pela placa via HTTP; nos outros mundos (`fbMode === 'off'`) o controle
+por blocos segue intacto.
+
+**Lição:** quando UM robô idêntico se comporta diferente do outro, suspeitar de
+controle/estado duplicado, não de física. Perdi muito tempo caçando física (atrito,
+massa, anti-drift, ordem de criação) porque o doc dizia "trava" quando era "engasga".
 
 ## Objetivo
 
@@ -86,34 +111,35 @@ sido leitura otimista do DIAG).
 8. **Parede central invisível** do football (separava times no modo 2v2 original):
    removida (não usamos), p/ o robô poder cruzar o campo e empurrar a bola.
 
-## PRÓXIMAS HIPÓTESES a investigar (ao voltar)
+## PRÓXIMOS PASSOS (fazer amanhã)
 
-1. **Medir a roda do robô TRAVADO (A) especificamente** — o DIAG mediu o robot
-   global (`robot`, que é o A). Reconfirmar: a roda de A GIRA mas o corpo não anda
-   (= preso/derrapando) ou a roda NEM gira (= joint/motor quebrado)? Isso separa
-   "physics joint mal-formada" de "corpo preso por algo".
-2. **Por que `player='single'` (1 robô) parece andar e numérico não**, sendo
-   posição/rotação iguais. Ler com lupa o caminho `self.player=='single'` no
-   `Robot.load` (linhas ~107-123) e tudo que dependa de `self.player`.
-3. **Testar 1 robô numérico (player=0) no mundo GRID** (sem bola/paredes):
-   - se andar → é a interação com os objetos de física do football.
-   - se travar → é o `player` numérico em si (modo arena).
-4. **Recriar a física do robô depois** que todos os corpos carregam
-   (dispose + recreate do `physicsImpostor`/joints), caso a ordem de adição de
-   joints ao mundo Ammo invalide as do primeiro robô.
-5. **Procurar estado compartilhado entre instâncias** em `Wheel.js`/`Robot.js`
-   (variáveis de módulo, `registerBeforePhysicsStep` das rodas, buffers do Ammo
-   reaproveitados) que façam um robô interferir no outro.
+Já OK: robôs andam liso (treino e jogo), orientação dos robôs no jogo está certa,
+velocidade está boa.
 
-## Pendências de UX (depois que o robô andar)
+1. **Bug da tela / botões somem (PRIORIDADE).** Acontece SEMPRE: em algum momento a
+   tela "cresce" e os botões de cima (▶ Play e os outros da toolbar) somem/escondem
+   e não dá mais pra acessar. Investigar layout/CSS (provável: o canvas ou algum
+   painel crescendo e empurrando a toolbar pra fora, ou overflow). Ver
+   `robot-sim.css` (.robot-sim-toolbar, #renderCanvas flex) e os painéis do futebol.
+2. **Gol / reset de posição.** Quando a bola sai (ou sai pela lateral / faz gol),
+   os carrinhos devem voltar para a posição inicial. O `world_Football.js` já tem
+   lógica de zonas de gol (`scoreZones`, `getBallZone`, `resetBall`/`foosRandom`)
+   mas hoje só reposiciona a BOLA — precisa também reposicionar os ROBÔS.
+3. **Placar.** Fazer o placar funcionar de verdade (contagem de gols time A/B). O
+   `world_Football.js` já incrementa `self.game.teamA/teamB` e tem o painel via stub
+   `arenaPanel` no index.html — validar/ajustar a exibição.
+4. **Limpeza de código (opcional).** Reverter as tentativas que NÃO eram a causa do
+   bug, se quiser deixar o diff mínimo: carga sequencial no `babylon.js`
+   (voltar p/ `Promise.all`), anti-drift do `Robot.js`/`Wheel.js` (reobter origin —
+   é uma correção válida de bug latente, pode até manter), restituição do
+   `world_Football.js`. A correção que IMPORTA é o `return` no `onMessage` quando
+   `fbMode !== 'off'`.
 
-- Modo Jogo: posicionar os 2 robôs em lados OPOSTOS, cada um apontando para o gol
-  adversário (no design arena: player 0 esquerda +90°, player 2 direita -90°).
-  Hoje, nas tentativas, ficaram apontando errado / empilhados.
-- Garantir que A e B sejam robôs DISTINTOS controlados por IPs distintos (campos
-  `fb-ip-a` e `fb-ip-b`).
-- Afinar `FB_MAX_SPEED` (velocidade) e tamanho do campo (480×288 é grande;
-  pode dar sensação de lentidão mesmo andando certo).
+## Pendências menores
+
+- Esconder o robô-isca foi removido (não é mais usado; o bug não era ordem).
+- Afinar tamanho do campo (480×288 é grande) se quiser ação mais rápida — opcional,
+  o usuário disse que a velocidade está boa.
 
 ## Arquivos tocados nesta feature
 

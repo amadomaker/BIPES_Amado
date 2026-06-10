@@ -165,6 +165,12 @@ var bipesBridge = new function () {
 
     if (data.type !== 'bipes-motor-state') return;
 
+    // No modo futebol o robô é controlado 100% pela placa via HTTP (applyFbState).
+    // O motor-state do BIPES (controle por blocos) NÃO deve entrar aqui, senão
+    // briga com o HTTP pelo mesmo speed_sp do robô A e ele engasga. Nos outros
+    // mundos (fbMode === 'off') o controle por blocos segue normal.
+    if (fbMode !== 'off') return;
+
     leftRpm  = Math.abs(Number(data.leftRpm)  || 0);
     leftDir  = Math.sign(Number(data.leftDir)  || 0);
     rightRpm = Math.abs(Number(data.rightRpm) || 0);
@@ -290,7 +296,8 @@ var bipesBridge = new function () {
         self.fetchEsp32Motors(ipB, fbStateB)
           .then(function() { pendingB = false; }).catch(function() { pendingB = false; });
       }
-    }, 200);
+    }, 80); // ~12 leituras/s — resposta rápida p/ botões. O flag pending evita
+            // saturar o ESP32 (só dispara novo request quando o anterior volta).
   };
 
   // ── fim Futebol ──────────────────────────────────────────────────────

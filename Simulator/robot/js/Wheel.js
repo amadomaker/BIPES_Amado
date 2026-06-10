@@ -152,15 +152,19 @@ function Wheel(scene, parent, pos, rot, port, options) {
       scene
     );
 
-    // Hold position if speed is too low
-    var origin = self.mesh.physicsImpostor.physicsBody.getWorldTransform().getOrigin();
-    var lastOrigin = [
-        origin.x(),
-        origin.y(),
-        origin.z()
-    ];
+    // Hold position if speed is too low (anti-drift da roda).
+    // IMPORTANTE: getWorldTransform().getOrigin() do Ammo retorna um objeto
+    // temporário COMPARTILHADO. Guardar a referência fora do callback faz com que,
+    // ao criar outros corpos (2º robô, bola, paredes), o ponteiro passe a apontar
+    // pro corpo errado → a roda do 1º robô fica "congelada" e o robô não anda.
+    // Por isso reobtemos o origin DENTRO do callback, sempre fresco.
+    var lastOrigin = (function() {
+      var o = self.mesh.physicsImpostor.physicsBody.getWorldTransform().getOrigin();
+      return [o.x(), o.y(), o.z()];
+    })();
 
     self.mesh.physicsImpostor.registerBeforePhysicsStep(function(){
+      var origin = self.mesh.physicsImpostor.physicsBody.getWorldTransform().getOrigin();
       if (self.mesh.physicsImpostor.getLinearVelocity().lengthSquared() < 0.1) {
         origin.setX(lastOrigin[0]);
         origin.setY(lastOrigin[1]);
