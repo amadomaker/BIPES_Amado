@@ -132,7 +132,7 @@ var world_Football = new function() {
 
   this.defaultOptions = Object.assign(this.defaultOptions, {
     challenge: 'football',
-    imageURL: 'textures/maps/Arena/soccerfield.png?v=7008dcf9',
+    imageURL: 'textures/maps/Arena/soccerfield_atualizado.png',
     wall: true,
     wallHeight: 20,
     wallThickness: 5,
@@ -260,7 +260,7 @@ var world_Football = new function() {
     // load ball
     self.processedOptions.objects.push({
       type: 'sphere',
-      imageURL: 'textures/sphere/soccerBall.png',
+      imageURL: 'textures/sphere/soccerBall_jabulani.png',
       position: self.options.startBallPosXYZ,
       size: [10],
       magnetic: true,
@@ -507,16 +507,15 @@ var world_Football = new function() {
 
       time = sign + Math.floor(time/60) + ':' + ('0' + time % 60).slice(-2);
     }
-    time = 'Time: ' + time;
+    time = 'Tempo: ' + time;
 
     let p0 = 'P0: ' + self.game.p0;
     let p1 = 'P1: ' + self.game.p1;
     let p2 = 'P2: ' + self.game.p2;
     let p3 = 'P3: ' + self.game.p3;
-    let teamA = 'Team A : ' + self.game.teamA;
-    let teamB = self.game.teamB + ' : Team B';
-    //let shotClock = 'Shot Clock: ' + self.game.shotClock;
-    let shotClock = 'Shot Clock: ' + Math.floor(self.options.shotClockDuration - self.game.shotClock / 1000);
+    let teamA = 'Time A : ' + self.game.teamA;
+    let teamB = self.game.teamB + ' : Time B';
+    let shotClock = 'Reinício em: ' + Math.floor(self.options.shotClockDuration - self.game.shotClock / 1000) + 's';
     function updateIfChanged(text, $dom) {
       if (typeof $dom == 'undefined') {
         return;

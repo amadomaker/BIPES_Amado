@@ -337,6 +337,7 @@ var bipesBridge = new function () {
 
     if (fbMode !== 'off') {
       // Modo futebol: polling das placas ESP32
+      if (typeof world !== 'undefined' && typeof world.startSim === 'function') world.startSim();
       self.startFbPoll();
     } else {
       // Modo normal: aplica motor state do BIPES e lê sensores

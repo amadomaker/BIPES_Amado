@@ -84,14 +84,14 @@
     // Stub para arenaPanel usado pelo world_Football para exibir placar
     var arenaPanel = {
       showWorldInfoPanel: function() {
-        document.getElementById('football-score-panel').classList.remove('hidden');
+        // visibilidade controlada pelos botões Treino/Jogo
       },
       clearWorldInfoPanel: function() {
         document.getElementById('football-score-panel').innerHTML = '';
       },
       drawWorldInfo: function($el) {
         var el = document.getElementById('football-score-panel');
-        if ($el && $el[0]) el.appendChild($el[0]);
+        if ($el) $el.each(function() { el.appendChild(this); });
       },
       stopSim: function() {
         if (typeof bipesBridge !== 'undefined') bipesBridge.stopSim();
@@ -191,7 +191,7 @@
 
         var isFootball = this.value === 'football';
         document.getElementById('football-panel').classList.toggle('hidden', !isFootball);
-        document.getElementById('football-score-panel').classList.toggle('hidden', !isFootball);
+        document.getElementById('football-score-panel').classList.toggle('hidden', !isFootball || footballMode !== 'jogo');
 
         if (isFootball) {
           setupFootballRobots(footballMode);
@@ -209,6 +209,7 @@
         this.classList.add('active');
         document.getElementById('fb-btn-jogo').classList.remove('active');
         document.getElementById('fb-row-b').classList.add('hidden');
+        document.getElementById('football-score-panel').classList.add('hidden');
         setupFootballRobots('treino');
         bipesBridge.setFootballMode('treino');
         bipesBridge.resetSim();
@@ -220,6 +221,7 @@
         this.classList.add('active');
         document.getElementById('fb-btn-treino').classList.remove('active');
         document.getElementById('fb-row-b').classList.remove('hidden');
+        document.getElementById('football-score-panel').classList.remove('hidden');
         setupFootballRobots('jogo');
         bipesBridge.setFootballMode('jogo');
         bipesBridge.resetSim();
