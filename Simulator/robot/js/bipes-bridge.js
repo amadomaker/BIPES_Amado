@@ -19,6 +19,7 @@ var bipesBridge = new function () {
   var fbMode = 'off';
   var fbPollInterval = null;
   var fbDriveInterval = null;
+  var fbResetting = false;   // trava a checagem de gol enquanto a cena recarrega
   // Últimos valores recebidos do ESP32 (aplicados continuamente pelas rodas)
   var fbStateA = { lSpeed: 0, rSpeed: 0 };
   var fbStateB = { lSpeed: 0, rSpeed: 0 };
@@ -210,6 +211,7 @@ var bipesBridge = new function () {
 
   this.setFootballMode = function(mode) {
     fbMode = mode;
+    fbResetting = false;
     if (fbPollInterval)  { clearInterval(fbPollInterval);  fbPollInterval  = null; }
     if (fbDriveInterval) { clearInterval(fbDriveInterval); fbDriveInterval = null; }
     fbStateA = { lSpeed: 0, rSpeed: 0 };
@@ -271,6 +273,43 @@ var bipesBridge = new function () {
     if (fbMode === 'jogo' && window.robotB) applyToRobot(window.robotB, fbStateB);
   };
 
+  // Detecta gol (bola na zona de pontuação) e, ao marcar, recarrega a cena
+  // preservando o placar. O reset de cena recoloca bola E robôs nas posições
+  // iniciais de forma confiável (mesmo caminho do botão Resetar), sem mexer na
+  // física composta do robô na mão. NÃO ligamos o game loop do Gears (game.state
+  // fica 'standby'), então a bola não recebe chute automático.
+  this.checkFootballGoal = function() {
+    if (fbMode === 'off' || fbResetting) return;
+    var w = babylon.world;
+    if (!w || !w.game || !w.game.scoreZones || !w.game.ball) return;
+
+    var team = null;
+    w.game.scoreZones.forEach(function(zone) {
+      try {
+        if (zone.intersectsMesh(w.game.ball, false)) team = zone.team;
+      } catch (e) {}
+    });
+    if (!team) return;
+
+    // Gol! Incrementa, guarda o placar e recarrega a cena.
+    fbResetting = true;
+    w.game['team' + team] += 1;
+    var savedA = w.game.teamA;
+    var savedB = w.game.teamB;
+    self.log('Gol do time ' + team + '!  (' + savedA + ' x ' + savedB + ')');
+
+    babylon.resetScene().then(function() {
+      // loadFootball zera o placar ao recarregar — restauramos.
+      babylon.world.game.teamA = savedA;
+      babylon.world.game.teamB = savedB;
+      if (typeof babylon.world.drawWorldInfo === 'function') babylon.world.drawWorldInfo();
+      fbResetting = false;
+    }).catch(function(e) {
+      self.log('Erro ao resetar após gol: ' + e.message);
+      fbResetting = false;
+    });
+  };
+
   // Inicia o polling das placas + loop de acionamento das rodas
   this.startFbPoll = function() {
     if (fbPollInterval)  clearInterval(fbPollInterval);
@@ -296,6 +335,7 @@ var bipesBridge = new function () {
         self.fetchEsp32Motors(ipB, fbStateB)
           .then(function() { pendingB = false; }).catch(function() { pendingB = false; });
       }
+      self.checkFootballGoal();
     }, 80); // ~12 leituras/s — resposta rápida p/ botões. O flag pending evita
             // saturar o ESP32 (só dispara novo request quando o anterior volta).
   };
@@ -358,6 +398,7 @@ var bipesBridge = new function () {
     if (fbDriveInterval) { clearInterval(fbDriveInterval); fbDriveInterval = null; }
     fbStateA = { lSpeed: 0, rSpeed: 0 };
     fbStateB = { lSpeed: 0, rSpeed: 0 };
+    fbResetting = false;
 
     babylon.engine.stopRenderLoop();
 
