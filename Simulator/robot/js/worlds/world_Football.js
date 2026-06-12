@@ -257,6 +257,25 @@ var world_Football = new function() {
     addWall(-fieldLength / 2 + backWidth / 2, fieldWidth / 2 - backLength / 2);
     addWall(-fieldLength / 2 + backWidth / 2, -fieldWidth / 2 + backLength / 2);
 
+    // Placas de patrocínio nas laterais do campo (mesma altura da borda)
+    // Posicionadas dentro da parede: face interna visível, face externa embutida na parede
+    const sponsorURL = 'textures/sponsor/patrocinador.png';
+    const boardHeight = self.processedOptions.wallHeight;
+    const boardThickness = 1;
+    const boardLength = Math.min(170, fieldLength * 0.35);
+    const wallInner = fieldWidth / 2;
+    [-1, 1].forEach(function(side) {
+      self.processedOptions.objects.push({
+        type: 'box',
+        position: [0, side * (wallInner + boardThickness / 2 - 0.5), boardHeight / 2],
+        size: [boardLength, boardThickness, boardHeight],
+        imageURL: sponsorURL,
+        imageType: 'repeat',
+        physicsOptions: false,
+        isPickable: false
+      });
+    });
+
     // load ball
     self.processedOptions.objects.push({
       type: 'sphere',

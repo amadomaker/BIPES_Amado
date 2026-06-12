@@ -111,29 +111,43 @@ sido leitura otimista do DIAG).
 8. **Parede central invisível** do football (separava times no modo 2v2 original):
    removida (não usamos), p/ o robô poder cruzar o campo e empurrar a bola.
 
+## ✅ CONCLUÍDO (sessão 2026-06-11)
+
+- **Bug da toolbar somindo: RESOLVIDO.** O `#football-panel` estava no fluxo flex e
+  empurrava a toolbar ao aparecer/expandir. Virou overlay `position: absolute`
+  (`top: 48px`), fora do fluxo. (`robot-sim.css`)
+- **Placar: FUNCIONANDO.** Aparece só no modo Jogo (oculto no Treino). Bug do stub
+  `arenaPanel.drawWorldInfo` (só inseria o 1º div) corrigido com `$el.each`. Textos
+  em PT: Tempo / Time A / Time B / Reinício em. (`index.html`)
+- **Gol / reset de posição: FUNCIONANDO.** Implementado 100% no `bipes-bridge.js`
+  (`checkFootballGoal`): detecta bola na `scoreZone`, incrementa placar e chama
+  `babylon.resetScene()` (mesmo caminho do botão Resetar) preservando o placar →
+  recoloca bola E robôs nas posições iniciais de forma confiável.
+  - **IMPORTANTE / armadilha:** NÃO ativar o game loop do Gears (`game.state` fica
+    `'standby'`). Ativá-lo (via `world.startSim()`) liga o `foosRandom`/`firstFoos`
+    que dá CHUTE AUTOMÁTICO na bola e o shotclock — a bola sai andando sozinha.
+    Já tentamos e quebrou; reverter na hora se reaparecer.
+  - **Por que não teleportar o robô na mão:** o robô é corpo composto (caixa + 2
+    rodas com joints + rodízio) + anti-drift (`registerBeforePhysicsStep` em
+    `Robot.js` segura a posição via `lastOrigin`, closure inacessível de fora).
+    Teleportar só o `body` faz as rodas/joints/anti-drift brigarem → robô TOMBA e
+    fica com "força puxando como sem gravidade". Por isso usamos reset de cena.
+  - Detalhe: como o game loop fica dormindo, o "Tempo" do placar fica estático em
+    2:00 e o "Reinício em" no máximo. Cosmético; resolver depois se incomodar.
+
 ## PRÓXIMOS PASSOS (fazer amanhã)
 
-Já OK: robôs andam liso (treino e jogo), orientação dos robôs no jogo está certa,
-velocidade está boa.
-
-1. **Bug da tela / botões somem (PRIORIDADE).** Acontece SEMPRE: em algum momento a
-   tela "cresce" e os botões de cima (▶ Play e os outros da toolbar) somem/escondem
-   e não dá mais pra acessar. Investigar layout/CSS (provável: o canvas ou algum
-   painel crescendo e empurrando a toolbar pra fora, ou overflow). Ver
-   `robot-sim.css` (.robot-sim-toolbar, #renderCanvas flex) e os painéis do futebol.
-2. **Gol / reset de posição.** Quando a bola sai (ou sai pela lateral / faz gol),
-   os carrinhos devem voltar para a posição inicial. O `world_Football.js` já tem
-   lógica de zonas de gol (`scoreZones`, `getBallZone`, `resetBall`/`foosRandom`)
-   mas hoje só reposiciona a BOLA — precisa também reposicionar os ROBÔS.
-3. **Placar.** Fazer o placar funcionar de verdade (contagem de gols time A/B). O
-   `world_Football.js` já incrementa `self.game.teamA/teamB` e tem o painel via stub
-   `arenaPanel` no index.html — validar/ajustar a exibição.
-4. **Limpeza de código (opcional).** Reverter as tentativas que NÃO eram a causa do
-   bug, se quiser deixar o diff mínimo: carga sequencial no `babylon.js`
-   (voltar p/ `Promise.all`), anti-drift do `Robot.js`/`Wheel.js` (reobter origin —
-   é uma correção válida de bug latente, pode até manter), restituição do
-   `world_Football.js`. A correção que IMPORTA é o `return` no `onMessage` quando
-   `fbMode !== 'off'`.
+1. **Placa de patrocínio (item 3 do usuário).** Adicionar objeto(s) 3D tipo placa de
+   beira de campo ao lado das laterais, com imagem/logo como textura. É um `box` com
+   `imageURL`, igual às paredes do `world_Football.js` (ver `addWall`). O usuário quer
+   poder colocar logos/patrocínios personalizados.
+2. **Gol com rede (por último).** Hoje o gol é só paredes invisíveis + zona de
+   detecção. Adicionar geometria 3D de rede (3 planos com textura de rede nos lados
+   do gol). Mais trabalhoso — o usuário disse que pode procurar modelos 3D se não der
+   pra construir.
+3. **Limpeza de código (opcional).** Reverter tentativas antigas que não eram a causa
+   do bug do engasgo (carga sequencial no `babylon.js`, etc.). A correção que IMPORTA
+   é o `return` no `onMessage` quando `fbMode !== 'off'`.
 
 ## Pendências menores
 
