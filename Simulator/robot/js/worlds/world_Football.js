@@ -133,7 +133,10 @@ var world_Football = new function() {
   this.defaultOptions = Object.assign(this.defaultOptions, {
     challenge: 'football',
     imageURL: 'textures/maps/Arena/soccerfield_atualizado.png',
-    wall: true,
+    // Perímetro do mundo-base desligado: ele desenha paredes contínuas de fundo
+    // que fechariam o vão do gol. As laterais e os fundos (com vão) são feitos
+    // manualmente abaixo em loadFootball().
+    wall: false,
     wallHeight: 20,
     wallThickness: 5,
     wallColor: '#6A6A6A',
@@ -231,7 +234,12 @@ var world_Football = new function() {
 
     let goalWidth = self.options.widthGoal;
     let backWidth = fieldLength * 0.0095;
-    let backLength = (fieldWidth - goalWidth) / 2;
+    // Abertura real da boca do gol: o modelo gol.glb é mais estreito que widthGoal,
+    // então cada parede de fundo avança goalPostInset cm para dentro até encostar
+    // nas traves. Aumente para fechar mais o vão; diminua para abrir.
+    let goalPostInset = 41;
+    let goalOpening = goalWidth - goalPostInset * 2;
+    let backLength = (fieldWidth - goalOpening) / 2;
 
     // Empty out the objects first
     self.processedOptions.objects = [];
@@ -256,6 +264,49 @@ var world_Football = new function() {
     addWall(fieldLength / 2 - backWidth / 2, -fieldWidth / 2 + backLength / 2);
     addWall(-fieldLength / 2 + backWidth / 2, fieldWidth / 2 - backLength / 2);
     addWall(-fieldLength / 2 + backWidth / 2, -fieldWidth / 2 + backLength / 2);
+
+    // Gols 3D — posição calculada antes das laterais para que elas alcancem o gol
+    const goalScale = 0.40;  // ajuste de escala
+    const goalOffsetZ = 25;  // ajuste de altura (position[2]) - sobe a base p/ apoiar no topo do campo
+    const goalOutward = 8;   // empurra o gol p/ fora p/ alinhar a boca com a linha do campo (menor = mais p/ dentro)
+    const goalX = fieldLength / 2 - backWidth / 2 + goalOutward;
+
+    // Paredes laterais (substituem o perímetro do base, que foi desligado para
+    // não fechar o vão do gol). Comprimento = fieldLength, terminando na linha de
+    // fundo (±fieldLength/2), encostando nas paredes de fundo sem passar.
+    let wallThickness = self.processedOptions.wallThickness;
+    function addSideWall(y) {
+      self.processedOptions.objects.push({
+        type: 'box',
+        position: [0, y, self.processedOptions.wallHeight / 2],
+        size: [fieldLength, wallThickness, self.processedOptions.wallHeight],
+        color: self.processedOptions.wallColor,
+        physicsOptions: {
+          mass: 0,
+          friction: self.processedOptions.wallFriction,
+          restitution: self.processedOptions.wallRestitution,
+          group: 1,
+          mask: -1
+        }
+      });
+    }
+    addSideWall(fieldWidth / 2 + wallThickness / 2);
+    addSideWall(-fieldWidth / 2 - wallThickness / 2);
+
+    [
+      { x:  goalX, rotY: 90  },
+      { x: -goalX, rotY: 270 },
+    ].forEach(function(g) {
+      self.processedOptions.objects.push({
+        type: 'model',
+        modelURL: 'models/gol.glb',
+        modelScale: goalScale,
+        position: [g.x, 0, goalOffsetZ],
+        rotation: [0, g.rotY, 0],
+        physicsOptions: false,
+        isPickable: false
+      });
+    });
 
     // Placas de patrocínio nas laterais do campo (mesma altura da borda)
     // Posicionadas dentro da parede: face interna visível, face externa embutida na parede
@@ -307,7 +358,7 @@ var world_Football = new function() {
         type: 'box',
         color: '#a000',
         position: [pos, 0, self.processedOptions.wallHeight / 2],
-        size: [backWidth - 2, goalWidth - 6, self.processedOptions.wallHeight],
+        size: [backWidth - 2, goalOpening - 6, self.processedOptions.wallHeight],
         physicsOptions: false,
         isPickable: false,
         callback: function(mesh) {
