@@ -48,7 +48,10 @@ var babylon = new function() {
     scene.enablePhysics(gravityVector, physicsPlugin);
 
     var cameraArc = new BABYLON.ArcRotateCamera('Camera', -Math.PI / 2, Math.PI / 5, 200, new BABYLON.Vector3(0, 0, 0), scene);
-    cameraArc.attachControl(self.canvas, true);
+    // noPreventDefault=false: evita que o clique/scroll sobre o canvas dispare o
+    // comportamento padrão do navegador (focar/rolar a página dentro do iframe),
+    // que causava a "ampliada" e escondia os botões da toolbar ao clicar.
+    cameraArc.attachControl(self.canvas, false);
     self.cameraArc = cameraArc;
     self.resetCamera();
     self.setCameraMode('follow');

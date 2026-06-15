@@ -2071,6 +2071,16 @@ function setupRobotSimPanel() {
   const toggleBtn = document.getElementById('robot-sim-toggle');
   const closeBtn = document.getElementById('robot-sim-close');
 
+  // Move o botão "Robô" para a toolbar, à direita de "Laboratorio", com o mesmo
+  // estilo dos botões de texto da barra (antes era um botão flutuante no canvas).
+  const toolbar = document.getElementById('toolbar');
+  const labBtn = document.getElementById('btn-lab');
+  if (toggleBtn && toolbar && labBtn) {
+    toggleBtn.classList.remove('robot-sim-toggle-btn');
+    toggleBtn.classList.add('toolbar-text');
+    labBtn.insertAdjacentElement('afterend', toggleBtn);
+  }
+
   toggleBtn?.addEventListener('click', () => {
     if (robotSimOpen) {
       closeRobotSim();
