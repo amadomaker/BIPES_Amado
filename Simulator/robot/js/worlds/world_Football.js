@@ -304,7 +304,24 @@ var world_Football = new function() {
         position: [g.x, 0, goalOffsetZ],
         rotation: [0, g.rotY, 0],
         physicsOptions: false,
-        isPickable: false
+        isPickable: false,
+        callback: function(mesh) {
+          // O gol.glb (exportado do Tinkercad) vem com material PBR metálico que,
+          // sem ambiente/IBL na cena, renderiza preto. Força branco fosco.
+          mesh.getChildMeshes().forEach(function(m) {
+            m.useVertexColors = false;  // gol.glb tem COLOR_0 cinza nos vértices
+            if (!m.material) return;
+            if (typeof m.material.albedoColor != 'undefined') {  // PBRMaterial
+              m.material.albedoColor = new BABYLON.Color3(1, 1, 1);
+              m.material.metallic = 0;
+              m.material.roughness = 0.6;
+            } else {  // StandardMaterial
+              m.material.diffuseColor = new BABYLON.Color3(1, 1, 1);
+              m.material.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+            }
+            m.material.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+          });
+        }
       });
     });
 
