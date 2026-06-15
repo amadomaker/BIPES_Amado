@@ -24,6 +24,13 @@ var bipesBridge = new function () {
   var fbStateA = { lSpeed: 0, rSpeed: 0 };
   var fbStateB = { lSpeed: 0, rSpeed: 0 };
 
+  // Timer de partida (modo Jogo). Próprio, sem ligar o game loop do Gears (que
+  // dispararia chute automático na bola). Conta regressivo e para o sim ao zerar.
+  var FB_MATCH_DURATION = 5 * 60 * 1000;  // 5 minutos
+  var fbMatchStart = null;
+  var fbTimerInterval = null;
+  var fbMatchEnded = false;
+
   // Gears usa graus/segundo no speed_sp: RPM × 360/60
   var RPM_TO_DEG_S = 360 / 60;
 
@@ -303,11 +310,41 @@ var bipesBridge = new function () {
       babylon.world.game.teamA = savedA;
       babylon.world.game.teamB = savedB;
       if (typeof babylon.world.drawWorldInfo === 'function') babylon.world.drawWorldInfo();
+      self.updateFbTimer();  // reescreve o tempo (drawWorldInfo volta p/ 2:00 estático)
       fbResetting = false;
     }).catch(function(e) {
       self.log('Erro ao resetar após gol: ' + e.message);
       fbResetting = false;
     });
+  };
+
+  // --- Timer de partida (modo Jogo) ---
+  this.startFbTimer = function() {
+    fbMatchStart = Date.now();
+    fbMatchEnded = false;
+    if (fbTimerInterval) clearInterval(fbTimerInterval);
+    self.updateFbTimer();
+    fbTimerInterval = setInterval(self.updateFbTimer, 250);
+  };
+
+  this.stopFbTimer = function() {
+    if (fbTimerInterval) { clearInterval(fbTimerInterval); fbTimerInterval = null; }
+    fbMatchStart = null;
+  };
+
+  this.updateFbTimer = function() {
+    if (fbMatchStart === null) return;
+    var remaining = FB_MATCH_DURATION - (Date.now() - fbMatchStart);
+    if (remaining < 0) remaining = 0;
+    var totalSec = Math.round(remaining / 1000);
+    var txt = 'Tempo: ' + Math.floor(totalSec / 60) + ':' + ('0' + (totalSec % 60)).slice(-2);
+    var el = document.querySelector('.football-score-panel .time');
+    if (el) el.textContent = txt;
+    if (remaining <= 0 && !fbMatchEnded) {
+      fbMatchEnded = true;
+      self.log('Fim de jogo! Placar final ' + babylon.world.game.teamA + ' x ' + babylon.world.game.teamB);
+      self.stopSim();
+    }
   };
 
   // Inicia o polling das placas + loop de acionamento das rodas
@@ -379,6 +416,7 @@ var bipesBridge = new function () {
       // Modo futebol: polling das placas ESP32
       if (typeof world !== 'undefined' && typeof world.startSim === 'function') world.startSim();
       self.startFbPoll();
+      if (fbMode === 'jogo') self.startFbTimer();  // partida de 5 min só no Jogo
     } else {
       // Modo normal: aplica motor state do BIPES e lê sensores
       driveInterval = setInterval(self.applyMotorState, 30);
@@ -396,6 +434,7 @@ var bipesBridge = new function () {
 
     if (fbPollInterval)  { clearInterval(fbPollInterval);  fbPollInterval  = null; }
     if (fbDriveInterval) { clearInterval(fbDriveInterval); fbDriveInterval = null; }
+    self.stopFbTimer();
     fbStateA = { lSpeed: 0, rSpeed: 0 };
     fbStateB = { lSpeed: 0, rSpeed: 0 };
     fbResetting = false;

@@ -390,7 +390,7 @@ var world_Football = new function() {
     // (parede central removida — não usamos o modo 2v2 original)
 
     // set time limits
-    self.game.TIME_LIMIT = 2 * 60 * 1000;
+    self.game.TIME_LIMIT = 5 * 60 * 1000;  // 5 min (casa com o timer de partida do bipes-bridge)
 
     // Reintroduce the ball at a given position with given velocity
     function foos(pos=[0,0,0],vel =[0,0,0]){

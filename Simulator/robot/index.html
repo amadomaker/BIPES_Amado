@@ -33,7 +33,6 @@
     </select>
     <button class="sim-btn" id="btn-debug" title="Painel de sensores e motores">📊 Debug</button>
     <button class="sim-btn" id="btn-camera" title="Alternar câmera">📷 Câmera</button>
-    <button class="sim-btn" id="btn-control" title="Controle manual (D-pad) para testes">🎮 Controle</button>
   </div>
 
   <!-- Painel de configuração do mundo Futebol -->
@@ -341,21 +340,40 @@
           state[keyMap[e.key]] = false; drive(); e.preventDefault();
         });
 
-        // Enquanto o controle manual está aberto, roda a checagem de gol mesmo
-        // sem ▶ Iniciar (o poll de gol do futebol só liga com a simulação
-        // iniciada, mas a física roda sempre). Sem isso, gol via controle manual
-        // não conta nem reseta. A trava fbResetting evita contagem dupla se o
-        // sim também estiver rodando; fora do futebol é no-op.
+        // Controle manual fica OCULTO. Ativa/desativa pelo console do navegador:
+        //   manualControl(true)   -> mostra o D-pad
+        //   manualControl(false)  -> esconde
+        //   manualControl()       -> alterna
+        // Enquanto aberto, roda a checagem de gol mesmo sem ▶ Iniciar (o poll de
+        // gol só liga com a simulação iniciada, mas a física roda sempre). A trava
+        // fbResetting evita contagem dupla; fora do futebol é no-op.
         var goalCheckInterval = null;
-        document.getElementById('btn-control').addEventListener('click', function() {
-          var hidden = panel.classList.toggle('hidden');
-          if (hidden) {
+        function setManualControl(on) {
+          if (typeof on === 'undefined') { on = panel.classList.contains('hidden'); }
+          panel.classList.toggle('hidden', !on);
+          if (!on) {
             setDir('stop');  // para o robô ao esconder
             if (goalCheckInterval) { clearInterval(goalCheckInterval); goalCheckInterval = null; }
           } else if (typeof bipesBridge !== 'undefined' && typeof bipesBridge.checkFootballGoal === 'function') {
-            goalCheckInterval = setInterval(function() { bipesBridge.checkFootballGoal(); }, 100);
+            if (!goalCheckInterval) {
+              goalCheckInterval = setInterval(function() { bipesBridge.checkFootballGoal(); }, 100);
+            }
+            // No teste manual (sem ▶ Iniciar) o startSim não roda, então inicia o
+            // cronômetro de partida aqui quando estiver no modo Jogo.
+            if (footballMode === 'jogo' && typeof bipesBridge.startFbTimer === 'function') {
+              bipesBridge.startFbTimer();
+            }
           }
-        });
+          return on ? 'Controle manual ATIVADO (use o D-pad ou as setas)' : 'Controle manual desativado';
+        }
+        window.manualControl = setManualControl;
+        // O simulador roda em iframe no BIPES; expõe também no top (mesma origem)
+        // para o comando funcionar no console sem precisar trocar de contexto.
+        try {
+          if (window.top && window.top !== window) window.top.manualControl = setManualControl;
+        } catch (e) { /* cross-origin: usar o contexto do iframe no console */ }
+        console.log('%cDica de teste:%c digite manualControl(true) no console para ativar o controle manual (D-pad).',
+                    'font-weight:bold', 'font-weight:normal');
       })();
     });
   </script>
