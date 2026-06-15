@@ -1,6 +1,8 @@
 # Modo Futebol multi-placa (simulador de robô)
 
-Status: **BUG PRINCIPAL RESOLVIDO** (robô do futebol não engasga mais).
+Status: **FUNCIONAL** — engasgo, placar, reset no gol, gol 3D, garra física, controle
+manual de teste e timer de 5 min todos prontos. Falta polimento (tela de fim de jogo,
+salvar IPs, push/PR).
 Branch: `275-feat-simulator-with-robot-movel`.
 
 ## ✅ CAUSA RAIZ E SOLUÇÃO (resolvido)
@@ -135,19 +137,49 @@ sido leitura otimista do DIAG).
   - Detalhe: como o game loop fica dormindo, o "Tempo" do placar fica estático em
     2:00 e o "Reinício em" no máximo. Cosmético; resolver depois se incomodar.
 
-## PRÓXIMOS PASSOS (fazer amanhã)
+## ✅ CONCLUÍDO (sessão 2026-06-15)
 
-1. **Placa de patrocínio (item 3 do usuário).** Adicionar objeto(s) 3D tipo placa de
-   beira de campo ao lado das laterais, com imagem/logo como textura. É um `box` com
-   `imageURL`, igual às paredes do `world_Football.js` (ver `addWall`). O usuário quer
-   poder colocar logos/patrocínios personalizados.
-2. **Gol com rede (por último).** Hoje o gol é só paredes invisíveis + zona de
-   detecção. Adicionar geometria 3D de rede (3 planos com textura de rede nos lados
-   do gol). Mais trabalhoso — o usuário disse que pode procurar modelos 3D se não der
-   pra construir.
-3. **Limpeza de código (opcional).** Reverter tentativas antigas que não eram a causa
-   do bug do engasgo (carga sequencial no `babylon.js`, etc.). A correção que IMPORTA
-   é o `return` no `onMessage` quando `fbMode !== 'off'`.
+- **Placa de patrocínio: FEITO** (commit a7c3941) — boxes com `imageURL` nas laterais.
+- **Gol 3D com recorte na parede: FEITO.** No `world_Football.js`: `wall:false` desliga
+  o perímetro do mundo-base (que fechava o vão do gol); paredes laterais e de fundo
+  recriadas à mão. `goalPostInset` (≈41) estreita o vão real (`goalOpening`) até as
+  traves do modelo `models/gol.glb`. Posição do gol por `goalScale`/`goalOffsetZ`/
+  `goalOutward`. Precisa do loader `babylon/4.2.1/babylonjs.loaders.min.js` no index.
+  - **Cor:** o `gol.glb` (Tinkercad) vinha cinza porque a cor estava nos **vertex
+    colors** (atributo COLOR_0), não no material. Fix no callback do objeto:
+    `m.useVertexColors = false` + albedo branco. (Trocar o material por um novo
+    QUEBRAVA o load — não fazer isso.)
+  - **Detecção de gol** usa `goalOpening` (só conta dentro das traves).
+- **Controle manual de teste: FEITO.** D-pad OCULTO no `Simulator/robot/index.html`,
+  ativado pelo console: `manualControl(true/false/)` (exposto também em `window.top`
+  porque roda em iframe). Estágios de velocidade V1..V4. Move a global `robot` por
+  `leftWheel.speed_sp`. Roda `checkFootballGoal` enquanto aberto (gol conta sem ▶ Iniciar).
+- **Garra física (berço em U): FEITO, só no futebol.** `footballRobotOptions()` no
+  index clona o template e adiciona 2 peças `Box` (braços) na frente. Tentei
+  `MagnetActuator` (ímã) primeiro — o usuário queria física, não ímã.
+- **Bola mais manipulável:** massa 10→30, restituição 1.0→0.5, ballDamping 0.01→0.4.
+- **Timer de partida 5 min (só Jogo): FEITO** sem ligar o game loop do Gears. Próprio no
+  `bipes-bridge.js` (`FB_MATCH_DURATION`, `startFbTimer`/`updateFbTimer`/`stopFbTimer`),
+  escreve em `.football-score-panel .time`; ao zerar chama `stopSim`. `game.TIME_LIMIT`
+  também = 5 min (display estático antes do start). Começa no `startSim` OU ao ativar
+  `manualControl` no Jogo.
+- **Botão "Robô 3D":** era botão flutuante no canvas; movido pra toolbar do
+  `Simulator/index.html` (à direita de "Laboratorio"), sem emoji, em `setupRobotSimPanel`
+  (`Simulator/js/main.js`).
+- **Fix clique amplia/esconde toolbar:** `babylon.js` `attachControl(canvas, false)`
+  (era `true` = noPreventDefault) — o clique no canvas disparava scroll/focus do
+  navegador dentro do iframe.
+
+## PRÓXIMOS PASSOS
+
+1. **Tela de "Fim de jogo".** Hoje o timer zera e só loga no console; falta overlay com
+   o vencedor/placar final (e botão de reiniciar partida).
+2. **Salvar IPs das placas** (localStorage) — hoje redigita Robô A/B toda vez.
+3. **Push / PR** da branch 275 (vários commits locais não enviados).
+4. **Polimento:** estado "ativo" no botão Robô 3D, feedback visual de gol ("GOL!"/apito).
+5. **Limpeza (opcional, CUIDADO):** as antigas "tentativas" (carga sequencial no
+   `babylon.js`, anti-drift no `Robot.js`) viraram correções reais com comentário
+   explicando — reverter QUEBRA. Não mexer.
 
 ## Pendências menores
 
