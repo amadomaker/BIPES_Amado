@@ -156,7 +156,7 @@ var world_Football = new function() {
     startBallHeading: 0,
     randomFlipBallHeading: true,
     ballDampingStr: '',
-    ballDamping: 0.01,
+    ballDamping: 0.4,
     ballFrictionStr: '',
     ballFriction: 0.1,
     ballSpeedMin: 100,
@@ -352,9 +352,9 @@ var world_Football = new function() {
       size: [10],
       magnetic: true,
       physicsOptions: {
-        mass: 10,
+        mass: 30,                // mais pesada: não dispara com qualquer toque
         friction: self.options.ballFriction,
-        restitution: 1.0,
+        restitution: 0.5,        // menos quicante (antes 1.0)
         dampLinear: self.options.ballDamping,
         dampAngular: self.options.ballDamping,
         group: 2,

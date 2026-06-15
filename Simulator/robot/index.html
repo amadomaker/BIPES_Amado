@@ -33,6 +33,7 @@
     </select>
     <button class="sim-btn" id="btn-debug" title="Painel de sensores e motores">📊 Debug</button>
     <button class="sim-btn" id="btn-camera" title="Alternar câmera">📷 Câmera</button>
+    <button class="sim-btn" id="btn-control" title="Controle manual (D-pad) para testes">🎮 Controle</button>
   </div>
 
   <!-- Painel de configuração do mundo Futebol -->
@@ -57,6 +58,15 @@
 
   <!-- Placar do mundo Futebol (flutuante sobre o canvas) -->
   <div id="football-score-panel" class="football-score-panel hidden"></div>
+
+  <!-- Controle manual (D-pad) para testes - oculto por padrão -->
+  <div id="manual-control" class="manual-control hidden">
+    <button class="mc-btn mc-up"    data-dir="up"    title="Frente">&#9650;</button>
+    <button class="mc-btn mc-left"  data-dir="left"  title="Girar à esquerda">&#9664;</button>
+    <button class="mc-btn mc-speed" id="mc-speed"    title="Velocidade (clique para mudar de estágio)">V2</button>
+    <button class="mc-btn mc-right" data-dir="right" title="Girar à direita">&#9654;</button>
+    <button class="mc-btn mc-down"  data-dir="down"  title="Ré">&#9660;</button>
+  </div>
 
   <!-- Painel de debug flutuante -->
   <div id="debug-panel" class="debug-panel hidden">
@@ -126,21 +136,43 @@
     function setupFootballRobots(mode) {
       robots.length = 0;
       var t = robotTemplates.find(function(t) { return t.name === 'singleFollower'; }) || robotTemplates[0];
+      var fbT = footballRobotOptions(t);  // template + garra física (berço em U)
 
       robot = new Robot();
-      robot.options = t;
+      robot.options = fbT;
       robot.player = 0;
       robots.push(robot);
 
       if (mode === 'jogo') {
         var rb = new Robot();
-        rb.options = t;
+        rb.options = fbT;
         rb.player = 2;
         robots.push(rb);
         window.robotB = rb;
       } else {
         window.robotB = null;
       }
+    }
+
+    // Garra física para o futebol: clona o template e acrescenta dois braços
+    // laterais (peças Box com colisão) na frente, formando um berço em U aberto
+    // na frente. A bola fica encaixada entre os braços enquanto o robô empurra,
+    // e sai quando ele dá ré. Só no futebol (não afeta grade/labirinto/linha).
+    // OBS: medidas aproximadas para ajuste visual depois.
+    function footballRobotOptions(base) {
+      var opts = Object.assign({}, base);
+      var armWidth = 1, armHeight = 5, armDepth = 11;
+      var armX = 6.5;       // braços a ±6.5 (vão interno ~12 cm p/ bola de 10)
+      var armY = 0;         // centro em altura (ajustar p/ não arrastar no chão)
+      var armZ = 13.5;      // à frente do corpo (face frontal em z=8)
+      var gripper = [
+        { type: 'Box', position: [ armX, armY, armZ], rotation: [0, 0, 0],
+          options: { width: armWidth, height: armHeight, depth: armDepth } },
+        { type: 'Box', position: [-armX, armY, armZ], rotation: [0, 0, 0],
+          options: { width: armWidth, height: armHeight, depth: armDepth } }
+      ];
+      opts.components = (base.components || []).concat(gripper);
+      return opts;
     }
   </script>
 
@@ -235,6 +267,96 @@
       document.getElementById('fb-test-b').addEventListener('click', function() {
         bipesBridge.testEsp32(document.getElementById('fb-ip-b').value.trim(), 'b');
       });
+
+      // --- Controle manual (D-pad) para testes ---
+      // Move o robô atual (global `robot`; em Jogo é o Robô A) pela API de rodas
+      // do Gears. Oculto por padrão; o botão 🎮 Controle liga/desliga.
+      (function setupManualControl() {
+        var panel = document.getElementById('manual-control');
+        var speeds = [200, 400, 700, 1100];  // estágios de velocidade (V1..V4)
+        var speedIdx = 1;                     // começa em V2
+        var state = { up: false, down: false, left: false, right: false };
+
+        var $speed = document.getElementById('mc-speed');
+        function updateSpeedLabel() { $speed.textContent = 'V' + (speedIdx + 1); }
+        updateSpeedLabel();
+        $speed.addEventListener('click', function() {
+          speedIdx = (speedIdx + 1) % speeds.length;
+          updateSpeedLabel();
+          drive();  // aplica na hora se já estiver em movimento
+        });
+
+        function moveTank(l, r) {
+          if (!robot || !robot.leftWheel || !robot.rightWheel) return;
+          if (babylon.world && typeof babylon.world.manualMoved === 'function') {
+            babylon.world.manualMoved();
+          }
+          robot.leftWheel.speed_sp = l;
+          robot.rightWheel.speed_sp = r;
+          if (l === 0) { robot.leftWheel.stop(); } else { robot.leftWheel.runForever(); }
+          if (r === 0) { robot.rightWheel.stop(); } else { robot.rightWheel.runForever(); }
+        }
+
+        function drive() {
+          var SPEED = speeds[speedIdx];
+          var l = 0, r = 0;
+          if (state.up) {
+            l = SPEED; r = SPEED;
+            if (state.left) { l = 0; } else if (state.right) { r = 0; }
+          } else if (state.down) {
+            l = -SPEED; r = -SPEED;
+            if (state.left) { r = 0; } else if (state.right) { l = 0; }
+          } else if (state.left) {
+            l = -SPEED / 2; r = SPEED / 2;
+          } else if (state.right) {
+            l = SPEED / 2; r = -SPEED / 2;
+          }
+          moveTank(l, r);
+        }
+
+        function setDir(dir, on) {
+          if (dir === 'stop') {
+            state.up = state.down = state.left = state.right = false;
+          } else {
+            state[dir] = on;
+          }
+          drive();
+        }
+
+        panel.querySelectorAll('.mc-btn[data-dir]').forEach(function(btn) {
+          var dir = btn.getAttribute('data-dir');
+          btn.addEventListener('pointerdown',  function(e) { e.preventDefault(); setDir(dir, true); });
+          btn.addEventListener('pointerup',    function(e) { e.preventDefault(); setDir(dir, false); });
+          btn.addEventListener('pointerleave', function()  { setDir(dir, false); });
+          btn.addEventListener('pointercancel',function()  { setDir(dir, false); });
+        });
+
+        var keyMap = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+        window.addEventListener('keydown', function(e) {
+          if (panel.classList.contains('hidden') || !keyMap[e.key]) { return; }
+          state[keyMap[e.key]] = true; drive(); e.preventDefault();
+        });
+        window.addEventListener('keyup', function(e) {
+          if (panel.classList.contains('hidden') || !keyMap[e.key]) { return; }
+          state[keyMap[e.key]] = false; drive(); e.preventDefault();
+        });
+
+        // Enquanto o controle manual está aberto, roda a checagem de gol mesmo
+        // sem ▶ Iniciar (o poll de gol do futebol só liga com a simulação
+        // iniciada, mas a física roda sempre). Sem isso, gol via controle manual
+        // não conta nem reseta. A trava fbResetting evita contagem dupla se o
+        // sim também estiver rodando; fora do futebol é no-op.
+        var goalCheckInterval = null;
+        document.getElementById('btn-control').addEventListener('click', function() {
+          var hidden = panel.classList.toggle('hidden');
+          if (hidden) {
+            setDir('stop');  // para o robô ao esconder
+            if (goalCheckInterval) { clearInterval(goalCheckInterval); goalCheckInterval = null; }
+          } else if (typeof bipesBridge !== 'undefined' && typeof bipesBridge.checkFootballGoal === 'function') {
+            goalCheckInterval = setInterval(function() { bipesBridge.checkFootballGoal(); }, 100);
+          }
+        });
+      })();
     });
   </script>
 </body>

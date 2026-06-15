@@ -243,6 +243,44 @@ body.robot-sim-page {
 
 .football-score-panel.hidden { display: none; }
 
+/* Controle manual (D-pad) para testes */
+.manual-control {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(3, 52px);
+  gap: 6px;
+  z-index: 40;
+  user-select: none;
+  touch-action: none;
+}
+
+.manual-control.hidden { display: none; }
+
+.mc-btn {
+  background: rgba(15, 52, 96, 0.85);
+  color: #e0e0e0;
+  border: 1px solid #1a4a8a;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+}
+
+.mc-btn:hover  { background: rgba(26, 74, 138, 0.9); }
+.mc-btn:active { background: #2a5aaa; }
+
+.mc-up    { grid-column: 2; grid-row: 1; }
+.mc-left  { grid-column: 1; grid-row: 2; }
+.mc-speed { grid-column: 2; grid-row: 2; font-size: 14px; font-weight: bold; }
+.mc-right { grid-column: 3; grid-row: 2; }
+.mc-down  { grid-column: 2; grid-row: 3; }
+
 /* estilos que world_Football injeta via jQuery */
 .football-score-panel .mono { display: flex; justify-content: center; gap: 16px; }
 .football-score-panel .row  { margin: 2px 0; }
