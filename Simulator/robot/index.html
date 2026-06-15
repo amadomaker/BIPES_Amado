@@ -44,12 +44,14 @@
     <div class="fb-robot-row" id="fb-row-a">
       <span class="fb-label">Robo A</span>
       <input type="text" id="fb-ip-a" placeholder="ex: 192.168.1.100" class="fb-ip-input">
+      <select id="fb-team-a" class="fb-team-select" title="Time do Robô A"></select>
       <button class="fb-test-btn" id="fb-test-a">Testar</button>
       <span class="fb-dot" id="fb-status-a">&#9679;</span>
     </div>
     <div class="fb-robot-row hidden" id="fb-row-b">
       <span class="fb-label">Robo B</span>
       <input type="text" id="fb-ip-b" placeholder="ex: 192.168.1.101" class="fb-ip-input">
+      <select id="fb-team-b" class="fb-team-select" title="Time do Robô B"></select>
       <button class="fb-test-btn" id="fb-test-b">Testar</button>
       <span class="fb-dot" id="fb-status-b">&#9679;</span>
     </div>
@@ -129,23 +131,42 @@
       window.robotB = null;
     }
 
+    // Times do futebol: cor do robô + escudo (textura PNG em textures/teams/).
+    // Adicionar time = 1 entrada aqui + o PNG na pasta. cor=null mantém o padrão.
+    var TEAMS = {
+      none:        { nome: 'Padrão',      cor: null,      escudo: '' },
+      palmeiras:   { nome: 'Palmeiras',   cor: '#006437', escudo: 'textures/teams/palmeiras.png' },
+      flamengo:    { nome: 'Flamengo',    cor: '#c52613', escudo: 'textures/teams/flamengo.png' },
+      corinthians: { nome: 'Corinthians', cor: '#1a1a1a', escudo: 'textures/teams/corinthians.png' },
+      saopaulo:    { nome: 'São Paulo',   cor: '#cc2027', escudo: 'textures/teams/sao-paulo.png' },
+      cruzeiro:    { nome: 'Cruzeiro',    cor: '#003da5', escudo: 'textures/teams/cruzeiro.png' },
+    };
+
+    function teamFromSelect(id) {
+      var el = document.getElementById(id);
+      return (el && TEAMS[el.value]) || TEAMS.none;
+    }
+
     // Configura robôs para o modo futebol (modo arena padrão do football).
     // Robô A = player 0 (esquerda), Robô B = player 2 (direita).
     // mode: 'treino' (1 robô) ou 'jogo' (2 robôs)
     function setupFootballRobots(mode) {
       robots.length = 0;
       var t = robotTemplates.find(function(t) { return t.name === 'singleFollower'; }) || robotTemplates[0];
-      var fbT = footballRobotOptions(t);  // template + garra física (berço em U)
+      var teamA = teamFromSelect('fb-team-a');
+      var teamB = teamFromSelect('fb-team-b');
 
       robot = new Robot();
-      robot.options = fbT;
+      robot.options = footballRobotOptions(t, teamA);
       robot.player = 0;
+      if (teamA.cor) robot.playerIndividualColors[0] = BABYLON.Color3.FromHexString(teamA.cor);
       robots.push(robot);
 
       if (mode === 'jogo') {
         var rb = new Robot();
-        rb.options = fbT;
+        rb.options = footballRobotOptions(t, teamB);
         rb.player = 2;
+        if (teamB.cor) rb.playerIndividualColors[2] = BABYLON.Color3.FromHexString(teamB.cor);
         robots.push(rb);
         window.robotB = rb;
       } else {
@@ -153,24 +174,29 @@
       }
     }
 
-    // Garra física para o futebol: clona o template e acrescenta dois braços
-    // laterais (peças Box com colisão) na frente, formando um berço em U aberto
-    // na frente. A bola fica encaixada entre os braços enquanto o robô empurra,
-    // e sai quando ele dá ré. Só no futebol (não afeta grade/labirinto/linha).
-    // OBS: medidas aproximadas para ajuste visual depois.
-    function footballRobotOptions(base) {
+    // Monta as opções do robô de futebol: template + garra física (berço em U
+    // com 2 braços Box na frente) + plaquinha do escudo do time em cima (se houver).
+    // Só no futebol (não afeta grade/labirinto/linha). Medidas aproximadas.
+    function footballRobotOptions(base, team) {
       var opts = Object.assign({}, base);
       var armWidth = 1, armHeight = 5, armDepth = 11;
       var armX = 6.5;       // braços a ±6.5 (vão interno ~12 cm p/ bola de 10)
       var armY = 0;         // centro em altura (ajustar p/ não arrastar no chão)
       var armZ = 13.5;      // à frente do corpo (face frontal em z=8)
-      var gripper = [
+      var extras = [
         { type: 'Box', position: [ armX, armY, armZ], rotation: [0, 0, 0],
           options: { width: armWidth, height: armHeight, depth: armDepth } },
         { type: 'Box', position: [-armX, armY, armZ], rotation: [0, 0, 0],
           options: { width: armWidth, height: armHeight, depth: armDepth } }
       ];
-      opts.components = (base.components || []).concat(gripper);
+      if (team && team.escudo) {
+        // plaquinha fina em cima do corpo (topo em y=2) com o escudo na face de cima
+        extras.push({
+          type: 'Box', position: [0, 2.6, 0], rotation: [0, 0, 0],
+          options: { width: 9, height: 0.4, depth: 9, imageType: 'top', imageURL: team.escudo }
+        });
+      }
+      opts.components = (base.components || []).concat(extras);
       return opts;
     }
   </script>
@@ -266,6 +292,26 @@
       document.getElementById('fb-test-b').addEventListener('click', function() {
         bipesBridge.testEsp32(document.getElementById('fb-ip-b').value.trim(), 'b');
       });
+
+      // Seletor de time por robô: popula com TEAMS e, ao trocar, recria os robôs
+      // (cor + escudo são definidos na criação) e reseta a cena para aplicar.
+      function populateTeamSelect(id, defaultVal) {
+        var sel = document.getElementById(id);
+        if (!sel) return;
+        Object.keys(TEAMS).forEach(function(key) {
+          var o = document.createElement('option');
+          o.value = key;
+          o.textContent = TEAMS[key].nome;
+          sel.appendChild(o);
+        });
+        sel.value = defaultVal;
+        sel.addEventListener('change', function() {
+          setupFootballRobots(footballMode);
+          bipesBridge.resetSim();
+        });
+      }
+      populateTeamSelect('fb-team-a', 'none');
+      populateTeamSelect('fb-team-b', 'none');
 
       // --- Controle manual (D-pad) para testes ---
       // Move o robô atual (global `robot`; em Jogo é o Robô A) pela API de rodas

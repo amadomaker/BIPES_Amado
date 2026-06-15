@@ -466,6 +466,10 @@ function BoxBlock(scene, parent, pos, rot, options) {
       bodyMat.diffuseTexture.uScale = self.options.uScale;
       bodyMat.diffuseTexture.vScale = self.options.vScale;
       bodyMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+      // Honra a transparência do PNG (ex.: plaquinha do escudo do time no futebol).
+      // Só afeta Box com imagem; sem imageURL este bloco nem roda.
+      bodyMat.diffuseTexture.hasAlpha = true;
+      bodyMat.useAlphaFromDiffuseTexture = true;
     }
 
     var faceUV = new Array(6);

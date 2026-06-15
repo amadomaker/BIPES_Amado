@@ -218,6 +218,16 @@ body.robot-sim-page {
 
 .fb-test-btn:hover { background: #273549; }
 
+.fb-team-select {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .fb-dot {
   font-size: 14px;
   color: #334155;
