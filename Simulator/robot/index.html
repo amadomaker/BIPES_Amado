@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="widgets.css">
+  <link rel="stylesheet" href="robot-sim.css">
+
+  <script src="jquery/jquery-3.5.1.slim.min.js"></script>
+  <script src="ammo/ammo-20200613.js"></script>
+  <script src="babylon/4.2.1/babylon.js"></script>
+  <script src="babylon/4.2.1/babylonjs.loaders.min.js"></script>
+  <script src="babylon/4.2.1/babylon.gui.min.js"></script>
+  <script src="pep/0.4.3/pep.min.js"></script>
+
+  <script src="js/msg.js"></script>
+  <script src="js/common/widgets.js"></script>
+
+  <title>Simulador de Robô - BIPES</title>
+</head>
+<body class="robot-sim-page">
+
+  <div class="robot-sim-toolbar">
+    <button class="sim-btn" id="btn-run-sim" title="Iniciar/Parar o robô">▶ Iniciar</button>
+    <button class="sim-btn" id="btn-reset-sim" title="Resetar posição do robô">↺ Resetar</button>
+    <select id="world-select" title="Escolher mundo">
+      <option value="grid">Grade</option>
+      <option value="maze">Labirinto</option>
+      <option value="line">Seguidor de linha</option>
+      <option value="football">Futebol</option>
+    </select>
+    <button class="sim-btn" id="btn-debug" title="Painel de sensores e motores">📊 Debug</button>
+    <button class="sim-btn" id="btn-camera" title="Alternar câmera">📷 Câmera</button>
+  </div>
+
+  <!-- Painel de configuração do mundo Futebol -->
+  <div id="football-panel" class="football-panel hidden">
+    <div class="fb-mode-row">
+      <button id="fb-btn-treino" class="fb-mode-btn active">Treino</button>
+      <button id="fb-btn-jogo" class="fb-mode-btn">Jogo</button>
+    </div>
+    <div class="fb-robot-row" id="fb-row-a">
+      <span class="fb-label">Robo A</span>
+      <input type="text" id="fb-ip-a" placeholder="ex: 192.168.1.100" class="fb-ip-input">
+      <select id="fb-team-a" class="fb-team-select" title="Time do Robô A"></select>
+      <button class="fb-test-btn" id="fb-test-a">Testar</button>
+      <span class="fb-dot" id="fb-status-a">&#9679;</span>
+    </div>
+    <div class="fb-robot-row hidden" id="fb-row-b">
+      <span class="fb-label">Robo B</span>
+      <input type="text" id="fb-ip-b" placeholder="ex: 192.168.1.101" class="fb-ip-input">
+      <select id="fb-team-b" class="fb-team-select" title="Time do Robô B"></select>
+      <button class="fb-test-btn" id="fb-test-b">Testar</button>
+      <span class="fb-dot" id="fb-status-b">&#9679;</span>
+    </div>
+  </div>
+
+  <!-- Placar do mundo Futebol (flutuante sobre o canvas) -->
+  <div id="football-score-panel" class="football-score-panel hidden"></div>
+
+  <!-- Controle manual (D-pad) para testes - oculto por padrão -->
+  <div id="manual-control" class="manual-control hidden">
+    <button class="mc-btn mc-up"    data-dir="up"    title="Frente">&#9650;</button>
+    <button class="mc-btn mc-left"  data-dir="left"  title="Girar à esquerda">&#9664;</button>
+    <button class="mc-btn mc-speed" id="mc-speed"    title="Velocidade (clique para mudar de estágio)">V2</button>
+    <button class="mc-btn mc-right" data-dir="right" title="Girar à direita">&#9654;</button>
+    <button class="mc-btn mc-down"  data-dir="down"  title="Ré">&#9660;</button>
+  </div>
+
+  <!-- Painel de debug flutuante -->
+  <div id="debug-panel" class="debug-panel hidden">
+    <div class="debug-title">📊 Sensores &amp; Motores</div>
+    <table class="debug-table">
+      <tr><td>IR (centro)</td><td id="dbg-ir-left">--</td></tr>
+      <tr><td>Motor A (PWM)</td><td id="dbg-rpm-a">--</td></tr>
+      <tr><td>Motor B (PWM)</td><td id="dbg-rpm-b">--</td></tr>
+      <tr><td>Sensores 3D</td> <td id="dbg-sens-count">--</td></tr>
+    </table>
+  </div>
+
+  <canvas id="renderCanvas" touch-action="none"></canvas>
+
+  <script src="js/worlds/World_Base.js"></script>
+  <script src="js/worlds/world_Grid.js"></script>
+  <script src="js/worlds/world_Maze.js"></script>
+  <script src="js/worlds/world_LineFollowing.js"></script>
+  <script src="js/worlds/world_Football.js"></script>
+  <script src="js/robotComponents.js"></script>
+  <script src="js/robotTemplates.js"></script>
+  <script src="js/Wheel.js"></script>
+  <script src="js/Robot.js"></script>
+
+  <script>
+    // Stub para arenaPanel usado pelo world_Football para exibir placar
+    var arenaPanel = {
+      showWorldInfoPanel: function() {
+        // visibilidade controlada pelos botões Treino/Jogo
+      },
+      clearWorldInfoPanel: function() {
+        document.getElementById('football-score-panel').innerHTML = '';
+      },
+      drawWorldInfo: function($el) {
+        var el = document.getElementById('football-score-panel');
+        if ($el) $el.each(function() { el.appendChild(this); });
+      },
+      stopSim: function() {
+        if (typeof bipesBridge !== 'undefined') bipesBridge.stopSim();
+      }
+    };
+
+    // Instancia o robô com template padrão (carrinho diferencial com 2 rodas)
+    var robots = [];
+    var robot = new Robot();
+    // singleFollower: 1 ColorSensor no centro (x=0) para seguidor de linha com 1 IR
+    var tmpl = robotTemplates.find(function(t) { return t.name === 'singleFollower'; });
+    robot.options = tmpl || robotTemplates[0];
+    robot.player = 'single';
+    robots.push(robot);
+    // worlds é preenchido automaticamente pelos scripts acima
+
+    // Restaura configuração de robô único (grade/labirinto/linha)
+    function setupSingleRobot() {
+      robots.length = 0;
+      robot = new Robot();
+      var t = robotTemplates.find(function(t) { return t.name === 'singleFollower'; });
+      robot.options = t || robotTemplates[0];
+      robot.player = 'single';
+      robots.push(robot);
+      window.robotB = null;
+    }
+
+    // Times do futebol: cor do robô + escudo (textura PNG em textures/teams/).
+    // Adicionar time = 1 entrada aqui + o PNG na pasta. cor=null mantém o padrão.
+    var TEAMS = {
+      none:        { nome: 'Padrão',      cor: null,      escudo: '' },
+      palmeiras:   { nome: 'Palmeiras',   cor: '#006437', escudo: 'textures/teams/palmeiras.png' },
+      flamengo:    { nome: 'Flamengo',    cor: '#c52613', escudo: 'textures/teams/flamengo.png' },
+      corinthians: { nome: 'Corinthians', cor: '#1a1a1a', escudo: 'textures/teams/corinthians.png' },
+      saopaulo:    { nome: 'São Paulo',   cor: '#cc2027', escudo: 'textures/teams/sao-paulo.png' },
+      cruzeiro:    { nome: 'Cruzeiro',    cor: '#003da5', escudo: 'textures/teams/cruzeiro.png' },
+    };
+
+    function teamFromSelect(id) {
+      var el = document.getElementById(id);
+      return (el && TEAMS[el.value]) || TEAMS.none;
+    }
+
+    // Configura robôs para o modo futebol (modo arena padrão do football).
+    // Robô A = player 0 (esquerda), Robô B = player 2 (direita).
+    // mode: 'treino' (1 robô) ou 'jogo' (2 robôs)
+    function setupFootballRobots(mode) {
+      robots.length = 0;
+      var t = robotTemplates.find(function(t) { return t.name === 'singleFollower'; }) || robotTemplates[0];
+      var teamA = teamFromSelect('fb-team-a');
+      var teamB = teamFromSelect('fb-team-b');
+
+      robot = new Robot();
+      robot.options = footballRobotOptions(t, teamA);
+      robot.player = 0;
+      if (teamA.cor) robot.playerIndividualColors[0] = BABYLON.Color3.FromHexString(teamA.cor);
+      robots.push(robot);
+
+      if (mode === 'jogo') {
+        var rb = new Robot();
+        rb.options = footballRobotOptions(t, teamB);
+        rb.player = 2;
+        if (teamB.cor) rb.playerIndividualColors[2] = BABYLON.Color3.FromHexString(teamB.cor);
+        robots.push(rb);
+        window.robotB = rb;
+      } else {
+        window.robotB = null;
+      }
+    }
+
+    // Monta as opções do robô de futebol: template + garra física (berço em U
+    // com 2 braços Box na frente) + plaquinha do escudo do time em cima (se houver).
+    // Só no futebol (não afeta grade/labirinto/linha). Medidas aproximadas.
+    function footballRobotOptions(base, team) {
+      var opts = Object.assign({}, base);
+      var armWidth = 1, armHeight = 5, armDepth = 11;
+      var armX = 6.5;       // braços a ±6.5 (vão interno ~12 cm p/ bola de 10)
+      var armY = 0;         // centro em altura (ajustar p/ não arrastar no chão)
+      var armZ = 13.5;      // à frente do corpo (face frontal em z=8)
+      var extras = [
+        { type: 'Box', position: [ armX, armY, armZ], rotation: [0, 0, 0],
+          options: { width: armWidth, height: armHeight, depth: armDepth } },
+        { type: 'Box', position: [-armX, armY, armZ], rotation: [0, 0, 0],
+          options: { width: armWidth, height: armHeight, depth: armDepth } }
+      ];
+      if (team && team.escudo) {
+        // plaquinha fina em cima do corpo (topo em y=2) com o escudo na face de cima
+        extras.push({
+          type: 'Box', position: [0, 2.6, 0], rotation: [0, 0, 0],
+          options: { width: 9, height: 0.4, depth: 9, imageType: 'top', imageURL: team.escudo }
+        });
+      }
+      opts.components = (base.components || []).concat(extras);
+      return opts;
+    }
+  </script>
+
+  <script src="js/babylon.js"></script>
+  <script src="js/simPanel.js"></script>
+  <script src="js/bipes-bridge.js"></script>
+
+  <script>
+    window.addEventListener('load', function () {
+      babylon.init();
+      bipesBridge.init();
+
+      document.getElementById('btn-run-sim').addEventListener('click', function () {
+        bipesBridge.toggleSim();
+      });
+
+      document.getElementById('btn-reset-sim').addEventListener('click', function () {
+        bipesBridge.resetSim();
+      });
+
+      document.getElementById('btn-debug').addEventListener('click', function () {
+        document.getElementById('debug-panel').classList.toggle('hidden');
+      });
+
+      // Botão de câmera cicla entre 3 modos, mostrando o atual no rótulo:
+      // Seguir = câmera persegue o robô; Livre = órbita livre (arrasta = girar);
+      // Topo = vista de cima (arrasta com botão esquerdo = mover/pan, ótimo p/ seguidor de linha)
+      var camModes = [
+        { mode: 'follow',   label: '📷 Seguir' },
+        { mode: 'arc',      label: '📷 Livre' },
+        { mode: 'orthoTop', label: '📷 Topo' },
+      ];
+      var camIdx = 0;
+      var btnCamera = document.getElementById('btn-camera');
+      btnCamera.textContent = camModes[0].label;
+      btnCamera.title = 'Trocar câmera (Seguir / Livre / Topo). No Topo, arraste para mover e use a roda para zoom.';
+      btnCamera.addEventListener('click', function () {
+        camIdx = (camIdx + 1) % camModes.length;
+        babylon.setCameraMode(camModes[camIdx].mode);
+        btnCamera.textContent = camModes[camIdx].label;
+      });
+
+      var footballMode = 'treino';
+
+      document.getElementById('world-select').addEventListener('change', function () {
+        var nameMap = { grid: 'grid', maze: 'maze', line: 'lineFollowing', football: 'football' };
+        var worldName = nameMap[this.value];
+        babylon.world = worlds.find(function(w) { return w.name === worldName; }) || worlds[0];
+
+        var isFootball = this.value === 'football';
+        document.getElementById('football-panel').classList.toggle('hidden', !isFootball);
+        document.getElementById('football-score-panel').classList.toggle('hidden', !isFootball || footballMode !== 'jogo');
+
+        if (isFootball) {
+          setupFootballRobots(footballMode);
+          bipesBridge.setFootballMode(footballMode);
+        } else {
+          setupSingleRobot();
+          bipesBridge.setFootballMode('off');
+        }
+        bipesBridge.resetSim();
+      });
+
+      // Botão Treino
+      document.getElementById('fb-btn-treino').addEventListener('click', function() {
+        footballMode = 'treino';
+        this.classList.add('active');
+        document.getElementById('fb-btn-jogo').classList.remove('active');
+        document.getElementById('fb-row-b').classList.add('hidden');
+        document.getElementById('football-score-panel').classList.add('hidden');
+        setupFootballRobots('treino');
+        bipesBridge.setFootballMode('treino');
+        bipesBridge.resetSim();
+      });
+
+      // Botão Jogo
+      document.getElementById('fb-btn-jogo').addEventListener('click', function() {
+        footballMode = 'jogo';
+        this.classList.add('active');
+        document.getElementById('fb-btn-treino').classList.remove('active');
+        document.getElementById('fb-row-b').classList.remove('hidden');
+        document.getElementById('football-score-panel').classList.remove('hidden');
+        setupFootballRobots('jogo');
+        bipesBridge.setFootballMode('jogo');
+        bipesBridge.resetSim();
+      });
+
+      // Botões Testar conexão
+      document.getElementById('fb-test-a').addEventListener('click', function() {
+        bipesBridge.testEsp32(document.getElementById('fb-ip-a').value.trim(), 'a');
+      });
+      document.getElementById('fb-test-b').addEventListener('click', function() {
+        bipesBridge.testEsp32(document.getElementById('fb-ip-b').value.trim(), 'b');
+      });
+
+      // Seletor de time por robô: popula com TEAMS e, ao trocar, recria os robôs
+      // (cor + escudo são definidos na criação) e reseta a cena para aplicar.
+      function populateTeamSelect(id, defaultVal) {
+        var sel = document.getElementById(id);
+        if (!sel) return;
+        Object.keys(TEAMS).forEach(function(key) {
+          var o = document.createElement('option');
+          o.value = key;
+          o.textContent = TEAMS[key].nome;
+          sel.appendChild(o);
+        });
+        sel.value = defaultVal;
+        sel.addEventListener('change', function() {
+          setupFootballRobots(footballMode);
+          bipesBridge.resetSim();
+        });
+      }
+      populateTeamSelect('fb-team-a', 'none');
+      populateTeamSelect('fb-team-b', 'none');
+
+      // --- Controle manual (D-pad) para testes ---
+      // Move o robô atual (global `robot`; em Jogo é o Robô A) pela API de rodas
+      // do Gears. Oculto por padrão; o botão 🎮 Controle liga/desliga.
+      (function setupManualControl() {
+        var panel = document.getElementById('manual-control');
+        var speeds = [200, 400, 700, 1100];  // estágios de velocidade (V1..V4)
+        var speedIdx = 1;                     // começa em V2
+        var state = { up: false, down: false, left: false, right: false };
+
+        var $speed = document.getElementById('mc-speed');
+        function updateSpeedLabel() { $speed.textContent = 'V' + (speedIdx + 1); }
+        updateSpeedLabel();
+        $speed.addEventListener('click', function() {
+          speedIdx = (speedIdx + 1) % speeds.length;
+          updateSpeedLabel();
+          drive();  // aplica na hora se já estiver em movimento
+        });
+
+        function moveTank(l, r) {
+          if (!robot || !robot.leftWheel || !robot.rightWheel) return;
+          if (babylon.world && typeof babylon.world.manualMoved === 'function') {
+            babylon.world.manualMoved();
+          }
+          robot.leftWheel.speed_sp = l;
+          robot.rightWheel.speed_sp = r;
+          if (l === 0) { robot.leftWheel.stop(); } else { robot.leftWheel.runForever(); }
+          if (r === 0) { robot.rightWheel.stop(); } else { robot.rightWheel.runForever(); }
+        }
+
+        function drive() {
+          var SPEED = speeds[speedIdx];
+          var l = 0, r = 0;
+          if (state.up) {
+            l = SPEED; r = SPEED;
+            if (state.left) { l = 0; } else if (state.right) { r = 0; }
+          } else if (state.down) {
+            l = -SPEED; r = -SPEED;
+            if (state.left) { r = 0; } else if (state.right) { l = 0; }
+          } else if (state.left) {
+            l = -SPEED / 2; r = SPEED / 2;
+          } else if (state.right) {
+            l = SPEED / 2; r = -SPEED / 2;
+          }
+          moveTank(l, r);
+        }
+
+        function setDir(dir, on) {
+          if (dir === 'stop') {
+            state.up = state.down = state.left = state.right = false;
+          } else {
+            state[dir] = on;
+          }
+          drive();
+        }
+
+        panel.querySelectorAll('.mc-btn[data-dir]').forEach(function(btn) {
+          var dir = btn.getAttribute('data-dir');
+          btn.addEventListener('pointerdown',  function(e) { e.preventDefault(); setDir(dir, true); });
+          btn.addEventListener('pointerup',    function(e) { e.preventDefault(); setDir(dir, false); });
+          btn.addEventListener('pointerleave', function()  { setDir(dir, false); });
+          btn.addEventListener('pointercancel',function()  { setDir(dir, false); });
+        });
+
+        var keyMap = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+        window.addEventListener('keydown', function(e) {
+          if (panel.classList.contains('hidden') || !keyMap[e.key]) { return; }
+          state[keyMap[e.key]] = true; drive(); e.preventDefault();
+        });
+        window.addEventListener('keyup', function(e) {
+          if (panel.classList.contains('hidden') || !keyMap[e.key]) { return; }
+          state[keyMap[e.key]] = false; drive(); e.preventDefault();
+        });
+
+        // Controle manual fica OCULTO. Ativa/desativa pelo console do navegador:
+        //   manualControl(true)   -> mostra o D-pad
+        //   manualControl(false)  -> esconde
+        //   manualControl()       -> alterna
+        // Enquanto aberto, roda a checagem de gol mesmo sem ▶ Iniciar (o poll de
+        // gol só liga com a simulação iniciada, mas a física roda sempre). A trava
+        // fbResetting evita contagem dupla; fora do futebol é no-op.
+        var goalCheckInterval = null;
+        function setManualControl(on) {
+          if (typeof on === 'undefined') { on = panel.classList.contains('hidden'); }
+          panel.classList.toggle('hidden', !on);
+          if (!on) {
+            setDir('stop');  // para o robô ao esconder
+            if (goalCheckInterval) { clearInterval(goalCheckInterval); goalCheckInterval = null; }
+          } else if (typeof bipesBridge !== 'undefined' && typeof bipesBridge.checkFootballGoal === 'function') {
+            if (!goalCheckInterval) {
+              goalCheckInterval = setInterval(function() { bipesBridge.checkFootballGoal(); }, 100);
+            }
+            // No teste manual (sem ▶ Iniciar) o startSim não roda, então inicia o
+            // cronômetro de partida aqui quando estiver no modo Jogo.
+            if (footballMode === 'jogo' && typeof bipesBridge.startFbTimer === 'function') {
+              bipesBridge.startFbTimer();
+            }
+          }
+          return on ? 'Controle manual ATIVADO (use o D-pad ou as setas)' : 'Controle manual desativado';
+        }
+        window.manualControl = setManualControl;
+        // O simulador roda em iframe no BIPES; expõe também no top (mesma origem)
+        // para o comando funcionar no console sem precisar trocar de contexto.
+        try {
+          if (window.top && window.top !== window) window.top.manualControl = setManualControl;
+        } catch (e) { /* cross-origin: usar o contexto do iframe no console */ }
+        console.log('%cDica de teste:%c digite manualControl(true) no console para ativar o controle manual (D-pad).',
+                    'font-weight:bold', 'font-weight:normal');
+      })();
+    });
+  </script>
+</body>
+</html>
