@@ -1,8 +1,9 @@
 # Modo Futebol multi-placa (simulador de robô)
 
 Status: **FUNCIONAL** — engasgo, placar, reset no gol, gol 3D, garra física, controle
-manual de teste e timer de 5 min todos prontos. Falta polimento (tela de fim de jogo,
-salvar IPs, push/PR).
+manual de teste, timer de 5 min e seleção de time (cor + escudo da Série A) todos
+prontos. Branch já pushada (em sync com `origin`); falta abrir o PR e polimento
+(tela de fim de jogo, salvar IPs).
 Branch: `275-feat-simulator-with-robot-movel`.
 
 ## ✅ CAUSA RAIZ E SOLUÇÃO (resolvido)
@@ -65,7 +66,14 @@ mundo `world_Football.js` do Gears. A ideia:
   `world_Football.js`). Textura placeholder da bola em
   `Simulator/robot/textures/sphere/soccerBall.png` (era 404).
 
-## O BUG (não resolvido)
+## O BUG (✅ RESOLVIDO — histórico)
+
+> **NOTA:** esta seção está mantida só como histórico da investigação. O problema
+> foi resolvido — não era "travamento" e sim **engasgo por controle duplicado** (ver
+> "CAUSA RAIZ E SOLUÇÃO" no topo do doc). O diagnóstico abaixo descrevia o sintoma
+> como "trava", o que atrasou a caça; na prática o robô andava engasgando porque dois
+> controles (HTTP do futebol + motor-state por blocos do BIPES) brigavam pela mesma
+> variável global `robot`.
 
 **No mundo Futebol o robô não anda — fica "travado", como se algo o segurasse.**
 No grid/labirinto o MESMO robô anda perfeitamente.
@@ -169,23 +177,68 @@ sido leitura otimista do DIAG).
 - **Fix clique amplia/esconde toolbar:** `babylon.js` `attachControl(canvas, false)`
   (era `true` = noPreventDefault) — o clique no canvas disparava scroll/focus do
   navegador dentro do iframe.
+- **Seleção de time (cor + escudo): FEITO** (commits `f12ee8c`, `ea04c0f`). Dois
+  `<select>` no painel (`#fb-team-a` / `#fb-team-b`, `Simulator/robot/index.html`).
+  - Mapa `TEAMS` no index com `{ nome, cor (hex), escudo (PNG) }`. Série A inicial:
+    Padrão (none), Palmeiras, Flamengo, Corinthians, São Paulo, Cruzeiro.
+  - `populateTeamSelect()` popula os dropdowns; ao trocar, **recria os robôs** (cor e
+    escudo são definidos na criação) e dá `resetScene` pra aplicar.
+  - **Cor:** `robot.playerIndividualColors[0]` (A) / `[2]` (B) recebem
+    `Color3.FromHexString(team.cor)`.
+  - **Escudo:** `footballRobotOptions()` adiciona uma plaquinha fina (`Box`
+    9×0.4×9) em cima do corpo (topo y=2) com `imageType:'top'` e `imageURL` do PNG.
+  - **Transparência do PNG:** `robotComponents.js` `BoxBlock` agora seta
+    `diffuseTexture.hasAlpha=true` + `useAlphaFromDiffuseTexture=true` (só afeta Box
+    com `imageURL`). Escudos com fundo transparente aparecem recortados.
+  - **Texturas:** `Simulator/robot/textures/teams/*.png` (e `.jpg` de backup). Ver
+    `textures/teams/README.md` pra adicionar novos times. **Atenção:** alguns escudos
+    foram adicionados em `.jpg` com fundo NÃO transparente — trocar por `.png`
+    recortado pra ficar bom.
 
 ## PRÓXIMOS PASSOS
 
+> Feature pausada (o usuário foi mexer em outra coisa; retoma no futuro). Lista de
+> retomada por ordem de retorno/esforço:
+
 1. **Tela de "Fim de jogo".** Hoje o timer zera e só loga no console; falta overlay com
-   o vencedor/placar final (e botão de reiniciar partida).
-2. **Salvar IPs das placas** (localStorage) — hoje redigita Robô A/B toda vez.
-3. **Push / PR** da branch 275 (vários commits locais não enviados).
-4. **Polimento:** estado "ativo" no botão Robô 3D, feedback visual de gol ("GOL!"/apito).
-5. **Limpeza (opcional, CUIDADO):** as antigas "tentativas" (carga sequencial no
+   o vencedor/placar final (e botão de reiniciar partida). Fecha o ciclo da partida.
+2. **Salvar IPs das placas** (localStorage) — hoje redigita Robô A/B toda vez. Rápido,
+   tira atrito do uso diário.
+3. **Mais times da Série A** — os escudos `.jpg` atuais têm fundo NÃO transparente;
+   trocar por `.png` recortado e completar o restante da Série A no mapa `TEAMS`.
+4. **Abrir o PR** da branch 275 (já está pushada e em sync com `origin` — só falta o PR).
+5. **Polimento:** estado "ativo" no botão Robô 3D, feedback visual de gol ("GOL!"/apito).
+6. **Limpeza (opcional, CUIDADO):** as antigas "tentativas" (carga sequencial no
    `babylon.js`, anti-drift no `Robot.js`) viraram correções reais com comentário
    explicando — reverter QUEBRA. Não mexer.
+
+## Possíveis implementações futuras (ideias já conversadas)
+
+Ideias levantadas ao longo das sessões, ainda NÃO implementadas — registradas aqui
+pra não se perderem na retomada:
+
+- **Tela de fim de jogo completa:** overlay com vencedor + placar final, botão
+  "Reiniciar partida" e "Voltar ao menu" (hoje só `console.log` ao zerar o timer).
+- **Persistir configuração da partida em localStorage:** IPs das placas, times
+  escolhidos (A/B) e modo (Treino/Jogo) — recarregar tudo na próxima sessão.
+- **Feedback de gol mais rico:** banner "GOL!" na tela + som de apito/torcida +
+  pequena pausa/replay antes do reset da cena.
+- **Botão "reiniciar partida"** sem ter que fechar/reabrir o painel (zera placar +
+  timer + reset de cena).
+- **Estado "ativo" no botão Robô 3D** na toolbar (destaque visual quando o painel
+  está aberto).
+- **Afinar tamanho do campo** (480×288 é grande) pra ação mais rápida — opcional, o
+  usuário disse que a velocidade está boa.
+- **Display de tempo "vivo":** hoje o "Tempo" do placar fica estático porque o game
+  loop do Gears fica dormindo de propósito (ligar dispara chute automático). O timer
+  real roda por fora; só falta espelhar a contagem no display do placar.
+- **Mais ligas/seleções de time** além da Série A (Série B, seleções, times locais),
+  reusando o mapa `TEAMS`.
+- **Modo torneio / melhor de N partidas** entre as duas placas, somando vitórias.
 
 ## Pendências menores
 
 - Esconder o robô-isca foi removido (não é mais usado; o bug não era ordem).
-- Afinar tamanho do campo (480×288 é grande) se quiser ação mais rápida — opcional,
-  o usuário disse que a velocidade está boa.
 
 ## Arquivos tocados nesta feature
 
@@ -198,7 +251,11 @@ sido leitura otimista do DIAG).
   central removida; `groundFriction`/restituição ajustados.
 - `Simulator/robot/js/babylon.js` — carga sequencial dos robôs (tentativa).
 - `Simulator/robot/js/Robot.js` — anti-drift só no modo single (tentativa).
+- `Simulator/robot/js/robotComponents.js` — `BoxBlock` honra alpha do PNG
+  (`hasAlpha`/`useAlphaFromDiffuseTexture`) p/ o escudo do time recortado.
 - `Simulator/robot/textures/sphere/soccerBall.png` — placeholder da bola.
+- `Simulator/robot/textures/teams/*.png` (`.jpg` de backup) + `README.md` — escudos
+  dos times da Série A.
 
 ## Regras de ouro herdadas (NÃO violar)
 
