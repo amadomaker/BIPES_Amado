@@ -77,6 +77,14 @@ const KEY_COLOR_MAPPINGS = 'color_mappings';
 const KEY_CAPTURED       = 'vision_captured_colors';   // slots 1..4 com HSV salvo
 const KEY_COLOR_ENABLED  = 'color_enabled';            // { red: true, c1: false, ... }
 const KEY_MODE           = 'vision_mode';   // 'hands' | 'pose' | 'color'
+const KEY_CAM_SOURCE     = 'vision_cam_source';  // 'notebook' | 'esp32cam'
+const KEY_CAM_URL        = 'vision_cam_url';      // URL do stream MJPEG da ESP32-CAM
+
+// Manifest do ESP Web Tools (firmware da ESP32-CAM). Aponta para o manifest.json
+// + binários hospedados. Caminho relativo à página gesture-control/index.html.
+const ESP_MANIFEST_URL   = '../firmware/esp32cam_visao/manifest.json';
+// URL padrão via mDNS — o firmware responde nesse nome, então não precisa saber o IP.
+const ESP_DEFAULT_URL    = 'http://esp32cam-visao.local:81/stream';
 const DEBOUNCE_MS        = 700;
 const CONFIDENCE         = 0.75;
 const POSE_HOLD_MS       = 250;             // pose precisa estabilizar antes de disparar
@@ -89,6 +97,7 @@ let poseLandmarker       = null;   // PoseLandmarker    (modo Corpo)
 let stream               = null;
 let rafId                = null;
 let isRunning            = false;
+let frameEl              = null;     // elemento ativo de onde sai o frame: <video> (notebook) ou <img> (ESP32-CAM); definido no init()
 let lastGesture          = '';     // último gesto OU pose disparado (compartilhado)
 let lastSentAt           = 0;
 let GestureRecognizerClass = null;
@@ -107,6 +116,15 @@ const btnStop       = document.getElementById('btnStop');
 const statusChip    = document.getElementById('statusChip');
 const statusText    = document.getElementById('statusText');
 const videoEl       = document.getElementById('videoEl');
+const extCamEl      = document.getElementById('extCamEl');
+const camSource     = document.getElementById('camSource');
+const camUrl        = document.getElementById('camUrl');
+const btnPrepareCam   = document.getElementById('btnPrepareCam');
+const espModalBackdrop= document.getElementById('espModalBackdrop');
+const btnCloseEspModal= document.getElementById('btnCloseEspModal');
+const espInstallBtn   = document.getElementById('espInstallBtn');
+const espUrlInput     = document.getElementById('espUrlInput');
+const btnUseEspUrl    = document.getElementById('btnUseEspUrl');
 const videoWrapper  = document.getElementById('videoWrapper');
 const placeholder   = document.getElementById('placeholder');
 const liveEmoji     = document.getElementById('liveEmoji');
@@ -144,6 +162,14 @@ const captureBannerText = document.getElementById('captureBannerText');
 // ── Init ─────────────────────────────────────────────────────
 function init() {
   ipInput.value = localStorage.getItem(KEY_IP) || '';
+  frameEl = videoEl;
+
+  // Fonte de vídeo (notebook x ESP32-CAM)
+  camSource.value = localStorage.getItem(KEY_CAM_SOURCE) === 'esp32cam' ? 'esp32cam' : 'notebook';
+  camUrl.value    = localStorage.getItem(KEY_CAM_URL) || '';
+  applyCamSourceUI();
+  espInstallBtn.setAttribute('manifest', ESP_MANIFEST_URL);
+
   const storedMode = localStorage.getItem(KEY_MODE);
   mode = (storedMode === 'pose' || storedMode === 'color') ? storedMode : 'hands';
   applyModeUI();
@@ -155,6 +181,21 @@ function init() {
   btnStop.addEventListener('click', window.stopCamera);
   ipInput.addEventListener('change', saveIp);
 
+  camSource.addEventListener('change', () => {
+    localStorage.setItem(KEY_CAM_SOURCE, camSource.value);
+    applyCamSourceUI();
+  });
+  camUrl.addEventListener('change', () => {
+    localStorage.setItem(KEY_CAM_URL, camUrl.value.trim());
+  });
+
+  btnPrepareCam.addEventListener('click', openEspModal);
+  btnCloseEspModal.addEventListener('click', closeEspModal);
+  btnUseEspUrl.addEventListener('click', useEspUrl);
+  espModalBackdrop.addEventListener('click', e => {
+    if (e.target === espModalBackdrop) closeEspModal();
+  });
+
   btnPing.addEventListener('click', pingESP32);
   btnMappings.addEventListener('click', openModal);
   btnCloseModal.addEventListener('click', closeModal);
@@ -164,7 +205,7 @@ function init() {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if (captureSlot) cancelCapture();
-      else             closeModal();
+      else { closeModal(); closeEspModal(); }
     }
   });
 
@@ -181,6 +222,33 @@ function init() {
 
   // Atualiza canvas quando a janela for redimensionada
   new ResizeObserver(syncCanvasSize).observe(videoWrapper);
+}
+
+// ── Fonte de vídeo (Notebook / ESP32-CAM) ─────────────────────
+function applyCamSourceUI() {
+  const grp = camSource.closest('.cam-group');
+  if (grp) grp.classList.toggle('is-esp32', camSource.value === 'esp32cam');
+}
+
+// ── Modal: preparar ESP32-CAM (ESP Web Tools) ─────────────────
+function openEspModal() {
+  // pré-preenche com a URL salva ou, se vazia, com o padrão mDNS
+  espUrlInput.value = camUrl.value.trim() || ESP_DEFAULT_URL;
+  espModalBackdrop.classList.remove('hidden');
+}
+function closeEspModal() {
+  espModalBackdrop.classList.add('hidden');
+}
+// Aplica a URL informada no modal como fonte de vídeo ativa.
+function useEspUrl() {
+  const url = espUrlInput.value.trim();
+  if (!url) return;
+  camSource.value = 'esp32cam';
+  camUrl.value    = url;
+  localStorage.setItem(KEY_CAM_SOURCE, 'esp32cam');
+  localStorage.setItem(KEY_CAM_URL, url);
+  applyCamSourceUI();
+  closeEspModal();
 }
 
 // ── Modo (Mãos/Corpo/Cor) ─────────────────────────────────────
@@ -466,12 +534,28 @@ function syncCanvasSize() {
   canvasEl.height = videoWrapper.clientHeight;
 }
 
+// ── Provedor de frame ─────────────────────────────────────────
+// Abstrai a fonte do vídeo: <video> (webcam do notebook) ou <img> (MJPEG da
+// ESP32-CAM). MediaPipe e o modo Cor leem de frameEl; estes helpers entregam
+// dimensões e prontidão independente do tipo de elemento.
+function frameW() {
+  return frameEl === videoEl ? (videoEl.videoWidth  || 0) : (extCamEl.naturalWidth  || 0);
+}
+function frameH() {
+  return frameEl === videoEl ? (videoEl.videoHeight || 0) : (extCamEl.naturalHeight || 0);
+}
+function frameReady() {
+  return frameEl === videoEl
+    ? videoEl.readyState >= 2
+    : (extCamEl.complete && extCamEl.naturalWidth > 0);
+}
+
 // Calcula o rect real do vídeo dentro do wrapper (object-fit: cover)
 function getCoverRect() {
   const cw = canvasEl.width;
   const ch = canvasEl.height;
-  const vw = videoEl.videoWidth  || 640;
-  const vh = videoEl.videoHeight || 480;
+  const vw = frameW() || 640;
+  const vh = frameH() || 480;
   const scale = Math.min(cw / vw, ch / vh);
   const rw = vw * scale;
   const rh = vh * scale;
@@ -534,6 +618,25 @@ async function loadDetectorForMode() {
   }
 }
 
+// Conecta ao stream MJPEG da ESP32-CAM. Como MJPEG é multipart, o evento
+// 'load' do <img> não é confiável → faz polling de naturalWidth até a 1ª frame.
+// Rejeita em erro de rede/mixed-content ou após timeout.
+function startExtCam(url) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const cleanup = () => { clearInterval(poll); clearTimeout(timer); extCamEl.onerror = null; };
+    const ok   = () => { if (settled) return; settled = true; cleanup(); resolve(); };
+    const fail = () => { if (settled) return; settled = true; cleanup(); reject(new Error('Não foi possível abrir o stream da ESP32-CAM (' + url + ')')); };
+
+    extCamEl.onerror = fail;
+    // cache-bust pra forçar nova conexão ao religar a mesma URL
+    extCamEl.src = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+
+    const poll  = setInterval(() => { if (extCamEl.naturalWidth > 0) ok(); }, 100);
+    const timer = setTimeout(fail, 10000);
+  });
+}
+
 async function startCamera() {
   if (isRunning) return;
   btnStart.disabled = true;
@@ -542,13 +645,24 @@ async function startCamera() {
     showOverlay('Carregando MediaPipe...');
     await loadDetectorForMode();
 
-    showOverlay('Acessando câmera...');
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 640, height: 480, facingMode: 'user' },
-    });
-    videoEl.srcObject = stream;
-    await new Promise(r => { videoEl.onloadeddata = r; });
-    videoEl.play();
+    if (camSource.value === 'esp32cam') {
+      const url = camUrl.value.trim();
+      if (!url) throw new Error('Informe a URL da ESP32-CAM');
+      showOverlay('Conectando à ESP32-CAM...');
+      await startExtCam(url);
+      frameEl = extCamEl;
+      videoWrapper.classList.add('src-ext');
+    } else {
+      showOverlay('Acessando câmera...');
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480, facingMode: 'user' },
+      });
+      videoEl.srcObject = stream;
+      await new Promise(r => { videoEl.onloadeddata = r; });
+      videoEl.play();
+      frameEl = videoEl;
+      videoWrapper.classList.remove('src-ext');
+    }
 
     placeholder.style.display  = 'none';
     videoWrapper.style.display = 'block';
@@ -585,6 +699,9 @@ window.stopCamera = function stopCamera() {
   if (poseLandmarker) { poseLandmarker.close(); poseLandmarker = null; }
 
   videoEl.srcObject = null;
+  extCamEl.removeAttribute('src');   // fecha a conexão MJPEG
+  videoWrapper.classList.remove('src-ext');
+  frameEl = videoEl;
   ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
   videoWrapper.style.display = 'none';
   placeholder.style.display  = 'flex';
@@ -606,12 +723,12 @@ window.stopCamera = function stopCamera() {
 function detectLoop() {
   if (!isRunning) return;
 
-  if (videoEl.readyState >= 2) {
+  if (frameReady()) {
     ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
     if (mode === 'pose' && poseLandmarker) {
       try {
-        const results = poseLandmarker.detectForVideo(videoEl, performance.now());
+        const results = poseLandmarker.detectForVideo(frameEl, performance.now());
         drawPoseLandmarks(results);
         const lm = results.landmarks?.[0];
         const detected = lm ? evaluatePose(lm) : null;
@@ -633,7 +750,7 @@ function detectLoop() {
       } catch (err) { console.error('Pose detect:', err); }
 
     } else if (mode === 'hands' && recognizer) {
-      const results = recognizer.recognizeForVideo(videoEl, performance.now());
+      const results = recognizer.recognizeForVideo(frameEl, performance.now());
       try { drawHandLandmarks(results); } catch (_) { /* erros de desenho não param o loop */ }
 
       // F1 — valores contínuos: posição da mão e abertura da pinça.
@@ -1117,9 +1234,9 @@ function getActiveColorWatchlist() {
 // que NÃO toca a borda do frame. Blob na borda = quase sempre parede/
 // fundo, então é descartado. Vence a cor cujo blob interior é maior.
 function detectColors() {
-  if (!videoEl.videoWidth) return null;
+  if (!frameW()) return null;
   const W = _detectCanvas.width, H = _detectCanvas.height;
-  _detectCtx.drawImage(videoEl, 0, 0, W, H);
+  _detectCtx.drawImage(frameEl, 0, 0, W, H);
   const data = _detectCtx.getImageData(0, 0, W, H).data;
   const total = W * H;
   const minHits = total * COLOR_THRESHOLD_PCT;
