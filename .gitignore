@@ -17,9 +17,9 @@ Thumbs.db
 .idea/
 
 # Terraform
-infra/terraform/terraform.tfvars
-infra/terraform/.terraform/
-infra/terraform/.terraform.lock.hcl
-infra/terraform/terraform.tfstate
-infra/terraform/terraform.tfstate.backup
+infra/terraform/environments/*/terraform.tfvars
+infra/terraform/environments/*/.terraform/
+infra/terraform/environments/*/.terraform.lock.hcl
+infra/terraform/environments/*/terraform.tfstate
+infra/terraform/environments/*/terraform.tfstate.backup
 /tmp/publisher.zip
