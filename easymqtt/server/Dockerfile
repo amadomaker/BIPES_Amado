@@ -1,15 +1,12 @@
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Copia apenas o subscriber.py e as eventuais dependências
-COPY subscriber.py /app/
+COPY requirements.txt subscriber.py ./
 
-# Instala as bibliotecas Python necessárias
-RUN pip install --no-cache-dir pymongo paho-mqtt \
-    && pip install pymongo dnspython 
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Executa o subscriber
+ENV PORT=8080
+EXPOSE 8080
+
 CMD ["python3", "subscriber.py"]
-
-
