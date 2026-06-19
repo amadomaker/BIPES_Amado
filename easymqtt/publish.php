@@ -29,7 +29,7 @@ if (!is_numeric($value)) {
     // Encaminha para a Cloud Function HTTP de publicação
     $publisherUrl = getenv('PUBLISHER_URL');
     if (!$publisherUrl) {
-    $currentHost = $_SERVER['HTTP_HOST'] ?? '';
+        $currentHost = $_SERVER['HTTP_HOST'] ?? '';
         if (strpos($currentHost, 'staging') !== false) {
             // Obter com: terraform output -raw publisher_url (projeto dblocks-499511)
             $publisherUrl = 'https://CONFIGURE_PUBLISHER_URL_VIA_ENV_VAR';
