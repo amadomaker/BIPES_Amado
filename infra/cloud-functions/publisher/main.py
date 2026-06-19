@@ -53,7 +53,7 @@ def publish_http(request: Request):
         topic_path,
         data=value.encode("utf-8"),
         session=session,
-        topic=topic,
+        mqtt_topic=topic,  # "topic" conflita com o 1º parâmetro posicional do SDK
     )
     try:
         future.result()

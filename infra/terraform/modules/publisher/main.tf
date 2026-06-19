@@ -52,11 +52,19 @@ resource "google_cloudfunctions2_function" "publisher" {
   }
 }
 
-# Permite chamadas não-autenticadas (acesso público ao endpoint HTTP)
+# Cloud Functions v2 roda em Cloud Run: precisa de ambos os roles para acesso público
 resource "google_cloudfunctions2_function_iam_binding" "publisher_public" {
   project        = var.project_id
   location       = var.region
   cloud_function = google_cloudfunctions2_function.publisher.name
   role           = "roles/cloudfunctions.invoker"
   members        = ["allUsers"]
+}
+
+resource "google_cloud_run_v2_service_iam_binding" "publisher_public_run" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloudfunctions2_function.publisher.service_config[0].service
+  role     = "roles/run.invoker"
+  members  = ["allUsers"]
 }

@@ -19,7 +19,7 @@ def receive_message():
     msg = envelope["message"]
     attrs = msg.get("attributes", {})
     session = attrs.get("session")
-    topic = attrs.get("topic")
+    topic = attrs.get("mqtt_topic")
 
     if not session or not topic:
         return jsonify({"error": "missing session or topic attributes"}), 400
