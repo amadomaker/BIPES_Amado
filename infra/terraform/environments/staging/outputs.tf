@@ -12,3 +12,8 @@ output "subscriber_url" {
   value       = module.subscriber.url
   description = "URL do Cloud Run subscriber"
 }
+
+output "ui_url" {
+  value       = module.ui.url
+  description = "URL pública do frontend BIPES"
+}

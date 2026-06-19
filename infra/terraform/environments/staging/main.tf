@@ -81,3 +81,12 @@ module "publisher" {
   source_dir       = "${path.module}/../../../cloud-functions/publisher"
   depends_on       = [module.pubsub, module.iam]
 }
+
+module "ui" {
+  source        = "../../modules/ui"
+  project_id    = var.project_id
+  region        = var.region
+  image         = var.ui_image
+  publisher_url = module.publisher.url
+  depends_on    = [module.publisher]
+}

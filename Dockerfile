@@ -1,45 +1,28 @@
-# Usa a imagem oficial do Apache como base
-# FROM httpd:latest
+FROM debian:bookworm-slim
 
-# # Define o diretório de trabalho dentro do contêiner
-# WORKDIR /usr/local/apache2/htdocs/
-
-# # Copia os arquivos estáticos para o servidor Apache
-# COPY . /usr/local/apache2/htdocs/
-
-# # Expõe a porta 80
-# EXPOSE 80
-
-# # Inicia o Apache no modo foreground
-# CMD ["httpd", "-D", "FOREGROUND"]
-
-
-
-
-FROM debian:bullseye
-
-# Instala Apache, OpenSSL e utilitários necessários
 RUN apt-get update && \
-    apt-get install -y apache2 openssl && \
-    a2enmod ssl && \
-    mkdir -p /etc/apache2/ssl
+    apt-get install -y apache2 libapache2-mod-php php php-mongodb php-curl && \
+    a2enmod rewrite && \
+    rm -rf /var/lib/apt/lists/*
 
-# Gera certificado autoassinado
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout /etc/apache2/ssl/selfsigned.key \
-    -out /etc/apache2/ssl/selfsigned.crt \
-    -subj "/C=BR/ST=SP/L=SaoPaulo/O=MinhaEmpresa/CN=localhost"
-
-# Copia arquivos do site
 COPY . /var/www/html/
 
-# Copia conf customizada com HTTPS
-COPY apache-ssl.conf /etc/apache2/sites-available/default-ssl.conf
+# Vhost HTTP: sem SSL (Cloud Run termina TLS), passa PUBLISHER_URL ao PHP
+RUN printf '<VirtualHost *:8080>\n\
+    DocumentRoot /var/www/html\n\
+    PassEnv PUBLISHER_URL\n\
+    <Directory /var/www/html>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+    ErrorLog /dev/stderr\n\
+    CustomLog /dev/stdout combined\n\
+</VirtualHost>\n' > /etc/apache2/sites-available/000-default.conf && \
+    a2dissite default-ssl 2>/dev/null || true
 
-# Ativa o site com SSL e configurações
-RUN a2ensite default-ssl.conf
+EXPOSE 8080
 
-# Garante que o Apache rode em foreground
-CMD ["apachectl", "-D", "FOREGROUND"]
-
-EXPOSE 80 443
+# Lê $PORT injetado pelo Cloud Run (padrão 8080) e inicia Apache
+CMD bash -c 'echo "Listen ${PORT:-8080}" > /etc/apache2/ports.conf && \
+    sed -i "s/*:8080/*:${PORT:-8080}/" /etc/apache2/sites-available/000-default.conf && \
+    exec apache2ctl -D FOREGROUND'

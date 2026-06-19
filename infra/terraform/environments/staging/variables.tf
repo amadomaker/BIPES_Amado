@@ -17,3 +17,8 @@ variable "subscriber_image" {
   type        = string
   description = "Imagem do subscriber no Artifact Registry, ex: us-central1-docker.pkg.dev/dblocks-499511/dblocks/subscriber:latest"
 }
+
+variable "ui_image" {
+  type        = string
+  description = "Imagem do frontend no Artifact Registry, ex: us-central1-docker.pkg.dev/dblocks-499511/dblocks/ui:latest"
+}
