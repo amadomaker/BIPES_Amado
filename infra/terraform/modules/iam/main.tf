@@ -35,3 +35,17 @@ resource "google_cloud_run_v2_service_iam_binding" "pubsub_invokes_subscriber" {
   role     = "roles/run.invoker"
   members  = ["serviceAccount:${google_service_account.pubsub_invoker.email}"]
 }
+
+# Data source para obter o project number (necessário para o email do serviço Pub/Sub)
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+# Permite que o agente gerenciado do Pub/Sub assine tokens OIDC pelo pubsub-invoker SA
+resource "google_service_account_iam_binding" "pubsub_sa_token_creator" {
+  service_account_id = google_service_account.pubsub_invoker.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  members = [
+    "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+  ]
+}

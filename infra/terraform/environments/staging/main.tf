@@ -13,6 +13,10 @@ provider "google" {
   region  = var.region
 }
 
+locals {
+  subscriber_run_name = "bipes-subscriber"
+}
+
 module "apis" {
   source     = "../../modules/apis"
   project_id = var.project_id
@@ -37,8 +41,8 @@ module "iam" {
   project_id           = var.project_id
   region               = var.region
   mongo_secret_id      = module.secrets.mongo_uri_secret_id
-  subscriber_run_name  = module.subscriber.service_name
-  depends_on           = [module.secrets, module.subscriber]
+  subscriber_run_name  = local.subscriber_run_name
+  depends_on           = [module.secrets]
 }
 
 module "subscriber" {

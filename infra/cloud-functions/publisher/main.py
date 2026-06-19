@@ -55,7 +55,10 @@ def publish_http(request: Request):
         session=session,
         topic=topic,
     )
-    future.result()
+    try:
+        future.result()
+    except Exception as e:
+        return _json_response({"success": False, "result": f"Pub/Sub publish error: {e}"}, 500)
 
     return _json_response(
         {"success": True, "result": f"Value '{value}' published to topic '{topic}' successfully!"},
