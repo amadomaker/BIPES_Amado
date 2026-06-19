@@ -37,12 +37,20 @@ module "secrets" {
 }
 
 module "iam" {
-  source               = "../../modules/iam"
-  project_id           = var.project_id
-  region               = var.region
-  mongo_secret_id      = module.secrets.mongo_uri_secret_id
-  subscriber_run_name  = local.subscriber_run_name
-  depends_on           = [module.secrets]
+  source          = "../../modules/iam"
+  project_id      = var.project_id
+  mongo_secret_id = module.secrets.mongo_uri_secret_id
+  depends_on      = [module.secrets]
+}
+
+# IAM binding separado: precisa que o Cloud Run subscriber exista antes
+resource "google_cloud_run_v2_service_iam_binding" "pubsub_invokes_subscriber" {
+  project  = var.project_id
+  location = var.region
+  name     = local.subscriber_run_name
+  role     = "roles/run.invoker"
+  members  = ["serviceAccount:${module.iam.pubsub_invoker_email}"]
+  depends_on = [module.subscriber, module.iam]
 }
 
 module "subscriber" {

@@ -27,15 +27,6 @@ resource "google_secret_manager_secret_iam_binding" "subscriber_reads_mongo" {
   members   = ["serviceAccount:${google_service_account.subscriber.email}"]
 }
 
-# pubsub-invoker SA pode invocar o Cloud Run subscriber
-resource "google_cloud_run_v2_service_iam_binding" "pubsub_invokes_subscriber" {
-  project  = var.project_id
-  location = var.region
-  name     = var.subscriber_run_name
-  role     = "roles/run.invoker"
-  members  = ["serviceAccount:${google_service_account.pubsub_invoker.email}"]
-}
-
 # Data source para obter o project number (necessário para o email do serviço Pub/Sub)
 data "google_project" "project" {
   project_id = var.project_id
