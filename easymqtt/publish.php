@@ -29,10 +29,10 @@ if (!is_numeric($value)) {
     // Encaminha para a Cloud Function HTTP de publicação
     $publisherUrl = getenv('PUBLISHER_URL');
     if (!$publisherUrl) {
-        // Detecta ambiente baseado na URL atual para fallback inteligente
-        $currentHost = $_SERVER['HTTP_HOST'] ?? '';
+    $currentHost = $_SERVER['HTTP_HOST'] ?? '';
         if (strpos($currentHost, 'staging') !== false) {
-            $publisherUrl = 'https://mqtt-publisher-staging-tgtka7akja-uc.a.run.app';
+            // Obter com: terraform output -raw publisher_url (projeto dblocks-499511)
+            $publisherUrl = 'https://CONFIGURE_PUBLISHER_URL_VIA_ENV_VAR';
         } else {
             $publisherUrl = 'https://mqtt-publisher-tgtka7akja-uc.a.run.app';
         }
