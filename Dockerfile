@@ -2,7 +2,7 @@ FROM debian:bookworm-slim
 
 RUN apt-get update && \
     apt-get install -y apache2 libapache2-mod-php php php-mongodb php-curl && \
-    a2enmod rewrite && \
+    a2enmod rewrite headers && \
     rm -rf /var/lib/apt/lists/*
 
 COPY . /var/www/html/
