@@ -47,7 +47,7 @@
         <option value="notebook">Notebook</option>
         <option value="esp32cam">ESP32-CAM</option>
       </select>
-      <input type="text" id="camUrl" placeholder="http://esp32cam-visao.local:81/stream" autocomplete="off" spellcheck="false">
+      <input type="text" id="camUrl" placeholder="http://192.168.0.50:81/stream" autocomplete="off" spellcheck="false">
       <button class="btn btn-prepare" id="btnPrepareCam" type="button">⚙ Preparar ESP32-CAM</button>
     </div>
 
@@ -150,38 +150,30 @@
 
   <!-- ── Modal: preparar ESP32-CAM ── -->
   <div class="modal-backdrop hidden" id="espModalBackdrop">
-    <div class="modal">
+    <div class="modal prepare">
       <div class="modal-header">
-        <span class="modal-title">⚙ Preparar ESP32-CAM</span>
+        <span class="modal-title">Preparar ESP32-CAM</span>
         <button class="modal-close" id="btnCloseEspModal">✕</button>
       </div>
       <p class="modal-desc">
-        Grave o firmware da câmera e configure o WiFi dela. Use
-        <strong>Chrome</strong> ou <strong>Edge</strong> para gravar.
+        Use o <strong>Chrome</strong> ou o <strong>Edge</strong> no computador.
       </p>
 
       <ol class="esp-steps">
-        <li>Conecte a ESP32-CAM no USB e clique em <strong>Instalar firmware</strong>.</li>
-        <li>Quando terminar, no seu PC ou celular conecte na rede WiFi
-            <strong>ESP32CAM-Setup</strong> (criada pela câmera).</li>
-        <li>Abre sozinha uma página — escolha a <strong>sua</strong> rede WiFi e
-            digite a senha. A câmera conecta e reinicia.</li>
-        <li>Volte seu PC para a rede normal. A URL já vem preenchida abaixo
-            (<code>esp32cam-visao.local</code>); clique em <strong>Usar esta URL</strong>.</li>
+        <li>Conecte a câmera no cabo USB e clique aqui:
+          <div class="esp-install">
+            <esp-web-install-button id="espInstallBtn">
+              <button slot="activate" class="btn btn-cam-on">⬇ Instalar firmware</button>
+              <span slot="unsupported">Seu navegador não suporta Web Serial. Use Chrome ou Edge no desktop.</span>
+            </esp-web-install-button>
+          </div>
+        </li>
+        <li>No celular ou PC, conecte na rede WiFi <strong>ESP32CAM-Setup</strong>.</li>
+        <li>Escolha a <strong>sua</strong> rede WiFi, digite a senha e toque em <strong>Conectar</strong>.</li>
+        <li>A câmera vai mostrar o <strong>link</strong> dela — copie esse link.</li>
+        <li>Cole o link no campo da câmera, na barra de cima, e clique em
+            <strong>Ligar Câmera</strong>.</li>
       </ol>
-
-      <div class="esp-install">
-        <esp-web-install-button id="espInstallBtn">
-          <button slot="activate" class="btn btn-cam-on">⬇ Instalar firmware</button>
-          <span slot="unsupported">Seu navegador não suporta Web Serial. Use Chrome ou Edge no desktop.</span>
-        </esp-web-install-button>
-      </div>
-
-      <div class="esp-url-row">
-        <label for="espUrlInput">URL da câmera:</label>
-        <input type="text" id="espUrlInput" placeholder="http://esp32cam-visao.local:81/stream" autocomplete="off" spellcheck="false">
-        <button class="btn btn-save" id="btnUseEspUrl" type="button">Usar esta URL</button>
-      </div>
     </div>
   </div>
 

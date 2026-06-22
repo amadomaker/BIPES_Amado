@@ -106,8 +106,8 @@ body {
 
 .esp-install {
   display: flex;
-  justify-content: center;
-  margin: 0.5rem 0 1rem;
+  justify-content: flex-start;
+  margin: 0.4rem 0 0.2rem;
 }
 
 .esp-url-row {
@@ -115,8 +115,7 @@ body {
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
-  border-top: 1px solid #dfe6e9;
-  padding-top: 1rem;
+  margin-top: 0.4rem;
 }
 .esp-url-row label {
   font-size: 13px;
@@ -710,6 +709,25 @@ body {
   color: #8b949e;
   margin-bottom: 1.1rem;
 }
+
+/* ── Tela "Preparar ESP32-CAM": visual claro, natural ao app ── */
+.modal.prepare {
+  background: #fff;
+  border: 1px solid #dfe6e9;
+  color: #2d3436;
+}
+.modal.prepare .modal-header { border-bottom-color: #eceff1; }
+.modal.prepare .modal-title {
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #2d3436;
+}
+.modal.prepare .modal-desc { color: #636e72; font-size: 13px; }
+.modal.prepare .modal-close { border-color: #dfe6e9; color: #636e72; }
+.modal.prepare .modal-close:hover { background: #f1f3f4; color: #2d3436; }
 
 /* ── Cards de gestos (dentro do modal) ───────────── */
 .cards-grid {

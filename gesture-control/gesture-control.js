@@ -83,8 +83,6 @@ const KEY_CAM_URL        = 'vision_cam_url';      // URL do stream MJPEG da ESP3
 // Manifest do ESP Web Tools (firmware da ESP32-CAM). Aponta para o manifest.json
 // + binários hospedados. Caminho relativo à página gesture-control/index.html.
 const ESP_MANIFEST_URL   = '../firmware/esp32cam_visao/manifest.json';
-// URL padrão via mDNS — o firmware responde nesse nome, então não precisa saber o IP.
-const ESP_DEFAULT_URL    = 'http://esp32cam-visao.local:81/stream';
 const DEBOUNCE_MS        = 700;
 const CONFIDENCE         = 0.75;
 const POSE_HOLD_MS       = 250;             // pose precisa estabilizar antes de disparar
@@ -123,8 +121,6 @@ const btnPrepareCam   = document.getElementById('btnPrepareCam');
 const espModalBackdrop= document.getElementById('espModalBackdrop');
 const btnCloseEspModal= document.getElementById('btnCloseEspModal');
 const espInstallBtn   = document.getElementById('espInstallBtn');
-const espUrlInput     = document.getElementById('espUrlInput');
-const btnUseEspUrl    = document.getElementById('btnUseEspUrl');
 const videoWrapper  = document.getElementById('videoWrapper');
 const placeholder   = document.getElementById('placeholder');
 const liveEmoji     = document.getElementById('liveEmoji');
@@ -191,7 +187,6 @@ function init() {
 
   btnPrepareCam.addEventListener('click', openEspModal);
   btnCloseEspModal.addEventListener('click', closeEspModal);
-  btnUseEspUrl.addEventListener('click', useEspUrl);
   espModalBackdrop.addEventListener('click', e => {
     if (e.target === espModalBackdrop) closeEspModal();
   });
@@ -231,24 +226,13 @@ function applyCamSourceUI() {
 }
 
 // ── Modal: preparar ESP32-CAM (ESP Web Tools) ─────────────────
+// Só instala o firmware e explica os passos. O link da câmera o aluno cola no
+// campo de URL da barra de cima (não há mais campo duplicado aqui dentro).
 function openEspModal() {
-  // pré-preenche com a URL salva ou, se vazia, com o padrão mDNS
-  espUrlInput.value = camUrl.value.trim() || ESP_DEFAULT_URL;
   espModalBackdrop.classList.remove('hidden');
 }
 function closeEspModal() {
   espModalBackdrop.classList.add('hidden');
-}
-// Aplica a URL informada no modal como fonte de vídeo ativa.
-function useEspUrl() {
-  const url = espUrlInput.value.trim();
-  if (!url) return;
-  camSource.value = 'esp32cam';
-  camUrl.value    = url;
-  localStorage.setItem(KEY_CAM_SOURCE, 'esp32cam');
-  localStorage.setItem(KEY_CAM_URL, url);
-  applyCamSourceUI();
-  closeEspModal();
 }
 
 // ── Modo (Mãos/Corpo/Cor) ─────────────────────────────────────

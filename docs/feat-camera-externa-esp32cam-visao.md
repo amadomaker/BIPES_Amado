@@ -1,10 +1,12 @@
 # Câmera externa (ESP32-CAM) na aba Visão
 
-> **Status (2026-06-18):** Parte B (seletor + provedor de frame) **pronta e
-> testada**. Firmware da ESP32-CAM (stream MJPEG + CORS + WiFi por portal cativo)
-> **pronto e gravando**. Botão "Preparar ESP32-CAM" no front **pronto**. Falta
-> resolver **como o usuário descobre o IP da câmera sem abrir a Arduino IDE**
-> (ver "Próximos passos"). Branch: `277-feat-camera-externa-esp32cam-visao`.
+> **Status (2026-06-22):** Parte B (seletor + provedor de frame) **pronta e
+> testada**. Firmware da ESP32-CAM (stream MJPEG + CORS) **pronto**. Botão
+> "Preparar ESP32-CAM" no front **pronto**. **Problema do IP RESOLVIDO**: portal
+> cativo próprio (sem WiFiManager) que, ao conectar, **mostra o link pronto com o
+> IP + botão Copiar** — sem serial, sem IDE, funciona no Windows. Falta **testar
+> na placa** o novo firmware e **rebuildar o `.merged.bin`**. Branch:
+> `277-feat-camera-externa-esp32cam-visao`.
 
 ## Objetivo
 
@@ -73,29 +75,33 @@ Em `gesture-control/`:
 - **CORS confirmado funcionando:** com o header no firmware + `<img crossorigin>`,
   a detecção não dá mais `SecurityError`.
 
-## O problema em aberto: IP fácil sem abrir a Arduino IDE
+## O problema do IP — RESOLVIDO (2026-06-22)
 
-Depois de configurar o WiFi pelo portal cativo, a câmera entra na rede com um IP
-do DHCP. Hoje o usuário **não tem como descobrir esse IP** sem abrir o Monitor
-Serial da Arduino IDE — o que **não pode** ser o fluxo final (usuário leigo).
+Depois de configurar o WiFi, a câmera entra na rede com um IP do DHCP — único por
+placa/rede e variável. Não dá pra fixar IP nenhum; o usuário leigo não pode
+depender do Monitor Serial pra descobri-lo.
 
-- O **mDNS (`esp32cam-visao.local`)** foi implementado pra resolver isso, mas
-  **não resolveu** no ambiente do usuário (Windows). Pré-preenchido no modal, mas
-  a câmera não ligou por ele. **Investigar por quê** é o passo nº 1.
-- (Daqui do dev não dá pra testar a rede dele: o WSL fica em rede NAT isolada
-  `172.31.x` e não enxerga a LAN `192.168.15.x`.)
+**Solução implementada: portal cativo próprio (substituiu o WiFiManager).** A placa
+fica em **AP+STA**: ao receber a senha, conecta na rede do usuário **mantendo a
+página do portal aberta**, que faz polling em `/status` e, ao conectar, **exibe o
+link pronto `http://<ip>:81/stream` + botão Copiar**. Funciona em qualquer SO
+(inclusive Windows), sem serial, sem IDE, sem instalar Bonjour. Credenciais salvas
+em NVS (`Preferences`); boots seguintes conectam direto, sem portal.
 
-## Próximos passos (amanhã)
+- O WiFiManager foi removido porque fecha o portal ao conectar e não consegue
+  mostrar o IP resultante. Sem libs externas agora (só o core esp32).
+- **mDNS (`esp32cam-visao.local`) mantido como bônus** pra quem ele resolve. Não
+  é mais o caminho crítico — o link com IP do portal é o garantido.
+- (Daqui do dev não dá pra testar a rede do usuário: o WSL fica em rede NAT
+  isolada `172.31.x` e não enxerga a LAN `192.168.15.x` — por isso o teste na
+  placa é com o usuário.)
 
-1. **Fazer o usuário obter o IP sem IDE — prioridade.** Opções a avaliar:
-   - **Consertar o mDNS** (`esp32cam-visao.local`) — solução ideal, zero IP.
-     Investigar por que não resolveu no Windows (mDNS do firmware subiu? Chrome
-     resolve `.local`? precisa de `MDNS.update()`/serviço? Bonjour instalado?).
-   - **Mostrar o IP na própria página do portal cativo** após conectar
-     (WiFiManager `setSaveConfigCallback` / página de sucesso com o IP), pra o
-     usuário copiar antes de sair da rede `ESP32CAM-Setup`.
-   - Fallback documentado: olhar a lista de dispositivos no roteador
-     (`192.168.x.1`).
+## Próximos passos
+
+1. **Testar o novo firmware na placa** (portal próprio): conectar em
+   `ESP32CAM-Setup`, configurar o WiFi, confirmar que a tela mostra o link com IP
+   e que o stream abre por ele no BIPES. Depois **rebuildar o `.merged.bin`**
+   (Export Compiled Binary + merge — ver README).
 2. **Hospedar o `.merged.bin`** junto do site em `/firmware/esp32cam_visao/` pra
    o botão funcionar no ar (hoje só testado local). Decidir se versiona o `.bin`
    ou hospeda à parte. Ajustar `ESP_MANIFEST_URL` se o caminho servido mudar.
