@@ -12,6 +12,7 @@ data "archive_file" "publisher_source" {
   type        = "zip"
   output_path = "/tmp/publisher.zip"
   source_dir  = var.source_dir
+  excludes    = ["__pycache__", ".pyc", "*.pyc"]
 }
 
 # Upload do zip ao GCS com nome baseado no hash
