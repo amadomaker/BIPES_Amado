@@ -1,5 +1,6 @@
 locals {
   required_apis = [
+    "cloudresourcemanager.googleapis.com",
     "pubsub.googleapis.com",
     "run.googleapis.com",
     "cloudfunctions.googleapis.com",
