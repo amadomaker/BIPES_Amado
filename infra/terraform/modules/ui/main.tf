@@ -34,6 +34,10 @@ resource "google_cloud_run_v2_service" "ui" {
       max_instance_count = 3
     }
   }
+
+  lifecycle {
+    ignore_changes = [client, client_version]
+  }
 }
 
 resource "google_cloud_run_v2_service_iam_binding" "ui_public" {
