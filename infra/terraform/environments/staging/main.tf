@@ -6,6 +6,11 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  backend "gcs" {
+    bucket = "dblocks-499511-tfstate"
+    prefix = "staging"
+  }
 }
 
 provider "google" {
