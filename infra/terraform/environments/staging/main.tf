@@ -48,7 +48,6 @@ module "iam" {
   depends_on      = [module.secrets]
 }
 
-# IAM binding separado: precisa que o Cloud Run subscriber exista antes
 resource "google_cloud_run_v2_service_iam_binding" "pubsub_invokes_subscriber" {
   project  = var.project_id
   location = var.region
