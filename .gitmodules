@@ -15,5 +15,5 @@
     url = https://github.com/micropython/micropython-unicorn.git
 
 [submodule "webrepl"]
-    path = webrepl
-    url = https://github.com/webrepl/webrepl.git
+	path = webrepl
+	url = https://github.com/webrepl/webrepl.git
