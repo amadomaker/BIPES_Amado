@@ -1,0 +1,69 @@
+name: Deploy Infra (Terraform)
+
+on:
+  push:
+    branches: [master, staging]
+    paths:
+      - "infra/terraform/modules/**"
+      - "infra/terraform/environments/staging/**"
+      - "infra/terraform/environments/production/**"
+      - ".github/workflows/deploy-infra.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Ambiente"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  TF_IN_AUTOMATION: "true"
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment: ${{ (github.ref == 'refs/heads/master' || github.event.inputs.environment == 'production') && 'production' || 'staging' }}
+
+    # O WIF_SERVICE_ACCOUNT deste environment precisa de permissões amplas:
+    # roles/editor + roles/resourcemanager.projectIamAdmin + roles/iam.serviceAccountAdmin
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.event.inputs.environment }}" == "production" ]]; then
+            echo "PROJECT_ID=${{ secrets.PROD_PROJECT_ID }}" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=production" >> $GITHUB_ENV
+          else
+            echo "PROJECT_ID=${{ secrets.STAGING_PROJECT_ID }}" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
+          fi
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform -chdir=infra/terraform/environments/$DEPLOY_ENV init
+
+      - name: Terraform Plan
+        env:
+          TF_VAR_mongo_uri: ${{ secrets.MONGO_URI }}
+        run: |
+          terraform -chdir=infra/terraform/environments/$DEPLOY_ENV plan \
+            -out=tfplan \
+            -var="subscriber_image=us-central1-docker.pkg.dev/$PROJECT_ID/dblocks/subscriber:latest" \
+            -var="ui_image=us-central1-docker.pkg.dev/$PROJECT_ID/dblocks/ui:latest"
+
+      - name: Terraform Apply
+        run: terraform -chdir=infra/terraform/environments/$DEPLOY_ENV apply tfplan
