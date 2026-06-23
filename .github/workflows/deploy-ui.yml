@@ -40,10 +40,10 @@ jobs:
       - name: Set environment variables
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.event.inputs.environment }}" == "production" ]]; then
-            echo "PROJECT_ID=${{ secrets.PROJECT_ID }}" >> $GITHUB_ENV
+            echo "PROJECT_ID=${{ secrets.PROD_PROJECT_ID }}" >> $GITHUB_ENV
             echo "DEPLOY_ENV=production" >> $GITHUB_ENV
           else
-            echo "PROJECT_ID=${{ secrets.PROJECT_ID }}" >> $GITHUB_ENV
+            echo "PROJECT_ID=${{ secrets.STAGING_PROJECT_ID }}" >> $GITHUB_ENV
             echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
           fi
           echo "TAG=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
