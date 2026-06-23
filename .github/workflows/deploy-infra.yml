@@ -26,6 +26,9 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     environment: ${{ (github.ref == 'refs/heads/master' || github.event.inputs.environment == 'production') && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
 
     # O WIF_SERVICE_ACCOUNT deste environment precisa de permissões amplas:
     # roles/editor + roles/resourcemanager.projectIamAdmin + roles/iam.serviceAccountAdmin
