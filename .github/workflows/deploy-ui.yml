@@ -7,6 +7,7 @@ on:
       - "ui/**"
       - "Simulator/**"
       - "easymqtt/**"
+      - "gesture-control/**"
       - "Dockerfile"
       - ".dockerignore"
       - ".github/workflows/deploy-ui.yml"
