@@ -25,8 +25,6 @@ env:
   REGION: us-central1
   REPO: dblocks
   SERVICE: bipes-ui
-  PROD_PROJECT_ID: ${{ secrets.PROD_PROJECT_ID }}
-  STAGING_PROJECT_ID: ${{ secrets.STAGING_PROJECT_ID }}
 
 jobs:
   deploy:
@@ -42,10 +40,10 @@ jobs:
       - name: Set environment variables
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.event.inputs.environment }}" == "production" ]]; then
-            echo "PROJECT_ID=${{ env.PROD_PROJECT_ID }}" >> $GITHUB_ENV
+            echo "PROJECT_ID=${{ secrets.PROJECT_ID }}" >> $GITHUB_ENV
             echo "DEPLOY_ENV=production" >> $GITHUB_ENV
           else
-            echo "PROJECT_ID=${{ env.STAGING_PROJECT_ID }}" >> $GITHUB_ENV
+            echo "PROJECT_ID=${{ secrets.PROJECT_ID }}" >> $GITHUB_ENV
             echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
           fi
           echo "TAG=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
@@ -53,7 +51,8 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
