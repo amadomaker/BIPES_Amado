@@ -15,3 +15,6 @@ Thumbs.db
 # Editor / IDE
 .vscode/
 .idea/
+
+# Gerado pelo CI no deploy (não versionar)
+ui/version.json
