@@ -1,89 +1,66 @@
 import os
 import json
-import time
-from typing import Any
-
 from flask import Request, make_response
-import paho.mqtt.client as mqtt
+from google.cloud import pubsub_v1
 
 
-def _cors(headers: dict[str, str] | None = None):
-    base = {
+def _cors(extra=None):
+    h = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET,OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Headers": "Content-Type",
     }
-    if headers:
-        base.update(headers)
-    return base
+    if extra:
+        h.update(extra)
+    return h
+
+
+def _json_response(body: dict, status: int):
+    resp = make_response(json.dumps(body), status)
+    for k, v in _cors({"Content-Type": "application/json"}).items():
+        resp.headers[k] = v
+    return resp
 
 
 def publish_http(request: Request):
-    # Preflight CORS
     if request.method == "OPTIONS":
         resp = make_response("", 204)
         for k, v in _cors().items():
             resp.headers[k] = v
         return resp
 
-    # Params
     session = request.args.get("session")
     topic = request.args.get("topic")
     value = request.args.get("value")
 
     if not session or not topic or value is None:
-        body = {"success": False, "result": "Invalid Parameters"}
-        resp = make_response(json.dumps(body), 400)
-        for k, v in _cors().items():
-            resp.headers[k] = v
-        resp.headers["Content-Type"] = "application/json"
-        return resp
+        return _json_response({"success": False, "result": "Invalid Parameters"}, 400)
 
-    # Optional: enforce numeric value to keep parity with PHP
     try:
         float(value)
-    except Exception:
-        body = {
-            "success": False,
-            "result": f"Error publishing value '{value}' to topic '{topic}'. Non-numeric input value!",
-        }
-        resp = make_response(json.dumps(body), 400)
-        for k, v in _cors().items():
-            resp.headers[k] = v
-        resp.headers["Content-Type"] = "application/json"
-        return resp
+    except ValueError:
+        return _json_response(
+            {"success": False, "result": f"Non-numeric value: '{value}'"}, 400
+        )
 
-    mqtt_host = os.getenv("MQTT_HOST")
-    mqtt_port = int(os.getenv("MQTT_PORT", "1883"))
-    mqtt_user = os.getenv("MQTT_USER")
-    mqtt_pass = os.getenv("MQTT_PASS")
+    project_id = os.environ["PROJECT_ID"]
+    topic_id = os.environ["PUBSUB_TOPIC"]
 
-    if not mqtt_host or not mqtt_user or not mqtt_pass:
-        body = {"success": False, "result": "MQTT env vars not configured"}
-        resp = make_response(json.dumps(body), 500)
-        for k, v in _cors().items():
-            resp.headers[k] = v
-        resp.headers["Content-Type"] = "application/json"
-        return resp
+    client = pubsub_v1.PublisherClient()
+    topic_path = client.topic_path(project_id, topic_id)
 
-    # Build topic
-    full_topic = f"{session}/{topic}"
-
-    # Publish
+    future = client.publish(
+        topic_path,
+        data=value.encode("utf-8"),
+        session=session,
+        mqtt_topic=topic,  # "topic" conflita com o 1º parâmetro posicional do SDK
+    )
     try:
-        client = mqtt.Client()
-        client.username_pw_set(mqtt_user, password=mqtt_pass)
-        client.connect(mqtt_host, mqtt_port, 60)
-        client.publish(full_topic, str(value))
-        client.disconnect()
-        body = {"success": True, "result": f"Value '{value}' published to topic '{topic}' successfully!"}
-        status = 200
+        future.result()
     except Exception as e:
-        body = {"success": False, "result": f"Error publishing: {e}"}
-        status = 500
+        return _json_response({"success": False, "result": f"Pub/Sub publish error: {e}"}, 500)
 
-    resp = make_response(json.dumps(body), status)
-    for k, v in _cors().items():
-        resp.headers[k] = v
-    resp.headers["Content-Type"] = "application/json"
-    return resp
+    return _json_response(
+        {"success": True, "result": f"Value '{value}' published to topic '{topic}' successfully!"},
+        200,
+    )
