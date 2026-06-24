@@ -16,6 +16,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Gerado pelo CI no deploy (não versionar)
+ui/version.json
+
 # Terraform
 infra/terraform/environments/*/terraform.tfvars
 infra/terraform/environments/*/.terraform/

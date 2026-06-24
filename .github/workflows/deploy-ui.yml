@@ -10,6 +10,7 @@ on:
       - "gesture-control/**"
       - "Dockerfile"
       - ".dockerignore"
+      - "VERSION"
       - ".github/workflows/deploy-ui.yml"
   workflow_dispatch:
     inputs:

@@ -41,6 +41,16 @@
       <button class="mode-opt"           id="modeColor" data-mode="color" type="button">Cor</button>
     </div>
 
+    <div class="cam-group">
+      <label for="camSource">Câmera:</label>
+      <select id="camSource">
+        <option value="notebook">Notebook</option>
+        <option value="esp32cam">ESP32-CAM</option>
+      </select>
+      <input type="text" id="camUrl" placeholder="http://192.168.0.50:81/stream" autocomplete="off" spellcheck="false">
+      <button class="btn btn-prepare" id="btnPrepareCam" type="button">⚙ Preparar ESP32-CAM</button>
+    </div>
+
     <button class="btn btn-cam-on"  id="btnStart">▶ Ligar Câmera</button>
     <button class="btn btn-cam-off" id="btnStop" disabled>■ Desligar</button>
   </div>
@@ -58,6 +68,7 @@
       <!-- Wrapper fill total (câmera ligada) -->
       <div class="video-wrapper" id="videoWrapper">
         <video id="videoEl" autoplay muted playsinline></video>
+        <img id="extCamEl" crossorigin="anonymous" alt="">
         <canvas id="canvasEl"></canvas>
 
         <!-- ── HUD ── -->
@@ -137,6 +148,36 @@
     </div>
   </div>
 
+  <!-- ── Modal: preparar ESP32-CAM ── -->
+  <div class="modal-backdrop hidden" id="espModalBackdrop">
+    <div class="modal prepare">
+      <div class="modal-header">
+        <span class="modal-title">Preparar ESP32-CAM</span>
+        <button class="modal-close" id="btnCloseEspModal">✕</button>
+      </div>
+      <p class="modal-desc">
+        Use o <strong>Chrome</strong> ou o <strong>Edge</strong> no computador.
+      </p>
+
+      <ol class="esp-steps">
+        <li>Conecte a câmera no cabo USB e clique aqui:
+          <div class="esp-install">
+            <esp-web-install-button id="espInstallBtn">
+              <button slot="activate" class="btn btn-cam-on">⬇ Instalar firmware</button>
+              <span slot="unsupported">Seu navegador não suporta Web Serial. Use Chrome ou Edge no desktop.</span>
+            </esp-web-install-button>
+          </div>
+        </li>
+        <li>No celular ou PC, conecte na rede WiFi <strong>ESP32CAM-Setup</strong>.</li>
+        <li>Escolha a <strong>sua</strong> rede WiFi, digite a senha e toque em <strong>Conectar</strong>.</li>
+        <li>A câmera vai mostrar o <strong>link</strong> dela — copie esse link.</li>
+        <li>Cole o link no campo da câmera, na barra de cima, e clique em
+            <strong>Ligar Câmera</strong>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
   <script type="module" src="gesture-control.js"></script>
 </body>
 </html>

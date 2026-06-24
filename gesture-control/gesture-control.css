@@ -51,6 +51,87 @@ body {
   border-color: #0984e3;
 }
 
+.cam-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cam-group label {
+  font-size: 13px;
+  color: #636e72;
+  white-space: nowrap;
+}
+
+.cam-group select,
+.cam-group input {
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 13px;
+  transition: border-color .15s;
+}
+
+.cam-group input {
+  width: 200px;
+}
+
+.cam-group select:focus,
+.cam-group input:focus {
+  outline: none;
+  border-color: #0984e3;
+}
+
+/* Campo de URL e botão de preparar só aparecem quando a fonte é ESP32-CAM */
+.cam-group input,
+.cam-group .btn-prepare { display: none; }
+.cam-group.is-esp32 input { display: inline-block; }
+.cam-group.is-esp32 .btn-prepare { display: inline-flex; }
+
+.btn-prepare {
+  background: #f1f2f6;
+  color: #2d3436;
+  border: 1px solid #dfe6e9;
+}
+.btn-prepare:hover { background: #e8eaed; }
+
+/* ── Modal: preparar ESP32-CAM ─────────────────────── */
+.esp-steps {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+  font-size: 13px;
+  color: #2d3436;
+  line-height: 1.6;
+}
+
+.esp-install {
+  display: flex;
+  justify-content: flex-start;
+  margin: 0.4rem 0 0.2rem;
+}
+
+.esp-url-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+.esp-url-row label {
+  font-size: 13px;
+  color: #636e72;
+  white-space: nowrap;
+}
+.esp-url-row input {
+  flex: 1;
+  min-width: 200px;
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 13px;
+}
+.esp-url-row input:focus { outline: none; border-color: #0984e3; }
+
 .status-chip {
   display: flex;
   align-items: center;
@@ -200,6 +281,16 @@ body {
   transform: scaleX(-1);
 }
 
+/* Fonte ESP32-CAM (MJPEG num <img>) — não é espelhada como a webcam */
+#extCamEl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  object-fit: contain;
+}
+
 #canvasEl {
   position: absolute;
   inset: 0;
@@ -208,6 +299,12 @@ body {
   transform: scaleX(-1);
   pointer-events: none;
 }
+
+/* Fonte externa: mostra o <img>, esconde o <video> e remove o espelhamento
+   (do vídeo e do canvas), já que a ESP32-CAM não é espelhada */
+.video-wrapper.src-ext #videoEl  { display: none; }
+.video-wrapper.src-ext #extCamEl { display: block; }
+.video-wrapper.src-ext #canvasEl { transform: none; }
 
 /* ── HUD ─────────────────────────────────────────── */
 .hud {
@@ -612,6 +709,25 @@ body {
   color: #8b949e;
   margin-bottom: 1.1rem;
 }
+
+/* ── Tela "Preparar ESP32-CAM": visual claro, natural ao app ── */
+.modal.prepare {
+  background: #fff;
+  border: 1px solid #dfe6e9;
+  color: #2d3436;
+}
+.modal.prepare .modal-header { border-bottom-color: #eceff1; }
+.modal.prepare .modal-title {
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #2d3436;
+}
+.modal.prepare .modal-desc { color: #636e72; font-size: 13px; }
+.modal.prepare .modal-close { border-color: #dfe6e9; color: #636e72; }
+.modal.prepare .modal-close:hover { background: #f1f3f4; color: #2d3436; }
 
 /* ── Cards de gestos (dentro do modal) ───────────── */
 .cards-grid {
