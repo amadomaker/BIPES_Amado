@@ -1,2 +1,28 @@
 mongodb-compass_1.43.0_amd64.deb
 
+# Backups de editores
+*.save
+*.bak
+*.orig
+*.tmp
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# Gerado pelo CI no deploy (não versionar)
+ui/version.json
+
+# Terraform
+infra/terraform/environments/*/terraform.tfvars
+infra/terraform/environments/*/.terraform/
+infra/terraform/environments/*/.terraform.lock.hcl
+infra/terraform/environments/*/terraform.tfstate
+infra/terraform/environments/*/terraform.tfstate.backup
+/tmp/publisher.zip

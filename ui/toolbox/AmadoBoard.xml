@@ -2103,6 +2103,7 @@ _
       <label text="%{BKY_HTTP_SERVER_IOT_LEGEND}" />
 
       <button text="%{BKY_LOAD_EXAMPLE_LEGEND}: webserver" callbackKey="loadExample"></button>
+      <button text="%{BKY_LOAD_EXAMPLE_LEGEND}: led_webserver" callbackKey="loadExample"></button>
       <button text="%{BKY_DOCUMENTATION_LEGEND}: webserver" callbackKey="loadDoc"></button>
 
     <block type="net_http_server_start">
@@ -2404,6 +2405,33 @@ _
       </block>
     </category>
     -->
+</category>
+
+<category name="%{BKY_CAT_VISION}" colour="%{BKY_VISION_HUE}">
+  <label text="Visão por Câmera"></label>
+  <label text="Use os blocos abaixo para reagir a poses corporais ou gestos de mão detectados pela aba Visão."></label>
+  <label text="Antes deste bloco, conecte a placa ao Wi-Fi."></label>
+  <block type="init_vision_server">
+    <value name="port">
+      <shadow type="math_number">
+        <field name="NUM">80</field>
+      </shadow>
+    </value>
+  </block>
+  <block type="when_pose_detected"></block>
+  <block type="when_gesture_detected"></block>
+  <label text="Valores contínuos (modo Mãos): leia a posição da mão e a pinça como número de 0 a 100."></label>
+  <block type="when_vision_updates"></block>
+  <block type="vision_hand_position"></block>
+  <block type="vision_pinch_distance"></block>
+  <label text="Detecção de cor (modo Cor): encaixe uma cor pronta ou capturada no bloco quando aparecer."></label>
+  <block type="when_color_detected">
+    <value name="COLOR">
+      <block type="color_preset"></block>
+    </value>
+  </block>
+  <block type="color_preset"></block>
+  <block type="color_captured"></block>
 </category>
 
 <!--Comentando a categoria Control para PID-->

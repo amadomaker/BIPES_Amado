@@ -1,4 +1,4 @@
-name: Deploy UI to Cloud Run
+name: Deploy UI
 
 on:
   push:
@@ -6,12 +6,16 @@ on:
     paths:
       - "ui/**"
       - "Simulator/**"
+      - "easymqtt/**"
+      - "gesture-control/**"
       - "Dockerfile"
+      - ".dockerignore"
+      - "VERSION"
       - ".github/workflows/deploy-ui.yml"
   workflow_dispatch:
     inputs:
       environment:
-        description: "Environment to deploy"
+        description: "Ambiente de deploy"
         required: true
         default: "staging"
         type: choice
@@ -20,101 +24,84 @@ on:
           - production
 
 env:
-  PROJECT_ID: erudite-nation-440421-p7
   REGION: us-central1
   REPO: dblocks
-  IMAGE: ui
+  SERVICE: bipes-ui
 
 jobs:
-  deploy-ui:
+  deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
+    environment: ${{ (github.ref == 'refs/heads/master' || github.event.inputs.environment == 'production') && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: "recursive"
-          fetch-depth: 0
+          submodules: true
 
-      - name: Update Submodules
-        run: git submodule update --init --recursive
+      - name: Set environment variables
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.event.inputs.environment }}" == "production" ]]; then
+            echo "PROJECT_ID=${{ secrets.PROD_PROJECT_ID }}" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=production" >> $GITHUB_ENV
+          else
+            echo "PROJECT_ID=${{ secrets.STAGING_PROJECT_ID }}" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
+          fi
+          echo "TAG=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
-      - name: Setup Google Cloud CLI
+      - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ env.PROJECT_ID }}
 
       - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-      - name: Set environment variables
+      - name: Generate version.json
         run: |
-          TAG="${GITHUB_SHA:0:8}"
-          echo "TAG=$TAG" >> $GITHUB_ENV
+          cat > ui/version.json << EOF
+          {
+            "version": "$(cat VERSION 2>/dev/null || echo '1.0.0')",
+            "env": "${{ env.DEPLOY_ENV }}",
+            "commit": "${{ env.TAG }}",
+            "branch": "${{ github.ref_name }}",
+            "date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
 
-          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            echo "ENV_SUFFIX=" >> $GITHUB_ENV
-          else
-            echo "ENV_SUFFIX=-staging" >> $GITHUB_ENV
-          fi
-
-      - name: Build and Push Docker Image
+      - name: Build and push image
         run: |
-          IMAGE_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.IMAGE }}:${{ env.TAG }}"
+          IMAGE="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/ui:${{ env.TAG }}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
-          docker build -t $IMAGE_URI .
-          docker push $IMAGE_URI
-
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
-      - name: Deploy to Cloud Run
+      - name: Update Cloud Run image
         run: |
-          gcloud run deploy bipes-ui${{ env.ENV_SUFFIX }} \
-            --image=${{ env.IMAGE_URI }} \
-            --platform=managed \
+          gcloud run services update ${{ env.SERVICE }} \
+            --project=${{ env.PROJECT_ID }} \
             --region=${{ env.REGION }} \
-            --allow-unauthenticated \
-            --port=80 \
-            --memory=256Mi \
-            --cpu=1 \
-            --min-instances=0 \
-            --max-instances=5 \
-            --timeout=300
+            --image=${{ env.IMAGE }}
 
-      - name: Get Service URL
-        id: service-url
+      - name: Health check
         run: |
-          SERVICE_URL=$(gcloud run services describe bipes-ui${{ env.ENV_SUFFIX }} \
+          URL=$(gcloud run services describe ${{ env.SERVICE }} \
+            --project=${{ env.PROJECT_ID }} \
             --region=${{ env.REGION }} \
             --format="value(status.url)")
-          echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
-          echo "✅ UI deployed: $SERVICE_URL"
-
-      - name: Test UI Health
-        run: |
-          sleep 30  # Wait for deployment
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.service-url.outputs.url }}/")
-          if [[ "$RESPONSE" == "200" || "$RESPONSE" == "302" ]]; then
-            echo "✅ UI health check passed"
+          echo "Deployed to: $URL"
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" "$URL/ui/index.html")
+          if [[ "$HTTP" == "200" ]]; then
+            echo "✅ Health check passed (HTTP $HTTP)"
           else
-            echo "❌ UI health check failed (HTTP $RESPONSE)"
+            echo "❌ Health check failed (HTTP $HTTP)"
             exit 1
           fi
-
-      - name: Test UI Content
-        run: |
-          RESPONSE=$(curl -s "${{ steps.service-url.outputs.url }}/ui/landing.html")
-          if echo "$RESPONSE" | grep -q "BIPES\|Dblocks"; then
-            echo "✅ UI content check passed"
-          else
-            echo "❌ UI content check failed"
-            exit 1
-          fi
-
-

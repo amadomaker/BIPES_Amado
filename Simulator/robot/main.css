@@ -1,0 +1,1104 @@
+@charset "UTF-8";
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+  position: absolute;
+  top: 0px; }
+
+body {
+  background: #E4F0FE;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column; }
+
+header {
+  background: #4994FB;
+  display: flex;
+  flex-direction: row;
+  color: white;
+  padding: 0em 1em;
+  height: 2.2em;
+  align-items: center; }
+  header .gearsIcon {
+    height: 1.6em;
+    margin-right: 0.5em;
+    margin-top: -0.3em;
+    margin-bottom: -0.3em; }
+  header #projectName, header #robotName {
+    margin-left: 1em;
+    background: #76AFFC;
+    border: dashed 1px #5781BA;
+    border-radius: 0.3em;
+    padding: 0.3em 0.5em;
+    position: relative;
+    color: white; }
+  header #projectName::placeholder {
+    color: #95989A; }
+  header .language {
+    margin-left: auto;
+    cursor: pointer;
+    user-select: none; }
+
+.bold {
+  font-weight: bold; }
+
+main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column; }
+
+nav {
+  margin-top: 0.5em;
+  display: flex;
+  border-bottom: solid 1px #bbbbbb;
+  align-items: center; }
+  nav ul.panelTabs {
+    display: flex;
+    padding-left: 5px;
+    margin: 0; }
+    nav ul.panelTabs li {
+      display: block;
+      border: solid 1px #bbbbbb;
+      padding: 0.3em 1em;
+      border-radius: 0.5em 0.5em 0 0;
+      border-bottom: none;
+      margin-left: -5px;
+      background: #D9E3F1;
+      color: #999999;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap; }
+    nav ul.panelTabs li:hover {
+      background: #E4F0FE; }
+    nav ul.panelTabs li.active {
+      z-index: 1;
+      background: white;
+      color: #4994FB;
+      margin-top: -5px;
+      font-size: 110%; }
+  nav .menuBar {
+    display: flex;
+    margin-left: 0.5em; }
+    nav .menuBar .menuItem {
+      padding: 0.3em 0.5em;
+      font-weight: bold;
+      color: gray;
+      cursor: pointer;
+      user-select: none; }
+    nav .menuBar .menuItem:hover {
+      color: #4994FB; }
+  nav .news {
+    margin-left: 2em;
+    font-weight: bold;
+    color: red;
+    cursor: pointer;
+    user-select: none; }
+  nav .panelControlsArea {
+    margin-left: auto; }
+    nav .panelControlsArea .panelControls {
+      display: none; }
+    nav .panelControlsArea .panelControls.active {
+      display: block; }
+
+.panels {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden; }
+  .panels .panel {
+    height: 100%;
+    width: 100%;
+    z-index: -1;
+    position: absolute; }
+  .panels .panel.active {
+    z-index: 0; }
+
+.saveBlockly, .savePython {
+  font-weight: bold;
+  color: gray;
+  cursor: pointer;
+  user-select: none;
+  margin: 0 1em; }
+
+.saveBlockly.hide, .savePython.hide {
+  display: none; }
+
+.dialogWindow .selectRobot .description {
+  display: flex;
+  border: solid 1px white;
+  margin-top: 0.5em; }
+  .dialogWindow .selectRobot .description .thumbnail {
+    width: 200px;
+    height: 200px; }
+  .dialogWindow .selectRobot .description .text {
+    border-left: solid 1px white;
+    padding: 0 1em;
+    flex-shrink: 1; }
+.dialogWindow .selectRobot .configurations {
+  border: solid 1px white;
+  margin-top: 0.5em;
+  padding: 0 0.5em; }
+
+ul.menuDropDown {
+  background: #E4F0FE;
+  border: solid 1px #bbbbbb;
+  position: absolute;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  border-radius: 0 0 0.5em 0.5em;
+  overflow: hidden;
+  box-shadow: 0px 10px 6px 0px rgba(0, 0, 0, 0.25); }
+  ul.menuDropDown li {
+    display: block;
+    color: gray;
+    padding: 0.5em; }
+  ul.menuDropDown li:hover {
+    background: white; }
+  ul.menuDropDown li.underline {
+    border-bottom: solid 1px #bbbbbb; }
+  ul.menuDropDown .tick {
+    color: green; }
+
+ul.menuDropDownRightAlign {
+  top: 100%; }
+
+.blocklyEditor .disable {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  background: rgba(100, 100, 100, 0.6);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center; }
+  .blocklyEditor .disable .enable {
+    font-size: 200%;
+    color: red;
+    border: solid 2px red;
+    padding: 0.5em;
+    border-radius: 0.5em;
+    cursor: pointer;
+    user-select: none; }
+.blocklyEditor #blocklyPages {
+  position: absolute;
+  top: 0.5em;
+  right: 1em;
+  border: solid 1px #bbbbbb;
+  border-radius: 0.5em;
+  padding: 0.5em;
+  color: gray;
+  user-select: none;
+  cursor: pointer; }
+  .blocklyEditor #blocklyPages ul.menuDropDown {
+    right: 0;
+    left: auto;
+    width: max-content; }
+
+.blocklyEditor.hide {
+  display: none; }
+
+.blockly-minimap {
+  position: absolute;
+  box-shadow: none;
+  width: 200px;
+  height: 150px;
+  top: 3em;
+  right: 1em; }
+
+#renderCanvas {
+  width: 100%;
+  height: 100%; }
+
+.runSim {
+  position: absolute;
+  color: white;
+  opacity: 0.8;
+  top: 2em;
+  left: 2em;
+  font-size: 200%;
+  cursor: pointer;
+  user-select: none; }
+
+.startSim {
+  position: absolute;
+  color: white;
+  opacity: 0.8;
+  top: 2em;
+  left: 1.5em;
+  font-size: 200%;
+  cursor: pointer;
+  user-select: none; }
+
+.stopSim {
+  position: absolute;
+  color: white;
+  opacity: 0.8;
+  top: 2em;
+  left: 2.5em;
+  font-size: 200%;
+  cursor: pointer;
+  user-select: none; }
+
+.world {
+  position: absolute;
+  color: white;
+  opacity: 0.8;
+  top: 2em;
+  left: 4em;
+  font-size: 200%;
+  cursor: pointer;
+  user-select: none; }
+
+.reset {
+  position: absolute;
+  color: white;
+  opacity: 0.8;
+  top: 2em;
+  left: 6em;
+  font-size: 200%;
+  cursor: pointer;
+  user-select: none; }
+
+.cameraSelector, .cameraSelectorShort {
+  position: absolute;
+  overflow: hidden;
+  color: #444;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 0.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  opacity: 0.8;
+  top: 1em;
+  right: 1.5em;
+  height: 6.2em;
+  font-size: 300%;
+  transition: 0.3s height, 0.3s color, 0.3s background-color;
+  cursor: pointer;
+  user-select: none; }
+  .cameraSelector > div, .cameraSelectorShort > div {
+    margin: 0.2em; }
+  .cameraSelector .hide, .cameraSelectorShort .hide {
+    display: none; }
+
+.cameraSelectorShort {
+  height: 3.5em; }
+
+.cameraSelector.closed, .cameraSelectorShort.closed {
+  color: white;
+  background: none;
+  height: 1.3em !important; }
+
+.ruler {
+  position: absolute;
+  color: black;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 0.5em;
+  padding: 0.2em;
+  opacity: 0.8;
+  top: 4em;
+  left: 2em;
+  font-size: 200%;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  width: 13em;
+  overflow: hidden;
+  transition: 0.5s width, 0.5s color, 0.5s background-color; }
+  .ruler .icon {
+    margin-right: 0.5em;
+    font-size: 120%; }
+  .ruler .row1, .ruler .row2 {
+    font-size: 50%;
+    white-space: nowrap; }
+  .ruler .measurements {
+    font-size: 50%;
+    white-space: nowrap;
+    flex-grow: 1; }
+    .ruler .measurements table {
+      width: 100%; }
+    .ruler .measurements td {
+      width: 33%; }
+
+.ruler.closed {
+  color: white;
+  background: none;
+  width: 1.3em; }
+
+.joystick {
+  position: absolute;
+  color: black;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 0.5em;
+  padding: 0.2em;
+  opacity: 0.8;
+  top: 6em;
+  left: 2em;
+  font-size: 200%;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: flex-start;
+  width: 7em;
+  height: 4.8em;
+  overflow: hidden;
+  transition: 0.5s width, 0.5s height, 0.5s color, 0.5s background-color;
+  outline: none; }
+  .joystick .icon {
+    margin-right: 0.5em;
+    font-size: 120%; }
+  .joystick .virtualJoystick {
+    position: relative;
+    font-size: 150px;
+    height: 150px; }
+    .joystick .virtualJoystick .icon-virtualJoystickIndicator {
+      position: absolute;
+      color: #ddd;
+      top: 0;
+      left: 0; }
+    .joystick .virtualJoystick .icon-virtualJoystick {
+      position: absolute;
+      color: #bbb;
+      top: 0;
+      left: 0; }
+  .joystick .keyboard {
+    position: absolute;
+    top: 4em;
+    left: 0.5em; }
+
+.joystick.closed {
+  color: white;
+  background: none;
+  width: 1.3em;
+  height: 1.3em; }
+
+.hubButtons {
+  position: absolute;
+  color: black;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 0.5em;
+  padding: 0.2em;
+  opacity: 0.8;
+  top: 8em;
+  left: 2em;
+  font-size: 200%;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: flex-start;
+  width: 6.5em;
+  height: 4.8em;
+  overflow: hidden;
+  transition: 0.5s width, 0.5s height, 0.5s color, 0.5s background-color;
+  outline: none; }
+  .hubButtons .icon {
+    margin-right: 0.5em;
+    font-size: 120%; }
+  .hubButtons .controls {
+    font-size: 135%;
+    color: #bbb; }
+    .hubButtons .controls .icon-buttonsBackspace, .hubButtons .controls .icon-buttonsUp, .hubButtons .controls .icon-buttonsDown, .hubButtons .controls .icon-buttonsLeft, .hubButtons .controls .icon-buttonsRight, .hubButtons .controls .icon-buttonsEnter {
+      position: absolute; }
+    .hubButtons .controls .pressed {
+      color: #888; }
+    .hubButtons .controls .icon-buttonsBackspace {
+      left: 1.6em;
+      top: 0.2em; }
+    .hubButtons .controls .icon-buttonsUp {
+      left: 2.7em;
+      top: 0.28em; }
+    .hubButtons .controls .icon-buttonsDown {
+      left: 2.7em;
+      top: 2.5em; }
+    .hubButtons .controls .icon-buttonsLeft {
+      top: 1.4em;
+      left: 1.6em; }
+    .hubButtons .controls .icon-buttonsRight {
+      top: 1.4em;
+      left: 3.8em; }
+    .hubButtons .controls .icon-buttonsEnter {
+      top: 1.4em;
+      left: 2.7em; }
+
+.hubButtons.closed {
+  color: white;
+  background: none;
+  width: 1.3em;
+  height: 1.3em; }
+
+.console {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: black;
+  opacity: 0.7;
+  color: white;
+  font-size: 150%;
+  height: 2em;
+  overflow: hidden;
+  transition: height 0.5s; }
+  .console .chevron {
+    position: absolute;
+    right: 0;
+    font-size: 200%;
+    cursor: pointer;
+    user-select: none; }
+  .console .chevron::before {
+    content: "\2303"; }
+  .console .clear {
+    position: absolute;
+    right: .15em;
+    font-size: 180%;
+    cursor: pointer;
+    user-select: none;
+    top: 1em; }
+  .console .content {
+    position: absolute;
+    top: 0.5em;
+    bottom: 0.5em;
+    left: 1em;
+    right: 2em;
+    margin: 0px;
+    color: white;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    white-space: pre-wrap; }
+    .console .content .error {
+      color: red; }
+
+.console.open {
+  height: 10em; }
+  .console.open .chevron {
+    top: -0.5em; }
+  .console.open .chevron::before {
+    content: "\2304"; }
+  .console.open .content {
+    overflow-y: scroll; }
+
+.dialogWindow .selectWorld .description {
+  display: flex;
+  border: solid 1px white;
+  margin-top: 0.5em; }
+  .dialogWindow .selectWorld .description .thumbnail {
+    width: 200px;
+    height: 200px; }
+  .dialogWindow .selectWorld .description .text {
+    border-left: solid 1px white;
+    padding: 0 1em;
+    flex-shrink: 1; }
+.dialogWindow .selectWorld .configurations {
+  border: solid 1px white;
+  margin-top: 0.5em;
+  padding: 0 0.5em;
+  overflow-x: hidden; }
+  .dialogWindow .selectWorld .configurations .configuration {
+    padding: 0.5em 0em; }
+    .dialogWindow .selectWorld .configurations .configuration input[type=text], .dialogWindow .selectWorld .configurations .configuration input[type=file] {
+      font-size: 100%;
+      background: none;
+      border: solid 1px white;
+      color: white; }
+    .dialogWindow .selectWorld .configurations .configuration .configurationTitle {
+      color: lightgray;
+      margin-bottom: 0.1em; }
+    .dialogWindow .selectWorld .configurations .configuration .slider {
+      display: flex; }
+      .dialogWindow .selectWorld .configurations .configuration .slider input[type=range] {
+        flex-grow: 1; }
+      .dialogWindow .selectWorld .configurations .configuration .slider input[type=text] {
+        width: 3em;
+        text-align: right; }
+    .dialogWindow .selectWorld .configurations .configuration .text input[type=text] {
+      width: 100%; }
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted white; }
+
+.tooltip .tooltiptext {
+  background-color: white;
+  color: black;
+  border-radius: 6px;
+  padding: 0.2em 0.5em;
+  position: absolute;
+  z-index: 1;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s;
+  max-width: 18em;
+  width: max-content; }
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  border-width: 5px;
+  border-style: solid; }
+
+.tooltip.bottom .tooltiptext {
+  top: 125%;
+  left: 50%;
+  transform: translateX(-50%); }
+.tooltip.bottom .tooltiptext::after {
+  margin-left: -5px;
+  bottom: 100%;
+  left: 50%;
+  border-color: transparent transparent white transparent; }
+
+.tooltip.right .tooltiptext {
+  top: 50%;
+  left: 100%;
+  transform: translate(0.5em, -50%); }
+.tooltip.right .tooltiptext::after {
+  margin-top: -5px;
+  right: 100%;
+  top: 50%;
+  border-color: transparent white transparent transparent; }
+
+.tooltip.left .tooltiptext {
+  top: 50%;
+  right: 100%;
+  transform: translate(-0.5em, -50%); }
+.tooltip.left .tooltiptext::after {
+  margin-top: -5px;
+  left: 100%;
+  top: 50%;
+  border-color: transparent transparent transparent white; }
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1; }
+
+.sensors {
+  position: absolute;
+  color: white;
+  opacity: 0.8;
+  top: 1.2em;
+  right: 3.5em;
+  font-size: 300%;
+  cursor: pointer;
+  user-select: none; }
+
+.sensorReadings {
+  position: absolute;
+  color: black;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 0.5em;
+  padding: 0.5em;
+  top: 9em;
+  right: 4em;
+  font-size: 100%;
+  width: 14em;
+  max-height: 70%;
+  overflow-y: auto;
+  opacity: 1;
+  transition: 0.5s opacity, 0.5s max-height, 0.5s padding; }
+  .sensorReadings .sensorReading {
+    margin-bottom: 0.5em; }
+    .sensorReadings .sensorReading .sensorType {
+      text-align: center; }
+    .sensorReadings .sensorReading table.sensorValues {
+      width: 100%;
+      border-collapse: collapse; }
+      .sensorReadings .sensorReading table.sensorValues td {
+        border: solid 2px #bbbbbb;
+        color: darkblue; }
+      .sensorReadings .sensorReading table.sensorValues td.sensorValue {
+        text-align: right;
+        min-width: 2em; }
+
+.sensorReadings.hide {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0; }
+
+@keyframes flash {
+  0% {
+    transform: scale(1); }
+  50% {
+    transform: scale(1.5); }
+  100% {
+    transform: scale(1); } }
+.worldInfo {
+  position: absolute;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 0.25em;
+  padding: 0.5em;
+  top: 0.5em;
+  left: 50%;
+  width: 14em;
+  margin-left: -7em;
+  font-size: 200%;
+  max-height: 20%;
+  overflow: hidden; }
+  .worldInfo .row {
+    display: flex;
+    justify-content: space-between; }
+  .worldInfo .mono {
+    font-family: monospace; }
+  .worldInfo .center {
+    width: 100%;
+    text-align: center; }
+  .worldInfo .animate {
+    animation-name: flash;
+    animation-duration: 0.5s; }
+  .worldInfo .red.animate {
+    color: #ff0000; }
+  .worldInfo .green.animate {
+    color: #00ff00; }
+  .worldInfo .p0.animate {
+    color: #00ffff; }
+  .worldInfo .p1.animate {
+    color: #00ff00; }
+  .worldInfo .p2.animate {
+    color: #ffff00; }
+  .worldInfo .p3.animate {
+    color: #ff0000; }
+  .worldInfo .warn {
+    color: #ff0000; }
+
+.worldInfo.hide {
+  display: none; }
+
+.fps {
+  position: absolute;
+  right: 4em;
+  top: 1em;
+  color: #eb09ff; }
+
+#plotter {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  bottom: 3em;
+  right: 0; }
+  #plotter .close {
+    color: white;
+    border: solid 1px white;
+    width: 1em;
+    height: 1em;
+    text-align: center;
+    box-sizing: border-box;
+    position: absolute;
+    bottom: 300px;
+    left: 0px;
+    background: #fff4;
+    cursor: pointer; }
+  #plotter .position {
+    height: 1em;
+    position: absolute;
+    bottom: 300px;
+    left: 1em;
+    background: #fff4;
+    color: white;
+    padding: 0 0.5em; }
+
+#plotter.hide {
+  display: none; }
+
+#plotterCanvas {
+  cursor: crosshair; }
+
+@font-face {
+  font-family: 'icomoon';
+  src: url("../fonts/icomoon.eot?zcpech");
+  src: url("../fonts/icomoon.eot?zcpech#iefix") format("embedded-opentype"), url("../fonts/icomoon.ttf?zcpech") format("truetype"), url("../fonts/icomoon.woff?zcpech") format("woff"), url("../fonts/icomoon.svg?zcpech#icomoon") format("svg");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block; }
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; }
+
+.icon-edit:before {
+  content: "\e91b"; }
+
+.icon-kebab:before {
+  content: "\e918"; }
+
+.icon-plus:before {
+  content: "\e91a"; }
+
+.icon-deleteFile:before {
+  content: "\e917"; }
+
+.icon-download:before {
+  content: "\e915"; }
+
+.icon-upload:before {
+  content: "\e916"; }
+
+.icon-newFile:before {
+  content: "\e919"; }
+
+.icon-buttonsDown:before {
+  content: "\e90e"; }
+
+.icon-buttonsLeft:before {
+  content: "\e90f"; }
+
+.icon-buttonsRight:before {
+  content: "\e910"; }
+
+.icon-buttonsUp:before {
+  content: "\e911"; }
+
+.icon-buttons:before {
+  content: "\e912"; }
+
+.icon-buttonsBackspace:before {
+  content: "\e913"; }
+
+.icon-buttonsEnter:before {
+  content: "\e914"; }
+
+.icon-sensors:before {
+  content: "\e90d"; }
+
+.icon-reset:before {
+  content: "\e90c"; }
+
+.icon-keyboard:before {
+  content: "\e90b"; }
+
+.icon-cameraArc:before {
+  content: "\e900"; }
+
+.icon-cameraTop:before {
+  content: "\e901"; }
+
+.icon-cameraFollow:before {
+  content: "\e902"; }
+
+.icon-ruler:before {
+  content: "\e903"; }
+
+.icon-camera:before {
+  content: "\e904"; }
+
+.icon-virtualJoystickIndicator:before {
+  content: "\e905"; }
+
+.icon-stop:before {
+  content: "\e906"; }
+
+.icon-play:before {
+  content: "\e907"; }
+
+.icon-globe:before {
+  content: "\e908"; }
+
+.icon-virtualJoystick:before {
+  content: "\e909"; }
+
+.icon-joystick:before {
+  content: "\e90a"; }
+
+#arenaFrame {
+  background-color: white;
+  border: solid 40px; }
+  #arenaFrame .row {
+    padding: 1em;
+    display: flex;
+    align-items: center; }
+  #arenaFrame .row.header {
+    background-color: lightgray; }
+  #arenaFrame #enable {
+    margin-right: 1.5em; }
+  #arenaFrame #player {
+    font-size: 200%;
+    font-weight: bold; }
+  #arenaFrame #zip {
+    visibility: hidden; }
+  #arenaFrame #zipLabel {
+    font-size: 16px; }
+    #arenaFrame #zipLabel .fileSelector {
+      margin-top: 0.5em; }
+      #arenaFrame #zipLabel .fileSelector input, #arenaFrame #zipLabel .fileSelector label {
+        font-size: 16px;
+        border: solid 1px gray;
+        box-sizing: border-box;
+        height: 2em;
+        padding: 0 0.5em;
+        outline: none;
+        float: left; }
+      #arenaFrame #zipLabel .fileSelector input {
+        border-right: none;
+        width: 14em;
+        border-radius: 0.4em 0 0 0.4em; }
+      #arenaFrame #zipLabel .fileSelector label {
+        border-radius: 0 0.4em 0.4em 0;
+        background: #4EB9D5;
+        color: white;
+        padding-top: 0.35em; }
+
+#arenaFrame.bot0 {
+  border-color: #00FFFF; }
+
+#arenaFrame.bot1 {
+  border-color: #00FF00; }
+
+#arenaFrame.bot2 {
+  border-color: #FFFF00; }
+
+#arenaFrame.bot3 {
+  border-color: #FF0000; }
+
+#arenaFrame.bot0.disabled {
+  border-color: #446666; }
+  #arenaFrame.bot0.disabled #player {
+    color: gray; }
+
+#arenaFrame.bot1.disabled {
+  border-color: #446644; }
+  #arenaFrame.bot1.disabled #player {
+    color: gray; }
+
+#arenaFrame.bot2.disabled {
+  border-color: #666644; }
+  #arenaFrame.bot2.disabled #player {
+    color: gray; }
+
+#arenaFrame.bot3.disabled {
+  border-color: #664444; }
+  #arenaFrame.bot3.disabled #player {
+    color: gray; }
+
+.botsPanel {
+  background: white; }
+  .botsPanel .botsRow {
+    display: flex;
+    width: 100%;
+    height: 50%; }
+    .botsPanel .botsRow .bot {
+      width: 50%; }
+      .botsPanel .botsRow .bot iframe {
+        border: none;
+        width: 100%;
+        height: 100%; }
+
+.console .player0 {
+  color: #00FFFF; }
+.console .player1 {
+  color: #00FF00; }
+.console .player2 {
+  color: #FFFF00; }
+.console .player3 {
+  color: #FF0000; }
+
+.python {
+  display: flex;
+  flex-direction: column;
+  background: #2F3129;
+  font-size: 125%;
+  font-family: monospace;
+  width: 100%;
+  height: 100%; }
+  .python #pythonCode {
+    width: 100%;
+    height: 100%;
+    font-size: 120%; }
+  .python #pythonCode.hide {
+    display: none; }
+  .python #filesRow {
+    display: flex;
+    align-items: center; }
+    .python #filesRow #filesList {
+      display: flex;
+      overflow-x: scroll;
+      -ms-overflow-style: none;
+      /* IE and Edge */
+      scrollbar-width: none;
+      /* Firefox */ }
+      .python #filesRow #filesList .file {
+        display: flex;
+        background: #515251;
+        color: #999b99;
+        border-left: solid 1px #272822;
+        border-right: solid 1px #272822;
+        padding: 0.3em;
+        cursor: pointer;
+        user-select: none; }
+        .python #filesRow #filesList .file .renameFile, .python #filesRow #filesList .file .deleteFile {
+          display: none;
+          margin-left: 0.5em; }
+      .python #filesRow #filesList .file.selected {
+        background-color: #272822;
+        color: white;
+        font-weight: bold; }
+        .python #filesRow #filesList .file.selected .renameFile, .python #filesRow #filesList .file.selected .deleteFile {
+          display: block; }
+    .python #filesRow #filesList::-webkit-scrollbar {
+      display: none; }
+    .python #filesRow #addNewFile {
+      padding: 0.3em 0.5em;
+      color: white;
+      cursor: pointer;
+      user-select: none; }
+
+.componentsWindow, .objectsWindow {
+  position: absolute;
+  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 0.5em;
+  padding: 1em;
+  top: 2em;
+  left: 1em;
+  font-size: 100%;
+  width: 15em;
+  height: 90%;
+  display: flex;
+  flex-direction: column; }
+  .componentsWindow .buttons, .objectsWindow .buttons {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    box-sizing: border-box;
+    font-size: 120%; }
+    .componentsWindow .buttons div, .objectsWindow .buttons div {
+      border: solid 2px #bbbbbb;
+      padding: 0.3em 0.5em;
+      border-radius: 0.5em;
+      cursor: pointer;
+      user-select: none; }
+  .componentsWindow .componentsList, .componentsWindow .objectsList, .objectsWindow .componentsList, .objectsWindow .objectsList {
+    font-size: 120%;
+    overflow: auto;
+    flex-grow: 1;
+    white-space: nowrap;
+    margin-bottom: 1em; }
+    .componentsWindow .componentsList ul, .componentsWindow .objectsList ul, .objectsWindow .componentsList ul, .objectsWindow .objectsList ul {
+      list-style-type: none;
+      padding-inline-start: 0; }
+      .componentsWindow .componentsList ul ul, .componentsWindow .objectsList ul ul, .objectsWindow .componentsList ul ul, .objectsWindow .objectsList ul ul {
+        padding-inline-start: 1em;
+        list-style-type: "˪ "; }
+    .componentsWindow .componentsList li, .componentsWindow .objectsList li, .objectsWindow .componentsList li, .objectsWindow .objectsList li {
+      cursor: pointer;
+      user-select: none; }
+    .componentsWindow .componentsList li.selected, .componentsWindow .objectsList li.selected, .objectsWindow .componentsList li.selected, .objectsWindow .objectsList li.selected {
+      background-color: #bbbbbb; }
+    .componentsWindow .componentsList li.ulHolder, .componentsWindow .objectsList li.ulHolder, .objectsWindow .componentsList li.ulHolder, .objectsWindow .objectsList li.ulHolder {
+      list-style-type: none; }
+
+.objectID {
+  position: absolute;
+  top: 0.5em;
+  right: 2em;
+  width: 20em;
+  color: white; }
+
+.settingsWindow {
+  position: absolute;
+  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 0.5em;
+  padding: 1em;
+  top: 2em;
+  right: 1em;
+  font-size: 100%;
+  width: 20em;
+  height: 90%;
+  display: flex;
+  flex-direction: column; }
+  .settingsWindow .settingsArea {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden; }
+  .settingsWindow .buttons {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    font-size: 90%; }
+    .settingsWindow .buttons div {
+      border: solid 2px #bbbbbb;
+      padding: 0.3em 0.5em;
+      border-radius: 0.5em;
+      cursor: pointer;
+      user-select: none; }
+  .settingsWindow .componentName {
+    text-align: center;
+    font-size: 120%;
+    font-weight: bold; }
+  .settingsWindow .configuration {
+    padding: 0.5em 0; }
+  .settingsWindow .configurationTitle {
+    color: lightgray;
+    margin-bottom: 0.1em; }
+  .settingsWindow .slider {
+    display: flex; }
+    .settingsWindow .slider input[type=range] {
+      flex-grow: 1; }
+    .settingsWindow .slider input[type=text] {
+      width: 3em;
+      text-align: right; }
+  .settingsWindow input[type=number] {
+    width: 3em; }
+  .settingsWindow .tooltip .tooltiptext {
+    max-width: 10em; }
+
+.dialogWindow .selectImage, .dialogWindow .selectModel, .dialogWindow .editAnimationKeys {
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column; }
+  .dialogWindow .selectImage .search, .dialogWindow .selectModel .search, .dialogWindow .editAnimationKeys .search {
+    display: flex;
+    margin-top: 0.5em; }
+    .dialogWindow .selectImage .search input, .dialogWindow .selectModel .search input, .dialogWindow .editAnimationKeys .search input {
+      font-size: 100%;
+      width: 100%;
+      background: none;
+      color: white;
+      border: solid 1px white;
+      padding: 0 0.2em;
+      margin-left: 0.5em; }
+  .dialogWindow .selectImage .images, .dialogWindow .selectImage .items, .dialogWindow .selectModel .images, .dialogWindow .selectModel .items, .dialogWindow .editAnimationKeys .images, .dialogWindow .editAnimationKeys .items {
+    border: solid 1px white;
+    margin-top: 0.5em;
+    padding: 0.5em;
+    overflow-y: auto;
+    max-height: 20em; }
+    .dialogWindow .selectImage .images .row, .dialogWindow .selectImage .items .row, .dialogWindow .selectModel .images .row, .dialogWindow .selectModel .items .row, .dialogWindow .editAnimationKeys .images .row, .dialogWindow .editAnimationKeys .items .row {
+      display: flex; }
+      .dialogWindow .selectImage .images .row .description, .dialogWindow .selectImage .items .row .description, .dialogWindow .selectModel .images .row .description, .dialogWindow .selectModel .items .row .description, .dialogWindow .editAnimationKeys .images .row .description, .dialogWindow .editAnimationKeys .items .row .description {
+        border: solid 1px white;
+        flex-grow: 1;
+        padding: 0 0.5em; }
+      .dialogWindow .selectImage .images .row .select, .dialogWindow .selectImage .items .row .select, .dialogWindow .selectModel .images .row .select, .dialogWindow .selectModel .items .row .select, .dialogWindow .editAnimationKeys .images .row .select, .dialogWindow .editAnimationKeys .items .row .select {
+        border: solid 1px white;
+        padding: 0.5em; }
+    .dialogWindow .selectImage .images .row.hide, .dialogWindow .selectImage .items .row.hide, .dialogWindow .selectModel .images .row.hide, .dialogWindow .selectModel .items .row.hide, .dialogWindow .editAnimationKeys .images .row.hide, .dialogWindow .editAnimationKeys .items .row.hide {
+      display: none; }
+  .dialogWindow .selectImage table, .dialogWindow .selectModel table, .dialogWindow .editAnimationKeys table {
+    border: solid 1px white; }
+    .dialogWindow .selectImage table th, .dialogWindow .selectModel table th, .dialogWindow .editAnimationKeys table th {
+      border: solid 1px white; }
+    .dialogWindow .selectImage table th, .dialogWindow .selectImage table td, .dialogWindow .selectModel table th, .dialogWindow .selectModel table td, .dialogWindow .editAnimationKeys table th, .dialogWindow .editAnimationKeys table td {
+      width: 3em;
+      text-align: center; }
+      .dialogWindow .selectImage table th input, .dialogWindow .selectImage table td input, .dialogWindow .selectModel table th input, .dialogWindow .selectModel table td input, .dialogWindow .editAnimationKeys table th input, .dialogWindow .editAnimationKeys table td input {
+        width: 100%;
+        font-size: 100%;
+        box-sizing: border-box; }
+.dialogWindow .searchCount {
+  margin-right: auto; }

@@ -154,6 +154,12 @@ body {
   transition: background-color 0.2s, border-color 0.2s;
 }
 
+#toolbar button.toolbar-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 #toolbar button.toolbar-icon {
   width: 34px;
   height: 34px;
@@ -2308,4 +2314,67 @@ body.lab-mode .lab-panel {
   .pin[data-pin-name="D14"] {
   display: none !important;
   pointer-events: none !important;
+}
+
+/* === Simulador de Robô Físico === */
+.robot-sim-toggle-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 50;
+  background: #1a4a8a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: background 0.15s;
+}
+.robot-sim-toggle-btn:hover {
+  background: #2060b0;
+}
+
+.robot-sim-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+.robot-sim-panel[aria-hidden="true"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.robot-sim-panel[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.robot-sim-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 55;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+}
+.robot-sim-close-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.robot-sim-panel iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
 }

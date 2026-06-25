@@ -1,0 +1,302 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #1a1a2e;
+  font-family: sans-serif;
+}
+
+body.robot-sim-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.robot-sim-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+  min-height: 36px;
+}
+
+.sim-btn {
+  background: #0f3460;
+  color: #e0e0e0;
+  border: 1px solid #1a4a8a;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.sim-btn:hover {
+  background: #1a4a8a;
+}
+
+#world-select {
+  background: #0f3460;
+  color: #e0e0e0;
+  border: 1px solid #1a4a8a;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.debug-panel {
+  position: absolute;
+  top: 44px;
+  left: 10px;
+  background: rgba(16, 24, 48, 0.95);
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  padding: 10px 14px;
+  z-index: 30;
+  min-width: 200px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.debug-panel.hidden { display: none; }
+
+.debug-title {
+  color: #7ec8e3;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.debug-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+.debug-table td {
+  padding: 3px 6px;
+  color: #e0e0e0;
+}
+
+.debug-table td:first-child {
+  color: #a0c8e0;
+  padding-right: 12px;
+}
+
+.debug-table td:last-child {
+  font-weight: bold;
+  color: #7ec8e3;
+  text-align: right;
+}
+
+#renderCanvas {
+  flex: 1;
+  width: 100%;
+  height: 0;        /* anula o height:100% que vaza do main.css */
+  min-height: 0;    /* deixa o item flex encolher; impede o canvas de forçar altura intrínseca */
+  display: block;
+  outline: none;
+}
+
+.console {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10, 10, 20, 0.85);
+  color: #a0f0a0;
+  font-size: 12px;
+  max-height: 120px;
+  transition: max-height 0.2s;
+  z-index: 20;
+}
+
+.console:not(.open) {
+  max-height: 26px;
+  overflow: hidden;
+}
+
+.console .chevron {
+  padding: 4px 10px;
+  cursor: pointer;
+  user-select: none;
+  color: #7ec8e3;
+  font-size: 12px;
+}
+
+.console .clear {
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  cursor: pointer;
+  color: #e07070;
+  font-size: 13px;
+}
+
+.console .content {
+  margin: 0;
+  padding: 4px 10px 8px;
+  max-height: 90px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Painel de Futebol ───────────────────────────── */
+.football-panel {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 5px 12px;
+  background: #111827;
+  border-bottom: 1px solid #0f3460;
+  z-index: 90;
+}
+
+.football-panel.hidden { display: none; }
+
+.fb-mode-row { display: flex; gap: 6px; }
+
+.fb-mode-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.fb-mode-btn.active {
+  background: #1d4ed8;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.fb-robot-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fb-robot-row.hidden { display: none; }
+
+.fb-label {
+  color: #94a3b8;
+  font-size: 12px;
+  min-width: 48px;
+}
+
+.fb-ip-input {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 148px;
+}
+
+.fb-test-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.fb-test-btn:hover { background: #273549; }
+
+.fb-team-select {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.fb-dot {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1;
+}
+
+/* ── Placar do Futebol ───────────────────────────── */
+.football-score-panel {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.72);
+  color: #f0f0f0;
+  padding: 6px 18px;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 80;
+  white-space: pre;
+}
+
+.football-score-panel.hidden { display: none; }
+
+/* Controle manual (D-pad) para testes */
+.manual-control {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(3, 52px);
+  gap: 6px;
+  z-index: 40;
+  user-select: none;
+  touch-action: none;
+}
+
+.manual-control.hidden { display: none; }
+
+.mc-btn {
+  background: rgba(15, 52, 96, 0.85);
+  color: #e0e0e0;
+  border: 1px solid #1a4a8a;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+}
+
+.mc-btn:hover  { background: rgba(26, 74, 138, 0.9); }
+.mc-btn:active { background: #2a5aaa; }
+
+.mc-up    { grid-column: 2; grid-row: 1; }
+.mc-left  { grid-column: 1; grid-row: 2; }
+.mc-speed { grid-column: 2; grid-row: 2; font-size: 14px; font-weight: bold; }
+.mc-right { grid-column: 3; grid-row: 2; }
+.mc-down  { grid-column: 2; grid-row: 3; }
+
+/* estilos que world_Football injeta via jQuery */
+.football-score-panel .mono { display: flex; justify-content: center; gap: 16px; }
+.football-score-panel .row  { margin: 2px 0; }
+.football-score-panel .teamA { color: #60a5fa; font-weight: bold; }
+.football-score-panel .teamB { color: #f87171; font-weight: bold; }
+.football-score-panel .time  { color: #94a3b8; }
+.football-score-panel .shotClock { color: #fbbf24; }

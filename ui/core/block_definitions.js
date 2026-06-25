@@ -9957,7 +9957,8 @@ Blockly.Blocks['net_http_server_close'] = {
     this.appendDummyInput()
         .appendField(MSG["net_http_server_close_title"]);
 
-    this.setOutput(true);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
     this.setTooltip(Blockly.Msg["NET_HTTP_SERVER_CLOSE_TOOLTIP"]);
   }
 };
@@ -12628,6 +12629,181 @@ Blockly.Blocks['create_list_with_repeated'] = {
     this.setStyle('variable_blocks');
     this.setTooltip(Blockly.Msg["LISTS_REPEAT_TOOLTIP"]);
     this.setHelpUrl(Blockly.Msg["LISTS_REPEAT_HELPURL"]);
+  }
+};
+
+
+// ── Visão (Pose + Gesto) ─────────────────────────────────────
+// Listas únicas — mesmas chaves usadas no gerador Python
+// e no motor de detecção (gesture-control.js).
+const POSE_OPTIONS = [
+  ['pose_arms_up',        'arms_up'],
+  ['pose_t_pose',         't_pose'],
+  ['pose_right_arm_up',   'right_arm_up'],
+  ['pose_left_arm_up',    'left_arm_up'],
+  ['pose_hands_on_head',  'hands_on_head'],
+  ['pose_arms_crossed',   'arms_crossed'],
+];
+
+const GESTURE_OPTIONS = [
+  ['gesture_closed_fist', 'Closed_Fist'],
+  ['gesture_open_palm',   'Open_Palm'],
+  ['gesture_pointing_up', 'Pointing_Up'],
+  ['gesture_thumb_up',    'Thumb_Up'],
+  ['gesture_thumb_down',  'Thumb_Down'],
+  ['gesture_victory',     'Victory'],
+  ['gesture_iloveyou',    'ILoveYou'],
+];
+
+Blockly.Blocks['init_vision_server'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_init_server_title"]);
+    this.appendValueInput("port")
+      .setCheck("Number")
+      .setAlign(Blockly.ALIGN_RIGHT)
+      .appendField(MSG["vision_init_server_port"]);
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_init_server_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setTooltip("Cria um servidor HTTP na AMADOBOARD que recebe os eventos de pose ou gesto enviados pela aba Visão. Conecte ao Wi-Fi antes deste bloco.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['when_pose_detected'] = {
+  init: function() {
+    const opts = POSE_OPTIONS.map(([msgKey, value]) => [MSG[msgKey], value]);
+    this.appendDummyInput()
+      .appendField(MSG["vision_when_pose_title"])
+      .appendField(new Blockly.FieldDropdown(opts), "POSE");
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_when_pose_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Executa os blocos filhos quando a pose selecionada for detectada pela aba Visão.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['when_gesture_detected'] = {
+  init: function() {
+    const opts = GESTURE_OPTIONS.map(([msgKey, value]) => [MSG[msgKey], value]);
+    this.appendDummyInput()
+      .appendField(MSG["vision_when_gesture_title"])
+      .appendField(new Blockly.FieldDropdown(opts), "GESTURE");
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_when_gesture_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Executa os blocos filhos quando o gesto de mão selecionado for detectado pela aba Visão.");
+    this.setHelpUrl("");
+  }
+};
+
+// ── Visão (Valores contínuos — F1) ───────────────────────────
+// Estado contínuo enviado pela aba Visão (modo Mãos) em /vision/state.
+Blockly.Blocks['when_vision_updates'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_when_update_title"]);
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_when_update_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Executa os blocos filhos toda vez que a aba Visão envia novos valores contínuos (posição da mão e pinça).");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['vision_hand_position'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_hand_pos_title"])
+      .appendField(new Blockly.FieldDropdown([
+        [MSG["vision_axis_x"], "hx"],
+        [MSG["vision_axis_y"], "hy"],
+      ]), "AXIS");
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Number");
+    this.setTooltip("Posição da mão na tela, de 0 a 100. Eixo X: da esquerda para a direita. Eixo Y: de baixo para cima.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['vision_pinch_distance'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_pinch_title"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Number");
+    this.setTooltip("Abertura da pinça entre o polegar e o indicador, de 0 (dedos juntos) a 100 (bem aberta).");
+    this.setHelpUrl("");
+  }
+};
+
+// ── Visão (Cor — F3a) ────────────────────────────────────────
+// Trigger aceita um bloco "Color" no slot: color_preset (cor da paleta)
+// ou color_captured (cor capturada pela câmera). O tipo "Color" impede
+// que o aluno encaixe número/texto sem querer.
+Blockly.Blocks['when_color_detected'] = {
+  init: function() {
+    this.appendValueInput("COLOR")
+      .setCheck("Color")
+      .appendField(MSG["vision_when_color_title"]);
+    this.appendStatementInput("DO")
+      .setCheck(null)
+      .appendField(MSG["vision_when_color_do"]);
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Executa os blocos filhos quando a cor selecionada aparecer em frente à câmera (aba Visão, modo Cor).");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['color_preset'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_color_preset_title"])
+      .appendField(new Blockly.FieldDropdown([
+        [MSG["color_red"],     "red"],
+        [MSG["color_orange"],  "orange"],
+        [MSG["color_yellow"],  "yellow"],
+        [MSG["color_green"],   "green"],
+        [MSG["color_blue"],    "blue"],
+        [MSG["color_magenta"], "magenta"],
+        [MSG["color_black"],   "black"],
+      ]), "COLOR");
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Color");
+    this.setTooltip("Uma das 7 cores prontas detectadas pela câmera.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['color_captured'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField(MSG["vision_color_captured_title"])
+      .appendField(new Blockly.FieldDropdown([
+        ["1", "c1"],
+        ["2", "c2"],
+        ["3", "c3"],
+        ["4", "c4"],
+      ]), "SLOT");
+    this.setColour("%{BKY_VISION_HUE}");
+    this.setOutput(true, "Color");
+    this.setTooltip("Uma das 4 cores capturadas pela câmera (configure na aba Visão → modo Cor → Definir Cores).");
+    this.setHelpUrl("");
   }
 };
 

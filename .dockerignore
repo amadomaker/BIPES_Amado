@@ -1,0 +1,17 @@
+.git/
+infra/
+docs/
+appengine/
+mosquitto-conf/
+docker-compose.yml
+Dockerfile
+*.md
+*.save
+*.bak
+*.orig
+*.tmp
+*.swp
+*~
+.DS_Store
+.idea/
+.vscode/

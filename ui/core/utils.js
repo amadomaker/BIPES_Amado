@@ -169,8 +169,17 @@ class Tool {
   /**Send ``\x03\x03`` to stop running a program, see a `ASCII table
    * <https://www.ascii-code.com/>`_ to know more.*/
   static stopPython() {
-    //Send Ctrl+C to stop program
-    mux.bufferPush("\x03\x03");
+    // Drop any code still queued and put Ctrl+C at the FRONT of the buffer.
+    // The previous version used bufferPush(), which appended to the end —
+    // if the queue was stalled (e.g. writer lock held by a failed write),
+    // the interrupt would never reach the device and the user would have
+    // to reset the board to recover.
+    if (mux.connected && mux.connected()) {
+      mux.clearBuffer();
+      mux.bufferUnshift("\x03\x03");
+    } else {
+      mux.bufferPush("\x03\x03");
+    }
   }
   static softReset() {
     if (Channel["websocket"].connected)
@@ -264,7 +273,16 @@ class Tool {
         let coordinates = match_[2]
           .split(",")
           .map((item) => (item = parseFloat(item)));
-        window.frames[3].modules.DataStorage.push(match_[1], coordinates);
+        // Envia para o DataStorage do databoard. Mira pelo id (não por window.frames[N],
+        // que quebra ao adicionar/reordenar iframes) e protege com try/catch: este trecho
+        // roda dentro do write() do stream WebSerial — um erro aqui abortaria a leitura da
+        // serial e congelaria o console após o primeiro "$BIPES-DATA:".
+        try {
+          let databoardWin = document.getElementById("databoard_iframe");
+          databoardWin = databoardWin && databoardWin.contentWindow;
+          if (databoardWin && databoardWin.modules && databoardWin.modules.DataStorage)
+            databoardWin.modules.DataStorage.push(match_[1], coordinates);
+        } catch (e) { /* databoard indisponível: ignora para não derrubar a serial */ }
 
         /*STARTDEPRECATED*/
         //Compatibilty layer with the old BIPES-DATA:INDEX,DATA
@@ -558,6 +576,7 @@ class files {
 
         let decoderUint8 = new TextDecoder()
           .decode(this.put_file_data)
+          .replaceAll(/\\/g, "\\\\")
           .replaceAll(/(\r\n|\r|\n)/g, "\\r")
           .replaceAll(/'/g, "\\'")
           .replaceAll(/"/g, '\\"')

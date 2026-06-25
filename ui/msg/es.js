@@ -309,8 +309,48 @@ var MSG = {
   saveAMelody: "Guardar una melodía", 
   importAMelody: "Importar una melodía", 
   exportAMelody: "Exportar una melodía",
-  
 
+  // Visión / Pose
+  vision_init_server_title: "Iniciar Visión (servidor)",
+  vision_init_server_port: "puerto",
+  vision_init_server_do: "manejar eventos",
+  vision_when_pose_title: "Cuando haga la pose",
+  vision_when_pose_do: "hacer",
+  pose_arms_up: "Brazos arriba",
+  pose_t_pose: "Brazos abiertos (T)",
+  pose_right_arm_up: "Brazo derecho arriba",
+  pose_left_arm_up: "Brazo izquierdo arriba",
+  pose_hands_on_head: "Manos en la cabeza",
+  pose_arms_crossed: "Brazos cruzados",
+  // Visión / Gesto
+  vision_when_gesture_title: "Cuando haga el gesto",
+  vision_when_gesture_do: "hacer",
+  // Visión / Valores continuos (F1)
+  vision_when_update_title: "Cuando la cámara se actualice",
+  vision_when_update_do: "hacer",
+  vision_hand_pos_title: "posición de la mano eje",
+  vision_axis_x: "X (horizontal)",
+  vision_axis_y: "Y (vertical)",
+  vision_pinch_title: "distancia de la pinza (pulgar-índice)",
+  // Visión / Color (F3a)
+  vision_when_color_title: "Cuando aparezca el color",
+  vision_when_color_do: "hacer",
+  vision_color_preset_title: "color",
+  vision_color_captured_title: "color capturado n.º",
+  color_red: "Rojo",
+  color_orange: "Naranja",
+  color_yellow: "Amarillo",
+  color_green: "Verde",
+  color_blue: "Azul",
+  color_magenta: "Magenta",
+  color_black: "Negro",
+  gesture_closed_fist: "Puño cerrado",
+  gesture_open_palm: "Mano abierta",
+  gesture_pointing_up: "Apuntando",
+  gesture_thumb_up: "Pulgar arriba",
+  gesture_thumb_down: "Pulgar abajo",
+  gesture_victory: "Victoria",
+  gesture_iloveyou: "Te amo"
 };
 
 //Toolbox categories
@@ -339,6 +379,7 @@ Blockly.Msg['CAT_BUZZER'] = "Buzzer";
 Blockly.Msg['CAT_WIFI'] = "Wifi";
 Blockly.Msg['CAT_HTTPCLIENT'] = "cliente HTTP";
 Blockly.Msg['CAT_HTTPSERVER'] = "Servidor HTTP";
+Blockly.Msg['CAT_VISION'] = "Visión";
 Blockly.Msg['INSTALL_LIBRARY'] = "Instalar biblioteca:"
 Blockly.Msg['PINOUT_LEGEND'] = "Pines de entrada y salida";
 Blockly.Msg['DHT_SENSOR_LEGEND'] = "Sensor de temperatura y humedad DHT11/22";

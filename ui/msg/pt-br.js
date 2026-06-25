@@ -303,9 +303,51 @@ var MSG = {
   save: "Salvar",
   import: "Importar", 
   export: "Exportar",
-  saveAMelody: "Salvar uma melodia", 
-  importAMelody: "Importar uma melodia", 
+  saveAMelody: "Salvar uma melodia",
+  importAMelody: "Importar uma melodia",
   exportAMelody: "Exportar uma melodia",
+
+  // Visão / Pose
+  vision_init_server_title: "Iniciar Visão (servidor)",
+  vision_init_server_port: "porta",
+  vision_init_server_do: "tratar eventos",
+  vision_when_pose_title: "Quando fizer a pose",
+  vision_when_pose_do: "faça",
+  pose_arms_up: "Braços para cima",
+  pose_t_pose: "Braços abertos (T)",
+  pose_right_arm_up: "Braço direito levantado",
+  pose_left_arm_up: "Braço esquerdo levantado",
+  pose_hands_on_head: "Mãos na cabeça",
+  pose_arms_crossed: "Braços cruzados",
+  // Visão / Gesto
+  vision_when_gesture_title: "Quando fizer o gesto",
+  vision_when_gesture_do: "faça",
+  // Visão / Valores contínuos (F1)
+  vision_when_update_title: "Quando a câmera atualizar",
+  vision_when_update_do: "faça",
+  vision_hand_pos_title: "posição da mão eixo",
+  vision_axis_x: "X (horizontal)",
+  vision_axis_y: "Y (vertical)",
+  vision_pinch_title: "distância da pinça (polegar-indicador)",
+  // Visão / Cor (F3a)
+  vision_when_color_title: "Quando aparecer a cor",
+  vision_when_color_do: "faça",
+  vision_color_preset_title: "cor",
+  vision_color_captured_title: "cor capturada nº",
+  color_red: "Vermelho",
+  color_orange: "Laranja",
+  color_yellow: "Amarelo",
+  color_green: "Verde",
+  color_blue: "Azul",
+  color_magenta: "Magenta",
+  color_black: "Preto",
+  gesture_closed_fist: "Punho fechado",
+  gesture_open_palm: "Mão aberta",
+  gesture_pointing_up: "Apontando",
+  gesture_thumb_up: "Polegar para cima",
+  gesture_thumb_down: "Polegar para baixo",
+  gesture_victory: "Vitória",
+  gesture_iloveyou: "Eu te amo",
 };
 
 //Categorias da caixa de ferramentas
@@ -335,6 +377,7 @@ Blockly.Msg['CAT_BUZZER'] = "Campainha";
 Blockly.Msg['CAT_WIFI'] = "WiFi";
 Blockly.Msg['CAT_HTTPCLIENT'] = "Cliente HTTP";
 Blockly.Msg['CAT_HTTPSERVER'] = "Servidor HTTP"
+Blockly.Msg['CAT_VISION'] = "Visão"
 Blockly.Msg['INSTALL_LIBRARY'] = "Instalar biblioteca:"
 Blockly.Msg['PINOUT_LEGEND'] = "Pinos de entrada e saída"
 Blockly.Msg['DHT_SENSOR_LEGEND'] = "Sensor de temperatura e umidade DHT11/22";
@@ -375,6 +418,8 @@ Blockly.Msg['MQTT_CONFIG_LEGEND'] = "Configure conexões MQTT para IoT, publique
 Blockly.Msg['EASYMQTT_TAB_LEGEND'] = "Acompanhe os resultados na aba EasyMQTT.";
 Blockly.Msg['DOCUMENTATION_LEGEND'] = "Documentação";
 Blockly.Msg['LOAD_EXAMPLE_LEGEND'] = "Carregar exemplo";
+Blockly.Msg['load_example_confirm'] = "Isso vai carregar o exemplo: ";
+Blockly.Msg['load_example_confirm_suffix'] = ". É necessário conexão com a internet. Atenção: todos os blocos do workspace serão substituídos pelos blocos do exemplo. Deseja continuar?";
 Blockly.Msg['REQUIRED_LIBRARY_LEGEND'] = "Biblioteca necessária";
 
 

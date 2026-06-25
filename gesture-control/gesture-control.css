@@ -1,0 +1,916 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 14px;
+  background: #000;
+  color: #2d3436;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top bar (tema claro — combina com a plataforma) ── */
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0.55rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  z-index: 10;
+}
+
+
+.ip-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ip-group label {
+  font-size: 13px;
+  color: #636e72;
+  white-space: nowrap;
+}
+
+.ip-group input {
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 13px;
+  width: 160px;
+  transition: border-color .15s;
+}
+
+.ip-group input:focus {
+  outline: none;
+  border-color: #0984e3;
+}
+
+.cam-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cam-group label {
+  font-size: 13px;
+  color: #636e72;
+  white-space: nowrap;
+}
+
+.cam-group select,
+.cam-group input {
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 13px;
+  transition: border-color .15s;
+}
+
+.cam-group input {
+  width: 200px;
+}
+
+.cam-group select:focus,
+.cam-group input:focus {
+  outline: none;
+  border-color: #0984e3;
+}
+
+/* Campo de URL e botão de preparar só aparecem quando a fonte é ESP32-CAM */
+.cam-group input,
+.cam-group .btn-prepare { display: none; }
+.cam-group.is-esp32 input { display: inline-block; }
+.cam-group.is-esp32 .btn-prepare { display: inline-flex; }
+
+.btn-prepare {
+  background: #f1f2f6;
+  color: #2d3436;
+  border: 1px solid #dfe6e9;
+}
+.btn-prepare:hover { background: #e8eaed; }
+
+/* ── Modal: preparar ESP32-CAM ─────────────────────── */
+.esp-steps {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+  font-size: 13px;
+  color: #2d3436;
+  line-height: 1.6;
+}
+
+.esp-install {
+  display: flex;
+  justify-content: flex-start;
+  margin: 0.4rem 0 0.2rem;
+}
+
+.esp-url-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+.esp-url-row label {
+  font-size: 13px;
+  color: #636e72;
+  white-space: nowrap;
+}
+.esp-url-row input {
+  flex: 1;
+  min-width: 200px;
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 13px;
+}
+.esp-url-row input:focus { outline: none; border-color: #0984e3; }
+
+.status-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #f1f3f4;
+  color: #636e72;
+  white-space: nowrap;
+}
+
+.status-chip .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #b2bec3;
+  flex-shrink: 0;
+}
+
+.status-chip.ok   { background: #e8f5e9; color: #2e7d32; }
+.status-chip.ok .dot   { background: #43a047; animation: pulse 1.4s infinite; }
+.status-chip.err  { background: #fce4ec; color: #c62828; }
+.status-chip.err .dot  { background: #e53935; }
+.status-chip.warn { background: #fff8e1; color: #f57f17; }
+.status-chip.warn .dot { background: #ffb300; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.spacer { flex: 1; }
+
+.btn {
+  padding: 0.35rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: transform .1s, opacity .15s;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-cam-on  { background: #00b894; color: #fff; }
+.btn-cam-off { background: #d63031; color: #fff; }
+.btn-save    { background: #f1f3f4; color: #2d3436; border: 1px solid #dfe6e9; }
+.btn-save:hover { background: #e8eaed; }
+.btn-ping    { background: #f1f3f4; color: #0984e3; border: 1px solid #dfe6e9; }
+.btn-ping:hover { background: #e8eaed; }
+.btn-ping:disabled { opacity: .55; cursor: not-allowed; }
+
+/* Toggle Mãos/Corpo */
+.mode-toggle {
+  display: inline-flex;
+  background: #f1f3f4;
+  border: 1px solid #dfe6e9;
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+.mode-opt {
+  border: none;
+  background: transparent;
+  padding: 0.5rem 1.1rem;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #636e72;
+  cursor: pointer;
+  transition: background .15s, color .15s, transform .1s;
+  white-space: nowrap;
+}
+.mode-opt:hover { color: #2d3436; }
+.mode-opt:active { transform: scale(.97); }
+.mode-opt.is-active {
+  background: #0984e3;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(9,132,227,.25);
+}
+.mode-opt:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Indicador AO VIVO */
+.rec-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #d63031;
+  letter-spacing: .06em;
+}
+.rec-indicator.hidden { display: none; }
+.rec-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #d63031;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* ── Layout ──────────────────────────────────────── */
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Video panel ─────────────────────────────────── */
+.video-panel {
+  position: relative;
+  flex: 1;
+  background: #000;
+  overflow: hidden;
+}
+
+.camera-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: #111;
+  z-index: 2;
+  color: #555;
+}
+
+.camera-placeholder .cam-icon { font-size: 52px; opacity: .4; }
+.camera-placeholder p { font-size: 13px; color: #777; }
+.camera-placeholder strong { color: #bbb; }
+
+/* ── Video wrapper: câmera ocupa todo o painel ────── */
+.video-wrapper {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+
+#videoEl {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  transform: scaleX(-1);
+}
+
+/* Fonte ESP32-CAM (MJPEG num <img>) — não é espelhada como a webcam */
+#extCamEl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  object-fit: contain;
+}
+
+#canvasEl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1);
+  pointer-events: none;
+}
+
+/* Fonte externa: mostra o <img>, esconde o <video> e remove o espelhamento
+   (do vídeo e do canvas), já que a ESP32-CAM não é espelhada */
+.video-wrapper.src-ext #videoEl  { display: none; }
+.video-wrapper.src-ext #extCamEl { display: block; }
+.video-wrapper.src-ext #canvasEl { transform: none; }
+
+/* ── HUD ─────────────────────────────────────────── */
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Vinheta (escurece as bordas para destacar o HUD) */
+.hud-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0,0,0,.55) 100%
+  );
+  pointer-events: none;
+}
+
+/* Scanline */
+.hud-scanline {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right,
+    transparent 0%,
+    rgba(0,206,201,.6) 40%,
+    rgba(0,206,201,.6) 60%,
+    transparent 100%
+  );
+  animation: scanMove 6s linear infinite;
+}
+@keyframes scanMove {
+  0%   { top: 0%;   opacity: .7; }
+  80%  { opacity: .7; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Cornetas do frame */
+.hfc {
+  position: absolute;
+  width: 28px; height: 28px;
+  border-color: rgba(0,206,201,.6);
+  border-style: solid;
+}
+.hfc-tl { top: 14px; left: 14px;  border-width: 2px 0 0 2px; }
+.hfc-tr { top: 14px; right: 14px; border-width: 2px 2px 0 0; }
+.hfc-bl { bottom: 14px; left: 14px;  border-width: 0 0 2px 2px; }
+.hfc-br { bottom: 14px; right: 14px; border-width: 0 2px 2px 0; }
+
+/* ── HUD panel (caixas de dados) ─────────────────── */
+.hud-panel {
+  position: absolute;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(0,206,201,.22);
+  backdrop-filter: blur(8px);
+  padding: 0.65rem 0.85rem;
+  font-family: 'Courier New', monospace;
+  min-width: 170px;
+}
+
+.hud-tl { top: 1.2rem; left: 1.2rem; }
+
+/* linha decorativa lateral esquerda */
+.hud-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: -4px;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, #00cec9, transparent);
+  opacity: .6;
+}
+
+.hp-label {
+  font-size: 9px;
+  letter-spacing: .18em;
+  color: #00cec9;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.hp-value {
+  font-size: 14px;
+  font-weight: bold;
+  color: #e6edf3;
+  letter-spacing: .03em;
+}
+
+.hp-sub {
+  font-size: 11px;
+  color: #00b894;
+  margin-top: 3px;
+  min-height: 14px;
+}
+
+.hp-divider {
+  height: 1px;
+  background: rgba(0,206,201,.2);
+  margin: 6px 0;
+}
+
+.hp-sys {
+  font-size: 10px;
+  letter-spacing: .1em;
+  color: rgba(0,206,201,.5);
+  text-transform: uppercase;
+}
+.hp-sys.active { color: #00b894; }
+
+.hp-mapped {
+  font-size: 10px;
+  color: rgba(255,255,255,.3);
+  letter-spacing: .05em;
+  margin-top: 2px;
+}
+
+/* ── Banner do modo captura de cor (F3a) ─── */
+.hud-capture-banner {
+  position: absolute;
+  top: 8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #00b894;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 28px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  z-index: 5;
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.hud-capture-banner.hidden { display: none; }
+.hud-capture-hint {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: .85;
+}
+.video-wrapper.capturing { cursor: crosshair; }
+
+/* ── Painel de valores contínuos (topo-direito, modo Mãos) ─── */
+.hud-tr {
+  top: 4.2rem;
+  right: 1.2rem;
+  display: none;
+}
+.hud-tr.show { display: block; }
+
+.hp-cont {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: 11px;
+  color: rgba(255,255,255,.65);
+  letter-spacing: .05em;
+  margin-top: 3px;
+}
+.hp-cont b {
+  font-size: 14px;
+  font-weight: bold;
+  color: #00b894;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.5ch;
+  text-align: right;
+}
+
+
+/* ── Botão Definir Gestos (topo-direito do HUD) ─── */
+.hud-btn-gestos {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  pointer-events: auto;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(0,206,201,.45);
+  color: #00cec9;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: .08em;
+  padding: 0.65rem 1.3rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background .15s, border-color .15s, color .15s;
+}
+.hud-btn-gestos:hover {
+  background: rgba(0,206,201,.15);
+  border-color: #00cec9;
+  color: #fff;
+}
+.hud-btn-gestos:active { transform: scale(.97); }
+
+/* ── Bloco de gesto (baixo-esquerdo) ────────────── */
+.hud-gesture-block {
+  position: absolute;
+  bottom: 1.2rem;
+  left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Courier New', monospace;
+}
+
+/* Círculo com ring SVG */
+.gc-wrap {
+  position: relative;
+  width: 110px; height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gc-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+
+/* Círculo de fundo */
+.gc-bg {
+  fill: rgba(0,0,0,.5);
+  stroke: rgba(0,206,201,.18);
+  stroke-width: 1;
+}
+
+/* Anel tracejado girante */
+.gc-dash {
+  fill: none;
+  stroke: rgba(0,206,201,.3);
+  stroke-width: 1;
+  stroke-dasharray: 6 14;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dashRotate 12s linear infinite;
+}
+@keyframes dashRotate { to { transform: rotate(360deg); } }
+
+/* Arco ativo girante */
+.gc-arc {
+  fill: none;
+  stroke: rgba(0,206,201,.5);
+  stroke-width: 2;
+  stroke-dasharray: 55 272;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: arcRotate 3s linear infinite;
+  transition: stroke .3s;
+}
+@keyframes arcRotate { to { transform: rotate(360deg); } }
+
+/* Quando gesto detectado: arco fica verde e brilha */
+.gc-wrap.active .gc-arc {
+  stroke: #00b894;
+  stroke-dasharray: 180 272;
+  filter: drop-shadow(0 0 6px rgba(0,184,148,.7));
+}
+.gc-wrap.active .gc-bg {
+  stroke: rgba(0,184,148,.25);
+}
+
+.live-emoji {
+  font-size: 40px;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  transition: transform .2s;
+}
+/* Modo Cor: emoji vira swatch redondo da cor detectada. */
+.live-emoji.color-swatch {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.85);
+  box-shadow: 0 0 14px rgba(0,0,0,.4);
+  font-size: 0;
+}
+.gc-wrap.active .live-emoji { animation: bounceIn .25s; }
+@keyframes bounceIn {
+  0%  { transform: scale(.8); }
+  60% { transform: scale(1.15); }
+  100%{ transform: scale(1); }
+}
+
+.live-name {
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: .1em;
+  color: #00cec9;
+  text-transform: uppercase;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(0,206,201,.5);
+}
+.live-name.none { color: rgba(255,255,255,.3); text-shadow: none; }
+
+.live-conf {
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  text-align: center;
+  letter-spacing: .05em;
+}
+
+.conf-bar-wrap {
+  width: 88px;
+  height: 2px;
+  background: rgba(255,255,255,.12);
+  border-radius: 1px;
+  margin: 4px auto 0;
+  overflow: hidden;
+}
+.conf-bar {
+  height: 100%;
+  width: 0%;
+  background: #00cec9;
+  border-radius: 1px;
+  transition: width .15s, background .3s;
+}
+.gc-wrap.active ~ * .conf-bar,
+.hud-gesture-block .gc-wrap.active ~ .conf-bar-wrap .conf-bar { background: #00b894; }
+
+.sending-flash {
+  font-size: 11px;
+  font-weight: bold;
+  color: #55efc4;
+  text-align: center;
+  letter-spacing: .06em;
+  min-height: 16px;
+  opacity: 0;
+}
+.sending-flash.show { animation: fadeOut .9s forwards; }
+@keyframes fadeOut { 0%{opacity:1} 60%{opacity:1} 100%{opacity:0} }
+
+
+/* ── Modal ───────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.78);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+}
+.modal-backdrop.hidden { display: none; }
+
+.modal {
+  background: #161b22;
+  border: 1px solid rgba(0,206,201,.28);
+  width: min(700px, 94vw);
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  animation: modalIn .18s ease-out;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid #30363d;
+}
+
+.modal-title {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  letter-spacing: .1em;
+  color: #00cec9;
+  text-transform: uppercase;
+}
+
+.modal-close {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+}
+.modal-close:hover { background: #21262d; color: #e6edf3; }
+
+.modal-desc {
+  font-size: 12px;
+  color: #8b949e;
+  margin-bottom: 1.1rem;
+}
+
+/* ── Tela "Preparar ESP32-CAM": visual claro, natural ao app ── */
+.modal.prepare {
+  background: #fff;
+  border: 1px solid #dfe6e9;
+  color: #2d3436;
+}
+.modal.prepare .modal-header { border-bottom-color: #eceff1; }
+.modal.prepare .modal-title {
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #2d3436;
+}
+.modal.prepare .modal-desc { color: #636e72; font-size: 13px; }
+.modal.prepare .modal-close { border-color: #dfe6e9; color: #636e72; }
+.modal.prepare .modal-close:hover { background: #f1f3f4; color: #2d3436; }
+
+/* ── Cards de gestos (dentro do modal) ───────────── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 0.65rem;
+}
+
+.g-card {
+  background: #0d1117;
+  border-radius: 10px;
+  padding: 1rem 0.75rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid #30363d;
+  transition: border-color .15s, box-shadow .15s, transform .1s;
+  cursor: default;
+  position: relative;
+}
+.g-card:hover {
+  border-color: rgba(0,206,201,.4);
+  box-shadow: 0 2px 12px rgba(0,0,0,.4);
+}
+.g-card.active {
+  border-color: #00b894;
+  box-shadow: 0 0 0 2px rgba(0,184,148,.2);
+  transform: translateY(-2px);
+}
+.g-card.active .g-card-emoji { animation: bounceIn .25s; }
+
+.g-card-emoji { font-size: 34px; line-height: 1; }
+
+/* Modo Cor: emoji do card vira swatch circular. */
+.g-card-emoji.color-swatch {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid #30363d;
+  font-size: 0;
+}
+.g-card-emoji.color-swatch.is-empty {
+  border-style: dashed;
+  border-color: #586069;
+}
+
+.g-card-capture-row {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.g-card-capture {
+  width: 100%;
+  background: #1f2937;
+  color: #cbd5e1;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.g-card-capture:hover { background: #00b894; color: #fff; border-color: #00b894; }
+
+.g-card-clear {
+  width: 100%;
+  background: #1f1418;
+  color: #d66262;
+  border: 1px solid #4a2d2d;
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.g-card-clear:hover { background: #d66262; color: #fff; border-color: #d66262; }
+
+/* Toggle "Detectando / Ignorada" por cor */
+.g-card-toggle {
+  width: 100%;
+  background: #1f2937;
+  color: #74c4a8;
+  border: 1px solid #2d4a3e;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.g-card-toggle:hover { background: #283143; }
+.g-card-toggle.is-off {
+  color: #d66262;
+  border-color: #4a2d2d;
+  background: #1f1418;
+}
+/* Card com cor desativada: swatch e nome esmaecidos */
+.g-card.is-disabled .g-card-emoji.color-swatch {
+  opacity: 0.30;
+  filter: grayscale(.7);
+}
+.g-card.is-disabled .g-card-name { opacity: 0.55; }
+
+.g-card-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8b949e;
+  text-align: center;
+  line-height: 1.3;
+}
+.g-card.active .g-card-name { color: #00b894; }
+
+.g-card-input-wrap { width: 100%; }
+
+.g-card-input-wrap input {
+  width: 100%;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  color: #e6edf3;
+  text-align: center;
+  transition: border-color .15s;
+}
+.g-card-input-wrap input:focus {
+  outline: none;
+  border-color: #00cec9;
+  background: #0d1117;
+}
+.g-card-input-wrap input::placeholder { color: #484f58; }
+
+.g-card.empty-hint .g-card-input-wrap input { border-style: dashed; }
+
+.g-card-badge {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: #00b894;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 1px 5px;
+  opacity: 0;
+}
+.g-card-badge.show { animation: badgePop .9s forwards; }
+@keyframes badgePop {
+  0%  { opacity:1; }
+  70% { opacity:1; }
+  100%{ opacity:0; }
+}
+
+/* ── Loading overlay ─────────────────────────────── */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: #e6edf3;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: .08em;
+  z-index: 300;
+}
+#overlay.hidden { display: none; }
+
+.spinner {
+  width: 34px; height: 34px;
+  border: 3px solid rgba(255,255,255,.15);
+  border-top-color: #00cec9;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

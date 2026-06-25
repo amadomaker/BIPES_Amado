@@ -335,6 +335,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   loadExamplesList().catch(() => {});
   setPlayState(false);
+  setupRobotSimPanel();
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
@@ -1933,4 +1934,191 @@ function handleDeleteSelection() {
     return true;
   }
   return false;
+}
+
+// === Simulador de Robô Físico ===
+// Lê o RPM dos motores A e B do simulador e envia via postMessage para o iframe do robô.
+
+let robotSimOpen = false;
+let robotMotorPollInterval = null;
+
+// Lê o PWM duty (0–1023) que o código comandou para o motor, via controlador.
+// É o MESMO valor que iria para o carrinho físico — leitura, não altera nada.
+function getMotorPwmById(componentId) {
+  if (!simulation?.motorControllers) return null;
+  for (const controller of simulation.motorControllers.values()) {
+    if (Array.isArray(controller.boundComponentIds) && controller.boundComponentIds.includes(componentId)) {
+      const p = Number(controller.power);
+      return Number.isFinite(p) ? p : null;
+    }
+  }
+  return null;
+}
+
+// Retorna estado dos dois primeiros motores DC encontrados no canvas.
+// 1º motor = roda esquerda (canal A), 2º motor = roda direita (canal B).
+function getMotorStateByChannel() {
+  if (!canvasManager) return { A: null, B: null };
+  const motors = canvasManager.components.filter(
+    (c) => c?.type === 'dc-motor' && c.state?.motor,
+  );
+  const build = (motor) =>
+    motor ? { ...motor.state.motor, pwm: getMotorPwmById(motor.id) } : null;
+  return { A: build(motors[0]), B: build(motors[1]) };
+}
+
+function sendMotorStateToRobotSim() {
+  const frame = document.getElementById('robot-sim-frame');
+  if (!frame?.contentWindow) return;
+
+  const { A, B } = getMotorStateByChannel();
+  frame.contentWindow.postMessage(
+    {
+      type: 'bipes-motor-state',
+      leftRpm: A?.rpm ?? 0,
+      leftDir: A?.direction ?? 0,
+      leftPwm: A?.pwm ?? null,
+      rightRpm: B?.rpm ?? 0,
+      rightDir: B?.direction ?? 0,
+      rightPwm: B?.pwm ?? null,
+    },
+    '*',
+  );
+}
+
+function notifyRobotSim(type) {
+  const frame = document.getElementById('robot-sim-frame');
+  frame?.contentWindow?.postMessage({ type }, '*');
+}
+
+function startRobotMotorPoll() {
+  clearInterval(robotMotorPollInterval);
+  robotMotorPollInterval = setInterval(sendMotorStateToRobotSim, 25);
+}
+
+function stopRobotMotorPoll() {
+  clearInterval(robotMotorPollInterval);
+  robotMotorPollInterval = null;
+  // Devolve os sensores ao controle manual para não ficarem presos no último valor do robô
+  restoreRobotInjectedSensors();
+}
+
+// Restaura os sensores que o robô injeta de volta ao valor manual do usuário.
+// Sem isso, o último valor que o robô escreveu fica PRESO no component.state,
+// e ao dar Play de novo sem o robô o programa lê sensores travados (motores "não andam").
+function restoreRobotInjectedSensors() {
+  if (!canvasManager) return;
+  canvasManager.components.forEach((c) => {
+    if (c?.type === 'ir-receiver') {
+      if (!c.state) c.state = {};
+      // Volta ao valor manual configurado nas props (ou 'low' como padrão)
+      c.state.state = String(c.props?.state ?? 'low').toLowerCase();
+    } else if (c?.type === 'ultrasonic-sensor' && c.element) {
+      // Remove o override para a leitura voltar ao padrão manual
+      delete c.element.__distanceCm;
+    }
+  });
+}
+
+function openRobotSim() {
+  const panel = document.getElementById('robot-sim-panel');
+  if (panel) panel.setAttribute('aria-hidden', 'false');
+  robotSimOpen = true;
+}
+
+function closeRobotSim() {
+  const panel = document.getElementById('robot-sim-panel');
+  if (panel) panel.setAttribute('aria-hidden', 'true');
+  robotSimOpen = false;
+  stopRobotMotorPoll();
+  // Manda o robô parar seus próprios loops (não toca no Play do BIPES)
+  notifyRobotSim('robot-stop');
+}
+
+function updateUltrasonicSensorFromRobot(distanceCm) {
+  if (!canvasManager) return;
+  const sensors = canvasManager.components.filter((c) => c?.type === 'ultrasonic-sensor');
+  for (const sensor of sensors) {
+    if (!sensor.element) continue;
+    // Só escreve a propriedade JS que a simulação lê (component.element.__distanceCm).
+    // NÃO chamar setAttribute no web component Wokwi — dispara eventos de interação
+    // que corrompem o loop de simulação do BIPES (motores param de funcionar).
+    sensor.element.__distanceCm = distanceCm;
+  }
+}
+
+// Injeta leituras dos sensores IR de reflexão (ColorSensors do Gears) nos ir-receivers do BIPES.
+// 1º ir-receiver no canvas = sensor esquerdo, 2º = sensor direito.
+// irLevel: 0=linha preta, 100=superfície branca → converte para 'low'/'high' no pino OUT.
+function updateIRSensorsFromRobot(irLeft, irRight) {
+  if (!canvasManager) return;
+  const sensors = canvasManager.components.filter((c) => c?.type === 'ir-receiver');
+  if (sensors.length === 0) return;
+
+  const levels = [Math.round(irLeft), Math.round(irRight)];
+  sensors.forEach((sensor, i) => {
+    if (i >= levels.length) return;
+    // irLevel >= 50 = superfície clara → HIGH; < 50 = linha preta → LOW
+    const val = levels[i] >= 50 ? 'high' : 'low';
+    if (!sensor.state) sensor.state = {};
+    sensor.state.state = val;
+    // NÃO tocar em sensor.element nem setAttribute — web components Wokwi disparam
+    // eventos de interação que corrompem o loop de simulação do BIPES
+  });
+}
+
+function setupRobotSimPanel() {
+  const toggleBtn = document.getElementById('robot-sim-toggle');
+  const closeBtn = document.getElementById('robot-sim-close');
+
+  // Move o botão "Robô" para a toolbar, à direita de "Laboratorio", com o mesmo
+  // estilo dos botões de texto da barra (antes era um botão flutuante no canvas).
+  const toolbar = document.getElementById('toolbar');
+  const labBtn = document.getElementById('btn-lab');
+  if (toggleBtn && toolbar && labBtn) {
+    toggleBtn.classList.remove('robot-sim-toggle-btn');
+    toggleBtn.classList.add('toolbar-text');
+    labBtn.insertAdjacentElement('afterend', toggleBtn);
+  }
+
+  toggleBtn?.addEventListener('click', () => {
+    if (robotSimOpen) {
+      closeRobotSim();
+    } else {
+      openRobotSim();
+    }
+  });
+
+  closeBtn?.addEventListener('click', closeRobotSim);
+
+  // Mensagens vindas do iframe do robô.
+  // O robô é TOTALMENTE independente do Play do BIPES: ele controla seu próprio
+  // motor poll via 'robot-started'/'robot-stopped'. O BIPES nunca é tocado.
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (!data) return;
+
+    // Controle do motor poll, dirigido pelo botão Iniciar/Parar do próprio robô
+    if (data.type === 'robot-started') {
+      startRobotMotorPoll();
+      return;
+    }
+    if (data.type === 'robot-stopped') {
+      stopRobotMotorPoll();
+      return;
+    }
+
+    // Leituras dos sensores do robô (só injeta no state, sem disparar eventos).
+    // Trava: ignora mensagens se o painel está fechado, evitando que mensagens
+    // em trânsito após o fechamento mexam no estado da simulação normal.
+    if (data.type === 'bipes-sensor-state') {
+      if (!robotSimOpen) return;
+      if (typeof data.ultrasonicCm === 'number') {
+        updateUltrasonicSensorFromRobot(data.ultrasonicCm);
+      }
+      if (typeof data.irSensorLeft === 'number' || typeof data.irSensorRight === 'number') {
+        updateIRSensorsFromRobot(data.irSensorLeft ?? 100, data.irSensorRight ?? 100);
+      }
+    }
+  });
 }

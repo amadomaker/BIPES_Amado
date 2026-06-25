@@ -182,6 +182,12 @@ class websocket {
 	/**
    * Runs every 50ms to check if there is code to be sent in the :js:attr:`websocket#buffer_` (appended with :js:func:`mux.bufferPush()`)
    */
+  // TODO(stall-recovery): same hang pattern as webserial — if `bufferedAmount`
+  // never drains (e.g. WiFi drop while writing) the queue stalls forever and
+  // the user has to reload. Mirror the watchdog from `webserial.watch()`:
+  // count consecutive ticks where `bufferedAmount > 0 && buffer_.length > 0`
+  // and force a recovery (close ws, clear buffer, prompt reconnect) past a
+  // threshold (~3s).
   watch () {
     if (this.ws.bufferedAmount == 0) {
       if (this.buffer_.length > 0) {
@@ -217,6 +223,7 @@ class websocket {
 
       this.connected = true;
       UI ['workspace'].websocket.url.disabled = true;
+      UI ['workspace'].setRunState ('idle');
       this.last4chars = '';
 
       this.ws.onmessage = (event) => {
@@ -305,9 +312,7 @@ class websocket {
           Tool.bipesVerify ();
           this.last4chars = (this.last4chars + event.data).slice(-4);
           if (event.data.includes(">>> ") || this.last4chars.includes(">>> ")) {
-            UI ['workspace'].runButton.status = true;
-            UI ['workspace'].runButton.dom.className = 'icon';
-            UI ['workspace'].toolbarButton.className = 'icon medium';
+            UI ['workspace'].onReplPrompt ();
             if (this.completeBufferCallback.length > 0) {
               try {
                 this.completeBufferCallback [0] ();
@@ -319,8 +324,6 @@ class websocket {
           } else if (event.data.includes("Access denied")) {
             //WebSocket might close before receiving this message, so won't trigger.
             UI ['notify'].send("Wrong board password.");
-          } else if (UI ['workspace'].runButton.status == true) {
-            UI ['workspace'].receiving ();
           }
         }
         Files.received_string = Files.received_string.concat(event.data);
@@ -360,23 +363,44 @@ class webserial {
     this.shouldListen = true;
     this.packetSize = 100;
     this.speed = 115200;
+    // Stall watchdog: if writer lock stays held while data is waiting,
+    // assume the underlying write is hung and force a recovery.
+    // 60 ticks * 50ms = 3s grace window — large writes (lib install) finish
+    // a single chunk well within this.
+    this.STALL_THRESHOLD_ = 60;
+    this.stallCounter_ = 0;
+    this.activeWriter_ = null;
   }
 
 	/**
    * Runs every 50ms to check if there is code to be sent in the :js:attr:`webserial#buffer_` (appended with :js:func:`mux.bufferPush()`)
    */
   watch () {
-    if (this.port && this.port.writable && this.port.writable.locked == false) {
+    if (!this.port || !this.port.writable) return;
+
+    if (this.port.writable.locked == false) {
+      // Healthy state: lock is free. Reset stall counter and proceed.
+      if (this.stallCounter_ > 0) this.stallCounter_ = 0;
+
       if (this.buffer_.length > 0) {
         UI ['progress'].remain(this.buffer_.length);
         try {
-		      this.serialWrite(this.buffer_ [0]);
+          this.serialWrite(this.buffer_ [0]);
         } catch (e) {
           UI ['notify'].log(e);
         }
       } else {
         UI ['progress'].end();
       }
+    } else if (this.buffer_.length > 0) {
+      // Lock is held AND data is queued. Normally this is just an in-flight
+      // write that resolves within a few ticks. If it doesn't (cable unplug
+      // mid-write, OS-level USB hang), the write Promise may never resolve
+      // OR reject, and the lock stays held forever. Count consecutive stuck
+      // ticks and trigger recovery once the threshold is exceeded.
+      this.stallCounter_++;
+      if (this.stallCounter_ >= this.STALL_THRESHOLD_)
+        this.recoverFromStall_();
     }
   }
 
@@ -401,9 +425,7 @@ class webserial {
                 //data comes in chunks, keep last 4 chars to check MicroPython REPL string
                 Channel ['webserial'].last4chars = Channel ['webserial'].last4chars.concat(chunk.substr(-4,4)).substr(-4,4)
                 if (Channel ['webserial'].last4chars.includes(">>> ")) {
-                  UI ['workspace'].runButton.status = true;
-                  UI ['workspace'].runButton.dom.className = 'icon';
-                  UI ['workspace'].toolbarButton.className = 'icon medium';
+                  UI ['workspace'].onReplPrompt ();
                   if (Channel ['webserial'].completeBufferCallback.length > 0) {
                     try {
                       Channel ['webserial'].completeBufferCallback [0] ();
@@ -412,8 +434,6 @@ class webserial {
                     }
                     Channel ['webserial'].completeBufferCallback.shift ();
                   }
-                } else if (UI ['workspace'].runButton.status == true) {
-                  UI ['workspace'].receiving ();
                 }
                 Files.received_string = Files.received_string.concat(chunk);
               }
@@ -450,8 +470,7 @@ class webserial {
     term.on();
     term.write('\x1b[31mConnected using Web Serial API !\x1b[m\r\n');
     this.connected=true;
-    if (UI ['workspace'].runButton.status == true)
-        UI ['workspace'].receiving ();
+    UI ['workspace'].setRunState ('idle');
 
     this.watcher = setInterval(this.watch.bind(this), 50);
   }
@@ -509,11 +528,80 @@ class webserial {
         dataArrayBuffer = this.encoder.encode(data);
       break;
     }
-    if (this.port && this.port.writable && dataArrayBuffer != undefined) {
-      const writer = this.port.writable.getWriter();
-      writer.write(dataArrayBuffer).then (() => {writer.releaseLock(); this.buffer_.shift ()});
-	  }
-	}
+    if (!this.port || !this.port.writable || dataArrayBuffer == undefined)
+      return;
+
+    // Get writer defensively: getWriter() throws if the stream is locked or errored.
+    // Without this guard, a transient USB error could throw synchronously and leave
+    // the buffer/lock in a bad state.
+    let writer;
+    try {
+      writer = this.port.writable.getWriter();
+    } catch (e) {
+      UI ['notify'].log(e);
+      return;
+    }
+
+    // Save the active writer so the stall watchdog can abort it from outside
+    // if write() never resolves (browser/OS USB hang).
+    this.activeWriter_ = writer;
+
+    // Always release the lock and advance the buffer, even if write() rejects
+    // (e.g. transient USB errors caused by motor PWM noise or BT contention).
+    // Original code had no .catch(), so a single rejection would leave the writer
+    // permanently locked and freeze every subsequent send.
+    writer.write(dataArrayBuffer)
+      .catch((e) => {
+        UI ['notify'].log(e);
+      })
+      .finally(() => {
+        if (this.activeWriter_ === writer) this.activeWriter_ = null;
+        try { writer.releaseLock(); } catch (e) { /* stream already errored */ }
+        this.buffer_.shift();
+      });
+  }
+
+  /**
+   * Recover from a stalled writer: write() never resolved/rejected and the
+   * lock is held indefinitely. We can't disconnect through the normal flow
+   * because disconnect() calls getWriter() which throws on a locked stream,
+   * so we abort the active writer to release the lock, drop pending data,
+   * tear down the watcher, and prompt the user to reconnect.
+   */
+  recoverFromStall_ () {
+    this.stallCounter_ = 0;
+    UI ['notify'].send('Conexão serial travada. Reconecte a placa para continuar.');
+
+    if (this.activeWriter_) {
+      try {
+        this.activeWriter_.abort('serial write stall recovery');
+      } catch (e) {
+        UI ['notify'].log(e);
+      }
+      this.activeWriter_ = null;
+    }
+
+    this.buffer_ = [];
+    this.completeBufferCallback = [];
+    this.last4chars = '';
+    this.connected = false;
+
+    if (this.watcher) {
+      clearInterval(this.watcher);
+      this.watcher = undefined;
+    }
+    if (term) {
+      term.write('\x1b[31mDisconnected (recuperação de travamento)\x1b[m\r\n');
+      term.off();
+    }
+    if (this.port) {
+      // close() may reject if streams are still pending; ignore — the page
+      // will reclaim the port handle on reload or reconnect.
+      try { this.port.close(); } catch (e) { /* swallow */ }
+      this.port = undefined;
+    }
+    if (UI ['workspace']) UI ['workspace'].runAbort();
+  }
 }
 
 /*Handles the webbluetooth protocol*/
@@ -559,6 +647,15 @@ class webbluetooth {
    * uses a promise to handshake sent chunks, will retry in 500ms if a chunk fails
    * @param {string} operation - code to be sent via webbluetooth
    */
+  // TODO(stall-recovery): two related issues to address alongside the
+  // webserial watchdog work:
+  //   1) After both initial write and the 500ms retry fail, `this.sending`
+  //      stays true forever — `watch()` will never call `sendNextChunk` again
+  //      so the connection silently dies. Reset `this.sending = false` in the
+  //      retry-fail catch.
+  //   2) Add a stall watchdog analogous to webserial: if `this.sending` stays
+  //      true with `buffer_.length > 0` for more than ~3s without progress,
+  //      drop the buffer and prompt reconnect.
   sendNextChunk (operation) {
     return new Promise((resolve, reject) => {
       this.sending = true;
@@ -651,8 +748,7 @@ class webbluetooth {
         term.write('\x1b[31mConnected using Web Bluetooth API !\x1b[m\r\n');
         this.connected = true;
         mux.bufferPush ('\r');
-        if (UI ['workspace'].runButton.status == true)
-          UI ['workspace'].receiving ();
+        UI ['workspace'].setRunState ('idle');
         this.watcher = setInterval(this.watch.bind(this), 50);
       }).catch(error => {
         UI ['notify'].log(error);
@@ -703,9 +799,7 @@ class webbluetooth {
     //data comes in chunks, keep last 4 chars to check MicroPython REPL string
     this.last4chars = this.last4chars.concat(chunk.substr(-4,4)).substr(-4,4)
     if (this.last4chars.includes(">>> ")) {
-      UI ['workspace'].runButton.status = true;
-      UI ['workspace'].runButton.dom.className = 'icon';
-      UI ['workspace'].toolbarButton.className = 'icon medium';
+      UI ['workspace'].onReplPrompt ();
       if (this.completeBufferCallback.length > 0) {
         try {
           this.completeBufferCallback [0] ();
@@ -714,8 +808,6 @@ class webbluetooth {
         }
         this.completeBufferCallback.shift ();
       }
-    } else if (UI ['workspace'].runButton.status == true) {
-      UI ['workspace'].receiving ();
     }
     Files.received_string = Files.received_string.concat(chunk);
   }

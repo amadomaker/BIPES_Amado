@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle por Gestos</title>
+  <link rel="stylesheet" href="gesture-control.css">
+</head>
+<body>
+
+  <div id="overlay" class="hidden">
+    <div class="spinner"></div>
+    <span id="overlayMsg">Carregando...</span>
+  </div>
+
+  <!-- ── Top bar ── -->
+  <div class="topbar">
+
+    <div class="ip-group">
+      <label for="ipInput">AMADOBOARD IP:</label>
+      <input type="text" id="ipInput" placeholder="192.168.1.100" autocomplete="off" spellcheck="false">
+      <button class="btn btn-save" id="btnSave">Salvar</button>
+      <button class="btn btn-ping" id="btnPing">Testar</button>
+    </div>
+
+    <div id="statusChip" class="status-chip">
+      <span class="dot"></span>
+      <span id="statusText">Não configurado</span>
+    </div>
+
+    <div class="rec-indicator hidden" id="recIndicator">
+      <span class="rec-dot"></span>
+      <span>AO VIVO</span>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="mode-toggle" role="radiogroup" aria-label="Modo de detecção">
+      <button class="mode-opt is-active" id="modeHands" data-mode="hands" type="button">Mãos</button>
+      <button class="mode-opt"           id="modePose"  data-mode="pose"  type="button">Corpo</button>
+      <button class="mode-opt"           id="modeColor" data-mode="color" type="button">Cor</button>
+    </div>
+
+    <div class="cam-group">
+      <label for="camSource">Câmera:</label>
+      <select id="camSource">
+        <option value="notebook">Notebook</option>
+        <option value="esp32cam">ESP32-CAM</option>
+      </select>
+      <input type="text" id="camUrl" placeholder="http://192.168.0.50:81/stream" autocomplete="off" spellcheck="false">
+      <button class="btn btn-prepare" id="btnPrepareCam" type="button">⚙ Preparar ESP32-CAM</button>
+    </div>
+
+    <button class="btn btn-cam-on"  id="btnStart">▶ Ligar Câmera</button>
+    <button class="btn btn-cam-off" id="btnStop" disabled>■ Desligar</button>
+  </div>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <div class="video-panel">
+
+      <!-- Placeholder (câmera desligada) -->
+      <div class="camera-placeholder" id="placeholder">
+        <span class="cam-icon">📷</span>
+        <p>Clique em <strong>Ligar Câmera</strong> para começar</p>
+      </div>
+
+      <!-- Wrapper fill total (câmera ligada) -->
+      <div class="video-wrapper" id="videoWrapper">
+        <video id="videoEl" autoplay muted playsinline></video>
+        <img id="extCamEl" crossorigin="anonymous" alt="">
+        <canvas id="canvasEl"></canvas>
+
+        <!-- ── HUD ── -->
+        <div class="hud">
+
+          <!-- Vinheta nas bordas -->
+          <div class="hud-vignette"></div>
+
+          <!-- Scanline -->
+          <div class="hud-scanline"></div>
+
+          <!-- Cornetas do frame -->
+          <div class="hfc hfc-tl"></div>
+          <div class="hfc hfc-tr"></div>
+
+          <!-- Topo-direito: botão definir mapeamentos (texto muda conforme modo) -->
+          <button class="hud-btn-gestos" id="btnMappings">⚙ Definir Gestos</button>
+
+          <!-- Banner do modo de captura de cor (F3a) -->
+          <div class="hud-capture-banner hidden" id="captureBanner">
+            <span id="captureBannerText">Clique na câmera para capturar a cor</span>
+            <span class="hud-capture-hint">(ESC cancela)</span>
+          </div>
+          <div class="hfc hfc-bl"></div>
+          <div class="hfc hfc-br"></div>
+
+          <!-- Topo-esquerdo: status AMADOBOARD -->
+          <div class="hud-panel hud-tl">
+            <div class="hp-label">AMADOBOARD</div>
+            <div class="hp-value" id="hudIp">—</div>
+            <div class="hp-sub" id="hudCmd"></div>
+            <div class="hp-divider"></div>
+            <div class="hp-sys" id="hudSys">SISTEMA INATIVO</div>
+            <div class="hp-mapped" id="hudMapped"></div>
+          </div>
+
+          <!-- Topo-direito: valores contínuos (modo Mãos) -->
+          <div class="hud-panel hud-tr" id="hudContPanel">
+            <div class="hp-label">VALORES CONTÍNUOS</div>
+            <div class="hp-cont"><span>Mão X</span><b id="hudHx">0</b></div>
+            <div class="hp-cont"><span>Mão Y</span><b id="hudHy">0</b></div>
+            <div class="hp-cont"><span>Pinça</span><b id="hudPinch">0</b></div>
+          </div>
+
+          <!-- Baixo-esquerdo: gesto detectado (círculo) -->
+          <div class="hud-gesture-block">
+            <div class="gc-wrap" id="gcWrap">
+              <!-- SVG ring animado -->
+              <svg class="gc-svg" viewBox="0 0 120 120">
+                <circle class="gc-bg"     cx="60" cy="60" r="52"/>
+                <circle class="gc-dash"   cx="60" cy="60" r="52"/>
+                <circle class="gc-arc"    cx="60" cy="60" r="52"/>
+              </svg>
+              <span class="live-emoji" id="liveEmoji">—</span>
+            </div>
+            <div class="live-name none" id="liveName">AGUARDANDO</div>
+            <div class="live-conf"     id="liveConf"></div>
+            <div class="conf-bar-wrap"><div class="conf-bar" id="confBar"></div></div>
+            <div class="sending-flash" id="sendFlash"></div>
+          </div>
+
+        </div><!-- /hud -->
+      </div><!-- /video-wrapper -->
+
+    </div><!-- /video-panel -->
+  </div><!-- /main -->
+
+  <!-- ── Modal de mapeamentos ── -->
+  <div class="modal-backdrop hidden" id="modalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle">⚙ Mapeamento de Gestos</span>
+        <button class="modal-close" id="btnCloseModal">✕</button>
+      </div>
+      <p class="modal-desc" id="modalDesc">Configure o endpoint HTTP enviado ao AMADOBOARD para cada gesto reconhecido.</p>
+      <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+  </div>
+
+  <!-- ── Modal: preparar ESP32-CAM ── -->
+  <div class="modal-backdrop hidden" id="espModalBackdrop">
+    <div class="modal prepare">
+      <div class="modal-header">
+        <span class="modal-title">Preparar ESP32-CAM</span>
+        <button class="modal-close" id="btnCloseEspModal">✕</button>
+      </div>
+      <p class="modal-desc">
+        Use o <strong>Chrome</strong> ou o <strong>Edge</strong> no computador.
+      </p>
+
+      <ol class="esp-steps">
+        <li>Conecte a câmera no cabo USB e clique aqui:
+          <div class="esp-install">
+            <esp-web-install-button id="espInstallBtn">
+              <button slot="activate" class="btn btn-cam-on">⬇ Instalar firmware</button>
+              <span slot="unsupported">Seu navegador não suporta Web Serial. Use Chrome ou Edge no desktop.</span>
+            </esp-web-install-button>
+          </div>
+        </li>
+        <li>No celular ou PC, conecte na rede WiFi <strong>ESP32CAM-Setup</strong>.</li>
+        <li>Escolha a <strong>sua</strong> rede WiFi, digite a senha e toque em <strong>Conectar</strong>.</li>
+        <li>A câmera vai mostrar o <strong>link</strong> dela — copie esse link.</li>
+        <li>Cole o link no campo da câmera, na barra de cima, e clique em
+            <strong>Ligar Câmera</strong>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+  <script type="module" src="gesture-control.js"></script>
+</body>
+</html>

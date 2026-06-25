@@ -1187,10 +1187,12 @@ Blockly.Python["easymqtt_init"] = function (block) {
   window.easyMQTT_session = session;
 
   Blockly.Python.definitions_["import_umqtt.robust"] = "import umqtt.robust";
+  Blockly.Python.definitions_["import_machine"] = "import machine";
+  Blockly.Python.definitions_["import_ubinascii"] = "import ubinascii";
   var code =
     'easymqtt_session = "' +
     session +
-    '"; \neasymqtt_client = umqtt.robust.MQTTClient("umqtt_client", server = ' +
+    '"; \neasymqtt_client = umqtt.robust.MQTTClient(b"bipes-"+ubinascii.hexlify(machine.unique_id()), server = ' +
     server +
     ", port = " +
     port +
@@ -7431,7 +7433,8 @@ Blockly.Python["net_http_server_send_response_jpg"] = function (block) {
 };
 
 Blockly.Python["net_http_server_close"] = function (block) {
-  var code = "cl.close()\n";
+  var code = "cl.send('HTTP/1.0 200 OK\\r\\nContent-Length: 0\\r\\nConnection: close\\r\\n\\r\\n')\n";
+  code += "cl.close()\n";
 
   return code;
 };
@@ -9621,4 +9624,152 @@ Blockly.Python["create_list_with_repeated"] = function (block) {
     Blockly.Python.valueToCode(block, "NUM", Blockly.Python.ORDER_NONE) || "0";
   const code = `[${item}] * ${num}`;
   return [code, Blockly.Python.ORDER_ATOMIC];
+};
+
+
+// ── Visão (Pose + Gesto) ─────────────────────────────────────
+// init_vision_server: cria socket TCP, loop accept(), parse do path
+// e delega aos blocos filhos (when_pose_detected, when_gesture_detected)
+// — cada filho gera um "if pose_path == 'pose/<key>':" ou
+// "if pose_path == 'gesture/<key>':" no mesmo escopo.
+
+Blockly.Python["init_vision_server"] = function (block) {
+  var port = Blockly.Python.valueToCode(
+    block,
+    "port",
+    Blockly.Python.ORDER_ATOMIC
+  ) || "80";
+
+  // statementToCode já indenta uma vez; precisamos de mais um nível
+  // (os handlers vivem dentro do try, dentro do while).
+  var handlers = Blockly.Python.statementToCode(block, "DO");
+  if (!handlers) {
+    handlers = Blockly.Python.INDENT + Blockly.Python.INDENT + "pass\n";
+  } else {
+    handlers = Blockly.Python.prefixLines(
+      handlers.replace(/\n$/, ""),
+      Blockly.Python.INDENT
+    ) + "\n";
+  }
+
+  Blockly.Python.definitions_["import_socket"] = "import socket";
+
+  var I = Blockly.Python.INDENT;
+  var code = "";
+  // Globais de estado contínuo (F1): atualizadas a cada GET /vision/state
+  // e lidas pelos blocos vision_hand_position / vision_pinch_distance.
+  code += "vision_hx = 0\n";
+  code += "vision_hy = 0\n";
+  code += "vision_pinch = 0\n";
+  code += "vision_addr = socket.getaddrinfo('0.0.0.0', " + port + ")[0][-1]\n";
+  code += "vision_sock = socket.socket()\n";
+  code += "vision_sock.bind(vision_addr)\n";
+  code += "vision_sock.listen(1)\n";
+  code += "print('BIPES Visao (Pose) escutando em', vision_addr)\n";
+  code += "while True:\n";
+  code += I + "pose_cl, pose_addr = vision_sock.accept()\n";
+  code += I + "pose_path = ''\n";
+  code += I + "try:\n";
+  code += I+I + "pose_file = pose_cl.makefile('rwb', 0)\n";
+  code += I+I + "while True:\n";
+  code += I+I+I + "pose_line = pose_file.readline()\n";
+  code += I+I+I + "if not pose_line or pose_line == b'\\r\\n':\n";
+  code += I+I+I+I + "break\n";
+  code += I+I+I + "pose_lineS = str(pose_line, 'utf8')\n";
+  code += I+I+I + "if pose_lineS.startswith('GET /'):\n";
+  code += I+I+I+I + "pose_path = (pose_lineS.split('/', 1)[1]).split(' ')[0]\n";
+  // Estado contínuo (F1): /vision/state?hx=..&hy=..&pd=.. → globais.
+  code += I+I + "if pose_path.startswith('vision/state'):\n";
+  code += I+I+I + "vision_qs = pose_path.split('?', 1)[1] if '?' in pose_path else ''\n";
+  code += I+I+I + "for vision_kv in vision_qs.split('&'):\n";
+  code += I+I+I+I + "vision_k, _, vision_v = vision_kv.partition('=')\n";
+  code += I+I+I+I + "try:\n";
+  code += I+I+I+I+I + "vision_v = int(vision_v)\n";
+  code += I+I+I+I + "except Exception:\n";
+  code += I+I+I+I+I + "continue\n";
+  code += I+I+I+I + "if vision_k == 'hx':\n";
+  code += I+I+I+I+I + "vision_hx = vision_v\n";
+  code += I+I+I+I + "elif vision_k == 'hy':\n";
+  code += I+I+I+I+I + "vision_hy = vision_v\n";
+  code += I+I+I+I + "elif vision_k == 'pd':\n";
+  code += I+I+I+I+I + "vision_pinch = vision_v\n";
+  code += handlers;
+  code += I+I + "pose_cl.send('HTTP/1.0 200 OK\\r\\nContent-Length: 0\\r\\n\\r\\n')\n";
+  code += I + "except Exception as e:\n";
+  code += I+I + "print('Erro Visao:', e)\n";
+  code += I + "finally:\n";
+  code += I+I + "pose_cl.close()\n";
+
+  return code;
+};
+
+Blockly.Python["when_pose_detected"] = function (block) {
+  var poseKey = block.getFieldValue("POSE");
+  var actions = Blockly.Python.statementToCode(block, "DO");
+  if (!actions) {
+    actions = Blockly.Python.INDENT + "pass\n";
+  }
+
+  var code = "if pose_path == 'pose/" + poseKey + "':\n";
+  code += actions;
+  return code;
+};
+
+Blockly.Python["when_gesture_detected"] = function (block) {
+  var gestureKey = block.getFieldValue("GESTURE");
+  var actions = Blockly.Python.statementToCode(block, "DO");
+  if (!actions) {
+    actions = Blockly.Python.INDENT + "pass\n";
+  }
+
+  var code = "if pose_path == 'gesture/" + gestureKey + "':\n";
+  code += actions;
+  return code;
+};
+
+// ── Visão (Valores contínuos — F1) ───────────────────────────
+// when_vision_updates: roda os filhos a cada pacote /vision/state.
+// Os getters leem as globais atualizadas por init_vision_server.
+Blockly.Python["when_vision_updates"] = function (block) {
+  var actions = Blockly.Python.statementToCode(block, "DO");
+  if (!actions) {
+    actions = Blockly.Python.INDENT + "pass\n";
+  }
+  var code = "if pose_path.startswith('vision/state'):\n";
+  code += actions;
+  return code;
+};
+
+Blockly.Python["vision_hand_position"] = function (block) {
+  var axis = block.getFieldValue("AXIS");   // 'hx' | 'hy'
+  var varName = axis === "hy" ? "vision_hy" : "vision_hx";
+  return [varName, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Python["vision_pinch_distance"] = function (block) {
+  return ["vision_pinch", Blockly.Python.ORDER_ATOMIC];
+};
+
+// ── Visão (Cor — F3a) ────────────────────────────────────────
+// when_color_detected vira `if pose_path == 'color/' + '<key>': ...`,
+// onde <key> vem do bloco encaixado (color_preset ou color_captured).
+// O server existente (init_vision_server) já encaminha qualquer path
+// como pose_path; não precisa mudar nada estrutural lá.
+Blockly.Python["when_color_detected"] = function (block) {
+  var colorExpr = Blockly.Python.valueToCode(block, "COLOR", Blockly.Python.ORDER_ATOMIC) || "''";
+  var actions = Blockly.Python.statementToCode(block, "DO");
+  if (!actions) actions = Blockly.Python.INDENT + "pass\n";
+  var code = "if pose_path == 'color/' + " + colorExpr + ":\n";
+  code += actions;
+  return code;
+};
+
+Blockly.Python["color_preset"] = function (block) {
+  var key = block.getFieldValue("COLOR");  // 'red' | 'orange' | ...
+  return ["'" + key + "'", Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Python["color_captured"] = function (block) {
+  var slot = block.getFieldValue("SLOT");  // 'c1' | 'c2' | 'c3' | 'c4'
+  return ["'" + slot + "'", Blockly.Python.ORDER_ATOMIC];
 };
