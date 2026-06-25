@@ -1,0 +1,5 @@
+project_id       = "dblocks-500317"
+region           = "us-central1"
+mongo_uri        = "mongodb+srv://USER:PASS@cluster.mongodb.net/?retryWrites=true&w=majority&appName=bipes-db"
+subscriber_image = "us-central1-docker.pkg.dev/dblocks-500317/dblocks/subscriber:latest"
+ui_image         = "us-central1-docker.pkg.dev/dblocks-500317/dblocks/ui:latest"
