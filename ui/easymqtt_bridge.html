@@ -39,8 +39,7 @@
       function action3() {
         var session = localStorage.getItem("bridgeSession");
         window.open(
-          "https://bipes-api-143389608818.us-central1.run.app/?session=" +
-            session
+          window.location.origin + "/easymqtt/?session=" + session
         );
       }
     </script>
