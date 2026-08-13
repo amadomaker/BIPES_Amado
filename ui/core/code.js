@@ -798,6 +798,28 @@ Code.initLanguage = function() {
   // Inject language strings.
   //Changed to a fixed title for all languages - BIPES Beta
   document.getElementById('tab_blocks').textContent = MSG['blocks'];
+  document.getElementById('tab_console').textContent = MSG['console'];
+  var setConsoleText = function(id, messageKey, allowHtml) {
+    var element = document.getElementById(id);
+    if (element) {
+      if (allowHtml) {
+        element.innerHTML = MSG[messageKey];
+      } else {
+        element.textContent = MSG[messageKey];
+      }
+    }
+  };
+  setConsoleText('tipsGeneric', 'consoleCopyPaste', true);
+  setConsoleText('consoleRunBlocks', 'consoleRunBlocks');
+  setConsoleText('consoleStopProgram', 'consoleStopProgram');
+  setConsoleText('consoleSoftReset', 'consoleSoftReset');
+  setConsoleText('consoleRunEditedFile', 'consoleRunEditedFile');
+  setConsoleText('consoleClearOutput', 'consoleClearOutput');
+  setConsoleText('consoleBridgeData', 'consoleBridgeData');
+  var consoleSettings = document.getElementById('settingsGeneric');
+  if (consoleSettings) {
+    consoleSettings.title = MSG['consoleConfigureBridge'];
+  }
   document.getElementById('tab_files').textContent = MSG['files'];
   document.getElementById('tab_programs').textContent = MSG['shared'];
   document.getElementById('tab_device').textContent = MSG['device'];

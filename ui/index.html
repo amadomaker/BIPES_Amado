@@ -139,7 +139,7 @@ document.body.appendChild(el);
     <img src="media/dblocks-bipes-logo.svg" class="logo-dblocks" alt="Logotipo Dblocks - Amado Maker">
       <div class="tabs">
         <div id="tab_blocks" class="tabon">...</div>
-        <div id="tab_console" class="taboff">Console</div>
+        <div id="tab_console" class="taboff">...</div>
         <div id="tab_files" class="taboff">...</div>
         <div id="tab_programs" class="taboff">...</div>
         <div id="tab_device" class="taboff">...</div>
@@ -223,7 +223,7 @@ document.body.appendChild(el);
 
   <div id="content_blocks" class="content"></div>
   <div id="content_console" class="content">
-       <span class="icon" id="tipsGeneric"><tt>Ctrl+Insert</tt> to copy and <tt>Shift+Insert</tt> to paste</span>
+       <span class="icon" id="tipsGeneric">...</span>
     <tr height="25%" id="termTR">
      <td>
         <div style="display:inline-block; vertical-align:top; ">
@@ -234,17 +234,17 @@ document.body.appendChild(el);
      <td>
         <div id="file-boxes" >
 
-            <button onclick="Tool.runPython(); return false;">Run block based program</button>
+            <button id="consoleRunBlocks" onclick="Tool.runPython(); return false;">...</button>
       <br>
       <br>
-            <button onclick="Tool.stopPython(); return false;">Stop running program</button>
-            <button onclick="Tool.softReset(); return false;">Soft reset device</button>
+            <button id="consoleStopProgram" onclick="Tool.stopPython(); return false;">...</button>
+            <button id="consoleSoftReset" onclick="Tool.softReset(); return false;">...</button>
       <br>
       <br>
-      <button  onclick="Files.run(UI ['workspace'].content_file_name.value); return false;">Run edited Python File</button>
+      <button id="consoleRunEditedFile" onclick="Files.run(UI ['workspace'].content_file_name.value); return false;">...</button>
       <br>
       <br>
-      <button onclick="term.write('\x1bc');  ">Clear terminal output</button>
+      <button id="consoleClearOutput" onclick="term.write('\x1bc');  ">...</button>
 
       <!--
             <div class="file-box">
@@ -262,9 +262,9 @@ document.body.appendChild(el);
       -->
     </div>
     <label for="EasyMQTT_bridge" class="checkswitch">
-        Bridge data to EasyMQTT
+        <span id="consoleBridgeData">...</span>
         <input type="checkbox" id="EasyMQTT_bridge" class="checkswitch" value="off">
-        <button id="settingsGeneric" class="notext icon" title="Configure EasyMQTT bridge" style="height: 1.5rem; padding: 0 0.25rem;" onclick="window.open('easymqtt_bridge.html','popup','width=600,height=600'); return false;" target="popup"></button>
+        <button id="settingsGeneric" class="notext icon" title="..." style="height: 1.5rem; padding: 0 0.25rem;" onclick="window.open('easymqtt_bridge.html','popup','width=600,height=600'); return false;" target="popup"></button>
         <span></span>
       </label>
     </td>
