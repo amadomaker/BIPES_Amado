@@ -15,7 +15,7 @@ var MSG = {
   cardTitle3: "Simplicity in development",
   cardDescription3:
     "With our tool, you can prototype and implement your ideas in minutes, directly from the browser, without the need for complex installations or advanced configurations.",
-  footerMessage: "© 2024 Dblocks® - All rights reserved",
+  footerMessage: "© {year} Dblocks® - All rights reserved",
   communityFooter: "Community",
   projectsFooter: "Projects",
   communitySidebar: "Community",

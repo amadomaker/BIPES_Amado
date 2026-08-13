@@ -126,7 +126,9 @@ Code.initLanguage = function () {
     document.getElementById("cardTitle3").textContent = MSG["cardTitle3"];
     document.getElementById("cardDescription3").textContent =
       MSG["cardDescription3"];
-    document.getElementById("footerMessage").textContent = MSG["footerMessage"];
+    document.getElementById("footerMessage").textContent = MSG[
+      "footerMessage"
+    ].replace("{year}", new Date().getFullYear());
   });
 };
 
